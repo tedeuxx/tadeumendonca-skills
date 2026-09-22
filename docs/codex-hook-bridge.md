@@ -631,15 +631,33 @@ into a position.
 
 ### What this slice does NOT settle, and what it would take
 
-- **Whether a plugin-carrier hook command resolves a RELATIVE path, and against what.** The
+- ~~**Whether a plugin-carrier hook command resolves a RELATIVE path, and against what.** The
   carrier registers `python3 scripts/codex-hook-adapter.py`, which is the spelling slice A's
   fixture used and `plugin/read` reported as a registration — but slice A never ran it, and every
   turn phase registered an **absolute** path. So *the manifest is read* is measured and *the
-  command is found* is not. **This blocks any claim the floor is active on Codex.** ~~One trusted
-  turn against a carrier-registered relative command settles it; this slice is not authorised for
-  a model turn.~~
+  command is found* is not.~~
 
-  **The REMEDY is struck 2026-09-16 as KNOWN-INSUFFICIENT, while the question above stands OPEN.**
+  **STRUCK 2026-09-22, and the two halves went false on different days.** *The question:* §15
+  measured a relative command resolving against the session's cwd, and §16 measured the shipped
+  registration producing **zero** adapter invocations for exactly that reason — so it was answered
+  before this slice began. *The registration:* §17 repairs it, and the carrier now registers
+  `python3 ${PLUGIN_ROOT}/scripts/codex-hook-adapter.py` — **so this clause was falsified by the
+  very slice that is striking it.** Struck rather than edited because it is the sentence that told
+  a reader the question was open, and it sits in the section titled *what is NOT settled*, which is
+  the section a reader planning Codex work opens first.
+
+  **This blocks any claim the floor is active on Codex.** That conclusion is **UNCHANGED** and is
+  deliberately left outside the strike, because it is still true. What moved is its *reason*:
+  §17.3 now carries it, for three reasons that have nothing to do with a relative path. **A wrong
+  reason for a right answer is the harder of the two to notice**, which is why this sentence says
+  so rather than quietly re-basing.
+
+  ~~One trusted turn against a carrier-registered relative command settles it; this slice is not
+  authorised for a model turn.~~
+
+  **The REMEDY is struck 2026-09-16 as KNOWN-INSUFFICIENT,** ~~while the question above stands OPEN.~~
+  **The question is CLOSED as of 2026-09-22 — see §17.** The remainder of this paragraph is kept
+  as the record of two turns that did not settle it, which is still worth having.
   Two such turns have now been run and neither settled it: the first appeared to and was
   withdrawn, the second probed where this harness's two Codex layers disagree and found the floor
   not acting at all. **A third turn buys nothing, and a standing sentence saying otherwise sends
@@ -650,7 +668,12 @@ into a position.
   ~~**SETTLED 2026-09-15 by the owner's native run, and it resolved against the SESSION's working
   directory.** The hook was found, trusted and executed; `git push origin main` was blocked by
   `PreToolUse` upstream of Git, the remote and branch protection.~~ **THAT DISCHARGE IS WITHDRAWN
-  2026-09-16 and the bullet above stands OPEN again.** A second native run found that the command
+  2026-09-16** ~~and the bullet above stands OPEN again.~~ **— the WITHDRAWAL stands; the REOPENING
+  does not.** The bullet above is struck and the question is closed (§17). This clause was true from
+  2026-09-16 and went false on 2026-09-21; it is struck rather than deleted because it is a **third**
+  carrier of the same falsehood, and it was found only by running a selector keyed on *stands OPEN*
+  beside the two keyed on the registration and on the word *relative* — **neither of which reaches
+  this sentence.** A second native run found that the command
   the first one used to prove the hook — `git push origin main` — is forbidden by this
   repository's *other* Codex containment layer, so the refusal was never attributable; re-probed
   with a command the two layers disagree on, the floor did **not** act. **The strike is kept
@@ -1416,7 +1439,12 @@ produce a silent floor on this carrier, and which one produced 09-16 is not deci
 **So *available, never active* remains the right wording for the carrier's own route** — and for a
 **measured** reason now rather than an unproven one. Nothing in this section licenses dropping it.
 
-### 16.6 · The mitigation, named and NOT measured
+### 16.6 · ~~The mitigation, named and NOT measured~~ — MEASURED 2026-09-22, see section 17
+
+**Struck in place rather than edited away: this is the section a reader would have taken
+*"the repair rests on nothing"* from**, and it stood while the measurement that settles it
+had already landed in this tree's own instrument. The strings read below is unchanged and is
+still correct about what it establishes; what is false is the conclusion at the end of it.
 
 The obvious repair is to stop registering a relative command. The bundle carries a token group that
 looks like the intended mechanism:
@@ -1436,12 +1464,18 @@ that these four names exist **somewhere in the binary's string table** — not t
 an environment variable, not that any is a substitution token, and not that a hook process ever
 sees one.
 
-**That is a read of strings in a binary and NOTHING MORE.** Whether the runtime exposes them as
+~~**That is a read of strings in a binary and NOTHING MORE.** Whether the runtime exposes them as
 environment variables to a hook process, as `${…}` substitution inside a registered command, or in
 neither form, **is not measured** — and the difference decides whether the repair is one character
 of `codex-hooks.json` or a bootstrap script. **What would settle it: one turn with a carrier-
 registered recorder that dumps its own environment and its argv**, which is a second measurement and
-is deliberately not taken here.
+is deliberately not taken here.~~
+
+**STRUCK 2026-09-22.** The turn it names was run — a carrier-registered recorder that dumped
+its own environment and its argv — and the answer is **BOTH mechanisms, not one**: the four
+names are injected as environment variables AND the token expands inside the declared command.
+**Section 17 carries the readings, the repair, and what the repair still does not make true.**
+The strike is kept because this paragraph is the one that told a reader the question was open.
 
 ### 16.7 · Containment
 
@@ -1468,3 +1502,100 @@ silent* and *the command was not found* two observations rather than one), that 
 appends rather than replaces, that the config control is pinned by source **name**, and — the arm
 that matters most — **that the phase does not assert the carrier route fired**, which is the
 measurement it exists to take.
+
+## 17 · THE REPAIR — `${PLUGIN_ROOT}` is measured, and the shipped registration now uses it
+
+**Section 16.6 said the mitigation was not measured. It is, and this section is where that stops
+being true.** The `carrierroot` phase was run on 2026-09-22 against `codex-cli 0.151.0-alpha.7.2`
+and its readings are pinned in the instrument that took them, `scripts/codex-hook-probe.py`'s
+`ROOT_MEASURED`. **16.6 is struck in place rather than edited away** — it is the sentence a reader
+would have taken *"this repair rests on nothing"* from, and it stood while a commit in this same
+tree had already settled it.
+
+### 17.1 · What was measured, and the shape of the reading
+
+```
+python3 -c "
+import importlib.util as i
+s = i.spec_from_file_location('p', 'scripts/codex-hook-probe.py')
+m = i.module_from_spec(s); s.loader.exec_module(m)
+print(m.ROOT_MEASURED)"
+```
+
+| reading | value |
+|---|---|
+| environment names injected on the **plugin** route | `CLAUDE_PLUGIN_DATA` · `CLAUDE_PLUGIN_ROOT` · `PLUGIN_DATA` · `PLUGIN_ROOT` |
+| environment names injected on the **config** route | **none** |
+| `${…}` expansion inside the declared command | **observed**, in both the `${X}` and the bare `$X` spelling |
+| values are **per plugin** | yes — packages A and B received four different values each |
+| `CODEX_PLUGIN_ROOT` | **does not exist**, under either mechanism |
+| an **unset** name | **removes its whole argument** — 9 declared arrived as 7, every later index shifted, no error raised |
+| `cwd` | the **session's** project directory on both routes |
+
+**Two mechanisms, not one, and they are available at different moments.** A hook process can read
+the value out of its own environment *after* it starts, and the runtime also expands the token
+*before* it starts. Only the second can decide where the interpreter looks for a file, which is why
+the repair is a token in the command string rather than a bootstrap script that reads `os.environ`.
+
+### 17.2 · The repair, and the one thing it deliberately does not do
+
+```
+- "command": "python3 scripts/codex-hook-adapter.py"
++ "command": "python3 ${PLUGIN_ROOT}/scripts/codex-hook-adapter.py"
+```
+
+**`PLUGIN_ROOT` rather than `CLAUDE_PLUGIN_ROOT`, and the reason is a rule rather than a
+measurement.** Both were injected and both expand, so nothing separates them mechanically. What
+separates them is this repository's own portable-brief rule: an artifact addressed to other
+machinery names no harness-specific token. `codex-hooks.json` is a Codex config, and spelling a
+Claude-shaped name inside it is the same mistake `AGENTS.md` exists to prevent, one layer down.
+
+**It is UNQUOTED, and that is a residual rather than a decision.** Expansion here was measured to
+behave as shell word-splitting — an unset name does not arrive empty, it *vanishes* — so the
+expansion is unquoted by the runtime. **Whether a quoted token survives, and whether a quoted value
+carrying a space survives, is NOT MEASURED**: settling it costs another Codex turn and that spend
+was declined. So the shipped form is the one directly measured to expand, and **the cost is stated
+rather than guarded: a plugin-cache path containing a space would word-split and the launch would
+fail.** On this machine it does not — the cache path is
+`<CODEX_HOME>/plugins/cache/<marketplace>/<plugin>/<version>/` and every segment is an identifier —
+but that is a fact about this installation, not about the runtime.
+
+**And `CODEX_PLUGIN_ROOT` is the plausible spelling that would have been wrong.** It is the name a
+reader invents from the harness's own vocabulary, it was measured not to exist, and an unset name
+here does not fail loudly: `${CODEX_PLUGIN_ROOT}/scripts/…` collapses to `/scripts/…`, an absolute
+path at the filesystem root, the launch fails, and section 16.4's trap fires — the runtime's
+blanket denial is indistinguishable from the floor holding. `codex-hook-adapter.test.py` asserts
+membership in the measured set for exactly that reason, and derives the set from `ROOT_MEASURED`
+rather than restating it.
+
+### 17.3 · What this does NOT make true
+
+**It does not make the floor active on Codex, and no sentence here may be read that way.** Three
+things stand between this commit and a held floor, and **none of them is in this repository**:
+
+1. **The plugin must be updated on the Codex side.** Measured 2026-09-22, the installed cache is at
+   a version that still carries the relative command, so the repair is not live there until the
+   owner updates.
+2. **The registration must be TRUSTED.** Trust is a `[hooks.state."…"] trusted_hash` table in the
+   invoking user's own `config.toml`, and none of this carrier's registrations has one.
+3. **The route is measured firing on ONE build.** `0.151.0-alpha.7.2` is what this machine has;
+   the 2026-09-16 non-firing on `0.154.0-alpha.6.2` is neither reproduced nor refuted, and section
+   16.5's *build is the surviving explanation, unverified* is untouched by this slice.
+
+**So the wording does not move to *active*.** What moves is narrower and worth saying exactly: the
+carrier's registration was *known not to execute*, for a named reason, and that reason is repaired.
+Whether it now executes is **unverified** — no turn was run in this slice — and a repair verified
+only by its own test suite is a repair, not an observation.
+
+### 17.4 · What holds this section
+
+**The repair itself is gated:** `scripts/codex-hook-adapter.test.py` asserts the argument opens with
+a `${NAME}/` expansion, that the name is one measured as injected *and ends `_ROOT`* (`PLUGIN_DATA`
+expands cleanly and points at the wrong directory), and that the argument carries the token, the
+in-package path and nothing else. Every arm was calibrated by mutating the **source** — the relative
+form, `CODEX_PLUGIN_ROOT`, `PLUGIN_DATA`, a quoted token, a mid-word token and a trailing argument
+each redden at least one arm, and the file re-greens on restore.
+
+**What no arm can assert is that the repaired command LAUNCHES**, because nothing in CI starts a
+Codex process. That is `codex-hook-probe.py`'s subject and needs a binary. The honest state is:
+the spelling is pinned to the measurement, and the execution is owed a turn.

@@ -439,6 +439,91 @@ check(set(regs[0]["hooks"][0]) == {"type", "command"} if regs else False,
       "carrier — only the two keys the probe fixture registered with. An unrecognised key "
       "risks a parse this repository has already measured failing SILENTLY")
 
+# ── 8b · the adapter path is ROOT-ANCHORED, and the anchor is a MEASURED name ──────────
+#
+# WHY THIS BLOCK EXISTS. The shipped registration carried `python3 scripts/codex-hook-
+# adapter.py` and was measured NOT EXECUTING through the plugin carrier: a relative command
+# resolves against the SESSION's cwd, which for an installed plugin is the wrong directory
+# by construction — the adapter sits in the plugin cache and the runtime looked for it under
+# the project (bridge document, section 16.3).
+#
+# AND THE FAILURE IS WORSE THAN AN ABSENT FLOOR, which is what makes these arms mandatory
+# rather than tidy. When a hook's command cannot be launched this runtime denies ONE LAYER
+# ABOVE the guard — `hook_run_statuses` reads `blocked`, the SAME status a real floor
+# decision produces. So a broken carrier reads, to anyone watching, exactly like the
+# permission floor working correctly. Nothing downstream can tell the two apart except the
+# adapter's own invocation log, and by then the session is already stopped.
+#
+# THE ALLOWED NAMES ARE DERIVED, NEVER RESTATED. `scripts/codex-hook-probe.py` carries the
+# measurement (`ROOT_MEASURED`) in the artifact that took it; hardcoding a second copy here
+# would make this arm a check of one string against another string rather than against the
+# evidence. If a later build re-runs the phase and the injected set moves, these arms move
+# with it.
+
+probe_mod = None
+probe_err = ""
+try:
+    import importlib.util as _ilu
+    _spec = _ilu.spec_from_file_location(
+        "codex_hook_probe_for_adapter_test", str(ROOT / "scripts" / "codex-hook-probe.py"))
+    probe_mod = _ilu.module_from_spec(_spec)
+    _spec.loader.exec_module(probe_mod)
+except Exception as exc:                                      # pragma: no cover
+    probe_err = repr(exc)
+
+# A failure to import is asserted on rather than skipped. A skip here is a vacuous green —
+# exactly the shape this repository keeps paying for — because every arm below would simply
+# stop running and the totals would still look plausible.
+check(probe_mod is not None and isinstance(
+          getattr(probe_mod, "ROOT_MEASURED", None), dict),
+      "carrier root — the measurement artifact imports and carries ROOT_MEASURED, or the "
+      "arms below assert nothing at all %s" % probe_err)
+
+measured = getattr(probe_mod, "ROOT_MEASURED", {}) or {}
+injected = set(measured.get("env_names_injected_on_plugin_route") or [])
+# ROOT names only. PLUGIN_DATA and CLAUDE_PLUGIN_DATA were injected too and point at a
+# DIFFERENT directory, so an arm that accepted any injected name would wave through a
+# command that expands cleanly and still cannot find the adapter.
+root_names = {n for n in injected if n.endswith("_ROOT")}
+
+check(bool(root_names),
+      "carrier root — at least one injected name ends _ROOT, or the allowed set is empty "
+      "and the membership arm below could never fail")
+
+adapter_arg = cmd.split(" ", 1)[1] if " " in cmd else ""
+
+check(not adapter_arg.startswith("scripts/"),
+      "carrier root — the adapter argument is NOT the bare relative path measured failing "
+      "to launch through the installed carrier")
+
+import re as _re
+_tok = _re.match(r"^\$\{([A-Z_]+)\}/", adapter_arg)
+check(_tok is not None,
+      "carrier root — the argument OPENS with a ${NAME}/ expansion. A token anywhere later "
+      "in the word still leaves a relative leading segment, which resolves against the "
+      "session cwd exactly as the broken form did: %r" % adapter_arg)
+
+token_name = _tok.group(1) if _tok else ""
+check(token_name in root_names,
+      "carrier root — the token names a root variable MEASURED as injected on the plugin "
+      "route (%s). CODEX_PLUGIN_ROOT is the plausible spelling and was measured NOT TO "
+      "EXIST under either mechanism, and an unset name does not arrive empty here — the "
+      "word collapses to a filesystem-root path, the launch fails, and the runtime's "
+      "blanket denial is indistinguishable from the floor holding. Got %r"
+      % (",".join(sorted(root_names)) or "<none>", token_name))
+
+check(adapter_arg == "${%s}/scripts/%s" % (token_name, ADAPTER.name) if token_name else False,
+      "carrier root — the argument is the token, then the in-package path, and NOTHING "
+      "ELSE. It is deliberately UNQUOTED: expansion here was measured to word-split (an "
+      "unset name drops its whole argument), and whether a quoted token survives is "
+      "UNMEASURED, so a quoted form would be shipping on an assumption. The cost is "
+      "stated rather than guarded — a plugin-cache path containing a space would split")
+
+check(measured.get("expansion_observed") is True
+      and measured.get("per_plugin_values") is True,
+      "carrier root — the repair rests on expansion being observed AND the value being "
+      "per-plugin. A generic value would resolve and point at another package's tree")
+
 events = set(hooks_doc.get("hooks", {}))
 CODEX_EVENTS = {"Interrupt", "PermissionRequest", "PostCompact", "PostToolUse",
                 "PreCompact", "PreToolUse", "SessionEnd", "SessionStart", "Stop",

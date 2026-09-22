@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 scripts/codex-hook-adapter.py"
+            "command": "python3 ${PLUGIN_ROOT}/scripts/codex-hook-adapter.py"
           }
         ]
       }
