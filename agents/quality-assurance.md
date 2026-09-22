@@ -1015,20 +1015,57 @@ not.
      harness PR rather than argued from the rule:**
 
      ```
+     # STRUCK 2026-09-22 — the FIGURE holds and the LIMB does not. Do not run this form.
      gh pr view 454 --repo tedeuxx/tadeumendonca-skills --json headRefOid,comments --jq '
        .headRefOid as $h
        | {markers_total:   [.comments[]|select(.body|test("harness-lead-verdict"))]|length,
           markers_at_head: [.comments[]|select(.body|test("harness-lead-verdict"))
                                       |select(.body|contains($h))]|length}'
-     # -> {"markers_total":3,"markers_at_head":1}
+     # -> {"markers_total":3,"markers_at_head":1}    re-derived 2026-09-22: unchanged
      # CALIBRATION — the gate's own marker on the same PR, same predicate: 3 total, 1 at head.
      # Identical shape; the difference is that rule 7c head-scopes the gate's and NOTHING
      # head-scoped this one, so two of those three markers cleared hold 2 while attesting a diff
      # the PR no longer points at.
      ```
 
+     **~~`|select(.body|contains($h))`~~ — the LIMB is struck 2026-09-22, in BOTH directions, and
+     what you apply is the SENTENCE ABOVE rather than that command.** It **over**-counts, because
+     `contains` matches the SHA anywhere in a body — so a marker that MENTIONS an older SHA in its
+     prose, precisely to say it does not attest this diff, is read as attesting it. And it
+     **under**-counted, because `headRefOid` is forty characters and the producing brief permitted
+     an abbreviated `commit:` line until the same date; that half is closed in
+     `agents/agents-lead.md`, which now requires the full forty. **The PR 454 example could never
+     have shown either, because both limbs return 3 and 1 on it** — which is why this sat here for
+     two weeks. **Use the corrected form, whose calibration discriminates:**
+
+     ```
+     gh pr view 493 --repo tedeuxx/tadeumendonca-skills --json headRefOid,comments --jq '
+       .headRefOid as $h
+       | {markers_total:   [.comments[]|select(.body|test("harness-lead-verdict"))]|length,
+          markers_at_head: [.comments[]|select(.body|test("harness-lead-verdict"))
+                                      |select(.body|test("(^|\n)commit: " + $h))]|length}'
+     # -> {"markers_total":2,"markers_at_head":1}   measured 2026-09-22, head ee0ca4698b4f3a18…
+     #
+     # DISCRIMINATION — the same corpus, the stale SHA DERIVED FROM THE ARTIFACT rather than typed.
+     # PR 493 carries two markers, each naming its own head, so the honest answer at either is 1:
+     gh pr view 493 --repo tedeuxx/tadeumendonca-skills --json comments --jq '
+       ([.comments[]|select(.body|test("harness-lead-verdict"))
+         |(.body|capture("(^|\n)commit: (?<c>[0-9a-f]{40})").c)]|first) as $stale
+       | {stale: $stale,
+          struck_limb:    [.comments[]|select(.body|test("harness-lead-verdict"))
+                                     |select(.body|contains($stale))]|length,
+          corrected_limb: [.comments[]|select(.body|test("harness-lead-verdict"))
+                                     |select(.body|test("(^|\n)commit: " + $stale))]|length}'
+     # -> {"stale":"10c640e27d909512a4b9c96fdcc0671ffa0e63ff","struck_limb":2,"corrected_limb":1}
+     ```
+
+     **Nothing about hold 2 loosens here.** The hold is what it was on 2026-09-11 — a marker whose
+     `commit:` line names the `headRefOid` you read — and the sentence was already right. What
+     changed is the command beside it, which did not implement it. A marker you cannot match under
+     the corrected form is still a missing reviewer at this head.
+
      **You already hold the payload this needs.** ADR-0006 makes you read `headRefOid` for your own
-     verdict; this is the same `$h`, the same containment test, on the same response. **It is not an
+     verdict; this is the same `$h`, compared against the marker's own `commit:` line, on the same response. **It is not an
      expansion of your authority** and does not trip hold 1 — it makes an existing hold stricter,
      which is the direction hold 1 exists to protect.
 
