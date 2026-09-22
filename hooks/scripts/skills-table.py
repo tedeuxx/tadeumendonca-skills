@@ -15,7 +15,8 @@ visible rather than deleted because between them they record what the grouping c
 directory to a frontmatter key and back again in two slices, and each move rewrote this generator and
 three assertions in `inventory-counts.test.sh`. The reason the directories existed at all — a human
 reading 69 files should not meet an alphabetical pile — is a claim about a denominator that has since
-fallen to 13. That history is written up in `CLAUDE.md`, not re-argued here.
+fallen to 13. That history is written up in `docs/command-reference.md` (it was in `CLAUDE.md`
+until 2026-09-22), not re-argued here.
 
 WHAT THE FLATTEN COST THIS FILE, said rather than left to look free: allocation was a per-FAMILY map
 with three per-skill exceptions, which was compact and could not state the truth for those three. It is

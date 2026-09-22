@@ -1140,6 +1140,16 @@ not the loader, so it catches a broken reference rather than a broken loader.
 
 The library: 15 skills, one directory each, at one level under `skills/`.
 
+**The table below is GENERATED — its second column is each skill's own first line of body, written by
+`hooks/scripts/skills-table.py`. The AUTHORED per-skill catalogue is
+[`docs/command-reference.md`](./docs/command-reference.md)**, which carries what each command is for
+at length, plus the consolidation history that produced this tree (#229/#230/#231/#286). It was
+`CLAUDE.md`'s `## Command reference` section until 2026-09-22, when that file crossed the harness's
+150,000-character limit. **Nothing asserts the two agree** — one is derived and one is authored — and
+only the authored one has a row-per-skill arm behind it in
+`hooks/scripts/inventory-counts.test.sh`, deliberately: an arm pointed at a generated table is a
+green that cannot redden for the reason it exists.
+
 | skill | what it decides | whose domain |
 |---|---|---|
 | `agents-configuration` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
@@ -1955,7 +1965,7 @@ start itself, but a merge **cannot happen without it** — the gate is unskippab
 install, with no configuration. (Subject to the fail-open caveat above: the natural command is
 gated, the raw API call is a named gap.)
 
-[`CLAUDE.md`](./CLAUDE.md) is the full command reference and the versioning contract. The engineering
+[`docs/command-reference.md`](./docs/command-reference.md) is the full command reference; [`CLAUDE.md`](./CLAUDE.md) is the versioning contract, the orchestrator's own duties and boundary, and the four blocks that bind the main session. **The catalogue was a section of `CLAUDE.md` until 2026-09-22**, when that file crossed the harness's 150,000-character limit. The engineering
 floor lives [above](#the-engineering-floor-the-whole-library-encodes) rather than in a file of its own —
 a floor behind a click is a floor nobody reads.
 
