@@ -1512,11 +1512,411 @@ def phase_carrierfire(binary, work, report):
             "than an uninvoked hook and must not pass.")
 
 
+# ---------------------------------------------------------------------------
+# Phase: carrierroot — WHAT THE RUNTIME HANDS A CARRIER-REGISTERED HOOK
+# ---------------------------------------------------------------------------
+#
+# THE ONE QUESTION. `carrierfire` established two things on this build: a plugin-carrier
+# registration FIRES, and the SHIPPED registration does not execute because its command
+# is RELATIVE (`python3 scripts/codex-hook-adapter.py`) and resolves against the session
+# cwd, which for an installed plugin is the wrong directory by construction. Repairing
+# that requires knowing what the runtime gives the hook process to resolve a path WITH,
+# and `carrierfire` deliberately did not take that measurement: the shipped bundle's
+# string table carries `PLUGIN_ROOT`, `PLUGIN_DATA` and — only inside a CONCATENATED RUN —
+# `CLAUDE_PLUGIN_ROOT`, which establishes that the names exist as bytes and nothing else.
+#
+# THE THREE CANDIDATES, and the reading that separates each from the others:
+#
+#   an ENVIRONMENT VARIABLE   -> the name appears in the hook process's own environment
+#   a ${...} TOKEN in the command -> the declared literal comes back EXPANDED in argv
+#   NEITHER                   -> argv carries the literals, the environment carries no
+#                                such name, and cwd is whatever the session's was
+#
+# WHY THE RECORDER DUMPS ALL THREE AT ONCE. They are not mutually exclusive and a probe
+# that tested one at a time would report the first hit and stop — the failure the twelfth
+# principle names. One recorder, one turn, three readings.
+#
+# THE CALIBRATION, and it is the half that makes an absence mean anything. Two controls
+# ride in the same argv as the real names:
+#
+#   ${PROBE_CONTROL_TOKEN}      exported into the app-server's environment by this phase.
+#                               If expansion exists at all, this comes back as the
+#                               sentinel. If it comes back literal, NOTHING expands and
+#                               an unexpanded CLAUDE_PLUGIN_ROOT says nothing about that
+#                               name specifically.
+#   ${PROBE_ABSENT_TOKEN_ZZZ}   a name nothing anywhere sets. It is what an UNSET name
+#                               does under this runtime's expansion — empty string, or
+#                               left literal — and without it an empty argv slot for
+#                               CLAUDE_PLUGIN_ROOT could not be told from a dropped one.
+#
+# The same sentinel is the positive control for the ENVIRONMENT reading: it is in the
+# parent environment, so if it is absent from the hook process's own environment the
+# runtime scrubs the environment wholesale and the absence of a plugin name is a reading
+# about scrubbing rather than about that name.
+#
+# WHY TWO PACKAGES. A single value proves a name exists; it does not prove the value is
+# THIS plugin's root, which is the only property a repair can use. Two installed carriers
+# each register their own recorder, so a per-plugin value is directly readable as two
+# different strings and a generic one as the same string twice.
+#
+# BOTH REGISTRATIONS IN PACKAGE A ARE DELIBERATE. The token-bearing command could fail to
+# launch — an unknown token, a parse refusal — and on this runtime a hook whose command
+# cannot be launched produces a BLANKET SESSION DENIAL (`carrierfire` section 4). The
+# no-argument registration is what keeps the environment reading obtainable in that case,
+# because `carrierfire` also measured that a sibling registration still records when one
+# of them cannot launch.
+
+CARRIER_ROOT_A = "carrierrootalpha"
+CARRIER_ROOT_B = "carrierrootbeta"
+
+# Exported into the app-server's environment by this phase, and read back from two
+# places: the hook process's environment, and the expansion of its own ${...} token.
+ROOT_PROBE_SENTINEL = "CARRIERROOT-SENTINEL-8f21"
+
+# The names, in argv order. The first two are the controls described above; the rest are
+# every candidate #491 read out of the shipped bundle's string table.
+ROOT_BRACED_NAMES = ["PROBE_CONTROL_TOKEN", "PROBE_ABSENT_TOKEN_ZZZ",
+                     "CLAUDE_PLUGIN_ROOT", "PLUGIN_ROOT", "CODEX_PLUGIN_ROOT",
+                     "CLAUDE_PLUGIN_DATA", "PLUGIN_DATA"]
+# The bare-dollar spelling is measured too: the run-on strings gave no bracing
+# information, so assuming one spelling would be an analogy.
+ROOT_BARE_NAMES = ["CLAUDE_PLUGIN_ROOT", "PLUGIN_ROOT"]
+
+
+# ---------------------------------------------------------------------------
+# WHAT THIS PHASE MEASURED. codex-cli 0.151.0-alpha.7.2, 2026-09-22, one turn.
+# Pinned as DOCUMENTATION and reported as `pinned_agreement`, NOT raised on — the
+# assertion could not be exercised inside this slice's one-turn bound, and an assertion
+# nobody has watched fail is the defect this repository keeps paying for. A later build
+# re-runs the phase and reads the flag; it does not inherit the answer.
+#
+#   BOTH candidates hold, and they are DIFFERENT MECHANISMS at different moments:
+#     * four ENVIRONMENT VARIABLES are injected into the hook process
+#       (CLAUDE_PLUGIN_ROOT, PLUGIN_ROOT, CLAUDE_PLUGIN_DATA, PLUGIN_DATA)
+#     * the same names EXPAND inside the declared command string, in both the ${X} and
+#       the bare $X spelling
+#   PER PLUGIN: packages A and B received different values for every one of the four.
+#   PLUGIN ROUTE ONLY: the config/user-route registration received NONE of the four.
+#   CODEX_PLUGIN_ROOT does not exist, under either mechanism.
+#   AN UNSET NAME REMOVES ITS ARGUMENT: 9 declared arguments arrived as 7. The two that
+#   vanished are the two unset names — they did not arrive as empty strings, so every
+#   later argv index SHIFTS. That is shell word-splitting behaviour and it is the one
+#   property here that could silently mis-wire a repair.
+#   cwd is the SESSION's project directory on both routes, which is exactly why the
+#   shipped relative command resolved against the wrong tree.
+ROOT_MEASURED = {
+    "build": "codex-cli 0.151.0-alpha.7.2",
+    "env_names_injected_on_plugin_route": ["CLAUDE_PLUGIN_DATA", "CLAUDE_PLUGIN_ROOT",
+                                           "PLUGIN_DATA", "PLUGIN_ROOT"],
+    "env_names_injected_on_config_route": [],
+    "expansion_observed": True,
+    "unset_name_drops_its_argument": True,
+    "per_plugin_values": True,
+}
+
+
+def root_token_args():
+    """The literal argument strings the token registration declares."""
+    return (["${%s}" % n for n in ROOT_BRACED_NAMES]
+            + ["$%s" % n for n in ROOT_BARE_NAMES])
+
+
+def make_dump_recorder(path, capture):
+    """A hook that records its own argv, cwd, environment and stdin, then allows.
+
+    It exits 0 with no stdout, which is this runtime's abstain — the act under test is a
+    harmless `touch`, and letting it through is what makes the marker a control on the
+    recorder having been a hook at all rather than a refusal.
+    """
+    path.write_text(
+        "#!/usr/bin/env python3\n"
+        "import json, os, sys\n"
+        "d = " + repr(str(capture)) + "\n"
+        "try:\n"
+        "    payload = sys.stdin.read()\n"
+        "except Exception:\n"
+        "    payload = None\n"
+        "n = len(os.listdir(d))\n"
+        # `payload-N.json` is the name `read_payloads` selects on; a different stem here
+        # reads back as zero invocations, which is the answer this phase must not fake.
+        "with open(os.path.join(d, 'payload-%d.json' % n), 'w') as fh:\n"
+        "    json.dump({'argv': sys.argv, 'cwd': os.getcwd(),\n"
+        "               'env': dict(os.environ), 'stdin': payload}, fh)\n"
+        "sys.exit(0)\n")
+    path.chmod(0o755)
+    return path
+
+
+def build_root_package(market_root, name, capture, token_capture):
+    """A carrier package registering a dumping recorder at an ABSOLUTE command.
+
+    Absolute because `carrierfire` already established that a relative command never
+    launches — a relative one here would measure that finding again instead of this one.
+    """
+    pkg = market_root / name
+    (pkg / "scripts").mkdir(parents=True)
+    (pkg / "skills" / name).mkdir(parents=True)
+    (pkg / "skills" / name / "SKILL.md").write_text(
+        "---\nname: " + name + "\ndescription: Use when probing the carrier root token."
+        "\n---\nFixture body.\n")
+    plain = make_dump_recorder(pkg / "scripts" / "dump-plain.py", capture)
+    handlers = [{"type": "command", "command": str(plain)}]
+    if token_capture is not None:
+        tokened = make_dump_recorder(pkg / "scripts" / "dump-tokens.py", token_capture)
+        handlers.append({"type": "command",
+                         "command": " ".join([str(tokened)] + root_token_args())})
+    write_json(pkg / ".codex-plugin" / "plugin.json", {
+        "name": name, "version": "0.0.1",
+        "description": "Carrier-root probe fixture. Not distributable.",
+        "hooks": "./codex-hooks.json", "skills": "./skills/"})
+    write_json(pkg / "codex-hooks.json", {
+        "hooks": {"PreToolUse": [{"hooks": handlers}]}})
+    return name
+
+
+ROOT_PLUGIN_NAME_HINT = "PLUGIN"
+
+
+def summarise_dumps(dumps, parent_env):
+    """Per invocation: argv, cwd, and what the RUNTIME added to the environment.
+
+    The `added` diff is against the environment this phase handed the app-server, so a
+    name the runtime injects is separated from one that was merely inherited. Without
+    that diff every inherited name would read as something the runtime supplies.
+    """
+    out = []
+    for dump in dumps:
+        env = dump.get("env") or {}
+        added = {k: v for k, v in env.items() if k not in parent_env}
+        tool = None
+        try:
+            tool = json.loads(dump.get("stdin") or "").get("tool_name")
+        except Exception:
+            tool = None
+        out.append({
+            "argv": dump.get("argv"),
+            "cwd": dump.get("cwd"),
+            "env_names_added_by_runtime": sorted(added),
+            "env_values_added_by_runtime": added,
+            "env_names_containing_plugin": sorted(
+                k for k in env if ROOT_PLUGIN_NAME_HINT in k.upper()),
+            "env_values_containing_plugin": {
+                k: v for k, v in env.items() if ROOT_PLUGIN_NAME_HINT in k.upper()},
+            "control_sentinel_in_env": env.get("PROBE_CONTROL_TOKEN"),
+            "stdin_tool_name": tool,
+        })
+    return out
+
+
+def phase_carrierroot(binary, work, report):
+    """One turn, four registrations. What does a carrier-registered hook receive?"""
+    cap_a = work / "carrierroot-capture-a"; cap_a.mkdir()
+    cap_tok = work / "carrierroot-capture-tokens"; cap_tok.mkdir()
+    cap_b = work / "carrierroot-capture-b"; cap_b.mkdir()
+    cap_cfg = work / "carrierroot-capture-config"; cap_cfg.mkdir()
+
+    home = work / "carrierroot-home"; home.mkdir()
+    project = work / "carrierroot-project"; project.mkdir()
+    seed_credential(home)
+
+    market_root = work / "carrierroot-market"
+    (market_root / ".claude-plugin").mkdir(parents=True)
+    build_root_package(market_root, CARRIER_ROOT_A, cap_a, cap_tok)
+    build_root_package(market_root, CARRIER_ROOT_B, cap_b, None)
+    marketplace = market_root / ".claude-plugin" / "marketplace.json"
+    write_json(marketplace, {
+        "name": CARRIER_MARKET_NAME, "owner": {"name": "Probe"},
+        "plugins": [{"name": CARRIER_ROOT_A, "source": "./" + CARRIER_ROOT_A},
+                    {"name": CARRIER_ROOT_B, "source": "./" + CARRIER_ROOT_B}]})
+
+    # ── install, through the vendor's own installer ────────────────────────────────
+    installer = AppServer(binary, project, disposable_env(home),
+                          work / "carrierroot-install.stderr")
+    installs = {}
+    try:
+        installer.initialize()
+        for name in (CARRIER_ROOT_A, CARRIER_ROOT_B):
+            installs[name] = install_plugin(installer, marketplace, name)
+    finally:
+        installer.close()
+
+    config = home / "config.toml"
+    enablement = config.read_text() if config.exists() else ""
+    if "[plugins." not in enablement:
+        raise Failure(
+            "plugin/install wrote no [plugins.…] enablement into the disposable "
+            "config (%r). This phase APPENDS to that block; if the installer stopped "
+            "writing it the append is preserving nothing and the trust write below "
+            "would silently disable both carriers instead." % enablement[:200])
+
+    # ── the CONFIG-route control, so a silent carrier is readable ─────────────────
+    config_recorder = make_dump_recorder(work / "carrierroot-config-rec.py", cap_cfg)
+    base = (enablement
+            + '\n[projects."' + str(project) + '"]\ntrust_level = "trusted"\n'
+            + '\n[[hooks.PreToolUse]]\n'
+            + '\n[[hooks.PreToolUse.hooks]]\ntype = "command"\ncommand = '
+            + json.dumps(str(config_recorder)) + "\n")
+    config.write_text(base)
+
+    records = list_hooks(binary, home, project, work / "carrierroot-list.stderr")
+    by_source = {}
+    for record in records:
+        by_source.setdefault(record.get("source"), []).append(record)
+    if len(by_source.get("plugin", [])) != 3:
+        raise Failure(
+            "expected three plugin-sourced registrations (two in package A, one in B); "
+            "got %s. The route this phase reads from is not present as declared, so "
+            "every reading below would be about a different fixture."
+            % [(r.get("source"), r.get("command")) for r in records])
+    if not by_source.get("user"):
+        raise Failure(
+            "the config-route control did not register (%s). Without it a zero from "
+            "the carrier route cannot be told apart from a turn that hooked nothing."
+            % [(r.get("source"), r.get("command")) for r in records])
+    if any(r["trustStatus"] != "untrusted" for r in records):
+        raise Failure("a freshly declared registration was not untrusted; the trust "
+                      "state carried over from somewhere and this home is not clean")
+
+    config.write_text(base + carrier_state_block(records))
+    trusted = list_hooks(binary, home, project, work / "carrierroot-list2.stderr")
+    if len(trusted) != len(records):
+        raise Failure(
+            "the trust write changed the REGISTRATION COUNT (%d -> %d). The enablement "
+            "key this phase appends to was not preserved, so what follows would measure "
+            "a disabled plugin rather than a runtime."
+            % (len(records), len(trusted)))
+    if any(r["trustStatus"] != "trusted" for r in trusted):
+        raise Failure("not every registration reached trusted: %s"
+                      % [(r.get("source"), r["trustStatus"]) for r in trusted])
+
+    # ── one turn, one harmless act ────────────────────────────────────────────────
+    marker = project / "CARRIERROOT_MARKER"
+    env = disposable_env(home)
+    env["PROBE_CONTROL_TOKEN"] = ROOT_PROBE_SENTINEL
+    parent_env = dict(env)
+    server = AppServer(binary, project, env, work / "carrierroot-turn.stderr")
+    try:
+        server.initialize()
+        turn = run_turn(server, project,
+                        "Run exactly one shell command and nothing else, exactly as "
+                        "written: touch " + str(marker)
+                        + " -- then reply with the single word DONE.")
+    finally:
+        server.close()
+
+    plain_a = summarise_dumps(read_payloads(cap_a), parent_env)
+    tokens = summarise_dumps(read_payloads(cap_tok), parent_env)
+    plain_b = summarise_dumps(read_payloads(cap_b), parent_env)
+    config_route = summarise_dumps(read_payloads(cap_cfg), parent_env)
+    runs = turn["hook_runs"]
+
+    declared = root_token_args()
+    observed = (tokens[0]["argv"][1:] if tokens and tokens[0].get("argv") else None)
+    expansion_happened = (observed is not None and observed != declared)
+    sentinel_expanded = bool(observed) and ROOT_PROBE_SENTINEL in observed
+
+    def plugin_names(entries):
+        seen = set()
+        for entry in entries:
+            seen.update(entry["env_names_containing_plugin"])
+        return sorted(seen)
+
+    report["carrierroot"] = {
+        "install_results": installs,
+        "registrations": [(r.get("source"), r.get("command"), r.get("pluginId"))
+                          for r in trusted],
+        "hook_run_count": len(runs),
+        "hook_run_statuses": [r["status"] for r in runs],
+        "config_route_invocations": len(config_route),
+        "package_a_plain_invocations": len(plain_a),
+        "package_a_token_invocations": len(tokens),
+        "package_b_plain_invocations": len(plain_b),
+        "declared_token_args": declared,
+        "observed_token_args": observed,
+        # THE THREE ANSWERS, each reported as its own field rather than as one verdict.
+        "candidate_env_var": {
+            "package_a": plugin_names(plain_a),
+            "package_b": plugin_names(plain_b),
+            "config_route": plugin_names(config_route),
+            "package_a_values": (plain_a[0]["env_values_containing_plugin"]
+                                 if plain_a else None),
+            "package_b_values": (plain_b[0]["env_values_containing_plugin"]
+                                 if plain_b else None),
+            "runtime_added_names_package_a": (plain_a[0]["env_names_added_by_runtime"]
+                                              if plain_a else None),
+            "runtime_added_names_config": (config_route[0]["env_names_added_by_runtime"]
+                                           if config_route else None),
+        },
+        "candidate_token_expansion": {
+            "any_expansion_observed": expansion_happened,
+            "control_sentinel_expanded": sentinel_expanded,
+            "declared": declared,
+            "observed": observed,
+        },
+        "candidate_neither": {
+            "cwd_package_a": plain_a[0]["cwd"] if plain_a else None,
+            "cwd_config_route": config_route[0]["cwd"] if config_route else None,
+            "session_cwd": str(project),
+            "installed_cache_root": str(home / "plugins" / "cache"),
+        },
+        # The calibration, reported beside the readings it qualifies.
+        "control_sentinel_in_env": {
+            "package_a": (plain_a[0]["control_sentinel_in_env"] if plain_a else None),
+            "config_route": (config_route[0]["control_sentinel_in_env"]
+                             if config_route else None),
+        },
+        "dumps": {"package_a": plain_a, "package_a_tokens": tokens,
+                  "package_b": plain_b, "config_route": config_route},
+        "marker_created": marker.exists(),
+        "project": str(project),
+        "feedback_entries": [e for r in runs for e in (r.get("entries") or [])],
+        "terminal": turn["terminal"],
+    }
+    # Reported, never raised on — see ROOT_MEASURED's own header for why.
+    report["carrierroot"]["pinned_agreement"] = {
+        "pinned": ROOT_MEASURED,
+        "env_names_injected_on_plugin_route":
+            plugin_names(plain_a) == ROOT_MEASURED["env_names_injected_on_plugin_route"],
+        "env_names_injected_on_config_route":
+            plugin_names(config_route)
+            == ROOT_MEASURED["env_names_injected_on_config_route"],
+        "expansion_observed":
+            expansion_happened == ROOT_MEASURED["expansion_observed"],
+        "unset_name_drops_its_argument":
+            (observed is not None and len(observed) < len(declared))
+            == ROOT_MEASURED["unset_name_drops_its_argument"],
+        "per_plugin_values":
+            ((plain_a[0]["env_values_containing_plugin"]
+              != plain_b[0]["env_values_containing_plugin"])
+             if (plain_a and plain_b) else None)
+            == ROOT_MEASURED["per_plugin_values"],
+    }
+
+    # ── the controls, in the order that makes a zero readable ─────────────────────
+    #
+    # NOTE WHAT IS NOT ASSERTED. This phase does not raise on any of the three candidate
+    # readings coming back negative: that is the measurement it exists to take, and an
+    # assertion in either direction would make it conclude what it was written to
+    # observe. It raises only where the RESULT IS UNINTERPRETABLE.
+    if not config_route:
+        raise Failure(
+            "THE CONFIG-ROUTE CONTROL DID NOT FIRE. This turn hooked nothing at all, so "
+            "a carrier hook's environment and argv were never observed and every "
+            "candidate field above is a reading about an absent hook.")
+    if not plain_a and not plain_b:
+        raise Failure(
+            "NO CARRIER-REGISTERED HOOK RAN, while the config-route control did. The "
+            "question this phase asks is what the runtime hands a CARRIER hook; with no "
+            "carrier invocation there is nothing to read it off. This does not "
+            "reproduce the carrierfire result, where the same route recorded.")
+
+
 OFFLINE_PHASES = {"carrier": phase_carrier, "trust": phase_trust, "routes": phase_routes}
 TURN_PHASES = {"payload": phase_payload, "block": phase_block,
                "identity": phase_identity, "stdin": phase_stdin,
                "matcher": phase_matcher, "firing": phase_firing,
-               "friction": phase_friction, "carrierfire": phase_carrierfire}
+               "friction": phase_friction, "carrierfire": phase_carrierfire,
+               "carrierroot": phase_carrierroot}
 PHASES = dict(OFFLINE_PHASES)
 PHASES.update(TURN_PHASES)
 
