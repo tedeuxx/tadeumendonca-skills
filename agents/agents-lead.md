@@ -416,11 +416,31 @@ check greps for (`agents/quality-assurance.md`), so it must appear verbatim:
 
 ```
 <!-- harness-lead-verdict: <one line: what you reviewed and your headline conclusion> -->
-commit: <the SHA of the repo state you reviewed>
+commit: <the FULL 40-character SHA of the repo state you reviewed — never abbreviated, and bare>
 
 …then your scenarios, each with what it costs, how you checked it, and the mitigation or its price;
 what you could not check; what you would leave alone.
 ```
+
+**The forty characters are a CONTRACT with the reader, not tidiness (2026-09-22).** `quality-assurance`
+compares that line against the `headRefOid` it read for its own verdict, and `headRefOid` is never
+abbreviated — so a marker carrying `commit: 10c640e2` fails a full-length comparison and **reads to the
+gate as a missing reviewer**, which is hold 2's `APPROVE-PENDING-HUMAN` on a diff you did review. The
+line asked only for *the SHA* until this date, which permitted the abbreviation; the reader's instrument
+was corrected in the same slice, and closing the gap on the WRITER's side is deliberate — loosening the
+reader to a prefix test would let a marker naming an ANCESTOR commit clear the hold.
+
+**Get it with `git -C <repo> rev-parse HEAD`, which prints the full form**, and paste it unmodified.
+
+**Bare — no backticks, no bold, no surrounding markup. The two halves of this line are NOT equally
+binding, and the difference is stated rather than flattened.** *Abbreviation is forbidden*: no reader
+can absorb it, because the only tolerance that would is a prefix test, and a prefix test clears a
+marker naming an **ancestor** commit — the exact staleness hold 2 exists to catch. *Markup is asked
+for and not load-bearing*: the reader tolerates a SHA wrapped in backticks or bold, so a decorated
+marker is read correctly. **That tolerance exists because nine of the 148 markers on the 80 most
+recent PRs are code-formatted — PRs 417 through 484, the most recent merged 2026-09-21 — and a
+bare-only reader would have converted every one of them into a false missing-reviewer.** Stay bare
+anyway: it keeps the artifact uniform, and it is the spelling 130 of those 148 already use.
 
 This is not a gate and does not decide "safe or merge" — that stays `quality-assurance`'s call, on both
 its lenses, on every diff including this one. Posting the marker only makes your review a checkable

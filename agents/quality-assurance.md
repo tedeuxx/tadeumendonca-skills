@@ -1015,20 +1015,84 @@ not.
      harness PR rather than argued from the rule:**
 
      ```
+     # STRUCK 2026-09-22 — the FIGURE holds and the LIMB does not. Do not run this form.
      gh pr view 454 --repo tedeuxx/tadeumendonca-skills --json headRefOid,comments --jq '
        .headRefOid as $h
        | {markers_total:   [.comments[]|select(.body|test("harness-lead-verdict"))]|length,
           markers_at_head: [.comments[]|select(.body|test("harness-lead-verdict"))
                                       |select(.body|contains($h))]|length}'
-     # -> {"markers_total":3,"markers_at_head":1}
+     # -> {"markers_total":3,"markers_at_head":1}    re-derived 2026-09-22: unchanged
      # CALIBRATION — the gate's own marker on the same PR, same predicate: 3 total, 1 at head.
      # Identical shape; the difference is that rule 7c head-scopes the gate's and NOTHING
      # head-scoped this one, so two of those three markers cleared hold 2 while attesting a diff
      # the PR no longer points at.
      ```
 
+     **~~`|select(.body|contains($h))`~~ — the LIMB is struck 2026-09-22, in BOTH directions, and
+     what you apply is the SENTENCE ABOVE rather than that command.** It **over**-counts, because
+     `contains` matches the SHA anywhere in a body — so a marker that MENTIONS an older SHA in its
+     prose, precisely to say it does not attest this diff, is read as attesting it. And it
+     **under**-counted, because `headRefOid` is forty characters and the producing brief permitted
+     an abbreviated `commit:` line until the same date; that half is closed in
+     `agents/agents-lead.md`, which now requires the full forty. **The PR 454 example could never
+     have shown either, because both limbs return 3 and 1 on it** — which is why this sat here for
+     two weeks. **Use the corrected form, whose calibration discriminates:**
+
+     ```
+     gh pr view 493 --repo tedeuxx/tadeumendonca-skills --json headRefOid,comments --jq '
+       .headRefOid as $h
+       | {markers_total:   [.comments[]|select(.body|test("harness-lead-verdict"))]|length,
+          markers_at_head: [.comments[]|select(.body|test("harness-lead-verdict"))
+                                      |select(.body|test("(^|\n)commit:[^0-9a-f\n]*" + $h))]|length}'
+     # -> {"markers_total":2,"markers_at_head":1}   measured 2026-09-22, head ee0ca4698b4f3a18…
+     #
+     # DISCRIMINATION — the same corpus, the stale SHA DERIVED FROM THE ARTIFACT rather than typed.
+     # PR 493 carries two markers, each naming its own head, so the honest answer at either is 1:
+     gh pr view 493 --repo tedeuxx/tadeumendonca-skills --json comments --jq '
+       ([.comments[]|select(.body|test("harness-lead-verdict"))
+         |(.body|capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})").c)]|first) as $stale
+       | {stale: $stale,
+          struck_limb:    [.comments[]|select(.body|test("harness-lead-verdict"))
+                                     |select(.body|contains($stale))]|length,
+          corrected_limb: [.comments[]|select(.body|test("harness-lead-verdict"))
+                                     |select(.body|test("(^|\n)commit:[^0-9a-f\n]*" + $stale))]|length}'
+     # -> {"stale":"10c640e27d909512a4b9c96fdcc0671ffa0e63ff","struck_limb":2,"corrected_limb":1}
+     ```
+
+     **The sharpest instance of the over-count was YOUR OWN VERDICT, and it is measured rather than
+     reasoned.** Over the 80 most recent PRs, on **three** of them — 412, 396 and 389 — the only body
+     satisfying the struck limb at head was the gate's own verdict comment: it quotes this literal in
+     hold 2's prose, so it matches `test("harness-lead-verdict")`, and it carries the head on its own
+     `head:` line, so it matched `contains($h)`. **Hold 2 cleared itself, with no lens marker at head
+     at all.** The `commit:` anchor excludes it — the corrected limb returns **0** on all three, which
+     is the correct answer. (`zombie-loop-detect.sh` was never exposed to this: its own arm excludes
+     gate verdicts with `select(startswith($g) | not)`.)
+
+     **`[^0-9a-f\n]*` tolerates MARKUP and nothing else, and you must not read it as a softening of
+     this hold.** It admits the same forty characters wrapped in backticks or bold and **no other
+     SHA** — any hex character between `commit:` and the SHA stops the class, so an abbreviated line
+     cannot slide into a longer match. **Measured 2026-09-22 over the 148 markers on the 80 most
+     recent PRs: 130 bare, 9 wrapped in backticks with the full forty (PRs 417 through 484 — the most
+     recent merged the day before), 9 abbreviated.** A bare-only capture would refuse those nine and
+     you would hold a diff that WAS reviewed. **The nine abbreviated ones still fail, deliberately**
+     — that half is closed on the writer's side in `agents/agents-lead.md`, because absorbing it here
+     would mean a prefix test, and a prefix test clears a marker naming an ANCESTOR commit.
+
+     **The subset property you rely on for hold 1 is preserved and was verified, not assumed:** the
+     tolerant limb is still a strict subset of `contains($h)` — every body it accepts contains `$h`
+     — so hold 2 can only be stricter than the struck form, never looser. Ten spellings were checked,
+     including *SHA only in prose*, *`commit:` line naming another SHA while the prose cites this
+     one*, *`commit:` not line-initial* and *`commit:` line with the SHA two lines below*: the
+     tolerant limb rejects all four and gains exactly the two decorated forms over a bare-only
+     capture.
+
+     **Nothing about hold 2 loosens here.** The hold is what it was on 2026-09-11 — a marker whose
+     `commit:` line names the `headRefOid` you read — and the sentence was already right. What
+     changed is the command beside it, which did not implement it. A marker you cannot match under
+     the corrected form is still a missing reviewer at this head.
+
      **You already hold the payload this needs.** ADR-0006 makes you read `headRefOid` for your own
-     verdict; this is the same `$h`, the same containment test, on the same response. **It is not an
+     verdict; this is the same `$h`, compared against the marker's own `commit:` line, on the same response. **It is not an
      expansion of your authority** and does not trip hold 1 — it makes an existing hold stricter,
      which is the direction hold 1 exists to protect.
 
@@ -1041,7 +1105,10 @@ not.
 
      **What holds this: you do, and nothing else.** No rule reads this marker —
      `grep -rn 'harness-lead-verdict' hooks/scripts/ agents/ | grep -v '\.test\.'` returns counters,
-     comments and brief prose, never a read. The one observation that exists is
+     comments, brief prose **and exactly one genuine read**, which is the carve-out rather than an
+     exception to it: that read REPORTS and denies nothing. (~~never a read~~ — struck 2026-09-22:
+     the clause was false about the command's own output, which is the same class as the claim
+     corrected in `CLAUDE.md` this round.) The one observation that exists is
      `hooks/scripts/zombie-loop-detect.sh`, registered on **`Stop`** (`hooks/hooks.json`), which
      reports a PR whose markers are all stale **at the end of a turn** — detection, one turn late, and
      it cannot bound your merge because a turn that merged is already over.
