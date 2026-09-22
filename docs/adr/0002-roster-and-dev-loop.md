@@ -5190,6 +5190,25 @@ gh pr view 454 --repo tedeuxx/tadeumendonca-skills --json headRefOid,comments --
 # calibration — the GATE's own marker on the same PR under the same predicate: also 3 and 1.
 ```
 
+~~`|select(.body|contains($h))`~~ — **the LIMB is struck 2026-09-22, and the FIGURE above is not.**
+It over-counts (`contains` matches the SHA anywhere in a body, so a marker that *mentions* an older
+SHA in its prose — precisely to say it does not attest this diff — is read as attesting it) and it
+under-counts (an exact forty-character test fails a `commit:` line that abbreviates, and 9 of the 148
+markers on the 80 most recent PRs abbreviate). **The measurement is left exactly as taken**: PR 454
+returns 3 and 1 under the struck limb AND under the corrected one, which is why the defect survived —
+the example published beside the instrument is one where the two forms cannot disagree.
+
+**The instrument in force is the `commit:`-line capture published in `CLAUDE.md` and
+`agents/quality-assurance.md`**, which tolerates markup around the SHA and nothing else. **This
+record is where the struck form was found LAST**, four days after the other three carriers were
+repaired, by a property sweep rather than by the token sweep that had been used — and it is the one
+document a future reader opens to learn why the hold exists.
+
+**`hooks/scripts/zombie-loop-detect.sh` keeps `contains($h)` on purpose and is NOT a fourth site to
+repair** — it says so in its own header. A detector and a hold have opposite correct error
+directions: that arm must never cry stale at a lens that did re-review, so the permissive limb is the
+right one there.
+
 **Three markers, one at the head.** Under presence-only, two of three cleared hold 2 while attesting a
 diff the PR no longer pointed at. **This bites identically at WIP=1 and is therefore NOT a parallelism
 defect** — what `wip` > 1 changes is the rate, because a serial gate queues merge requests and heads

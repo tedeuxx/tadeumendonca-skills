@@ -1043,21 +1043,39 @@ not.
        .headRefOid as $h
        | {markers_total:   [.comments[]|select(.body|test("harness-lead-verdict"))]|length,
           markers_at_head: [.comments[]|select(.body|test("harness-lead-verdict"))
-                                      |select(.body|test("(^|\n)commit: " + $h))]|length}'
+                                      |select(.body|test("(^|\n)commit:[^0-9a-f\n]*" + $h))]|length}'
      # -> {"markers_total":2,"markers_at_head":1}   measured 2026-09-22, head ee0ca4698b4f3a18…
      #
      # DISCRIMINATION — the same corpus, the stale SHA DERIVED FROM THE ARTIFACT rather than typed.
      # PR 493 carries two markers, each naming its own head, so the honest answer at either is 1:
      gh pr view 493 --repo tedeuxx/tadeumendonca-skills --json comments --jq '
        ([.comments[]|select(.body|test("harness-lead-verdict"))
-         |(.body|capture("(^|\n)commit: (?<c>[0-9a-f]{40})").c)]|first) as $stale
+         |(.body|capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})").c)]|first) as $stale
        | {stale: $stale,
           struck_limb:    [.comments[]|select(.body|test("harness-lead-verdict"))
                                      |select(.body|contains($stale))]|length,
           corrected_limb: [.comments[]|select(.body|test("harness-lead-verdict"))
-                                     |select(.body|test("(^|\n)commit: " + $stale))]|length}'
+                                     |select(.body|test("(^|\n)commit:[^0-9a-f\n]*" + $stale))]|length}'
      # -> {"stale":"10c640e27d909512a4b9c96fdcc0671ffa0e63ff","struck_limb":2,"corrected_limb":1}
      ```
+
+     **`[^0-9a-f\n]*` tolerates MARKUP and nothing else, and you must not read it as a softening of
+     this hold.** It admits the same forty characters wrapped in backticks or bold and **no other
+     SHA** — any hex character between `commit:` and the SHA stops the class, so an abbreviated line
+     cannot slide into a longer match. **Measured 2026-09-22 over the 148 markers on the 80 most
+     recent PRs: 130 bare, 9 wrapped in backticks with the full forty (PRs 417 through 484 — the most
+     recent merged the day before), 9 abbreviated.** A bare-only capture would refuse those nine and
+     you would hold a diff that WAS reviewed. **The nine abbreviated ones still fail, deliberately**
+     — that half is closed on the writer's side in `agents/agents-lead.md`, because absorbing it here
+     would mean a prefix test, and a prefix test clears a marker naming an ANCESTOR commit.
+
+     **The subset property you rely on for hold 1 is preserved and was verified, not assumed:** the
+     tolerant limb is still a strict subset of `contains($h)` — every body it accepts contains `$h`
+     — so hold 2 can only be stricter than the struck form, never looser. Ten spellings were checked,
+     including *SHA only in prose*, *`commit:` line naming another SHA while the prose cites this
+     one*, *`commit:` not line-initial* and *`commit:` line with the SHA two lines below*: the
+     tolerant limb rejects all four and gains exactly the two decorated forms over a bare-only
+     capture.
 
      **Nothing about hold 2 loosens here.** The hold is what it was on 2026-09-11 — a marker whose
      `commit:` line names the `headRefOid` you read — and the sentence was already right. What

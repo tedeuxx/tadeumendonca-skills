@@ -1343,16 +1343,53 @@ nothing.**
 says the marker's **`commit:` line** must name the `headRefOid`. The command published beside it did
 not implement that sentence. **This is the instrument being made to match the rule.**
 
-**The corrected form captures the `commit:` line instead of searching the body:**
+**The corrected form captures the `commit:` line instead of searching the body, and it tolerates
+MARKUP between `commit:` and the forty characters:**
 
 ```
 gh pr view 493 --repo tedeuxx/tadeumendonca-skills --json headRefOid,comments --jq '
   .headRefOid as $h
   | {markers_total:   [.comments[]|select(.body|test("harness-lead-verdict"))]|length,
      markers_at_head: [.comments[]|select(.body|test("harness-lead-verdict"))
-                                 |select(.body|test("(^|\n)commit: " + $h))]|length}'
+                                 |select(.body|test("(^|\n)commit:[^0-9a-f\n]*" + $h))]|length}'
 # -> {"markers_total":2,"markers_at_head":1}   measured 2026-09-22, head ee0ca4698b4f3a18…
 ```
+
+**`[^0-9a-f\n]*` IS THE WHOLE OF THE TOLERANCE, and it is LEXICAL rather than SEMANTIC — which is the
+distinction this decision turns on.** It admits the **same forty characters** wrapped in backticks or
+bold, and **no other SHA**: any hex character between `commit:` and the SHA stops the class, so an
+abbreviated line cannot slide into a longer match, and `\n` in the class stops it running to a SHA on
+a later line. Contrast a **prefix** test, which was considered and rejected: that admits a different
+commit — an ANCESTOR — which is the exact staleness the hold exists to catch.
+
+**Why the tolerance is on the READER and not left to the writer's discipline.** Measured 2026-09-22
+over the 148 markers on the 80 most recent PRs of `tedeuxx/tadeumendonca-skills`:
+
+```
+# 130  commit: <40 bare>        pass every form
+#   9  commit: <40 in backticks>  passed the struck limb, FAIL a bare-only capture   <- this class
+#   9  commit: <abbreviated>      failed the struck limb too; unchanged by any of this
+```
+
+**The nine backticked markers are not historical** — they run from PR 417 to PR 484, the most recent
+one merged the day before this was written. A bare-only reader converts a spelling nine lenses have
+actually used into a **false missing-reviewer**, which the gate reads as hold 2 and answers with
+`APPROVE-PENDING-HUMAN` on a diff that WAS reviewed.
+
+**And the layer argument that would have sent this to the writer does not survive contact: NEITHER
+side is enforcement here.** No registered hook reads this marker —
+`grep -rn 'harness-lead-verdict' hooks/scripts/ | grep -v '\.test\.'` returns a counter and two
+comments, never a read — so the reader is a command a persona runs by hand and the writer's contract
+is a paragraph in a brief. **Both are instructions, both ship on the same `/plugin update`.** With the
+layer question answered *neither*, the deciding test is this repository's own — *which direction do the
+errors run, and who sees them?* A bare-only reader errs toward refusing a real review; the tolerance
+has no error direction that any of the ten spellings below could produce.
+
+**The writer's contract is still tightened, and NOT to the same degree in both directions**, because
+the two defects are not symmetric: **abbreviation is forbidden** — no reader tolerance can absorb it
+without admitting an ancestor — while **bare is asked for and no longer load-bearing**. Saying it
+was forbidden would be a claim this instrument now falsifies, and a brief that states a consequence
+its own reader does not produce is the defect this whole section exists about.
 
 **THE CALIBRATION DISCRIMINATES, which the struck one never did — same PR, same corpus, the two
 limbs returning DIFFERENT numbers.** The stale SHA is DERIVED FROM THE ARTIFACT rather than typed,
@@ -1362,12 +1399,12 @@ the honest answer at either head is **1**.
 ```
 gh pr view 493 --repo tedeuxx/tadeumendonca-skills --json comments --jq '
   ([.comments[]|select(.body|test("harness-lead-verdict"))
-    |(.body|capture("(^|\n)commit: (?<c>[0-9a-f]{40})").c)]|first) as $stale
+    |(.body|capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})").c)]|first) as $stale
   | {stale: $stale,
      struck_limb:    [.comments[]|select(.body|test("harness-lead-verdict"))
                                 |select(.body|contains($stale))]|length,
      corrected_limb: [.comments[]|select(.body|test("harness-lead-verdict"))
-                                |select(.body|test("(^|\n)commit: " + $stale))]|length}'
+                                |select(.body|test("(^|\n)commit:[^0-9a-f\n]*" + $stale))]|length}'
 # -> {"stale":"10c640e27d909512a4b9c96fdcc0671ffa0e63ff","struck_limb":2,"corrected_limb":1}
 #    the struck limb OVER-READS a marker that merely mentions that SHA while attesting another.
 
@@ -1376,7 +1413,7 @@ gh pr view 493 --repo tedeuxx/tadeumendonca-skills --json comments --jq '
 gh pr view 493 --repo tedeuxx/tadeumendonca-skills --json comments --jq '
   ("0" * 40) as $absent
   | [.comments[]|select(.body|test("harness-lead-verdict"))
-               |select(.body|test("(^|\n)commit: " + $absent))]|length'
+               |select(.body|test("(^|\n)commit:[^0-9a-f\n]*" + $absent))]|length'
 # -> 0
 ```
 
