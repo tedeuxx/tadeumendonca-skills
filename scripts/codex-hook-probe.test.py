@@ -168,8 +168,8 @@ check("the firing phase registers the REAL adapter rather than a stand-in, since
       str(probe.ADAPTER_PATH))
 firing_src = (ROOT / "scripts" / "codex-hook-probe.py").read_text().split(
     "def phase_firing")[1].split("\ndef ")[0]
-check("the firing phase registers a RELATIVE command, which is the shape the shipped "
-      "carrier uses and the limb AC1 leaves open",
+check("the firing phase registers a RELATIVE command, reproducing the carrier's former "
+      "spelling and the historical AC1 resolution limb",
       '"bash scripts/firing-rel.sh"' in firing_src)
 check("and an ABSOLUTE control beside it, so a zero from the relative one is a reading "
       "about resolution rather than about an unhooked route",

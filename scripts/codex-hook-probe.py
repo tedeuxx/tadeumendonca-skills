@@ -1014,9 +1014,10 @@ def phase_firing(binary, work, report):
                                            -> is the floor invoked, what did it decide,
                                               and did the decision take effect
 
-    R2 is the shape the shipped carrier registers (`python3 scripts/codex-hook-adapter.py`)
-    and is the un-struck limb of AC1: *the manifest is read* is measured, *the command is
-    found* is not.
+    R2 reproduces the carrier's former relative spelling
+    (`python3 scripts/codex-hook-adapter.py`). It closes the historical AC1 resolution limb
+    for a config registration; `carrierfire` separately exercised that spelling through an
+    installed plugin and found it resolving against the wrong tree.
     """
     capture_abs = work / "firing-capture-abs"; capture_abs.mkdir()
     capture_rel = work / "firing-capture-rel"; capture_rel.mkdir()
@@ -1028,7 +1029,7 @@ def phase_firing(binary, work, report):
 
     abs_recorder = make_hook(work / "firing-abs.sh", capture_abs)
     # The relative recorder lives INSIDE the project, at the same relative path shape the
-    # carrier uses, so "resolved against the session cwd" and "resolved against the
+    # carrier formerly used, so "resolved against the session cwd" and "resolved against the
     # plugin root" are distinguishable outcomes rather than one.
     (project / "scripts").mkdir()
     rel_recorder = make_hook(project / "scripts" / "firing-rel.sh", capture_rel)
@@ -1309,12 +1310,12 @@ CARRIER_REAL_NAME = "tadeumendonca-skills"
 
 
 def build_shape_package(market_root, capture):
-    """A package with the SHIPPED CARRIER'S SHAPE registering an ABSOLUTE recorder.
+    """A package with the shipped carrier's MANIFEST shape and an ABSOLUTE recorder.
 
     It exists so that `the carrier route does not fire` and `the carrier fired and its
     RELATIVE command could not be found` are different observations rather than one.
-    The shipped carrier registers `python3 scripts/codex-hook-adapter.py`, a relative
-    command; this one registers an absolute path and nothing else differs.
+    The carrier under test then registered `python3 scripts/codex-hook-adapter.py`, a
+    relative command; this fixture registers an absolute path and nothing else differs.
     """
     pkg = market_root / CARRIER_FIXTURE_NAME
     (pkg / "scripts").mkdir(parents=True)
@@ -1603,7 +1604,7 @@ ROOT_BARE_NAMES = ["CLAUDE_PLUGIN_ROOT", "PLUGIN_ROOT"]
 #   later argv index SHIFTS. That is shell word-splitting behaviour and it is the one
 #   property here that could silently mis-wire a repair.
 #   cwd is the SESSION's project directory on both routes, which is exactly why the
-#   shipped relative command resolved against the wrong tree.
+#   then-shipped relative command resolved against the wrong tree.
 ROOT_MEASURED = {
     "build": "codex-cli 0.151.0-alpha.7.2",
     "env_names_injected_on_plugin_route": ["CLAUDE_PLUGIN_DATA", "CLAUDE_PLUGIN_ROOT",
@@ -1650,8 +1651,8 @@ def make_dump_recorder(path, capture):
 def build_root_package(market_root, name, capture, token_capture):
     """A carrier package registering a dumping recorder at an ABSOLUTE command.
 
-    Absolute because `carrierfire` already established that a relative command never
-    launches — a relative one here would measure that finding again instead of this one.
+    Absolute because `carrierfire` already established that the then-shipped relative command
+    did not launch — a relative one here would measure that finding again instead of this one.
     """
     pkg = market_root / name
     (pkg / "scripts").mkdir(parents=True)
