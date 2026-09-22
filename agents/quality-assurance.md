@@ -1059,6 +1059,15 @@ not.
      # -> {"stale":"10c640e27d909512a4b9c96fdcc0671ffa0e63ff","struck_limb":2,"corrected_limb":1}
      ```
 
+     **The sharpest instance of the over-count was YOUR OWN VERDICT, and it is measured rather than
+     reasoned.** Over the 80 most recent PRs, on **three** of them — 412, 396 and 389 — the only body
+     satisfying the struck limb at head was the gate's own verdict comment: it quotes this literal in
+     hold 2's prose, so it matches `test("harness-lead-verdict")`, and it carries the head on its own
+     `head:` line, so it matched `contains($h)`. **Hold 2 cleared itself, with no lens marker at head
+     at all.** The `commit:` anchor excludes it — the corrected limb returns **0** on all three, which
+     is the correct answer. (`zombie-loop-detect.sh` was never exposed to this: its own arm excludes
+     gate verdicts with `select(startswith($g) | not)`.)
+
      **`[^0-9a-f\n]*` tolerates MARKUP and nothing else, and you must not read it as a softening of
      this hold.** It admits the same forty characters wrapped in backticks or bold and **no other
      SHA** — any hex character between `commit:` and the SHA stops the class, so an abbreviated line
@@ -1096,7 +1105,10 @@ not.
 
      **What holds this: you do, and nothing else.** No rule reads this marker —
      `grep -rn 'harness-lead-verdict' hooks/scripts/ agents/ | grep -v '\.test\.'` returns counters,
-     comments and brief prose, never a read. The one observation that exists is
+     comments, brief prose **and exactly one genuine read**, which is the carve-out rather than an
+     exception to it: that read REPORTS and denies nothing. (~~never a read~~ — struck 2026-09-22:
+     the clause was false about the command's own output, which is the same class as the claim
+     corrected in `CLAUDE.md` this round.) The one observation that exists is
      `hooks/scripts/zombie-loop-detect.sh`, registered on **`Stop`** (`hooks/hooks.json`), which
      reports a PR whose markers are all stale **at the end of a turn** — detection, one turn late, and
      it cannot bound your merge because a turn that merged is already over.

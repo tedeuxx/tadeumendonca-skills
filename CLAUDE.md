@@ -1377,12 +1377,25 @@ actually used into a **false missing-reviewer**, which the gate reads as hold 2 
 `APPROVE-PENDING-HUMAN` on a diff that WAS reviewed.
 
 **And the layer argument that would have sent this to the writer does not survive contact: NEITHER
-side is enforcement here.** No registered hook reads this marker —
-`grep -rn 'harness-lead-verdict' hooks/scripts/ | grep -v '\.test\.'` returns a counter and two
-comments, never a read — so the reader is a command a persona runs by hand and the writer's contract
-is a paragraph in a brief. **Both are instructions, both ship on the same `/plugin update`.** With the
-layer question answered *neither*, the deciding test is this repository's own — *which direction do the
-errors run, and who sees them?* A bare-only reader errs toward refusing a real review; the tolerance
+side is enforcement here.** No **rule** reads this marker — and *"no hook reads it"* would be FALSE,
+which is the whole of the carve-out: `hooks/scripts/zombie-loop-detect.sh` is registered on **`Stop`**
+(`hooks/hooks.json`) and its `harness_stale` arm genuinely READS the marker, then **reports** a PR
+whose markers are all stale, one turn late, **denying nothing**. So the reader is a command a persona
+runs by hand and the writer's contract is a paragraph in a brief. **Both are instructions, both ship
+on the same `/plugin update`.** Classify the mentions rather than trusting any tally, this one
+included:
+
+```
+grep -rn 'harness-lead-verdict' hooks/scripts/ | grep -v '\.test\.' \
+  | awk -F: '{l=$0; sub(/^[^:]*:[^:]*:/,"",l); gsub(/^[ \t]*/,"",l);
+              print (l ~ /^#/ ? "COMMENT" : "CODE   ") " " $1 ":" $2}'
+# -> 11 lines across 3 files: 8 COMMENT, 3 CODE. The three CODE lines are
+#    zombie-loop-detect.sh:350 (the read), :402 (the notice it prints) and
+#    dispatch-metrics-stop.sh:330 (a counter). NOT ONE of the three denies anything.
+```
+
+With the layer question answered *neither*, the deciding test is this repository's own — *which
+direction do the errors run, and who sees them?* A bare-only reader errs toward refusing a real review; the tolerance
 has no error direction that any of the ten spellings below could produce.
 
 **The writer's contract is still tightened, and NOT to the same degree in both directions**, because
