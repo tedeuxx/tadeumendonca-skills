@@ -2250,8 +2250,8 @@ registration executes only against a matching `trusted_hash` in the invoking use
 `config.toml`, and this repository's are all `untrusted`. ~~**Two claims are additionally NOT
 available**: whether a plugin-carrier hook command resolves a *relative* path is unmeasured (slice
 A's fixture used one and `plugin/read` reported a registration; every turn phase registered an
-absolute path)~~ — **the first half is STRUCK, see the 2026-09-22 amendment below** — and the
-route ceiling above is unliftable — the floor covers **the model's tool
+absolute path)~~ — **the first half is STRUCK, see the 2026-09-22 amendment below.** **The
+SECOND of the two stands:** the route ceiling above is unliftable — the floor covers **the model's tool
 calls** and nothing else. *"The shell is guarded"* is false on this runtime.
 
 **AMENDED 2026-09-21 (#455): the hook FIRES, on the build this machine has, and the paragraph above

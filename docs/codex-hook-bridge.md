@@ -631,15 +631,33 @@ into a position.
 
 ### What this slice does NOT settle, and what it would take
 
-- **Whether a plugin-carrier hook command resolves a RELATIVE path, and against what.** The
+- ~~**Whether a plugin-carrier hook command resolves a RELATIVE path, and against what.** The
   carrier registers `python3 scripts/codex-hook-adapter.py`, which is the spelling slice A's
   fixture used and `plugin/read` reported as a registration — but slice A never ran it, and every
   turn phase registered an **absolute** path. So *the manifest is read* is measured and *the
-  command is found* is not. **This blocks any claim the floor is active on Codex.** ~~One trusted
-  turn against a carrier-registered relative command settles it; this slice is not authorised for
-  a model turn.~~
+  command is found* is not.~~
 
-  **The REMEDY is struck 2026-09-16 as KNOWN-INSUFFICIENT, while the question above stands OPEN.**
+  **STRUCK 2026-09-22, and the two halves went false on different days.** *The question:* §15
+  measured a relative command resolving against the session's cwd, and §16 measured the shipped
+  registration producing **zero** adapter invocations for exactly that reason — so it was answered
+  before this slice began. *The registration:* §17 repairs it, and the carrier now registers
+  `python3 ${PLUGIN_ROOT}/scripts/codex-hook-adapter.py` — **so this clause was falsified by the
+  very slice that is striking it.** Struck rather than edited because it is the sentence that told
+  a reader the question was open, and it sits in the section titled *what is NOT settled*, which is
+  the section a reader planning Codex work opens first.
+
+  **This blocks any claim the floor is active on Codex.** That conclusion is **UNCHANGED** and is
+  deliberately left outside the strike, because it is still true. What moved is its *reason*:
+  §17.3 now carries it, for three reasons that have nothing to do with a relative path. **A wrong
+  reason for a right answer is the harder of the two to notice**, which is why this sentence says
+  so rather than quietly re-basing.
+
+  ~~One trusted turn against a carrier-registered relative command settles it; this slice is not
+  authorised for a model turn.~~
+
+  **The REMEDY is struck 2026-09-16 as KNOWN-INSUFFICIENT,** ~~while the question above stands OPEN.~~
+  **The question is CLOSED as of 2026-09-22 — see §17.** The remainder of this paragraph is kept
+  as the record of two turns that did not settle it, which is still worth having.
   Two such turns have now been run and neither settled it: the first appeared to and was
   withdrawn, the second probed where this harness's two Codex layers disagree and found the floor
   not acting at all. **A third turn buys nothing, and a standing sentence saying otherwise sends
@@ -650,7 +668,12 @@ into a position.
   ~~**SETTLED 2026-09-15 by the owner's native run, and it resolved against the SESSION's working
   directory.** The hook was found, trusted and executed; `git push origin main` was blocked by
   `PreToolUse` upstream of Git, the remote and branch protection.~~ **THAT DISCHARGE IS WITHDRAWN
-  2026-09-16 and the bullet above stands OPEN again.** A second native run found that the command
+  2026-09-16** ~~and the bullet above stands OPEN again.~~ **— the WITHDRAWAL stands; the REOPENING
+  does not.** The bullet above is struck and the question is closed (§17). This clause was true from
+  2026-09-16 and went false on 2026-09-21; it is struck rather than deleted because it is a **third**
+  carrier of the same falsehood, and it was found only by running a selector keyed on *stands OPEN*
+  beside the two keyed on the registration and on the word *relative* — **neither of which reaches
+  this sentence.** A second native run found that the command
   the first one used to prove the hook — `git push origin main` — is forbidden by this
   repository's *other* Codex containment layer, so the refusal was never attributable; re-probed
   with a command the two layers disagree on, the floor did **not** act. **The strike is kept
