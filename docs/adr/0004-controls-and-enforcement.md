@@ -87,7 +87,8 @@ in a row. The `critical-reviewer` flagged this while reviewing #76; #77 tracked 
 
 **Fix — an agent-scoped merge gate in `permission-guard.sh` (rule 7b).** The harness stamps a subagent's
 tool calls with `agent_type` (`<plugin>:<subagent>`) and leaves it empty for the main agent; this field is
-set by the harness, not the prompt, so the model cannot forge it. *(Precisely: cannot **claim** it —
+set by the harness, not the prompt, so the model cannot forge it. *(On Claude Code. On Codex, since #501,
+the field is DECLARED — see the 2026-09-23 "role parity across harnesses" amendment.)* *(Precisely: cannot **claim** it —
 it can still **choose** which persona to spawn. See the 2026-08-02 amendment below, which corrects this
 phrasing for 7b as well as 5d; the guarantee is routing, not capability.)* The guard now **denies `gh pr merge`
 unless `agent_type` ends in `:critical-reviewer`.** The main agent and every other subagent are denied;
@@ -157,7 +158,8 @@ lookup, then a tracker lookup for `ready`. **Eighty lines and ten assertions, al
 
 What replaced it: the hook decides only what it can decide mechanically — `developer` may file, every
 other subagent is denied, the main loop asks the owner — keyed on `agent_type`, which the harness
-stamps and the model cannot write. The judgement rule (*only a task under a `ready` story, referencing
+stamps and the model cannot write *(on Claude Code; on Codex, since #501, declared — see the
+2026-09-23 amendment)*. The judgement rule (*only a task under a `ready` story, referencing
 its parent, never extending it*) lives in `agents/developer.md`, and `quality-assurance` verifies it on
 the task's MR.
 
@@ -177,7 +179,8 @@ the first draft of this paragraph booked only the first and `security` found the
 
 **A correction to how this ADR states the `agent_type` property, applying to rule 7b as much as 5d.**
 The claim has been *"the model cannot forge it — set by the harness, not the prompt"*. True, and it
-reads as more than it says. `agent_type` is read from the payload root while the model contributes only
+reads as more than it says. *(True on Claude Code only since #501; on Codex the field is declared —
+see the 2026-09-23 amendment.)* `agent_type` is read from the payload root while the model contributes only
 `.tool_input.command`, a sibling string, so **no spelling exempts anyone** — that half holds. But the
 main loop **chooses which persona to spawn**, so it can obtain any `agent_type` by delegating. The
 accurate property is:
@@ -1138,7 +1141,7 @@ more than it does:
   carving an exception into it. The reasoning for the deviation, not merely the fact of it: the design's
   fail-closed table row is argued from a threat an untrusted party can trigger at will against a control
   reachable by anyone; behind 7b, the only party who can even reach this branch is the harness-stamped
-  reviewer, so a transient `gh`/network outage does not hand an outsider anything — it would, if anything,
+  reviewer *(on Claude Code; on Codex, since #501, a declared one — see the 2026-09-23 amendment)*, so a transient `gh`/network outage does not hand an outsider anything — it would, if anything,
   block a genuinely clean safe-class merge until the tooling recovers. **Named, not resolved:** this is a
   judgement call the owner may want to override; flipping the two `: ;;`/`*)` arms in rule 7c's final
   `case` statement is the entire diff required to make it fail closed instead.~~ **The owner did
@@ -1448,7 +1451,8 @@ argument recorded for it, because a premise it rested on was measured false.
 deviation from the four-row table on the grounds that *"behind 7b, the only party who can even reach this
 branch is the harness-stamped reviewer, so a transient `gh`/network outage does not hand an outsider
 anything — it would, if anything, block a genuinely clean safe-class merge until the tooling recovers."*
-Every cause it names is **environmental**: a missing tool, a transient outage, no network. The bullet is
+*(The quotation is kept verbatim; "harness-stamped" is true on Claude Code only since #501 — see the
+2026-09-23 amendment.)* Every cause it names is **environmental**: a missing tool, a transient outage, no network. The bullet is
 the whole of the recorded argument, and it enumerates the ways the check can fail to run.
 
 **The enumeration was incomplete, and the missing member is the hook's own parser.** Rule 7c's repo
@@ -1462,7 +1466,7 @@ gh pr merge 479 --repo owner/repo           ->  qa_repo=<empty>     ->  gh pr vi
 
 and with `REQUEST-CHANGES` sitting on the named PR's current head, the second spelling came out
 **ALLOW**. No outage, no missing tool, no unauthenticated `gh` — a well-formed command that `gh` accepts,
-issued by the harness-stamped reviewer, reaching the fail-open through the extractor rather than through
+issued by the harness-stamped reviewer *(a Claude Code session; on Codex, since #501, declared)*, reaching the fail-open through the extractor rather than through
 the environment.
 
 **And the losing spelling is the one this platform MANDATES.** `skills/shell/SKILL.md`: *"Target

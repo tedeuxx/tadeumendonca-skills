@@ -1040,7 +1040,8 @@ check ALLOW "a commit message about the act"     'git commit -m "gh api repos/o/
 # A SUBAGENT STILL CANNOT FILE, and this is where the measured failure actually happened: 13 of 19
 # issues in one session were born inside a review of something else. A persona has no access to the
 # owner, so it cannot answer the question the prompt asks — it reports upward instead. `agent_type` is
-# stamped by the harness and cannot be forged by the model, so this is not a spelling it can escape.
+# stamped by the harness and cannot be forged by the model (on Claude Code; on Codex, since #501, it is
+# declared — see the ROLE PARITY arm below), so this is not a spelling it can escape.
 check_agent DENY "tadeumendonca-skills:quality-assurance" "not even the reviewer files"  "gh issue create --title x"
 # `tech-lead` and NOT `product-lead`, deliberately, though the latter absorbed the old `scrum-master`
 # this case used to name. Rule 5e denies `product-lead` on `gh issue create` BEFORE 5c is reached, so

@@ -1759,7 +1759,8 @@ fi
 #     ADR-0002 names the remedy as "split the tool grant", i.e. un-merge the persona the owner had just
 #     merged, at the cost of the second agent output the merge existed to remove. `security` escalated
 #     that this OVER-PRICES the fix and the owner accepted the cheaper one: this file ALREADY keys two
-#     denials on `agent_type` (5d, 7b) — a harness-stamped signal the model cannot write — so the
+#     denials on `agent_type` (5d, 7b) — a harness-stamped signal the model cannot write on Claude
+#     Code; on Codex, since #501, a DECLARED one (see `caller` above) — so the
 #     boundary can be restored here, at the floor, without touching the roster. It costs the persona
 #     nothing it declares it needs: its own body says it "writes nothing — no issue, no commit, no
 #     comment, no edit to any file", and `gh pr list` / `gh issue list` / `gh pr view` are untouched,
