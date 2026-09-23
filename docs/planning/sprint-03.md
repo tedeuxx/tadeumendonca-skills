@@ -128,11 +128,11 @@ rg -n '^##|^###|finding|consult' docs/retrospective/sprint-02
 
 Activation 1: the assembled eligible composition was empty. The owner was offered: (1) activate skills #499, apply `ready`, recompose with that sole item, then return for the second and final composition confirmation; (2) confirm the empty composition; (3) change the composition; (4) stop. The owner answered “de acordo”, accepting recommended option 1. Recorded as a **change**, not as confirmation of a milestone.
 
-Activation 2: proposed composition is skills #499 only (1 `loop`, 0 `product`, 8 points); 51 assembled items remain out. Choices: confirm and create/place this composition, or stop without milestone creation. Owner answer: pending.
+Activation 2: proposed composition is skills #499 only (1 `loop`, 0 `product`, 8 points); 51 assembled items remain out. Choices: confirm and create/place this composition, or stop without milestone creation. Owner answer on 2026-09-23: confirmed. This authorizes creation and placement of this composition only.
 
 ## The composition as confirmed
 
-Pending the second and final owner activation. This planning has not created a milestone or placed an Issue.
+Confirmed by the owner. Milestone creation and placement are pending execution; the confirmation is committed before those tracker writes.
 
 ## Estimation pendency this leaves
 
