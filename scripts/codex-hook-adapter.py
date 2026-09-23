@@ -40,16 +40,25 @@ an operator can hand-declare a role of any name, the build's own names included
 
     what the payload carries        what the adapter sends     measured as
     <key absent>                    ""                         the ROOT session only
-    a child's role, e.g. `tadeumendonca_quality_assurance`
-                                    the same value, verbatim   every child, at depth 1 and 2
+    a build role id, e.g. `tadeumendonca_quality_assurance`
+                                    tadeumendonca-skills:quality-assurance
+                                                               every child, at depth 1 and 2
+    any other child role            the same value, verbatim   (a bare name fails closed)
     "", null, or a non-string       codex-unidentified         (never observed; kept closed)
 
 The owner's rule: «temos que funcionar de forma equivalente em todos harness suportados
 pela nossa distribuicao de plugin». So the Codex ROOT session is treated as the
 orchestrator (the context that dispatches every persona, with no role of its own), and
-a child's Codex role id is translated by the GUARD, not here, into the same namespaced
-id a Claude Code session stamps (`permission-guard.sh`, the `caller` transform). Every
-role-keyed rule then grants and denies a persona the same act on both harnesses.
+a child's Codex role id is rewritten HERE (`codex_role_to_claude`) into the same
+namespaced id a Claude Code plugin session stamps. Every role-keyed rule then grants and
+denies a persona the same act on both harnesses, while the guard itself reads the raw
+field exactly as it did before #501.
+
+**The rewrite is here and not in the guard, on a measurement.** The guard is shared and
+cannot tell which harness called it. On Claude Code a project-local agent file named
+`tadeumendonca_<persona>` loads with no plugin and stamps that bare id (the gate measured
+it on Claude Code 2.1.280), so a guard-side rewrite gave any committed `.claude/agents/`
+file that persona's arms, merge included. This file runs only on the Codex route.
 
 **Why ABSENT -> "" is safe now when it was the hazard below: it was MEASURED to be the
 root only.** A disposable-home run on codex-cli 0.151.0-alpha.7.2 with a loopback model
@@ -81,7 +90,8 @@ orchestrator's exemptions by accident.~~ It hands them ON PURPOSE now, and to th
 alone, which is the measured half the struck sentence did not have. ~~A BARE name fails
 closed instead, because the guard's allowlists match the namespaced `<plugin>:<persona>`
 form~~ — still true of a bare name that is NOT the build's scheme (`agents-lead`,
-`probe_child`); a `tadeumendonca_<persona>` id is translated by the guard.
+`probe_child`); a `tadeumendonca_<persona>` id is rewritten by this file before the guard
+sees it.
 
 ~~The consequence is stated rather than worked around: on Codex, NO caller obtains a
 caller-dependent exemption. Opening work and posting to a public surface are refused to
@@ -138,6 +148,7 @@ Usage:
 import json
 import math
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -177,6 +188,15 @@ UNIDENTIFIED_CALLER = "codex-unidentified"
 # identity on Claude Code. Named rather than written inline so the one place the adapter
 # grants the orchestrator's position is findable by grep.
 ROOT_CALLER = ""
+
+# The Codex agent build's role scheme, reversed here and nowhere else (#501). The build
+# names a persona's native role "tadeumendonca_" + the persona name with "-" turned into
+# "_", and refuses any persona name that is not [a-z0-9]+(-[a-z0-9]+)*, so no persona
+# name contains "_" and the reverse is unambiguous. The permission-guard suite derives
+# the role set from the build and asserts, through THIS file, that every role takes the
+# same arm as its Claude Code id; a change to the build's prefix turns it red.
+CODEX_ROLE_RE = re.compile(r"tadeumendonca_([a-z0-9]+(?:_[a-z0-9]+)*)")
+CLAUDE_ROLE_NAMESPACE = "tadeumendonca-skills:"
 
 # Seconds. The carrier declares its own host-side timeout; this one is deliberately
 # shorter so a slow guard returns an abstention WITH a stderr line rather than being
@@ -429,19 +449,39 @@ def abstain(note=None):
     return 0
 
 
+def codex_role_to_claude(value):
+    """The reverse of `scripts/codex-agent-build.py`'s role scheme (#501): a well-formed
+    `tadeumendonca_<persona>` becomes `tadeumendonca-skills:<persona>`, the id a Claude
+    Code plugin session stamps for the same persona. Anything else is returned unchanged,
+    so a malformed id or a foreign role still falls to each rule's catch-all.
+
+    WHY HERE AND NOT IN THE GUARD. The guard is shared by both harnesses and cannot tell
+    which one called it. On Claude Code a project-local agent file named
+    `tadeumendonca_<persona>` loads with no plugin and stamps that bare id (measured by the
+    gate on Claude Code 2.1.280), so a rewrite in the guard handed any committed
+    `.claude/agents/` file that persona's arms. This file runs only on the Codex route, so
+    the rewrite reaches Codex callers and nothing else. The owner accepted a declared
+    identity on Codex, and only there."""
+    match = CODEX_ROLE_RE.fullmatch(value)
+    if not match:
+        return value
+    return CLAUDE_ROLE_NAMESPACE + match.group(1).replace("_", "-")
+
+
 def map_caller(payload):
     """ABSENT is still not EMPTY, and the two now map to DIFFERENT values (#501).
 
     A missing key is the Codex ROOT session, measured as the only payload without one,
     so it becomes `""` — the orchestrator, exactly as Claude Code stamps it. A present
     but empty, null or non-string value was never observed and stays the sentinel, which
-    every caller-keyed rule denies through its catch-all. A non-empty string passes
-    through verbatim; the guard translates a `tadeumendonca_<persona>` id itself."""
+    every caller-keyed rule denies through its catch-all. A non-empty string is passed
+    through `codex_role_to_claude`, so a build role id reaches the guard in its Claude
+    Code form and every other value reaches it verbatim."""
     if "agent_type" not in payload:
         return ROOT_CALLER
     value = payload.get("agent_type")
     if isinstance(value, str) and value.strip():
-        return value
+        return codex_role_to_claude(value)
     return UNIDENTIFIED_CALLER
 
 
@@ -582,12 +622,21 @@ def translate(payload):
             "floor cannot speak about anything you would type into it. Run the work as "
             "one command instead (for example `bash -c '<payload>'`), which IS judged.")
 
-    verdict, failure = run_guard(command, map_caller(payload), payload.get("cwd") or "")
+    caller = map_caller(payload)
+    verdict, failure = run_guard(command, caller, payload.get("cwd") or "")
     if failure is not None:
         return abstain(failure)
     decision = verdict.get("decision")
     if decision == "deny":
-        return emit_block(verdict.get("reason", ""))
+        reason = verdict.get("reason", "")
+        raw = payload.get("agent_type")
+        # The guard prints the id it was SENT. When this file rewrote a Codex role id, that
+        # is the Claude Code form, so the refusal would not name what Codex actually sent.
+        # Appended rather than substituted, so the guard's own text reaches the model intact.
+        if isinstance(raw, str) and caller != raw and caller not in (ROOT_CALLER, UNIDENTIFIED_CALLER):
+            reason = (reason + "\n\n[codex-hook-adapter] agent_type as Codex sent it: '%s', "
+                      "rewritten to '%s' for the shared floor (#501)." % (raw, caller))
+        return emit_block(reason)
     if decision == "ask":
         # Codex's measured vocabulary has ONE refusal verb and no prompt rung, so there
         # is nothing to translate an `ask` into. It becomes a block: an act the floor

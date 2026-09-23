@@ -550,7 +550,7 @@ as the price of a sprint that runs entirely inside Codex.
 
 | what the payload carries | what the adapter sends | what the guard does with it |
 |---|---|---|
-| a build role id, e.g. `tadeumendonca_agents_lead` | **the same value, verbatim** | translates it to `tadeumendonca-skills:agents-lead`, so the persona takes the same arm of every role-keyed rule as on Claude Code |
+| a build role id, e.g. `tadeumendonca_agents_lead` | ~~**the same value, verbatim**~~ **`tadeumendonca-skills:agents-lead`** — the ADAPTER rewrites it | ~~translates it to `tadeumendonca-skills:agents-lead`~~ reads it raw, as before #501, so the persona takes the same arm of every role-keyed rule as on Claude Code. **Struck at QA gate round 1:** the rewrite first lived in the shared guard, where it also fired on Claude Code for a local agent file named `tadeumendonca_<persona>`. It moved to the Codex-only adapter |
 | any other child role, e.g. `probe_child` | **the same value, verbatim** | a bare name fails **closed**, as before |
 | **no `agent_type` key** (the root session, measured as the only keyless sender) | **`""`** | the orchestrator's arm: posts; `gh issue create` falls to Codex's own layer; merge and trunk push denied |
 | `""`, `null`, or a non-string | **`codex-unidentified`** | denied by every caller-keyed rule's catch-all. ABSENT is still not EMPTY |
@@ -566,7 +566,7 @@ behaviour:
 
 | what the payload carries | what the adapter sends | why |
 |---|---|---|
-| a child's role, e.g. `probe_child` | **the same value, verbatim and bare** | the guard's allowlists match the namespaced `<plugin>:<persona>` form, so a bare name fails **closed** ~~(a build id too)~~ — since #501 a `tadeumendonca_<persona>` id is translated by the guard |
+| a child's role, e.g. `probe_child` | **the same value, verbatim and bare** | the guard's allowlists match the namespaced `<plugin>:<persona>` form, so a bare name fails **closed** ~~(a build id too)~~ — since #501 a `tadeumendonca_<persona>` id is rewritten by the adapter |
 | ~~**no `agent_type` key** (the parent)~~ | ~~**`codex-unidentified`**~~ | ~~a non-empty sentinel with no colon, denied by every caller-keyed rule's catch-all~~ — STRUCK #501: the root is sent `""` |
 | `""`, `null`, or a non-string | **`codex-unidentified`** | ABSENT is not EMPTY |
 

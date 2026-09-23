@@ -6872,12 +6872,19 @@ by `agents-lead`, gate by `quality-assurance`.
 ### The decision
 
 **Every role-keyed rule in `hooks/scripts/permission-guard.sh` grants and denies a persona the same
-act under its Codex id as under its Claude Code id, by the same named arm.** The guard computes one
-`caller` from `agent_type` by reversing the Codex agent build's id scheme (`scripts/codex-agent-build.py`
+act under its Codex id as under its Claude Code id, by the same named arm.** ~~The guard computes one
+`caller` from `agent_type` by reversing the Codex agent build's id scheme~~ **The Codex ADAPTER
+rewrites the caller before the guard sees it (`codex_role_to_claude` in `scripts/codex-hook-adapter.py`),
+by reversing the Codex agent build's id scheme** (`scripts/codex-agent-build.py`
 names a persona's native role `tadeumendonca_` + the persona name with `-` turned into `_`), so
-`tadeumendonca_<persona>` becomes `tadeumendonca-skills:<persona>`. The four sites that read the caller
+`tadeumendonca_<persona>` becomes `tadeumendonca-skills:<persona>`. ~~The four sites that read the caller
 read `caller`: rule 5e (posting), 5c and 5d (opening work), and 7b (merge, which then runs 7c
-unchanged). `agent_type` itself is never reassigned, so a deny message prints what the harness sent.
+unchanged). `agent_type` itself is never reassigned, so a deny message prints what the harness sent.~~
+**The guard's four role-keyed sites — rule 5e (posting), 5c and 5d (opening work), and 7b (merge,
+which then runs 7c unchanged) — read the raw `agent_type` exactly as before #501.** Because the guard
+now sees the rewritten id, the adapter appends the id Codex actually sent to every refusal, so a deny
+still names it. **Struck and moved at QA gate round 1; see *The guard cannot tell which harness called
+it* below for why.**
 
 **The Codex ROOT session is treated as the orchestrator.** The adapter (`scripts/codex-hook-adapter.py`)
 sends `""` for a payload with no `agent_type` key, which is how Claude Code stamps the main session.
@@ -6928,9 +6935,34 @@ is not attributable (the guard says so itself: *"THE VERDICT 7c READS CANNOT BE 
 Codex session can also spawn a declared `quality-assurance` to post that clearance and then merge.
 That is the same routing-not-capability shape as on Claude Code, and it is one step cheaper here.
 
-**The guard cannot tell which harness called it.** A bare `tadeumendonca_<persona>` id sent from a
+**The guard cannot tell which harness called it.** ~~A bare `tadeumendonca_<persona>` id sent from a
 Claude Code session takes the same arm too. That is the same class as the existing `*:<persona>`
-patterns, which already admit `anyplugin:<persona>`, and it is accepted.
+patterns, which already admit `anyplugin:<persona>`, and it is accepted.~~
+
+**STRUCK at QA gate round 1 (PR #502): false, and false in the permissive direction.** It is not
+the same class. `anyplugin:<persona>` needs a **loaded plugin**, and nothing inside a session can
+load one. A bare `tadeumendonca_<persona>` needs only **a file**. The gate measured this on Claude
+Code `2.1.280`: a project-local `.claude/agents/tadeumendonca_quality_assurance.md` loads with no
+plugin and stamps `agent_type: "tadeumendonca_quality_assurance"`. The calibration: a local file
+declaring `name: probe:quality-assurance` is **not** loaded, so no file can reach a colon id. While
+the rewrite lived in the guard, that one committed file gained `quality-assurance`'s posting arm and
+a path to 7c. **The owner accepted a declared identity on Codex, and decisions 1 to 3 never extend it
+to Claude Code.**
+
+**The restated per-harness claim.**
+- **Codex:** a build role id is rewritten by the Codex-only adapter and takes its persona's arm. It
+  is declared, not authenticated. That is the accepted cost above, unchanged.
+- **Claude Code:** the guard reads the raw `agent_type`, exactly as before #501. A bare
+  `tadeumendonca_<persona>` id from a local agent file falls to each rule's catch-all, as it did at
+  base. Only a loaded plugin produces a namespaced id. `hooks/scripts/permission-guard.test.sh` feeds
+  every build role id to the guard raw and asserts the base denial. It is calibrated against a copy
+  of the guard with the rewrite planted back in.
+
+**What still holds on Claude Code, and what does not.** The per-harness qualifiers this PR added say
+that on Claude Code `agent_type` is stamped by the harness and cannot be forged by the model. That is
+true of the stamp, and it is true of the persona arms again now that no rewrite runs there. It has
+never meant that a local agent file cannot choose its own name. Such a file can name itself
+`tadeumendonca_<persona>`, and all it gets is the catch-all.
 
 ### Why the root may be `""` — the premise was measured before it was used
 
@@ -6997,19 +7029,51 @@ the gate posts `APPROVE-EXECUTOR-BLOCKED` and the merge is the owner's by except
 
 ### What holds it
 
-- `hooks/scripts/permission-guard.test.sh` enumerates the roles from the build's own `snapshot()`
+- ~~`hooks/scripts/permission-guard.test.sh` enumerates the roles from the build's own `snapshot()`
   manifest and asserts that every role takes **the same arm**, not only the same verdict, under both
   ids: across four acts and two verdict fixtures, the whole guard output is compared with the raw id
   replaced by a placeholder. There are also named-arm arms, default-deny arms for the malformed ids
-  above, and an arm asserting that the guard names no persona by its Codex id.
-- **Mutation-checked against the source.** Each of these turned the suite red, and it went green
+  above, and an arm asserting that the guard names no persona by its Codex id.~~
+- ~~**Mutation-checked against the source.** Each of these turned the suite red, and it went green
   again once restored: dropping the transform, dropping its `_`→`-` rewrite, reverting any one of the
   three `case` sites to the raw `agent_type`, changing the build's prefix, keeping `-` in the build's
   id. **One mutant survives and is equivalent:** letting the transform accept uppercase maps
   `tadeumendonca_Developer` to `…:Developer`, and every role pattern is lowercase and case-sensitive,
-  so the catch-all still answers.
-- The scheme's prefix and its `_`/`-` rule live in both the Python build and the bash guard. That
-  duplication is accepted only because the parity arm derives the role set from the build.
+  so the catch-all still answers.~~
+- ~~The scheme's prefix and its `_`/`-` rule live in both the Python build and the bash guard. That
+  duplication is accepted only because the parity arm derives the role set from the build.~~
+
+**The three bullets above are struck at QA gate round 1.** They described the guard-side transform,
+which was moved into the adapter. What holds the moved design:
+
+- **Codex parity runs THROUGH THE ADAPTER.** `hooks/scripts/permission-guard.test.sh` enumerates the
+  roles from the build's own `snapshot()` manifest. For each one it pipes a native Codex payload into
+  `scripts/codex-hook-adapter.py` and compares the result with the persona's Claude Code id sent
+  straight to the guard. The comparison is over the refusal text, not only the verdict: 8 roles × 4
+  acts × 2 verdict fixtures, 64 comparisons, with the adapter's appended raw-id note stripped first.
+  Named-arm, default-deny and raw-id-note arms also run through the adapter.
+- **Claude Code shape, the regression for the gate's finding.** Every build role id is fed RAW
+  straight to the guard, as a local Claude Code agent file would stamp it, and must get the base
+  catch-all: 5e on posting and on opening work, 7b on merge (8 roles × 3 acts, 24 rows). It is
+  calibrated inside the suite against a copy of the guard with the old rewrite planted back in, where
+  17 of the 24 rows escape.
+- **Mutation-checked against the source; every mutant was killed and restored by hash:**
+
+  | mutant | result |
+  |---|---|
+  | the rewrite planted back into the guard | red |
+  | the adapter's rewrite removed | red |
+  | its `_`→`-` step dropped | red |
+  | its pattern widened to uppercase | red, in the adapter suite's malformed-id arm |
+  | the raw-id note removed | red |
+  | the build's prefix changed | red |
+  | the build keeping `-` in the id | red |
+
+  The widened-case mutant is the one that survived the first design as "equivalent". It also exposed
+  a defect in the new arm, a loop variable shadowing the suite's failure reporter, which is fixed.
+- **The scheme lives in the Python build and in the Python adapter.** The guard contains no copy, and
+  an arm asserts it names no persona by its Codex id. The duplication is accepted because the parity
+  arm derives the role set from the build and runs it through the adapter.
 
 **What nothing holds:** whether the identity a Codex payload declares is the persona that actually
 did the work. That is the cost above, and no layer here can check it.

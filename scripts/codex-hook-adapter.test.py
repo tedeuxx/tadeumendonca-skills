@@ -211,10 +211,20 @@ check(cha.map_caller({"agent_type": 7}) == sentinel,
       "identity — a non-string value maps to the sentinel")
 check(cha.map_caller({"agent_type": "probe_child"}) == "probe_child",
       "identity — a real child role is passed through VERBATIM, un-namespaced")
+# ~~a build role id is passed through VERBATIM; the GUARD translates it~~ — struck at QA gate
+# round 1 on #502: a guard-side rewrite also fired on Claude Code for a local agent file named
+# `tadeumendonca_<persona>`. The rewrite is HERE, on the Codex-only route.
 check(cha.map_caller({"agent_type": "tadeumendonca_quality_assurance"})
-      == "tadeumendonca_quality_assurance",
-      "identity — a build role id is passed through VERBATIM; the GUARD translates it, so "
-      "there is one transform and it lives in the floor")
+      == "tadeumendonca-skills:quality-assurance",
+      "identity — a build role id is REWRITTEN by the adapter into its Claude Code form, so the "
+      "shared guard reads the raw field on both harnesses")
+# (Named `malformed`, not `bad`: `bad()` is this suite's failure reporter, and shadowing it
+# turned the first red here into a crash with no summary — found by the widened-case mutant.)
+for malformed in ("tadeumendonca_", "tadeumendonca__developer", "tadeumendonca_Developer",
+                  "xtadeumendonca_developer", "tadeumendonca_developer "):
+    check(cha.map_caller({"agent_type": malformed}) == malformed,
+          "identity — a malformed build id %r is passed through UNCHANGED, so it falls to the "
+          "catch-all rather than being coerced into a persona" % malformed)
 
 # The four child payload shapes measured on 2026-09-23 (codex-cli 0.151.0-alpha.7.2,
 # disposable home, loopback model; docs/codex-hook-bridge.md section 19). Every one

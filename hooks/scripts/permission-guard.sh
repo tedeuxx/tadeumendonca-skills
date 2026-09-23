@@ -157,9 +157,10 @@ command="$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/nu
 # WHO is running this call. The harness stamps a subagent's tool calls with agent_type
 # (`<plugin>:<subagent>`) and leaves it empty for the main agent. The merge gate (rule 7b) and the
 # filing exemption (5d) both read it. **That is Claude Code.** On Codex (#501) the adapter sends the
-# child's DECLARED role (`tadeumendonca_<persona>`, which the `caller` transform below maps onto the
-# same arms) and `""` for the root session. Everything this block says about "cannot claim" holds
-# there for a command string; the role itself is a selection, and the cost is stated at `caller`.
+# child's DECLARED role, already rewritten by the adapter into the namespaced id this file matches
+# (`tadeumendonca_<persona>` -> `tadeumendonca-skills:<persona>`), and `""` for the root session.
+# Everything this block says about "cannot claim" holds there for a command string; the role itself is
+# a selection, and the cost is stated in ADR-0004's 2026-09-23 amendment.
 #
 # THE PROPERTY IS "CANNOT CLAIM", NOT "CANNOT OBTAIN", and the difference matters enough to state:
 # `agent_type` is read from the ROOT of the payload, while the model's only contribution is
@@ -186,45 +187,26 @@ command="$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/nu
 # `tech-lead`'s.
 agent_type="$(printf '%s' "$input" | jq -r '.agent_type // empty' 2>/dev/null || true)"
 
-# ROLE PARITY ACROSS HARNESSES (#501). `caller` is what every ROLE-KEYED arm below reads — 5e
-# (posting), 5c/5d (opening work) and 7b (merge) — and it is `agent_type` with ONE transform applied:
-# the reverse of the Codex agent build's id scheme. `scripts/codex-agent-build.py` names a persona's
-# native Codex role `tadeumendonca_` + the persona name with `-` turned into `_`, and refuses any
-# persona name that is not `[a-z0-9]+(-[a-z0-9]+)*`, so no persona name contains `_` and the reverse
-# is unambiguous. A value of that shape becomes the same namespaced id a Claude Code session stamps,
-# so the Codex id of `quality-assurance` and `tadeumendonca-skills:quality-assurance` take THE SAME ARM
-# of every role-keyed rule — the same allow, the same named deny, the same catch-all.
+# ROLE PARITY ACROSS HARNESSES (#501) — AND WHY THE TRANSFORM THAT DELIVERS IT IS *NOT* HERE.
+# Every role-keyed arm below (5e posting, 5c/5d opening work, 7b merge) reads the RAW `agent_type`,
+# exactly as before #501. Codex parity is delivered by `scripts/codex-hook-adapter.py`'s `map_caller`,
+# which rewrites a Codex build role id (`tadeumendonca_<persona>`) into the namespaced id a Claude Code
+# plugin session stamps BEFORE this file ever sees it. The adapter runs only on the Codex route.
 #
-# The owner's rule, 2026-09-23, verbatim: «temos que funcionar de forma equivalente em todos harness
-# suportados pela nossa distribuicao de plugin».
+# THE TRANSFORM LIVED HERE FOR ONE REVISION OF #501 AND WAS MOVED OUT, ON A MEASUREMENT. This file is
+# shared by both harnesses and cannot tell which one called it, so a rewrite keyed only on the VALUE's
+# shape fired on Claude Code too. There, a project-local agent file named `tadeumendonca_<persona>`
+# loads with no plugin and stamps that bare id (measured by the gate on Claude Code 2.1.280; a local
+# file declaring a colon-namespaced name is NOT loaded) — so a guard-side rewrite handed any committed
+# `.claude/agents/` file the posting, filing and merge arms of the persona it named. Before #501 such
+# an id fell to each rule's catch-all, and it does again: the owner accepted a declared identity ON
+# CODEX, never on Claude Code. `permission-guard.test.sh` feeds every build role id raw, as Claude
+# Code would, and asserts the base catch-all denies; it is calibrated against a copy of this file with
+# the rewrite planted back in.
 #
-# WHAT THIS COSTS, AND IT IS THE WHOLE COST (ADR-0004's 2026-09-23 amendment). On Claude Code the
-# harness stamps `agent_type` and the model cannot forge it. On Codex it is a SELECTION: the parent
-# names the role in its spawn call, and an operator can hand-declare a role of that exact name with
-# arbitrary instructions — measured, not assumed. So on Codex every act these arms grant, the
-# irreversible merge included, rests on a DECLARED identity and not an authenticated one. The owner
-# accepted that in those words. This transform is where that acceptance becomes mechanical.
-#
-# THREE THINGS IT DELIBERATELY DOES NOT DO.
-#   * It does not reassign `agent_type`. Every deny message still prints the RAW value, so a refusal
-#     names what the harness actually sent.
-#   * It does not name a persona. There is no per-persona literal here, only the scheme's prefix; a
-#     malformed id (`tadeumendonca_`, a double or trailing `_`, an uppercase letter) is left untouched
-#     and falls to each rule's catch-all, and a well-formed id that names no persona
-#     (`tadeumendonca_<persona>_x` -> `…:<persona>-x`) matches no arm but the catch-all either.
-#   * It is not the only copy of the scheme. The prefix and the `_`/`-` rule also live in the Python
-#     build, which is a duplication, and it is acceptable only because `permission-guard.test.sh`
-#     enumerates the build's OWN role list and asserts every role takes the same arm as its Claude
-#     id. Change the build's prefix, or break this transform, and that arm goes red.
-caller="$agent_type"
-case "$agent_type" in
-  tadeumendonca_*)
-    codex_persona="${agent_type#tadeumendonca_}"
-    if [[ "$codex_persona" =~ ^[a-z0-9]+(_[a-z0-9]+)*$ ]]; then
-      caller="tadeumendonca-skills:${codex_persona//_/-}"
-    fi
-    ;;
-esac
+# DO NOT RE-ADD A VALUE-SHAPED REWRITE HERE. If a harness-conditional rewrite is ever wanted in this
+# file, it must key on a signal only the adapter can set — never on the value, and never on a
+# shell-inherited variable (the objection this file already records against `developer_may`).
 
 # ~~NEVER INHERITED FROM THE ENVIRONMENT. `developer_may` is set only by rule 5d below and read as
 # `${developer_may:-}`, so an exported variable of that name in the hook's environment would skip
@@ -1760,7 +1742,7 @@ fi
 #     merged, at the cost of the second agent output the merge existed to remove. `security` escalated
 #     that this OVER-PRICES the fix and the owner accepted the cheaper one: this file ALREADY keys two
 #     denials on `agent_type` (5d, 7b) — a harness-stamped signal the model cannot write on Claude
-#     Code; on Codex, since #501, a DECLARED one (see `caller` above) — so the
+#     Code; on Codex, since #501, a DECLARED one (rewritten by the Codex adapter; see ROLE PARITY above) — so the
 #     boundary can be restored here, at the floor, without touching the roster. It costs the persona
 #     nothing it declares it needs: its own body says it "writes nothing — no issue, no commit, no
 #     comment, no edit to any file", and `gh pr list` / `gh issue list` / `gh pr view` are untouched,
@@ -1825,7 +1807,7 @@ fi
 # personas ALLOWED to post directly, and anything else — including a future persona nobody remembered
 # to list here — denies by default.
 if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+(pr[[:space:]]+comment|issue[[:space:]]+(comment|create))([[:space:]]|\$)"; then
-  case "$caller" in
+  case "$agent_type" in
     ""|*:developer|*:tech-lead|*:agents-lead|*:quality-assurance)
       : ;;  # allowlisted — none of these reads .brand/ as a matter of course, and each posts as part
             # of its normal work (verdicts, findings, task filing). Falls through to the rest of the
@@ -1877,7 +1859,7 @@ fi
 #
 #     THE FIX USES A SIGNAL THAT IS BOTH OBSERVABLE AND HONEST: `agent_type`, stamped by the harness and
 #     unforgeable by the model (see rule 7b). **On Claude Code.** On Codex, since #501, it is DECLARED
-#     by the session, so there it is observable but not authenticated — see `caller` above and
+#     by the session, so there it is observable but not authenticated — see ROLE PARITY above and
 #     ADR-0004's 2026-09-23 amendment. It splits the two cases the old rule conflated.
 #
 #       - A SUBAGENT still cannot file. This is where the measured failure actually happened (below):
@@ -1942,7 +1924,7 @@ fi
 #
 #     ~~And a subagent still has none at all.~~ **False since #124.** `developer` is exempt — and the
 #     exemption is keyed on `agent_type`, which the HARNESS stamps and the model cannot write (on
-#     Claude Code; on Codex, since #501, the role is declared — see `caller` above). So the
+#     Claude Code; on Codex, since #501, the role is declared — see ROLE PARITY above). So the
 #     sentence above still holds in the form that matters: there is no *spelling* that exempts anyone.
 #     What the exemption no longer carries is a check that the issue is really a decomposition; that
 #     was attempted for four rounds and is now the persona's rule and the gate's, not the floor's.
@@ -2013,7 +1995,7 @@ fi
 #     quoted here on purpose — a comment carrying the pattern would itself read as a fourth copy.)
 #     It now asserts they are identical within this file, not only across the two hooks.
 if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]=]*|--repo[[:space:]=]*)[^[:space:]]+)?[[:space:]]+issue[[:space:]]+create'; then
-  if [ -n "$caller" ]; then
+  if [ -n "$agent_type" ]; then
     # 5d. DECOMPOSING IS NOT OPENING (#122, gitflow-single-env). One narrow exception, and the
     #     distinction it rests on is real rather than a convenience:
     #
@@ -2054,7 +2036,7 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]
     #     gate (7b) and the composition check (8). `gh issue create … && git push origin main` came
     #     out with NO decision at all, where before it was denied twice over. An exception in one
     #     rule silently became a bypass of the whole floor. Falling through is the only safe shape.
-    case "$caller" in
+    case "$agent_type" in
       *:developer) : ;;  # a no-op that CONTINUES to EVERY rule below this block — see the `NOT exit 0` note above
       *) deny "Blocked: a subagent does not open work. Filing tasks under an approved story belongs to \`developer\`, the persona that executes them — a review citing a story is still a review opening work. Report the finding in your verdict and let the owner decide whether it becomes an issue." ;;
     esac
@@ -2369,7 +2351,7 @@ fi
 # 7b. Merging a PR is the deploy — ADR-0004 makes it the quality-assurance's act alone,
 #     and this is where that stops being a promise the main agent must remember. The
 #     harness stamps agent_type on a subagent's tool calls (`<plugin>:quality-assurance`;
-#     on Codex, since #501, the DECLARED Codex id of that persona, via `caller`)
+#     on Codex, since #501, the DECLARED Codex id of that persona, rewritten by the adapter)
 #     and leaves it empty for the main agent, so `gh pr merge` is allowed ONLY from the
 #     reviewer; the main agent and every other subagent are denied. It turns "did the
 #     reviewer run?" into a precondition the model cannot satisfy by recall — only by
@@ -2444,7 +2426,7 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
     # caller a second deny in a row.
     deny "Blocked: never squash-merge. Use a real merge commit ('gh pr merge <number> --merge', reference first) — per-commit history is the record of how the change was reached, and a squash discards it irreversibly once it is on the trunk."
   fi
-  case "$caller" in
+  case "$agent_type" in
     *:quality-assurance)
       # (#501: on Codex the caller reaching here is DECLARED, not proven — the owner accepted that a
       # declared `quality-assurance` may merge; the verdict-at-head read below is unchanged for it.)

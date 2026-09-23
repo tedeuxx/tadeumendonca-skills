@@ -2825,24 +2825,27 @@ rm -rf "$CAL497"
 # pela nossa distribuicao de plugin». Every ROLE-KEYED arm of the guard must decide a persona the same
 # way under its Codex id as under its Claude Code id: same verdict AND the same deciding arm.
 #
+# THE CODEX SIDE RUNS THROUGH THE REAL ADAPTER, NOT THROUGH THE GUARD ALONE. The rewrite that gives a
+# Codex role id its persona's arm lives in `scripts/codex-hook-adapter.py` (`map_caller`), which runs
+# only on the Codex route. It was first written into the shared guard, where it ALSO fired on Claude
+# Code for a project-local agent file named `tadeumendonca_<persona>` (measured by the gate on Claude
+# Code 2.1.280) — so the Codex side here pipes a native Codex payload into the adapter process, and
+# the Claude side pipes the namespaced id straight into the guard, which is exactly what each harness
+# does. The CLAUDE-SHAPE arm further down asserts the other half: a raw build id sent straight to the
+# guard gets the base catch-all.
+#
 # THE ROLE SET IS DERIVED FROM THE BUILD, NEVER TYPED HERE. `scripts/codex-agent-build.py`'s own
 # `snapshot()` produces the manifest a Codex session registers from, and its `roles` map names each
-# native id and the persona file it came from. So the Codex side of every pair below is the build's
-# output, and the Claude side is the persona's filename under the plugin namespace. The guard's
-# reverse transform is the thing under test; the build is the thing it must agree with.
+# native id and the persona file it came from.
 #
-# SAME ARM, NOT ONLY SAME VERDICT. A Codex id denied by the catch-all and a Claude id denied by the
-# named `product-lead` arm are both DENY and are not parity — the owner's decision 3 says a persona
-# denied on Claude "is denied under its Codex id by the same named arm, not only by the catch-all".
-# So the comparison is over the guard's WHOLE output with the raw caller string replaced by a
-# placeholder (every deny message interpolates the raw `agent_type`, which differs by construction).
-# Equal normalised output means the same arm answered; that is the property.
+# SAME ARM, NOT ONLY SAME VERDICT. The comparison is over the refusal TEXT (or its absence). The
+# adapter appends a note naming the id Codex actually sent, because the guard now sees the rewritten
+# one; that note is stripped for the comparison and asserted separately below.
 #
 # TWO FIXTURES, because 7b has two outcomes for the one persona it lets through: with a clean
-# APPROVE-AND-MERGE at head, 7c clears (no decision); with no verdict, 7c denies with its own
-# message. Both have to agree, or `quality-assurance` could reach 7c on one harness and not the other
-# while the verdict column still matched.
+# APPROVE-AND-MERGE at head, 7c clears; with no verdict, 7c denies with its own message.
 REPO_ROOT="$(cd "$(dirname "$GUARD")/../.." && pwd)"
+ADAPTER="$REPO_ROOT/scripts/codex-hook-adapter.py"
 PARITY_TMP="$(mktemp -d)"
 # The build needs `tomllib` (Python 3.11+). A bare `python3` can be older than that on a developer
 # machine (macOS ships 3.9), so the first interpreter that HAS it is used. None found is a FAIL, never
@@ -2880,9 +2883,25 @@ PARITY_ACTS=(
   "gh issue create --title t --body-file /dev/null"
   "gh pr merge 999999 --merge"
 )
-parity_norm() { # caller · command -> the guard's whole output, raw caller replaced by a placeholder
-  out=$(jq -n --arg c "$2" --arg a "$1" '{tool_input:{command:$c}, agent_type:$a}' | bash "$GUARD")
-  printf '%s' "${out//$1/<CALLER>}"
+PARITY_NOTE_SEP=$'\n\n[codex-hook-adapter] agent_type as Codex sent it:'
+parity_via_adapter() { # codex id · command -> ALLOW, or DENY:<reason with the adapter's raw-id note stripped>
+  out=$(jq -n --arg c "$2" --arg a "$1" --arg d "$REPO_ROOT" \
+          '{hook_event_name:"PreToolUse", tool_name:"Bash", tool_input:{command:$c}, agent_type:$a, cwd:$d}' \
+        | "${parity_py:-python3}" "$ADAPTER" 2>/dev/null)
+  if [ -z "$out" ]; then printf 'ALLOW'; return; fi
+  r=$(printf '%s' "$out" | jq -r '.reason // "UNPARSEABLE"')
+  printf 'DENY:%s' "${r%%"$PARITY_NOTE_SEP"*}"
+}
+parity_raw_adapter() { # codex id · command -> the adapter's full reason (note included), or ALLOW
+  out=$(jq -n --arg c "$2" --arg a "$1" --arg d "$REPO_ROOT" \
+          '{hook_event_name:"PreToolUse", tool_name:"Bash", tool_input:{command:$c}, agent_type:$a, cwd:$d}' \
+        | "${parity_py:-python3}" "$ADAPTER" 2>/dev/null)
+  if [ -z "$out" ]; then printf 'ALLOW'; else printf '%s' "$out" | jq -r '.reason // "UNPARSEABLE"'; fi
+}
+parity_via_guard() { # caller · command [· guard file] -> ALLOW, or DENY:<reason>
+  out=$(jq -n --arg c "$2" --arg a "$1" '{tool_input:{command:$c}, agent_type:$a}' | bash "${3:-$GUARD}")
+  if [ -z "$out" ]; then printf 'ALLOW'; return; fi
+  printf 'DENY:%s' "$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecisionReason // "UNPARSEABLE"')"
 }
 parity_ok=0; parity_bad=0
 parity_post_file="$PARITY_TMP/post-outputs"; : > "$parity_post_file"
@@ -2892,14 +2911,14 @@ for fixture in clean none; do
     [ -n "$codex_id" ] || continue
     claude_id="tadeumendonca-skills:${persona}"
     for act in "${PARITY_ACTS[@]}"; do
-      c_out="$(parity_norm "$codex_id" "$act")"
-      k_out="$(parity_norm "$claude_id" "$act")"
+      c_out="$(parity_via_adapter "$codex_id" "$act")"
+      k_out="$(parity_via_guard "$claude_id" "$act")"
       if [ "$c_out" = "$k_out" ]; then
         parity_ok=$((parity_ok + 1))
       else
         parity_bad=$((parity_bad + 1))
-        printf 'FAIL  PARITY %s vs %s disagree on [%s] (fixture %s)\n      codex:  %.160s\n      claude: %.160s\n' \
-          "$codex_id" "$claude_id" "$act" "$fixture" "$(verdict "$c_out") ${c_out}" "$(verdict "$k_out") ${k_out}"
+        printf 'FAIL  PARITY %s (via adapter) vs %s (guard) disagree on [%s] (fixture %s)\n      codex:  %.160s\n      claude: %.160s\n' \
+          "$codex_id" "$claude_id" "$act" "$fixture" "$c_out" "$k_out"
       fi
       [ "$act" = "${PARITY_ACTS[0]}" ] && printf '%s\n' "$(printf '%s' "$k_out" | cksum)" >> "$parity_post_file"
     done
@@ -2907,14 +2926,12 @@ for fixture in clean none; do
 done
 write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE"
 if [ "$parity_bad" -eq 0 ] && [ "$parity_ok" -gt 0 ]; then
-  pass=$((pass + 1)); printf 'ok    PARITY every role takes the same arm under both ids (%s comparisons: roles x 4 acts x 2 fixtures)\n' "$parity_ok"
+  pass=$((pass + 1)); printf 'ok    PARITY every role takes the same arm via the adapter as its Claude id does in the guard (%s comparisons: roles x 4 acts x 2 fixtures)\n' "$parity_ok"
 else
   fail=$((fail + 1)); printf 'FAIL  PARITY %s of %s comparisons disagreed\n' "$parity_bad" "$((parity_ok + parity_bad))"
 fi
 # CALIBRATION OF THE COMPARISON ITSELF — equal outputs prove nothing if every persona got the SAME
-# output. On rule 5e the roster spans an allow and several distinct named denies, so the Claude side
-# alone must produce more than one distinct output; if it produced one, the pairs above would agree
-# whatever the transform did.
+# output. On rule 5e the roster spans an allow and several distinct named denies.
 parity_distinct="$(sort -u "$parity_post_file" | grep -c .)"
 if [ "$parity_distinct" -ge 3 ]; then
   pass=$((pass + 1)); printf 'ok    PARITY (calibration) rule 5e gives %s distinct arms across the roster, so agreement is not trivial\n' "$parity_distinct"
@@ -2922,18 +2939,13 @@ else
   fail=$((fail + 1)); printf 'FAIL  PARITY (calibration) rule 5e gave only %s distinct arm(s) across the roster\n' "$parity_distinct"
 fi
 
-# Named expectations, so a parity green cannot hide both sides having moved together. These read the
-# DECIDING ARM, not only the verdict (AC-2/AC-3).
-parity_reason() { # caller · command -> the deny reason, or ALLOW
-  jq -n --arg c "$2" --arg a "$1" '{tool_input:{command:$c}, agent_type:$a}' | bash "$GUARD" \
-    | jq -r '.hookSpecificOutput.permissionDecisionReason // empty'
-}
-parity_expect() { # desc · caller · command · substring-of-reason (or ALLOW)
-  r="$(parity_reason "$2" "$3")"
-  if { [ "$4" = ALLOW ] && [ -z "$r" ]; } || { [ "$4" != ALLOW ] && [ -n "$r" ] && [[ "$r" == *"$4"* ]]; }; then
+# Named expectations through the ADAPTER, reading the deciding arm, not only the verdict (AC-2/AC-3).
+parity_expect() { # desc · codex id · command · substring-of-reason (or ALLOW)
+  r="$(parity_via_adapter "$2" "$3")"
+  if { [ "$4" = ALLOW ] && [ "$r" = ALLOW ]; } || { [ "$4" != ALLOW ] && [[ "$r" == DENY:*"$4"* ]]; }; then
     pass=$((pass + 1)); printf 'ok    PARITY %s\n' "$1"
   else
-    fail=$((fail + 1)); printf 'FAIL  PARITY %s\n      caller %s on [%s]: %.200s\n' "$1" "$2" "$3" "${r:-ALLOW}"
+    fail=$((fail + 1)); printf 'FAIL  PARITY %s\n      codex id %s on [%s]: %.200s\n' "$1" "$2" "$3" "$r"
   fi
 }
 P_POST="gh pr comment 999999 --body-file /dev/null"
@@ -2957,20 +2969,64 @@ write_gh_fixture "stubbed-head" ""
 parity_expect "7b->7c: the Codex quality-assurance id is DENIED by 7c when no verdict is at head" tadeumendonca_quality_assurance "$P_MERGE" "is neither APPROVE-AND-MERGE"
 write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE"
 parity_expect "7b: the Codex developer id may not merge"                     tadeumendonca_developer         "$P_MERGE" "$P_7B"
-# DEFAULT DENY (AC-3): an unknown persona and every malformed id reach each rule's CATCH-ALL.
+# DEFAULT DENY (AC-3): an unknown persona and every malformed id reach each rule's CATCH-ALL. 5e also
+# matches `gh issue create` and runs first, so for any id 5e does not allow, 5e's catch-all is what
+# answers opening work — 5d is only reachable for the four personas 5e lets post.
 for bad_id in tadeumendonca_unknown_persona tadeumendonca_ tadeumendonca__developer tadeumendonca_Developer tadeumendonca_developer_x tadeumendonca_quality_assurance_x; do
   parity_expect "default deny 5e: $bad_id reaches the catch-all" "$bad_id" "$P_POST"  "$P_CATCH5E"
-  # 5e ALSO matches `gh issue create` and runs first, so for any id 5e does not allow, 5e's catch-all
-  # is the arm that answers opening work — 5d is only reachable for the four personas 5e lets post.
-  # That ordering is the same on both harnesses; this pins it for the malformed ids.
   parity_expect "default deny 5c: $bad_id is refused opening work by 5e's catch-all" "$bad_id" "$P_OPEN" "$P_CATCH5E"
   parity_expect "default deny 7b: $bad_id may not merge"           "$bad_id" "$P_MERGE" "$P_7B"
 done
-# The raw value is what a refusal prints, not the canonical one (AC-1).
-parity_expect "the deny message names the RAW Codex id, not the translated one" tadeumendonca_product_lead "$P_POST" "agent_type='tadeumendonca_product_lead'"
+# The guard now sees the rewritten id, so the refusal must still NAME what Codex sent (AC-1): the
+# adapter appends it.
+r="$(parity_raw_adapter tadeumendonca_product_lead "$P_POST")"
+if [[ "$r" == *"agent_type as Codex sent it: 'tadeumendonca_product_lead'"* ]]; then
+  pass=$((pass + 1)); printf 'ok    PARITY a Codex refusal names the RAW id Codex sent, appended by the adapter\n'
+else
+  fail=$((fail + 1)); printf 'FAIL  PARITY a Codex refusal does not name the raw id: %.200s\n' "$r"
+fi
 
-# AC-1: NO PER-PERSONA CODEX LITERAL IN THE GUARD. The transform carries the scheme's prefix and
-# nothing else, so a renamed persona cannot leave a stale id behind in the floor. Calibrated on a copy
+# ── CLAUDE-SHAPE REGRESSION: A RAW BUILD ID STRAIGHT INTO THE GUARD GETS THE BASE CATCH-ALL (#501, QA B1)
+# On Claude Code a project-local `.claude/agents/tadeumendonca_<persona>.md` loads with NO plugin and
+# stamps that bare id (the gate measured it on Claude Code 2.1.280; a local file declaring a colon
+# name is not loaded). The guard must treat such an id exactly as it did before #501: 5e's catch-all
+# on posting and on opening work, 7b's catch-all on merge. Every build role id, fed raw, the way
+# Claude Code would send it.
+CS_POST="gh pr comment 367 --repo tedeuxx/tadeumendonca-skills --body-file /dev/null"
+cs_check() { # guard file -> number of (role x act) rows that are NOT the base catch-all denial
+  n=0
+  while IFS=$'\t' read -r codex_id _persona; do
+    [ -n "$codex_id" ] || continue
+    for pair in "$CS_POST|$P_CATCH5E" "$P_OPEN|$P_CATCH5E" "$P_MERGE|$P_7B"; do
+      r="$(parity_via_guard "$codex_id" "${pair%%|*}" "$1")"
+      [[ "$r" == DENY:*"${pair#*|}"* ]] || n=$((n + 1))
+    done
+  done <<< "$parity_pairs"
+  printf '%s' "$n"
+}
+cs_rows=$((parity_roles * 3))
+cs_bad="$(cs_check "$GUARD")"
+if [ "$cs_bad" = 0 ] && [ "$cs_rows" -gt 0 ]; then
+  pass=$((pass + 1)); printf 'ok    CLAUDE-SHAPE every raw build id sent straight to the guard gets the base catch-all (%s rows: roles x post/open/merge)\n' "$cs_rows"
+else
+  fail=$((fail + 1)); printf 'FAIL  CLAUDE-SHAPE %s of %s raw-id rows escaped the base catch-all — a local agent file named tadeumendonca_<persona> would gain that arm on Claude Code\n' "$cs_bad" "$cs_rows"
+fi
+# CALIBRATION BY MUTATING THE SOURCE: a copy of the guard with the in-guard rewrite planted back in,
+# right after `agent_type` is read. The arm above must redden on it, or it proves nothing.
+awk '{print} /^agent_type="\$\(printf/ && !done {print "case \"$agent_type\" in tadeumendonca_*) p=\"${agent_type#tadeumendonca_}\"; if [[ \"$p\" =~ ^[a-z0-9]+(_[a-z0-9]+)*$ ]]; then agent_type=\"tadeumendonca-skills:${p//_/-}\"; fi ;; esac"; done=1}' \
+  "$GUARD" > "$PARITY_TMP/planted-guard.sh"
+if cmp -s "$GUARD" "$PARITY_TMP/planted-guard.sh"; then
+  fail=$((fail + 1)); printf 'FAIL  CLAUDE-SHAPE (calibration) the planting anchor is dead — the copy did not change\n'
+else
+  cs_planted="$(cs_check "$PARITY_TMP/planted-guard.sh")"
+  if [ "$cs_planted" -gt 0 ]; then
+    pass=$((pass + 1)); printf 'ok    CLAUDE-SHAPE (calibration) with the in-guard rewrite planted back, %s of %s rows escape — the arm can go red\n' "$cs_planted" "$cs_rows"
+  else
+    fail=$((fail + 1)); printf 'FAIL  CLAUDE-SHAPE (calibration) the planted in-guard rewrite changed nothing — the arm cannot go red\n'
+  fi
+fi
+
+# AC-1: NO PER-PERSONA CODEX LITERAL, AND NO VALUE-SHAPED REWRITE, IN THE GUARD. Calibrated on a copy
 # with one planted, so the grep can go non-zero.
 if ! grep -qE 'tadeumendonca_[a-z0-9]' "$GUARD"; then
   pass=$((pass + 1)); printf 'ok    PARITY the guard names no persona by its Codex id\n'
