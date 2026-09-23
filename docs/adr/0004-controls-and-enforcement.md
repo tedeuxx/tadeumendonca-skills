@@ -6292,10 +6292,16 @@ three are runtime facts no gate here can reach:
 1. **Trust.** A registration executes only against a matching `trusted_hash` in the invoking user's
    own `config.toml`, and this repository's registrations are all `untrusted`. Shipping the carrier
    turns nothing on.
-2. **Whether a plugin-carrier hook command resolves a RELATIVE path, and against what.** Slice A's
-   fixture used the relative spelling and `plugin/read` reported a registration; every turn phase
-   registered an **absolute** path. So *the manifest is read* is measured and *the command is
-   found* is not. **This blocks the activation claim** and one trusted turn settles it.
+2. ~~**Whether a plugin-carrier hook command resolves a RELATIVE path, and against what.** Slice A's~~
+   ~~fixture used the relative spelling and `plugin/read` reported a registration; every turn phase~~
+   ~~registered an **absolute** path. So *the manifest is read* is measured and *the command is~~
+   ~~found* is not. **This blocks the activation claim** and one trusted turn settles it.~~
+   **Corrected 2026-09-22:** relative commands resolve against the session cwd on both the config
+   and installed-plugin routes. The then-shipped relative registration consequently did not launch;
+   `${PLUGIN_ROOT}` was measured as a per-plugin expansion and now anchors the shipped command to the
+   installed package. **Whether that repaired registration launches after adoption and trust remains
+   unverified** — the spelling is pinned to a runtime measurement, but no turn has exercised the
+   repaired carrier.
 3. **The route ceiling, which no build can lift here.** `command/exec`, `process/spawn` and
    `thread/shellCommand` fire no hook. The floor covers the model's tool calls and nothing else.
 
@@ -6309,11 +6315,16 @@ three are runtime facts no gate here can reach:
 | a mechanism in the second carrier declares a `purpose:` | **`inventory-counts.test.sh`**, whose forward arm reads `codex-hooks.json` from this slice on. It was derived from `hooks/hooks.json` alone and was therefore blind to the second carrier |
 | the coverage sentence is stated as *the model's tool calls* | **one gate arm asserting the words are in the document.** It cannot assert anyone read them |
 | the shipped branch is the one the owner ruled | **a gate arm pinned to `False`**, which turns a flip into a deliberate edit of the suite as well. It cannot know what was ruled |
-| the registered command is ever invoked | **nothing, and nothing here can.** See *What this does NOT claim* |
+| ~~the registered command is ever invoked~~ **the repaired shipped command launches through the installed carrier** | ~~**nothing, and nothing here can.**~~ **`CODEX_HOOK_ADAPTER_LOG` records every adapter invocation, including abstentions; settling this row still requires an adopted, trusted carrier and a model turn on the build being claimed.** See *What this does NOT claim* |
 
-**By this loop's own test — *would something stop me, or only my memory?* — the floor is now
-MECHANICAL on Codex for the model's tool calls, conditional on trust and on the unmeasured path
-resolution, and every other claim in this amendment is an instruction.**
+~~**By this loop's own test — *would something stop me, or only my memory?* — the floor is now~~
+~~MECHANICAL on Codex for the model's tool calls, conditional on trust and on the unmeasured path~~
+~~resolution, and every other claim in this amendment is an instruction.**~~
+**Corrected 2026-09-22:** the adapter and carrier are mechanically available, and their spelling is
+gated against the measured root-token set. The installed path may not be described as a held floor
+until a matching trust entry exists and a model turn demonstrates that the repaired registration
+launches on the invoking build. The current repository can gate the instrument and the spelling; it
+cannot observe that runtime activation.
 
 ### Significance
 

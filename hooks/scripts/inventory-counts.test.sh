@@ -7755,6 +7755,7 @@ editing a file inside a git working tree|orchestrator-write-guard.sh is DELETED 
 already refused at runtime|Nothing refuses the orchestrator's write at runtime since #386 deleted orchestrator-write-guard.sh. Any sentence resting on that refusal — including one nine lines below its own strike, which is how this instance survived — is a control claimed where none exists.
 asserts the registration itself|hooks/scripts/orchestrator-write-guard.test.sh is deleted in #386 along with its CI step, so the matcher-enumeration lesson in ADR-0004 named a mitigation that no longer exists. The lesson stands; the reassurance does not.
 contains an Issue the gate|Rule 7d is REMOVED (#383, slice S4). Any sentence asserting that a merge is refused when the forge's resolved closing set contains an Issue the gate's verdict does not declare is a control claimed where none exists — the same shape as the orchestrator-write-guard entries above. The obligation survives as the gate's own `closes:` artifact, which nothing reads.
+conditional on trust and on the unmeasured path|Relative command resolution is measured on both the config and installed-plugin routes, and the shipped registration is anchored to the measured PLUGIN_ROOT token. What remains unverified is the repaired command launching after adoption and trust; do not restore path resolution as the open condition.
 RETIRED_CLAUSES
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
