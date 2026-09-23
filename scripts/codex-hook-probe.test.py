@@ -148,12 +148,26 @@ check("the offline and turn phase sets are disjoint",
       str(sorted(set(probe.OFFLINE_PHASES) & set(probe.TURN_PHASES))))
 check("every phase belongs to exactly one set",
       set(probe.PHASES) == set(probe.OFFLINE_PHASES) | set(probe.TURN_PHASES))
+check("native preflight measurement is opt-in because it starts a model turn",
+      "preflight" in probe.TURN_PHASES and "preflight" not in probe.OFFLINE_PHASES)
+
+preflight_project = work / "preflight-project"
+preflight_config = probe.turn_config(
+    preflight_project, [(None, "/tmp/preflight-probe")],
+    event="UserPromptSubmit")
+check("preflight fixture declares UserPromptSubmit",
+      "[[hooks.UserPromptSubmit]]" in preflight_config)
+check("preflight fixture nests its command under the same event",
+      "[[hooks.UserPromptSubmit.hooks]]" in preflight_config)
+check("preflight fixture does not silently retain PreToolUse",
+      "hooks.PreToolUse" not in preflight_config)
 check("the three offline phases are the ones that cost nothing",
       set(probe.OFFLINE_PHASES) == {"carrier", "trust", "routes"},
       str(sorted(probe.OFFLINE_PHASES)))
-check("the nine turn phases are named",
+check("the ten turn phases are named",
       set(probe.TURN_PHASES) == {"payload", "block", "identity", "stdin", "matcher",
-                                 "firing", "friction", "carrierfire", "carrierroot"},
+                                 "firing", "friction", "carrierfire", "carrierroot",
+                                 "preflight"},
       str(sorted(probe.TURN_PHASES)))
 
 # --- arm 6b: the `firing` phase's instrument, which is the one that must discriminate ---

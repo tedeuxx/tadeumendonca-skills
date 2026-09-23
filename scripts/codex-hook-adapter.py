@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-# purpose: carry the irreversible floor onto Codex by translating its native PreToolUse payload into the authoritative guard's and its verdict back into Codex's own refusal verb, so the floor is authored once rather than re-declared per harness
+# purpose: carry the irreversible floor onto Codex through PreToolUse and refuse a prompt through UserPromptSubmit when that native route's own local dependencies are absent
 """The Codex side of the permission floor. A TRANSLATOR, never a second policy.
 
 `hooks/scripts/permission-guard.sh` stays the only authored floor in this repository.
-This file does four things and deliberately nothing else:
+This file does five things and deliberately nothing else:
 
   1. reads a native Codex `PreToolUse` payload on stdin;
   2. decides whether the route is one the floor can speak about at all;
   3. maps the CALLER, which is the part that inverts intuition — see IDENTITY below;
   4. runs the guard and translates its verdict into Codex's own vocabulary.
+  5. on `UserPromptSubmit`, refuses a degraded session when the Codex floor's own
+     local dependencies are absent.
 
 There is no rule here. A rule added here would be a second floor that drifts from the
 first with nothing watching, which is the failure this repository names most often.
@@ -54,11 +56,11 @@ a boundary limitation of this harness, not a new merge executor, and the way to 
 is native authenticated caller binding, which does not exist.
 
 ── FAILURE POSTURE ───────────────────────────────────────────────────────────────────
-Fail open, matching the guard's own general contract: a missing interpreter, an
-unreadable guard, a malformed payload, a timeout or an unparseable verdict all ABSTAIN
-and write one line to stderr. A floor that is absent is indistinguishable from a floor
-that is holding, which is why `--selfcheck` exists and why activation instructions must
-send an operator through it.
+The `PreToolUse` translation fails open, matching the guard's own general contract: a
+missing interpreter, an unreadable guard, a malformed payload, a timeout or an
+unparseable verdict all ABSTAIN and write one line to stderr. `UserPromptSubmit` is the
+deliberate exception: once the adapter is running, a missing `bash`, `jq` or authored
+guard refuses the prompt before a silently degraded floor can judge later calls.
 
 A MALFORMED TUNABLE IS NOT IN THAT LIST, AND THE DIFFERENCE IS DELIBERATE (#455). A bad
 `CODEX_HOOK_ADAPTER_TIMEOUT` does not abstain: the floor keeps running at the built-in
@@ -106,10 +108,11 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 GUARD = REPO_ROOT / "hooks" / "scripts" / "permission-guard.sh"
 
-# The event this adapter speaks about. Codex's vocabulary is twelve PascalCase names and
-# this is the only one translated here; the observer half of this harness is a later
-# slice and is not smuggled in by accepting other events silently.
+# The two events this adapter speaks about. `PreToolUse` carries the command floor;
+# `UserPromptSubmit` carries only its local dependency preflight. Neither registration
+# imports the Claude observer set, whose dependencies are not part of the Codex route.
 EVENT = "PreToolUse"
+PREFLIGHT_EVENT = "UserPromptSubmit"
 
 # `matcher` is compared against `tool_name`, and the shell route's `tool_name` is `Bash`
 # — NOT `shell`, which matches nothing and registers a hook that reads as installed and
@@ -477,8 +480,37 @@ def run_guard(command, caller, cwd):
             "reason": verdict.get("permissionDecisionReason", "")}, None
 
 
+def floor_blockers():
+    """Local conditions without which the Codex command floor cannot answer.
+
+    Keep this list narrower than the Claude registry's preflight: a Codex installation
+    activates this adapter and the shared guard, not that registry's observers. `git`
+    and `gh` remain notes in selfcheck because their absence degrades individual guard
+    branches according to the guard's own posture; it does not make every command
+    unjudgeable. The adapter itself and Python are already present if this code runs.
+    """
+    blocking = []
+    if shutil.which("bash") is None:
+        blocking.append("bash is not on PATH — the guard cannot run")
+    if shutil.which("jq") is None:
+        blocking.append(
+            "jq is not on PATH — without it the guard can exit 0 with empty stdout, "
+            "silently failing open")
+    if not GUARD.is_file():
+        blocking.append("the guard is missing at %s" % GUARD)
+    return blocking
+
+
 def translate(payload):
     """Codex payload in, exit code out; the decision is written to stdout."""
+    if payload.get("hook_event_name") == PREFLIGHT_EVENT:
+        blocking = floor_blockers()
+        if not blocking:
+            return abstain()
+        return emit_block(
+            "Codex hook preflight failed: %s. Fix the installed plugin or PATH before "
+            "continuing; %d blocking condition(s) found."
+            % (blocking[0], len(blocking)))
     if payload.get("hook_event_name") != EVENT:
         return abstain()
     tool = payload.get("tool_name")
@@ -525,9 +557,9 @@ def translate(payload):
 # ── selfcheck ─────────────────────────────────────────────────────────────────────────
 
 def selfcheck():
-    """Activation status. Every hook here fails open, so an inert floor looks exactly
-    like a holding one — this is the only route an operator has to tell them apart, and
-    it is a REPORT rather than a control: it changes no trust state and writes nothing."""
+    """Activation status. This is a REPORT rather than a control: it changes no trust
+    state and writes nothing. UserPromptSubmit now carries the same local blocker set,
+    but a green here still does not prove the host invoked either registration."""
     blocking = []
     notes = []
 
@@ -548,14 +580,7 @@ def selfcheck():
                else "the built-in default (the variable is unset)",
                DEFAULT_GUARD_TIMEOUT))
 
-    if shutil.which("bash") is None:
-        blocking.append("bash is not on PATH — the guard cannot run")
-    if shutil.which("jq") is None:
-        blocking.append(
-            "jq is not on PATH — MEASURED: without it the guard exits 0 with empty "
-            "stdout on `terraform apply`, which is a silent fail-open of the whole floor")
-    if not GUARD.is_file():
-        blocking.append("the guard is missing at %s" % GUARD)
+    blocking.extend(floor_blockers())
     if shutil.which("git") is None:
         notes.append("git is not on PATH — the trunk-push rule cannot resolve a branch")
     if shutil.which("gh") is None:
@@ -609,20 +634,18 @@ def selfcheck():
         "measurement can still lose. EVERY IRREVERSIBLE RULE IS FORWARDED UNCHANGED."
         % CONVENIENCE_ENV)
     notes.append(
-        "FIRING DEPENDS ON THE BUILD AND ON THE REGISTRATION ROUTE, AND THIS CHECK IS NOT "
-        "EVIDENCE OF EITHER. Two native runs disagree and BOTH are on the record. PROVEN "
-        "2026-09-21 on codex-cli 0.151.0-alpha.7.2, via a [[hooks.PreToolUse]] registration "
-        "in config.toml: the hook was invoked, this adapter decided `block`, the act did not "
-        "happen, and the guard's reason reached the runtime — a relative command resolved "
-        "too, against the SESSION's cwd. NOT REPRODUCED 2026-09-16 on codex-cli "
-        "0.154.0-alpha.6.2, via the PLUGIN CARRIER: a registered, trusted hook did not act. "
-        "The two differ in build AND in route and neither overturns the other, so the "
-        "carrier's OWN route is still unproven — do not flatten this into 'active'. What is "
-        "measured on both: the carrier is DISCOVERED and can be TRUSTED by an API call with "
-        "NO human prompt, so Codex hook trust is not a human checkpoint. THIS CHECK CANNOT "
-        "SETTLE ANY OF IT: if you are reading this line the adapter was found and run by "
-        "YOU. To tell 'never called' from 'decision discarded' on your own machine, set the "
-        "invocation log below. See docs/codex-hook-bridge.md sections 13, 14 and 15.")
+        "RUNTIME EVIDENCE IS DATED AND THIS CHECK IS NOT A SUBSTITUTE. Installed carrier "
+        "2.0.71 invoked this adapter and blocked an unquoted command substitution on "
+        "2026-09-22 in Desktop 0.151.0-alpha.7.2 (permission_mode=default) and independently "
+        "in VS Code 0.154.0-alpha.6.2 (payload permission_mode=bypassPermissions; no bypass "
+        "flag or config mutation was used by the verifier). This proves the installed "
+        "PreToolUse/Bash route on those builds, not every route, authenticated caller "
+        "identity or every shell spelling. A quoted nested substitution was observed "
+        "ABSTAINING and executing; that shared-guard defect is not repaired here. "
+        "UserPromptSubmit separately blocked a disposable model turn on Desktop 0.151, "
+        "which proves the event CAN carry this preflight; this release's new carrier "
+        "registration still needs installed-version verification. See "
+        "docs/codex-hook-bridge.md section 18.")
     target = log_target()
     if target is None:
         log_state = ("OFF. Nothing is written. Set it to an ABSOLUTE path to record one "

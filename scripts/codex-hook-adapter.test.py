@@ -25,6 +25,7 @@ Run: python3 scripts/codex-hook-adapter.test.py
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -220,8 +221,50 @@ for tool in cha.UNTRANSLATED_ROUTES:
 
 p = run_adapter({"hook_event_name": "SessionStart", "cwd": str(ROOT)})
 check((p.stdout or "").strip() == "",
-      "routes — a non-PreToolUse event is not answered; the observer half is a later "
-      "slice and is not smuggled in by accepting the event silently")
+      "routes — an event outside the two native control routes is not answered; the "
+      "observer half is not smuggled in by accepting events silently")
+
+p = run_adapter({"hook_event_name": "UserPromptSubmit", "prompt": "safe probe",
+                 "cwd": str(ROOT)})
+check((p.stdout or "").strip() == "" and p.returncode == 0,
+      "preflight — a healthy checkout abstains, so UserPromptSubmit is not a blanket "
+      "prompt denial")
+
+with tempfile.TemporaryDirectory() as work:
+    only_bash = Path(work) / "bin"
+    only_bash.mkdir()
+    os.symlink("/bin/bash", only_bash / "bash")
+    p = run_adapter({"hook_event_name": "UserPromptSubmit", "prompt": "probe",
+                     "cwd": str(ROOT)}, env={"PATH": str(only_bash)})
+    d = decision_of(p)
+    check(d is not None and d.get("decision") == "block" and "jq is not on PATH" in d.get("reason", ""),
+          "preflight — a missing jq refuses the prompt with the concrete dependency, "
+          "rather than letting the floor fail open later")
+
+with tempfile.TemporaryDirectory() as work:
+    only_jq = Path(work) / "bin"
+    only_jq.mkdir()
+    jq_path = shutil.which("jq")
+    if jq_path:
+        os.symlink(jq_path, only_jq / "jq")
+    p = run_adapter({"hook_event_name": "UserPromptSubmit", "prompt": "probe",
+                     "cwd": str(ROOT)}, env={"PATH": str(only_jq)})
+    d = decision_of(p)
+    check(d is not None and d.get("decision") == "block"
+          and "bash is not on PATH" in d.get("reason", ""),
+          "preflight — a missing bash refuses the prompt before the adapter can reach "
+          "the command-floor subprocess")
+
+with tempfile.TemporaryDirectory() as work:
+    src = mutated_adapter(work, [("GUARD = REPO_ROOT / \"hooks\" / \"scripts\" / \"permission-guard.sh\"",
+                                  "GUARD = REPO_ROOT / \"missing-guard.sh\"")])
+    p = run_adapter({"hook_event_name": "UserPromptSubmit", "prompt": "probe",
+                     "cwd": str(ROOT)}, source=src)
+    d = decision_of(p)
+    check(d is not None and d.get("decision") == "block"
+          and "guard is missing" in d.get("reason", ""),
+          "preflight — a missing shared guard refuses the prompt; the check is against "
+          "the activated Codex path, not the Claude observer registry")
 
 check(cha.SHELL_TOOL == "Bash",
       "routes — the shell route is `Bash`; `shell` matches nothing and would register a "
@@ -425,19 +468,26 @@ check(manifest.get("mcpServers") == "./.mcp.json" and (ROOT / ".mcp.json").is_fi
       "carrier — the canonical MCP source is declared and resolves")
 
 hooks_doc = json.loads(HOOKS.read_text()) if HOOKS.is_file() else {}
-regs = hooks_doc.get("hooks", {}).get("PreToolUse", [])
-check(len(regs) == 1 and len(regs[0].get("hooks", [])) == 1,
-      "carrier — exactly one registration; this slice ships the floor and no observer")
-check("matcher" not in regs[0] if regs else False,
-      "carrier — NO matcher. `shell` matches nothing and an absent matcher observes every "
-      "route, so dispatch happens in the adapter where a wrong value is a visible branch")
-cmd = regs[0]["hooks"][0]["command"] if regs else ""
-check(ADAPTER.name in cmd and cmd.startswith("python3 "),
-      "carrier — the command names the adapter through an explicit interpreter, so the "
-      "exec bit is not load-bearing")
-check(set(regs[0]["hooks"][0]) == {"type", "command"} if regs else False,
-      "carrier — only the two keys the probe fixture registered with. An unrecognised key "
-      "risks a parse this repository has already measured failing SILENTLY")
+event_regs = hooks_doc.get("hooks", {})
+check(set(event_regs) == {"PreToolUse", "UserPromptSubmit"},
+      "carrier — exactly the two native control events are registered; no Claude observer "
+      "route is imported")
+commands = []
+for event in ("PreToolUse", "UserPromptSubmit"):
+    regs = event_regs.get(event, [])
+    check(len(regs) == 1 and len(regs[0].get("hooks", [])) == 1,
+          "carrier — %s has exactly one registration" % event)
+    check("matcher" not in regs[0] if regs else False,
+          "carrier — %s has NO matcher; dispatch happens visibly in the adapter" % event)
+    cmd = regs[0]["hooks"][0]["command"] if regs else ""
+    commands.append(cmd)
+    check(ADAPTER.name in cmd and cmd.startswith("python3 "),
+          "carrier — %s names the adapter through an explicit interpreter" % event)
+    check(set(regs[0]["hooks"][0]) == {"type", "command"} if regs else False,
+          "carrier — %s uses only the two measured hook keys" % event)
+check(len(set(commands)) == 1,
+      "carrier — both events invoke the same root-anchored adapter; preflight cannot "
+      "drift onto a second implementation")
 
 # ── 8b · the adapter path is ROOT-ANCHORED, and the anchor is a MEASURED name ──────────
 #
@@ -780,18 +830,14 @@ for needle, why in [
     # the hook ever fires. What this arm asserts is that the sentence is PRESENT. It
     # cannot assert the sentence is true, and no arm here could: firing is a property of
     # a runtime this suite never starts.
-    # Was pinned as the literal "FIRING IS UNPROVEN" until 2026-09-21, when a native turn
-    # on 0.151 measured the hook firing and blocking. The note is REWRITTEN rather than
-    # dropped, and the arm follows it: what a reader must not be able to take from this
-    # check is a single-valued answer in EITHER direction, because the two native runs
-    # disagree and differ in two variables at once.
-    ("FIRING DEPENDS ON THE BUILD AND ON THE REGISTRATION ROUTE",
-     "it refuses a single-valued firing claim in either direction"),
-    ("0.151.0-alpha.7.2", "it names the build the affirmative reading came from"),
-    ("0.154.0-alpha.6.2", "and the build the negative reading came from, since a "
-                          "measurement without its build is not reproducible"),
-    ("carrier's OWN route is still unproven", "it keeps the carrier's route open, which "
-                                              "is the limb the affirmative run did not test"),
+    ("RUNTIME EVIDENCE IS DATED AND THIS CHECK IS NOT A SUBSTITUTE",
+     "it refuses to present selfcheck as native execution evidence"),
+    ("0.151.0-alpha.7.2", "it names the Desktop build with installed carrier evidence"),
+    ("0.154.0-alpha.6.2", "it names the independently checked VS Code build"),
+    ("quoted nested substitution was observed ABSTAINING",
+     "it states the known semantic gap instead of flattening invocation into coverage"),
+    ("UserPromptSubmit separately blocked", "it bounds native preflight support to the "
+                                             "event measurement actually taken"),
     ("INVOCATION LOG", "it names the invocation log and its state, which is the only "
                        "route an operator has to the firing question"),
     ("TUNABLES THAT CAN AFFECT THIS FLOOR", "it enumerates the knobs, because an unset "

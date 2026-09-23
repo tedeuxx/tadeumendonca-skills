@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-# purpose: Measure the native Codex hook seam — carrier precedence, the trust mechanism and
-# which runtime routes fire a PreToolUse hook — so an adapter is written against observed
-# payloads rather than against an assumed schema.
+# purpose: Measure the native Codex hook seam — carrier precedence, trust, preventive event
+# routing and payloads — so the adapter is written against observed behavior rather than an
+# assumed schema.
 """Opt-in native Codex hook-seam probe.
 
 This is an INSTRUMENT, not a control. It refuses nothing, gates nothing and changes no
@@ -23,7 +23,8 @@ TWO CLASSES OF PHASE, and the second one SPENDS THE OPERATOR'S TOKENS.
 
   offline phases  — `carrier`, `trust`, `routes`. No model turn. `--phase all` runs
                     exactly these, so the default invocation costs nothing.
-  turn phases     — `payload`, `block`, `identity`, `stdin`, `matcher`. Each starts at
+  turn phases     — `payload`, `block`, `identity`, `stdin`, `matcher`, `firing`,
+                    `friction`, `carrierfire`, `carrierroot`, `preflight`. Each starts at
                     least one real model turn against the operator's own account, and
                     each is refused unless `--allow-model-turn` is passed. The flag is
                     not a convenience: a probe that could start a paid turn by default
@@ -586,18 +587,19 @@ def shred_credentials():
     return removed, remaining
 
 
-def turn_config(project, registrations, state="", agents=None):
-    """A config declaring N PreToolUse registrations, in order, plus optional roles."""
+def turn_config(project, registrations, state="", agents=None,
+                event="PreToolUse"):
+    """A config declaring N registrations for one event, plus optional roles."""
     body = '[projects."' + str(project) + '"]\ntrust_level = "trusted"\n'
     for role, config_file, description in (agents or []):
         body += ("\n[agents." + role + "]\nconfig_file = "
                  + json.dumps(str(config_file)) + "\n"
                  + "description = " + json.dumps(description) + "\n")
     for matcher, command in registrations:
-        body += "\n[[hooks.PreToolUse]]\n"
+        body += "\n[[hooks." + event + "]]\n"
         if matcher is not None:
             body += "matcher = " + json.dumps(matcher) + "\n"
-        body += ('\n[[hooks.PreToolUse.hooks]]\ntype = "command"\ncommand = '
+        body += ('\n[[hooks.' + event + '.hooks]]\ntype = "command"\ncommand = '
                  + json.dumps(str(command)) + "\n")
     return body + state
 
@@ -693,13 +695,80 @@ def read_payloads(capture):
     return out
 
 
-def turn_fixture(work, name, registrations, agents=None):
+def turn_fixture(work, name, registrations, agents=None, event="PreToolUse"):
     """A disposable home + project + capture dirs for one turn phase."""
     home = work / (name + "-home"); home.mkdir()
     project = work / (name + "-project"); project.mkdir()
     seed_credential(home)
     return home, project, (lambda state: turn_config(project, registrations, state,
-                                                     agents))
+                                                     agents, event))
+
+
+def phase_preflight(binary, work, report):
+    """Can UserPromptSubmit carry a deterministic local preflight refusal?
+
+    This phase reports either answer. Its assertions make the answer interpretable:
+    the registration must be listed and trusted, then either a blocked hook run or the
+    requested harmless marker must prove what the host did. It never writes the real
+    Codex home; `turn_fixture` supplies the disposable one.
+    """
+    capture = work / "preflight-capture"; capture.mkdir()
+    hook = work / "preflight-hook.sh"
+    make_hook(hook, capture)
+    home, project, config_fn = turn_fixture(
+        work, "preflight", [(None, hook)], event="UserPromptSubmit")
+    records = trust_registrations(binary, home, project, config_fn,
+                                  work / "preflight-a.stderr")
+    trusted_hash = records[0]["currentHash"]
+    make_hook(hook, capture, stdout_json=BLOCK_DECISION)
+
+    marker = project / "PREFLIGHT_MARKER"
+    server = AppServer(binary, project, disposable_env(home),
+                       work / "preflight-b.stderr")
+    try:
+        server.initialize()
+        listed = [r for group in server.call("hooks/list")["data"]
+                  for r in group.get("hooks", [])]
+        # This disposable config declares one event and one command. `hooks/list` puts
+        # the event name on the group, not on each command record, so filtering a
+        # record by `eventName` manufactures an empty result over a live registration.
+        user_prompt = listed
+        if len(user_prompt) != 1 or user_prompt[0]["trustStatus"] != "trusted":
+            raise Failure("the UserPromptSubmit fixture is not exactly one trusted "
+                          "registration: %s" % user_prompt)
+        if user_prompt[0]["currentHash"] != trusted_hash:
+            raise Failure("rewriting only the preflight script moved currentHash; the "
+                          "fixture no longer measures the path-trusted behavior")
+        turn = run_turn(
+            server, project,
+            "Run exactly one shell command and nothing else: touch " + str(marker)
+            + " -- then reply with the single word DONE.")
+    finally:
+        server.close()
+
+    payloads = read_payloads(capture)
+    statuses = [r["status"] for r in turn["hook_runs"]]
+    report["preflight"] = {
+        "event": "UserPromptSubmit",
+        "registration_count": len(user_prompt),
+        "trust_status": user_prompt[0]["trustStatus"],
+        "payload_count": len(payloads),
+        "payloads": payloads,
+        "hook_run_statuses": statuses,
+        "marker_created": marker.exists(),
+        "terminal": turn["terminal"],
+        "blocking_supported": bool(payloads and BLOCKED_STATUS in statuses
+                                   and not marker.exists()),
+    }
+    if not payloads:
+        raise Failure("the trusted UserPromptSubmit registration captured no payload; "
+                      "the event spelling may list while never firing")
+    if BLOCKED_STATUS in statuses and marker.exists():
+        raise Failure("UserPromptSubmit reported blocked but the forbidden turn still "
+                      "created its marker")
+    if BLOCKED_STATUS not in statuses and not marker.exists():
+        raise Failure("UserPromptSubmit did not report blocked and the marker is absent; "
+                      "the model may have skipped the act, so the result is ambiguous")
 
 
 def phase_payload(binary, work, report):
@@ -1917,7 +1986,8 @@ TURN_PHASES = {"payload": phase_payload, "block": phase_block,
                "identity": phase_identity, "stdin": phase_stdin,
                "matcher": phase_matcher, "firing": phase_firing,
                "friction": phase_friction, "carrierfire": phase_carrierfire,
-               "carrierroot": phase_carrierroot}
+               "carrierroot": phase_carrierroot,
+               "preflight": phase_preflight}
 PHASES = dict(OFFLINE_PHASES)
 PHASES.update(TURN_PHASES)
 
