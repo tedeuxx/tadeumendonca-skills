@@ -1875,7 +1875,9 @@ fi
 #     pays.
 #
 #     THE FIX USES A SIGNAL THAT IS BOTH OBSERVABLE AND HONEST: `agent_type`, stamped by the harness and
-#     unforgeable by the model (see rule 7b). It splits the two cases the old rule conflated.
+#     unforgeable by the model (see rule 7b). **On Claude Code.** On Codex, since #501, it is DECLARED
+#     by the session, so there it is observable but not authenticated — see `caller` above and
+#     ADR-0004's 2026-09-23 amendment. It splits the two cases the old rule conflated.
 #
 #       - A SUBAGENT still cannot file. This is where the measured failure actually happened (below):
 #         issues born inside a review of something else, by a persona with no access to the owner and
@@ -1938,7 +1940,8 @@ fi
 #     survives from it: there is still no spelling the MODEL can use to exempt itself.
 #
 #     ~~And a subagent still has none at all.~~ **False since #124.** `developer` is exempt — and the
-#     exemption is keyed on `agent_type`, which the HARNESS stamps and the model cannot write. So the
+#     exemption is keyed on `agent_type`, which the HARNESS stamps and the model cannot write (on
+#     Claude Code; on Codex, since #501, the role is declared — see `caller` above). So the
 #     sentence above still holds in the form that matters: there is no *spelling* that exempts anyone.
 #     What the exemption no longer carries is a check that the issue is really a decomposition; that
 #     was attempted for four rounds and is now the persona's rule and the gate's, not the floor's.

@@ -1119,8 +1119,9 @@ more than it does:
 
 - **NARROWER SURFACE, on purpose.** The design below is a standalone control reachable by *any* caller.
   What shipped sits **behind rule 7b**, which already restricts `gh pr merge` to the `quality-assurance`
-  agent_type alone — an unforgeable, harness-stamped property, not something an untrusted party can
-  claim. So 7c adds nothing against a *different* caller (7b already denies every one); it closes a
+  agent_type alone — ~~an unforgeable, harness-stamped property, not something an untrusted party can
+  claim~~ *(struck 2026-09-23: true on Claude Code only; on Codex, since #501, a DECLARED property —
+  see the 2026-09-23 "role parity across harnesses" amendment at the end of this record)*. So 7c adds nothing against a *different* caller (7b already denies every one); it closes a
   narrower, still-real gap: **the one caller allowed to merge at all, drifting from its own posted
   verdict** — the exact vocabulary-drift failure this section's "The problem" subsection below measures.
   It does not implement "a `PreToolUse` hook on `gh pr merge` that denies a merge lacking the
