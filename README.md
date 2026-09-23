@@ -2289,6 +2289,16 @@ native quoted substitution executed. The shared guard collapses double-quoted sp
 substitution check. Therefore invocation is proven but AC4/AC7 semantic coverage is not; the repair
 belongs to the separately authorised shared-floor slice, not to this Codex carrier change.
 
+**AMENDED 2026-09-23 (#497): that slice landed, in the SHARED guard.** ~~The shared guard collapses
+double-quoted spans before its substitution check~~ is no longer the whole of rule 8: the old
+predicate is kept unchanged and a substitution-specific scanner is added beside it, so an active
+`$(…)` or backtick inside double quotes, escaped surrounding quotes, mixed quote concatenation or an
+unquoted heredoc body now denies on both Claude Code and Codex, with the convenience switch in any
+state. Single-quoted literals, escaped dollars, comments and quoted heredoc bodies stay inert. The
+guard's decision and the adapter's translation are asserted in CI; the **native** effect is not
+re-measured, because installed `2.0.71` predates the repair — that run is owed. ADR-0004's
+2026-09-23 amendment carries the measured table and the bounds.
+
 **Codex now carries a native preflight route too.** A disposable `UserPromptSubmit` registration
 on Desktop `0.151.0-alpha.7.2` captured a real prompt payload, returned `block`, and prevented the
 requested model turn from creating its marker while the real Codex config remained byte-identical.

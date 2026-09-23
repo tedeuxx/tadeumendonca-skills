@@ -6531,7 +6531,9 @@ the user. A false blocker stops the whole prompt before the user sees model outp
 stay limited to dependencies whose absence makes the activated preventive floor globally inert.
 
 This amendment changes no shared-floor semantics. In particular it does not repair the separately
-observed quoted-substitution gap and does not turn caller identity into authentication.
+observed quoted-substitution gap and does not turn caller identity into authentication. *(That gap
+is repaired in the shared guard by the 2026-09-23 amendment below; this sentence stays true of the
+amendment it belongs to.)*
 
 ### What holds it
 
@@ -6546,3 +6548,110 @@ prove the vendor invoked it.
 *Sets a cross-cutting pattern* and extends this record's Codex control decision: dependency failure
 that would make an installed preventive floor globally inert belongs on a measured native prompt
 event, while dependencies for unactivated routes do not.
+
+## Amendment (2026-09-23) — a double quote does not make a substitution literal, so the substitution branch gets its OWN view of the command (#497)
+
+**Deciders:** owner (authorised the shared-floor correction on 2026-09-22), written by
+`agents-lead`, intake stress test by `agents-lead`, gate by `quality-assurance`.
+
+### The decision
+
+**Rule 8's substitution branch now denies when EITHER of two predicates fires.** The first is the
+old one, unchanged: `$(` or a backtick in `$bare`. The second is new: `subst_active`, a small
+tokeniser in `hooks/scripts/permission-guard.sh` that walks the ORIGINAL multi-line command and each
+unwrapped `-c` payload and reports whether a substitution is **active** — outside single quotes,
+ANSI-C quotes, comments and quoted heredoc bodies, and not escaped by an odd backslash run. Both
+are plain `deny`; neither goes through `deny_convenience`. **`$bare` itself is not changed, and every
+other rule keeps reading it.**
+
+### Why — the slice-D argument, applied to a spelling it did not reach
+
+The 2026-09-21 slice-D amendment above kept the substitution branch mandatory because *a
+substitution manufactures a token the other floor rules never see*. That argument does not care
+about quoting, but the predicate did: it read `$bare`, which collapses double-quoted spans because
+`git commit -m "gh secret set X"` is a message about the act. So `printf "%s" "$(gh secret set PROBE
+--body value)"` abstained through the Codex adapter while its unquoted sibling blocked (the bridge
+document's section 18.2), and #66's surviving ALLOW fixtures had certified two such spellings as
+inert. **A view that is right for "message or command?" is wrong for "will the shell execute
+this?"**, and the correction is to give the second question its own view rather than to change the
+first view under every rule that relies on it.
+
+### The measurement — executable versus literal, native, harmless
+
+Every row was run on `bash 3.2.57` and `zsh 5.9` with `printf EX` as the only inner command; the two
+shells agreed on every row. "Executed" means the output contained the expansion and not the text.
+Each row is reproduced by one harmless command per shell, the payload passed as a single-quoted
+argument so the OUTER shell does not interpret it:
+
+```
+bash -c 'printf "%s" "$(printf EX)"'      # -> EX              executed
+zsh  -c 'printf "%s" "\$(printf EX)"'     # -> $(printf EX)    literal
+```
+
+| spelling | shell | scanner |
+|---|---|---|
+| `"$(…)"` · `` "`…`" `` · `\"$(…)\"` · `"said \"$(…)\" x"` | executed | **active** |
+| `'a'"$(…)"'b'` · `"it's $(…)"` · `'x\' "$(…)" 'y'` · `'x\' $(…) 'y'` | executed | **active** |
+| `"\\$(…)"` (even backslash run) · nested `"$(… "$(…)")"` | executed | **active** |
+| unquoted heredoc body, with `"$(…)"` or `'$(…)'` in it | executed | **active** |
+| `bash -c 'printf "%s" "$(…)"'` | executed | **active** (via the payload view) |
+| `'$(…)'` · `"\$(…)"` · `` "\`…\`" `` · `"\\\$(…)"` (odd run) | literal | inert |
+| `$'a \' $(…)'` (ANSI-C) · `# "$(…)"` (comment) · `<<'EOF'` body | literal | inert |
+
+### What it deliberately does NOT change — additive, so no collateral ALLOW
+
+**Nothing the old predicate denied can reach ALLOW**, because the new predicate is an OR beside it.
+That is what keeps the slice's collateral one-directional: the pre-existing over-blocks stay and are
+now pinned, with the OLD message, in `permission-guard.test.sh` — an unquoted `$(…)` in a comment, a
+bare `$(…)` in a quoted heredoc, an escaped dollar outside quotes, and the well-formed `'it'\''s …'`
+idiom, which the old escape-aware single-quote collapse still misreads. **One NEW over-block is
+accepted and stated:** arithmetic `$((…))` inside double quotes is read as a substitution, matching
+the old predicate's unquoted posture on `$((`. **One #66 fixture changed meaning rather than
+verdict class:** `'it\'s $(fine)'` is malformed under POSIX (no escapes inside single quotes), so the
+`$(` after `'it\'` is unquoted; it now denies, fail-closed, like the unbalanced-quote control.
+
+### Bounds — not a shell parser
+
+It tokenises single, ANSI-C and double quotes, backslashes, `#` at a word start and `<<`/`<<-`
+heredoc delimiters (a delimiter carrying any quote or backslash is quoted). It does **not** decode
+ANSI-C escapes, follow `eval` or a non-shell interpreter, parse a `case` arm, or see a heredoc
+started inside a `-c` payload (payloads are single-line by the unwrap's construction), and it reads
+an arithmetic shift `(( x << 2 ))` as a heredoc opener — which can only narrow the new predicate,
+never the old one beside it. The fast path skips the scanner for any command carrying neither `$(`
+nor a backtick. (A latency figure for large commands was taken while building this and is
+deliberately not published: the timing probe is not a tracked instrument, and a number without its
+command is the thing this repository withdraws.) An unbalanced
+quote is consumed as one literal character and scanning continues — fail-closed, the same direction
+as `$bare`'s own malformed-quote rule. **No universal shell parsing and no arbitrary-interpreter
+containment is claimed**; the existing interpreter non-containment stands.
+
+### Calibration — both directions, in disposable copies, and kept as an arm
+
+`permission-guard.test.sh` builds two mutated copies of the guard at run time and requires every row
+to flip: **(A)** `subst_active` disabled — the pre-#497 predicate alone — must let every active row
+reach ALLOW; **(B)** `subst_active` replaced by a raw `$(`/backtick character detector must deny every
+inert row. Each copy is checked to differ from the source, so a dead `sed` anchor reddens instead of
+passing. Separately, nine single-point mutations of the source (comment skip, escaped-pair drop,
+quoted-heredoc detection, heredoc body scan, payload views, ANSI-C skip, POSIX single-quote form,
+backtick branch, and the fast path) were run against the unmodified suite; eight reddened it and the
+ninth — removing the fast path, which is an optimisation — correctly did not.
+
+### Which layer carries it, and what the other harnesses get
+
+The **shared guard**, which both carriers already run. The Codex adapter gains **no** policy: its
+suite asserts that the quoted rows, including QA's secret-write fixture as data, now translate to
+`block`, and that a single-quoted literal and an escaped dollar still pass. Claude Code's event and
+verdict envelope and the convenience default are unchanged. Kiro remains knowledge-only. **What is
+proven is the guard's decision and the adapter's translation; the native runtime effect on Codex is
+owed**, because installed `2.0.71` predates this change.
+
+### What nothing enforces
+
+Whether a future edit routes this branch through `deny_convenience` is caught by the suite's switch
+arms (unset, `on`, `off`, every active row). Whether the tokeniser is right about a spelling nobody
+listed is not caught by anything — **these spellings, measured; never the class.**
+
+### Significance
+
+*Alters a previously-recorded decision's reach* (slice D's mandatory substitution branch) and
+*changes the shared irreversible floor* for both carriers.
