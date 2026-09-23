@@ -1572,25 +1572,31 @@ rather than restating it.
 ### 17.3 · What this does NOT make true
 
 ~~**It does not make the floor active on Codex, and no sentence here may be read that way.** Three
-things stand between this commit and a held floor, and **none of them is in this repository**:
+things stand between this commit and a held floor, and **none of them is in this repository**:~~
 
-1. **The plugin must be updated on the Codex side.** Measured 2026-09-22, the installed cache is at
+1. ~~**The plugin must be updated on the Codex side.** Measured 2026-09-22, the installed cache is at
    a version that still carries the relative command, so the repair is not live there until the
-   owner updates.
-2. **The registration must be TRUSTED.** Trust is a `[hooks.state."…"] trusted_hash` table in the
-   invoking user's own `config.toml`, and none of this carrier's registrations has one.
-3. **The route is measured firing on ONE build.** `0.151.0-alpha.7.2` is what this machine has;
+   owner updates.~~
+2. ~~**The registration must be TRUSTED.** Trust is a `[hooks.state."…"] trusted_hash` table in the
+   invoking user's own `config.toml`, and none of this carrier's registrations has one.~~
+3. ~~**The route is measured firing on ONE build.** `0.151.0-alpha.7.2` is what this machine has;
    the 2026-09-16 non-firing on `0.154.0-alpha.6.2` is neither reproduced nor refuted, and section
-16.5's *build is the surviving explanation, unverified* is untouched by this slice.~~
+   16.5's *build is the surviving explanation, unverified* is untouched by this slice.~~
 
 **Struck 2026-09-22: all three conditions were subsequently discharged for installed `2.0.71`,
 within the bounds in section 18.** The historical claim stays visible because it was correct for
 this slice and is false as a current activation statement.
 
-**So the wording does not move to *active*.** What moves is narrower and worth saying exactly: the
+~~**So the wording does not move to *active*.** What moves is narrower and worth saying exactly: the
 carrier's registration was *known not to execute*, for a named reason, and that reason is repaired.
 Whether it now executes is **unverified** — no turn was run in this slice — and a repair verified
-only by its own test suite is a repair, not an observation.
+only by its own test suite is a repair, not an observation.~~
+
+**Struck with the block above, for the same reason: it was true of this slice, where no turn ran,
+and is false as a current statement.** Execution of the installed `2.0.71` `PreToolUse` registration
+is observed on two builds — see section 18.1 for the evidence and its bounds. What stays true is the
+general point: a repair verified only by its own test suite is a repair, not an observation — which
+is why section 18.4 still lists the carrier's own `UserPromptSubmit` registration as **owed**.
 
 ### 17.4 · What holds this section
 
