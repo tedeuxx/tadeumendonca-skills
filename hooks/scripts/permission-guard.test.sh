@@ -1434,9 +1434,25 @@ check ALLOW "operator inside a quoted arg"  "git commit -m 'fix: a && b handling
 # it inside a pair by accident — the case then passes before AND after the fix, asserts nothing,
 # and reads like coverage. Three of the four cases here were originally written that shape.
 # Each one below was re-checked by reverting the collapse and watching it go red.
-check ALLOW "substitution between escaped quotes" 'gh pr comment 1 --body "said \"$(date)\" today"'
-check ALLOW "backticks between escaped quotes"    'gh pr comment 1 --body "said \"`date`\" today"'
-check ALLOW "escaped quote inside singles"        "git commit -m 'it\\'s \$(fine)'"
+# ~~check ALLOW "substitution between escaped quotes" 'gh pr comment 1 --body "said \"$(date)\" today"'~~
+# ~~check ALLOW "backticks between escaped quotes"    'gh pr comment 1 --body "said \"`date`\" today"'~~
+# ~~check ALLOW "escaped quote inside singles"        "git commit -m 'it\\'s \$(fine)'"~~
+# STRUCK 2026-09-23 (#497) — THE EXPECTATIONS WERE WRONG, THE #66 PROPERTY WAS NOT. All three
+# payloads carry a substitution the shell EXECUTES (measured with a harmless inner command on bash
+# 3.2.57 and zsh 5.9: `"said \"$(printf EX)\" x"` prints `said "EX" x`), so ALLOW certified a
+# hidden, token-manufacturing construct as inert. The first two now deny on the #497 scanner and are
+# asserted below with its REASON. The third is MALFORMED under POSIX — there are no escapes inside
+# '…', so `'it\'` ends the span and `$(fine)` is unquoted — and it fails CLOSED, like the unbalanced
+# control below. What #66 actually protected — an escaped quote must not END a span early and
+# expose inert text — keeps a live witness: the escaped-quote-without-substitution ALLOW in the
+# #497 block near the end of this file. The well-formed `'it'\''s …'` idiom is pinned there too, as
+# a PRE-EXISTING over-block of the old collapse that this slice deliberately does not touch.
+check_reason DENY "#497: substitution between escaped quotes is ACTIVE" "is still ACTIVE here" \
+              'gh pr comment 1 --body "said \"$(date)\" today"'
+check_reason DENY "#497: backticks between escaped quotes are ACTIVE"   "is still ACTIVE here" \
+              'gh pr comment 1 --body "said \"`date`\" today"'
+check_reason DENY "#497: 'it\\'s' is malformed under POSIX, so the \$( ) after it is unquoted" \
+              "command substitution" "git commit -m 'it\\'s \$(fine)'"
 # ~~check ALLOW "operator between escaped quotes" 'gh pr comment 1 --body "both \"a && b\" hold"'~~
 # RETIRED 2026-09-05 (#383 S2), not re-pointed. Its subject was the chain branch, and with that branch
 # gone the payload is ALLOW under every possible state of the quote collapse — an assertion that
@@ -2522,6 +2538,165 @@ check_env DENY off "off: a REDIRECTED secret write is STILL a secret write" \
 check_env DENY  on  "calibration: the env-var branch DENIES with the switch on" \
                     'FOO=1 npx playwright test'
 check_env DENY  on  "calibration: rule 8b DENIES with the switch on" 'ls > out.txt'
+
+echo "--- #497: an ACTIVE substitution inside double quotes is still a substitution ---"
+#
+# `$bare` collapses double-quoted spans, and rule 8 used to read only `$bare` — so the quoted
+# spelling of a substitution ABSTAINED while the shell executed it. Every fixture below is HARMLESS
+# (`date`, `echo`): the guard is fed strings and never runs them. Each quoting SPELLING below was
+# checked on bash 3.2.57 and zsh 5.9 with a `printf EX` inner command — the active ones executed,
+# the inert ones came back literal; the table is in the guard, beside `subst_active`. The wrapper
+# and manufactured-token rows reuse those spellings rather than being separately executed.
+#
+# THE ACTIVE SET IS ASSERTED ON THE SCANNER'S OWN REASON, not on "command substitution" — the old
+# predicate's message carries that phrase too, and a row the old predicate already denies would pass
+# for the wrong rule. Every active row ABSTAINED at fc1f11a9 — measured by running this block
+# against that commit's guard — and calibration A below keeps that true by requiring every row to
+# flip when the scanner is disabled.
+S497='is still ACTIVE here'
+
+check_env_reason() {
+  want="$1"; value="$2"; desc="$3"; needle="$4"; cmd="$5"
+  out=$(printf '%s' "$cmd" | jq -R '{tool_input:{command:.}}' \
+        | PERMISSION_GUARD_CONVENIENCE_RULES="$value" bash "$GUARD")
+  got=$(verdict "$out")
+  reason=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""')
+  if [ "$got" = "$want" ] && printf '%s' "$reason" | grep -qF "$needle"; then
+    pass=$((pass + 1)); printf 'ok    %-6s %s\n' "$got" "$desc"
+  else
+    fail=$((fail + 1))
+    printf 'FAIL  want=%s/%s got=%s  %s\n      cmd: %s\n      reason: %s\n' \
+      "$want" "$needle" "$got" "$desc" "$cmd" "$reason"
+  fi
+}
+
+# name<TAB>payload, one per element. Kept as arrays so the calibration arms reuse the SAME rows.
+A497=(
+  "dq dollar	printf \"%s\" \"\$(date)\""
+  "dq backtick	printf \"%s\" \"\`date\`\""
+  "escaped surrounding quotes inside a dq span	printf \"%s\" \"\\\"\$(date)\\\"\""
+  "mixed concatenation	printf '%s' 'a'\"\$(date)\"'b'"
+  "single quote inside dq is not a boundary	printf '%s' \"it's \$(date)\""
+  "no escape inside '…', so 'x\\' ends before the dq	echo 'x\\' \"\$(date)\" 'y'"
+  "no escape inside '…', UNQUOTED dollar after it	echo 'x\\' \$(date) 'y'"
+  "no escape inside '…', UNQUOTED backtick after it	echo 'x\\' \`date\` 'y'"
+  "EVEN backslash run: the dollar stays liveprintf \"%s\" \"\\\\\$(date)\""
+  "nesting witness	printf '%s' \"\$(printf '%s' \"x\")\""
+  "manufactured subcommand	gh \"\$(echo secret)\" set X --body y"
+  "manufactured command	\"\$(echo gh)\" repo delete owner/repo"
+  "manufactured flag	git reset \"\$(echo --hard)\" HEAD~1"
+  "unquoted heredoc body expands, its quotes are text	cat <<EOF
+\"\$(date)\"
+EOF"
+  "unquoted heredoc, single quotes are text too	cat <<EOF
+'\$(date)'
+EOF"
+  "bash -c single-quoted payload	bash -c 'printf \"%s\" \"\$(date)\"'"
+  "sh -c payload with a backtick	sh -c 'echo \"\`date\`\"'"
+  "zsh -lc payload	zsh -lc 'echo \"\$(date)\"'"
+)
+# Inert rows. Asserted ALLOW, which here means "the hook emitted no decision" (see the header).
+I497=(
+  "single-quoted literal	printf '%s' '\$(date)'"
+  "single-quoted backtick	printf '%s' '\`date\`'"
+  "escaped dollar inside dq	printf \"%s\" \"\\\$(date)\""
+  "escaped backticks inside dq	printf \"%s\" \"\\\`date\\\`\""
+  "ODD backslash run: the dollar is escaped	printf \"%s\" \"\\\\\\\$(date)\""
+  "single-quoted message quoting a substitution	git commit -m 'avoid \$(gh secret set X)'"
+  "ANSI-C span does not substitute	printf '%s' \$'a \\' \$(date)'"
+  "comment carrying a quoted substitution (existing outcome kept)	echo ok # \"\$(date)\""
+  "quoted heredoc delimiter keeps the body literal (existing outcome kept)	cat <<'EOF'
+\"\$(date)\"
+EOF"
+  "bash -c payload with an escaped dollar	bash -c 'printf \"%s\" \"\\\$(date)\"'"
+  "bash -c dq payload whose inner quotes are single	bash -c \"printf '%s' '\\\$(date)'\""
+)
+
+# Inert rows WITHOUT any `$(`/backtick character sit outside the arrays, because calibration B's
+# raw detector cannot flip a row that carries none — including them would make that arm unsatisfiable
+# rather than stronger.
+check ALLOW "#497 inert: #66 escaped quotes without a substitution" 'gh pr comment 1 --body "said \"hi\" today"'
+check ALLOW "#497 inert: plain message MENTIONING a forbidden act" 'git commit -m "docs: never run gh secret set X"'
+
+for row in "${A497[@]}"; do
+  check_reason DENY "#497 active: ${row%%	*}" "$S497" "${row#*	}"
+done
+for row in "${I497[@]}"; do
+  check ALLOW "#497 inert: ${row%%	*}" "${row#*	}"
+done
+
+# The convenience switch does not reach it: unset, on and off, every row.
+for v in on off ""; do
+  for row in "${A497[@]}"; do
+    check_env_reason DENY "$v" "#497 switch='$v': ${row%%	*}" "$S497" "${row#*	}"
+  done
+done
+
+# PRE-EXISTING OUTCOMES, pinned so this slice cannot move them silently. Each is an OVER-block of
+# the OLD predicate that the scanner is additive to — so they stay DENY, and the reason is the old
+# message, not the scanner's. They are documentation of behaviour, not endorsements of it.
+check_reason DENY "#497 kept: an UNQUOTED substitution in a comment still denies (old predicate)" \
+              "forces a permission prompt even for allowlisted" 'echo ok # $(date)'
+check_reason DENY "#497 kept: a bare substitution in a QUOTED heredoc still denies (old predicate)" \
+              "forces a permission prompt even for allowlisted" "cat <<'EOF'
+\$(date)
+EOF"
+check_reason DENY "#497 kept: an escaped dollar OUTSIDE quotes still denies (old predicate)" \
+              "forces a permission prompt even for allowlisted" 'echo \$(date)'
+# The well-formed `'it'\''s …'` idiom IS literal to the shell, and the scanner reads it so — but the
+# OLD predicate's escape-aware single-quote collapse pairs `\'` with the next quote, exposes the
+# `$(`, and denies. Additive means that over-block stays; it is pinned on the old message, not the
+# scanner's, so a later repair of the collapse is visible here rather than silent.
+check_reason DENY "#497 kept: the '\\'' idiom is still over-blocked by the OLD collapse" \
+              "forces a permission prompt even for allowlisted" "git commit -m 'it'\\''s \$(fine)'"
+check_reason DENY "#497 kept: the unbalanced-quote control still fails CLOSED" \
+              "command substitution" "echo 'unterminated \$(date)"
+# Stated over-block, NEW in this slice and deliberate: arithmetic inside double quotes is read as a
+# substitution, matching the old predicate's unquoted posture on `$((`.
+check_reason DENY "#497 stated over-block: arithmetic \$(( )) inside dq" "$S497" 'echo "$((1+2))"'
+# The other rules still read `$bare`: a dq message mentioning the act is still a message.
+check ALLOW "#497 other consumers unchanged: a secret-write mentioned in a dq body" \
+            'gh pr comment 1 --body "we never gh secret set X here"'
+# A real floor act next to a quoted substitution still meets its OWN rule first.
+check_reason DENY "#497: a plain trunk push beside a quoted substitution is still a trunk push" \
+              "trunk" 'git push origin main "$(date)"'
+
+# CALIBRATION, BOTH DIRECTIONS, IN DISPOSABLE COPIES — the source is mutated, never this suite.
+#   A) the scanner disabled (the pre-#497 predicate alone): EVERY active row must stop denying.
+#   B) the scanner replaced by a raw-character detector: EVERY inert row must start denying.
+# A row that survives its mutation would be a green that cannot go red, and this arm reddens on it.
+CAL497="$(mktemp -d)"
+sed 's/^subst_active() {$/subst_active() { return 1/' "$GUARD" > "$CAL497/old.sh"
+raw_body='subst_active() { case "$1" in *'"'"'$('"'"'*|*'"'"'`'"'"'*) return 0 ;; esac; return 1'
+sed "s/^subst_active() {\$/$(printf '%s' "$raw_body" | sed 's/[&/\]/\\&/g')/" "$GUARD" > "$CAL497/raw.sh"
+for m in old raw; do
+  if cmp -s "$GUARD" "$CAL497/$m.sh"; then
+    fail=$((fail + 1)); printf 'FAIL  calibration copy %s did not mutate — the sed anchor is dead\n' "$m"
+  fi
+done
+cal_flipped=0; cal_total=0
+for row in "${A497[@]}"; do
+  cal_total=$((cal_total + 1))
+  out=$(printf '%s' "${row#*	}" | jq -R '{tool_input:{command:.}}' | bash "$CAL497/old.sh")
+  [ "$(verdict "$out")" = "ALLOW" ] && cal_flipped=$((cal_flipped + 1))
+done
+if [ "$cal_flipped" = "$cal_total" ] && [ "$cal_total" -gt 0 ]; then
+  pass=$((pass + 1)); printf 'ok    CAL    A) scanner disabled: %s/%s active rows flip to ALLOW\n' "$cal_flipped" "$cal_total"
+else
+  fail=$((fail + 1)); printf 'FAIL  A) scanner disabled: only %s/%s active rows flipped\n' "$cal_flipped" "$cal_total"
+fi
+cal_flipped=0; cal_total=0
+for row in "${I497[@]}"; do
+  cal_total=$((cal_total + 1))
+  out=$(printf '%s' "${row#*	}" | jq -R '{tool_input:{command:.}}' | bash "$CAL497/raw.sh")
+  [ "$(verdict "$out")" = "DENY" ] && cal_flipped=$((cal_flipped + 1))
+done
+if [ "$cal_flipped" = "$cal_total" ] && [ "$cal_total" -gt 0 ]; then
+  pass=$((pass + 1)); printf 'ok    CAL    B) raw detector: %s/%s inert rows flip to DENY\n' "$cal_flipped" "$cal_total"
+else
+  fail=$((fail + 1)); printf 'FAIL  B) raw detector: only %s/%s inert rows flipped\n' "$cal_flipped" "$cal_total"
+fi
+rm -rf "$CAL497"
 
 rm -rf "$FEAT"
 rm -rf "$TMAIN" "$TFEAT"

@@ -538,6 +538,14 @@ cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
 # THREE PASSES, for `bash -c "bash -c '…'"`. Bounded rather than `while`, because a hook that can loop
 # on adversarial input is a wedged agent; three is past any real nesting and terminates unconditionally.
 unwrap_scan="$cmd"
+# #497: each unwrapped payload is ALSO kept on its own, for rule 8's substitution scanner. It is NOT
+# a new consumer of `$cmd` and changes nothing any other rule reads. It is kept AS STRIPPED, with no
+# un-escaping, and that was decided on a measurement rather than for brevity: a first draft un-escaped
+# a double-quoted payload once (`\$` -> `$`, `\"` -> `"`), and no fixture could make it matter.
+# Inside a double-quoted wrapper every inner `"` is escaped, so the old `$bare` collapse finds no
+# span to hide anything in and the old predicate already sees every `$(` of that payload. The
+# single-quoted wrapper is the case the scanner exists for; ANSI-C escapes stay undecoded (below).
+subst_views=()
 for _ in 1 2 3; do
   case "$unwrap_scan" in
     *-*c*) ;;
@@ -566,6 +574,7 @@ for _ in 1 2 3; do
   # asymmetry the unwrap was written to remove, relocated one spelling further out rather than removed.
   unwrap_payload="$(printf '%s' "$unwrap_payload" | sed -E -e 's/^\$//' -e "s/^'(.*)'\$/\\1/; s/^\"(.*)\"\$/\\1/")"
   [ -z "$unwrap_payload" ] && break
+  subst_views+=("$unwrap_payload")
   cmd="$cmd $unwrap_payload"
   unwrap_scan="$unwrap_payload"
 done
@@ -598,6 +607,122 @@ done
 #     which is the only safe direction for a deny-only rule;
 #   · an escaped quote INSIDE a span no longer truncates it.
 bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g')"
+
+# ── `$bare` IS THE WRONG VIEW FOR ONE QUESTION: IS A SUBSTITUTION ACTIVE? (#497) ─────────────────────
+# `$bare` answers "is this text a MESSAGE or a COMMAND?", and for that question collapsing a double-
+# quoted span is right: `git commit -m "gh secret set X"` is a message about the act. It is WRONG for
+# the substitution question, because a double quote does not make `$(...)` or a backtick literal —
+# the shell still EXECUTES it and splices the output in. Measured 2026-09-23 on bash 3.2.57 and zsh
+# 5.9 with a harmless `printf EX` inner command (literal = the text came back unexpanded):
+#
+#     printf "%s" "$(printf EX)"                  EXECUTED   <- `$bare` collapsed it; rule 8 abstained
+#     printf "%s" "`printf EX`"                   EXECUTED   <- same
+#     printf "%s" \"$(printf EX)\"                EXECUTED   escaped SURROUNDING quotes quote nothing
+#     printf "%s" "said \"$(printf EX)\" x"       EXECUTED   <- #66's ALLOW fixture shape
+#     printf '%s' 'a'"$(printf EX)"'b'            EXECUTED   mixed concatenation
+#     printf '%s' "it's $(printf EX)"             EXECUTED   a single quote INSIDE "…" is not a boundary
+#     printf '%s' 'x\' "$(printf EX)" 'y'         EXECUTED   no escapes inside '…' (POSIX), so 'x\' ends
+#     printf "%s" "\\$(printf EX)"                EXECUTED   an EVEN backslash run escapes itself
+#     cat <<EOF / "$(printf EX)" / EOF            EXECUTED   an UNQUOTED heredoc body expands; its quotes are text
+#     printf '%s' '$(printf EX)'                  literal
+#     printf "%s" "\$(printf EX)"   (and \`…\`)   literal    an ODD backslash run escapes the `$`
+#     printf '%s' $'a \' $(printf EX)'            literal    ANSI-C quoting does not substitute
+#     printf ok # "$(printf EX)"                  literal    a comment
+#     cat <<'EOF' / "$(printf EX)" / EOF          literal    a QUOTED heredoc delimiter
+#
+# So the substitution question gets its OWN view, and `$bare` is NOT changed: every other consumer
+# (5b, 5c, 5e, 5f, 7, 7b, 8b …) keeps reading exactly what it read before. The scanner below walks the
+# ORIGINAL multi-line command, so comments and heredocs keep their line structure, then each unwrapped
+# `-c` payload (recorded in `subst_views` by the unwrap loop above).
+#
+# IT IS ADDITIVE TO THE OLD PREDICATE, NOT A REPLACEMENT — rule 8 denies when EITHER fires. That is
+# what "prevent new collateral changes" costs and buys: no command the old `$bare` grep denied can
+# reach ALLOW through this change (an unquoted `\$(…)`, a bare `$(…)` in a comment or a quoted
+# heredoc keep their pre-existing, over-blocking DENY), and the scanner's own skips — comments,
+# quoted heredoc bodies, single-quoted and ANSI-C spans, odd-backslash escapes — can only ever
+# decline to ADD a denial. Arithmetic `$((…))` inside double quotes is treated as a substitution,
+# matching the old predicate's unquoted posture; that is an over-block, stated rather than hidden.
+#
+# WHAT IT IS NOT: a shell parser. It tokenises single, ANSI-C and double quotes, backslashes, `#`
+# comments at a word start, and `<<`/`<<-` heredoc delimiters (a delimiter word carrying any quote or
+# backslash is quoted). It does not decode ANSI-C escapes, follow `eval`, a non-shell interpreter, a
+# `case` arm, or a heredoc started inside a `-c` payload (payloads are single-line by construction).
+# An arithmetic shift `(( x << 2 ))` is read as a heredoc opener, so the lines after it up to one
+# reading `2` are scanned as a heredoc body — a narrowing of THIS predicate only; the old one still
+# reads them, so an unquoted `$(` there still denies.
+# An UNBALANCED quote is consumed as one literal character and scanning continues, so what follows it
+# is read as unquoted — fail-closed, the same direction as `$bare`'s own malformed-quote rule.
+subst_active() {
+  local s="$1" m c prev=$'\n' word dash quoted delim inner line hd
+  local re_plain="^[^\\\\'\"\`\$#<"$'\n'"]+"
+  local re_sq="^'[^']*'"
+  local re_ansic="^\\\$'([^'\\\\]|\\\\.)*'"
+  local re_dq="^\"([^\"\\\\]|\\\\.)*\""
+  local re_hd="^<<(-?)[[:blank:]]*([^[:blank:];&|<>()"$'\n'"]+)"
+  local pending=()
+  while [ -n "$s" ]; do
+    if [[ $s =~ $re_plain ]]; then
+      m="${BASH_REMATCH[0]}"; prev="${m: -1}"; s="${s:${#m}}"; continue
+    fi
+    c="${s:0:1}"
+    case "$c" in
+      '\') prev='x'; s="${s:2}" ;;
+      '`') return 0 ;;
+      '$')
+        case "${s:1:1}" in
+          '(') return 0 ;;
+          "'")
+            if [[ $s =~ $re_ansic ]]; then m="${BASH_REMATCH[0]}"; s="${s:${#m}}"; prev='x'
+            else s="${s:1}"; prev='$'; fi ;;
+          *) s="${s:1}"; prev='$' ;;
+        esac ;;
+      "'")
+        if [[ $s =~ $re_sq ]]; then m="${BASH_REMATCH[0]}"; s="${s:${#m}}"; prev='x'
+        else s="${s:1}"; prev="'"; fi ;;
+      '"')
+        # A double-quoted span: drop escaped PAIRS left to right (so backslash PARITY decides), then
+        # any `$(` or backtick left is live. The first live substitution in a span always precedes any
+        # quote nested inside it, so ending the span at the first unescaped `"` cannot hide one.
+        if [[ $s =~ $re_dq ]]; then
+          m="${BASH_REMATCH[0]}"; inner="${m:1:${#m}-2}"; inner="${inner//\\?/}"
+          case "$inner" in *'$('*|*'`'*) return 0 ;; esac
+          s="${s:${#m}}"; prev='x'
+        else s="${s:1}"; prev='"'; fi ;;
+      '#')
+        case "$prev" in
+          ' '|$'\t'|$'\n'|';'|'&'|'|'|'('|')')
+            if [[ $s == *$'\n'* ]]; then s=$'\n'"${s#*$'\n'}"; else s=''; fi ;;
+          *) s="${s:1}"; prev='#' ;;
+        esac ;;
+      '<')
+        if [ "${s:0:3}" = '<<<' ]; then s="${s:3}"; prev='<'
+        elif [[ $s =~ $re_hd ]]; then
+          m="${BASH_REMATCH[0]}"; dash="${BASH_REMATCH[1]}"; word="${BASH_REMATCH[2]}"
+          quoted=0; case "$word" in *[\'\"\\]*) quoted=1 ;; esac
+          delim="${word//[\'\"\\]/}"
+          pending+=("$dash|$quoted|$delim")
+          s="${s:${#m}}"; prev='x'
+        else s="${s:1}"; prev='<'; fi ;;
+      $'\n')
+        s="${s:1}"; prev=$'\n'
+        for hd in ${pending[@]+"${pending[@]}"}; do
+          dash="${hd%%|*}"; quoted="${hd#*|}"; quoted="${quoted%%|*}"; delim="${hd#*|*|}"
+          while [ -n "$s" ]; do
+            if [[ $s == *$'\n'* ]]; then line="${s%%$'\n'*}"; s="${s#*$'\n'}"; else line="$s"; s=''; fi
+            [ -n "$dash" ] && line="${line#"${line%%[!$'\t']*}"}"
+            [ "$line" = "$delim" ] && break
+            if [ "$quoted" = 0 ]; then
+              line="${line//\\?/}"
+              case "$line" in *'$('*|*'`'*) return 0 ;; esac
+            fi
+          done
+        done
+        pending=() ;;
+      *) s="${s:1}"; prev="$c" ;;
+    esac
+  done
+  return 1
+}
 
 # ── ONE SPELLING OF "AN OPTIONAL -R/--repo BEFORE THE SUBCOMMAND" ────────────────────────────────
 # ~~`gh -R <repo> <subcommand>` is this workspace's PRESCRIBED multi-repo convention~~ — **STRUCK,
@@ -2611,9 +2736,31 @@ fi
 #    THE COST OF REVERTING, stated as a cost rather than as a win: on Codex this branch now fires
 #    on more than the runtime was measured stopping, which is the very thing AC7 forbids. It is the
 #    same over-block posture this file already accepts elsewhere, and it is the safe direction.
+#
+#    ── THE PREDICATE WAS BLIND INSIDE DOUBLE QUOTES, AND THAT IS THE SAME HAZARD IN A QUIETER SPELLING (#497). ──
+#    It read `$bare`, which collapses double-quoted spans — so `printf "%s" "$(gh secret set X …)"`
+#    ABSTAINED while its unquoted sibling denied, and the shell executes both (see the measurement
+#    table beside `subst_active`, above). The manufactured-token argument two paragraphs up applies
+#    unchanged: `gh "$(printf secret)" set X` hid its floor-matching word exactly as the unquoted form
+#    does. The first `if` below is the old predicate, UNCHANGED; the second is the #497 scanner, and
+#    rule 8 denies on EITHER, so nothing the old one denied can reach ALLOW. Both are plain `deny`,
+#    never `deny_convenience`. The fast path skips the scanner when the raw command carries neither
+#    `$(` nor a backtick, since no view derived from it could.
 if printf '%s' "$bare" | grep -Eq '(\$\(|`)'; then
   deny "Blocked: command substitution (\$(...) or backticks) forces a permission prompt even for allowlisted tools, because the matcher cannot expand it. Run the inner command as its own call and use the literal result."
 fi
+case "$command" in
+  *'$('*|*'`'*)
+    subst_hit=0
+    if subst_active "$command"; then subst_hit=1; fi
+    for subst_v in ${subst_views[@]+"${subst_views[@]}"}; do
+      if [ "$subst_hit" = 0 ] && subst_active "$subst_v"; then subst_hit=1; fi
+    done
+    if [ "$subst_hit" = 1 ]; then
+      deny "Blocked: command substitution (\$(...) or backticks) is still ACTIVE here — double quotes, escaped surrounding quotes and an unquoted heredoc body do not make it literal; only single quotes, a quoted heredoc delimiter or a backslash on the \$ do. It forces a permission prompt and can manufacture a token the other floor rules never see. Run the inner command as its own call and use the literal result."
+    fi
+    ;;
+esac
 # 8-chain. REMOVED 2026-09-05 (#383, slice S2). It denied `&&`, `||` and `;` on the premise struck
 #    above, and that premise was false for every form reachable with the rule absent. It is not
 #    renumbered away: this file's convention since S1 is that a removed rule leaves a tombstone rather

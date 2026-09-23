@@ -757,7 +757,21 @@ CONVENIENCE = [
 FORWARDED_FRICTION = [
     ("echo $(date)", "command substitution, $( ) spelling"),
     ("echo " + BT + "date" + BT, "command substitution, BACKTICK spelling"),
+    # #497: the DOUBLE-QUOTED spellings. At 2.0.71 these abstained through this adapter while
+    # the shell executed them; the repair is in the SHARED guard, so this adapter gains no policy
+    # of its own and these arms only prove the translation carries the new guard verdict.
+    ('printf "%s" "$(date)"', "command substitution INSIDE double quotes, $( ) spelling"),
+    ('printf "%s" "' + BT + "date" + BT + '"', "command substitution INSIDE double quotes, BACKTICK"),
+    ('printf "%s" "$(gh sec' + 'ret set PROBE --body value)"',
+     "the QA-reported quoted nested secret write (fed as data, never executed)"),
+    ('gh "$(echo sec' + 'ret)" set FOO --body x', "a quoted MANUFACTURED subcommand"),
 ]
+# The inert twin of the rows above: a single-quoted literal must still pass the adapter
+# untouched, or the arms above could be green on an adapter that blocks every '$('.
+check(decision_of(run_adapter(codex_payload("printf '%s' '$(date)'"))) is None,
+      "#497 — a SINGLE-QUOTED literal substitution is still not blocked through the adapter")
+check(decision_of(run_adapter(codex_payload('printf "%s" "\\$(date)"'))) is None,
+      "#497 — an ESCAPED dollar inside double quotes is still not blocked through the adapter")
 FLOOR = [
     (_TF + " " + _AP, "an IaC mutation"),
     ("git push origin main", "a trunk push"),
@@ -836,6 +850,8 @@ for needle, why in [
     ("0.154.0-alpha.6.2", "it names the independently checked VS Code build"),
     ("quoted nested substitution was observed ABSTAINING",
      "it states the known semantic gap instead of flattening invocation into coverage"),
+    ("a native re-run on an installed release carrying the repair is OWED",
+     "it does not present the #497 source repair as native evidence"),
     ("UserPromptSubmit separately blocked", "it bounds native preflight support to the "
                                              "event measurement actually taken"),
     ("INVOCATION LOG", "it names the invocation log and its state, which is the only "
