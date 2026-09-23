@@ -4771,8 +4771,9 @@ question.
 - **No threshold** — no number, no multiplier, no trigger for how far a spend runs before the trade is
   worth escalating. **`sp:N` as a denominator was drafted and withdrawn before shipping**: he stated
   that scope influences cost and time, which is a relation, not a mechanism.
-- **A WORKLOG does not exist here.** He named *«metricas e worklog»*; `dispatch-metrics-stop.sh` is the
-  metrics half and there is no worklog. Do not read the metrics hook as one.
+- ~~**A WORKLOG does not exist here.** He named *«metricas e worklog»*; `dispatch-metrics-stop.sh` is the
+  metrics half and there is no worklog.~~ **Struck 2026-09-23 (#499): the explicit, host-neutral
+  worklog described in the amendment below now exists.** Do not read the metrics hook as one.
 - **Open with no mechanism:** *how does this loop decide an item's cost or time has gone wrong?*
 - ~~**Rules 10 and 11 stay exactly as they are.** Under decision 2 they prompt on acts that trade nothing
   once a composition is confirmed. **They are the #365 floor and this amendment changes neither**; the
@@ -5338,6 +5339,55 @@ third class of finding.
 instruction.** What changed is narrower and is the whole of the claim: the analysis is repeatable with
 no network and no credential, the baseline has a tracked home where none existed, and two states that
 used to look identical now print different words.
+
+## 2026-09-23 amendment — explicit multi-harness worklog and prospective team velocity (#499)
+
+### Context
+
+The per-dispatch metrics instrument records cumulative tokens and duration, but it cannot say which
+harness worked an Issue stage, preserve handoffs, or count accepted delivery once across retries and
+multiple PRs. Mutable labels and milestones cannot serve as historical accounting: rereading them
+rewrites the past. Historical Issues contain no evidence-backed worklog, so this decision is
+prospective and does not invent a baseline.
+
+### Decision
+
+Adopt schema-versioned Issue-comment events, append-only by convention, plus a host-neutral offline
+validator/reporter at `scripts/worklog.py`. Planning writes a machine-readable snapshot mapping a
+stable sprint key to explicit repository/milestone numbers and fully qualified Issue counting units.
+The first implementation-start event freezes the estimate and provenance. Corrections reference an
+original event rather than editing history.
+
+Team velocity is the sum of frozen points for distinct counting-unit Issues whose latest effective
+outcome is accepted under the existing gate, in the explicitly declared completion sprint. Reopened
+work loses current credit until reaccepted; carryover earns zero before completion and full credit in
+the completion sprint. Aggregate parents cannot be counted with counted children. Cohorts are whole
+items and mutually exclusive: sole, mixed, or unknown harness participation.
+
+The same event contract applies to Claude, Codex and Kiro. Harness identity and persona stay separate;
+runtime, plugin version and plugin source revision stay independently visible; attribution provenance
+is observed, declared or unknown. Declared metadata is not authenticated permission identity. Nothing
+is inferred from forge account, branch, persona or global configuration.
+
+### Rejected options
+
+- **Automatic observation in a native hook:** rejected. No verified producer exists across the three
+  harnesses, and adding one would expand runtime and permission scope. Explicit events are honest about
+  the instruction boundary.
+- **Use dispatch metrics as the worklog:** rejected. It is a cumulative cost instrument with different
+  identity and deduplication semantics; changing it would corrupt the existing series.
+- **Use mutable tracker labels/milestones at report time:** rejected. That silently rewrites estimates,
+  sprint membership and credit.
+- **Allocate points to contributors or convert them to tokens/hours:** rejected. Points remain a team
+  planning measure; different work mixes do not support causal harness or individual rankings.
+
+### Consequences
+
+Good: one delivery key reconciles multiple repositories, PRs, retries and harnesses; retained inputs,
+hashes, cutoff and reproduction command make reports auditable and deterministic. Bad: comments remain
+editable/deletable, capture is an instruction, historical attribution stays unknown without evidence,
+and incomplete exports can only produce partial reports. Existing dispatch metrics and Kiro's
+knowledge-only export remain unchanged.
 
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now

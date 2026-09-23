@@ -925,14 +925,18 @@ the queue, not about this block, and not repaired here.
 **Two rows moved right on 2026-09-09, and a mode config that loses axes is the design working rather
 than shrinking.**
 
-- **The readiness bar does NOT vary by mode.** Owner ruling: *«Mantém o `sp:N` nos dois modos»*. The
-  estimate is kept as a **size signal**, not as a velocity input — which is what it already was here,
+- **The readiness bar does NOT vary by mode.** Owner ruling: *«Mantém o `sp:N` nos dois modos»*.
+  ~~The estimate is kept as a **size signal**, not as a velocity input — which is what it already was here,
   since `/planning-poker` sits in the library as a reference pattern and no velocity is collected in
-  either mode. **So `/definition-of-ready` needs no per-mode branch**, `ready` asserts the same thing
-  in both, and there is one fewer place for the two modes to drift apart. **The cost, recorded rather
+  either mode.~~ **Struck 2026-09-23 (#499): prospective team velocity is now selected.** The estimate
+  remains the readiness signal and planning input it was, and its value is frozen by the first explicit
+  worklog implementation-start event rather than reread from a mutable label. `/definition-of-ready`
+  still needs no per-mode branch: `ready` asserts the same thing
+  in both, and there is one fewer place for the two modes to drift apart. ~~**The cost, recorded rather
   than absorbed:** the lighter mode carries a ceremony its own method does not ask for, and the loop
   pays two estimator dispatches per item in a mode that collects no velocity. He was told that and
-  took it.
+  took it.~~ **Struck with #499:** the two estimator dispatches remain, but prospective velocity now
+  consumes their median in both modes; there is no longer a mode that collects no velocity.
 - **The container's EXISTENCE is untouchable; only its MEANING varies.** Ruling 3 above. A mode that
   could delete the milestone would take the only string the two repositories pair on with it.
 

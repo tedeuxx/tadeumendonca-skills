@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tadeumendonca.dev/schemas/worklog-event-v1.json",
+  "title": "Worklog event v1",
+  "type": "object",
+  "required": ["schema_version", "event_id", "issue", "timestamp", "event_type", "stage", "run_id", "attempt_id", "attribution", "revision", "evidence", "handoff"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "event_id": {"type": "string", "minLength": 1},
+    "issue": {"type": "string", "pattern": "^[^/\\s]+/[^#\\s]+#[1-9][0-9]*$"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "event_type": {"enum": ["implementation_start", "checkpoint", "handoff", "outcome", "correction"]},
+    "stage": {"type": "string", "minLength": 1},
+    "run_id": {"type": "string", "minLength": 1},
+    "attempt_id": {"type": "string", "minLength": 1},
+    "predecessor_event_id": {"type": ["string", "null"]},
+    "resume_of_event_id": {"type": ["string", "null"]},
+    "attribution": {
+      "type": "object",
+      "required": ["harness", "runtime_version", "plugin", "persona", "provenance"],
+      "properties": {
+        "harness": {"type": "string"}, "runtime_version": {"type": "string"}, "persona": {"type": "string"},
+        "provenance": {"enum": ["observed", "declared", "unknown"]},
+        "plugin": {"type": "object", "required": ["version", "source_revision"], "properties": {"version": {"type": "string"}, "source_revision": {"type": "string"}}}
+      }
+    },
+    "revision": {"type": "object", "required": ["repository", "branch", "commit"]},
+    "evidence": {"type": "array", "items": {"type": "string"}},
+    "handoff": {"type": "object"},
+    "frozen_estimate": {"type": "object"},
+    "outcome": {"enum": ["accepted", "reopened", "cancelled", "superseded", "no_longer_relevant"]},
+    "completion_sprint": {"type": "string"},
+    "acceptance_evidence": {"type": "array", "items": {"type": "string"}},
+    "supersedes_event_id": {"type": "string"},
+    "corrected_event": {"type": "object"}
+  }
+}

@@ -1529,13 +1529,17 @@ per dispatch, so the cost axis and the wait half of the time axis are both measu
 **No threshold exists anywhere and none is authored** — the calibration comes from metrics and worklog
 over real iterations, which is his decision and not a build's.
 
-**Three things are missing and are named rather than assumed away:**
+**Three things were missing and are named rather than assumed away:**
 
-1. **A WORKLOG does not exist.** He named *«metricas e worklog»*; the metrics half is
-   `dispatch-metrics-stop.sh` and the worklog half has no equivalent in this tree. **Do not read the
-   metrics hook as the worklog.**
-2. **The mapping from a story point to tokens and hours does not exist**, so `sp:N` is not a denominator
-   for anything today. **The question is open and asked rather than answered:** *how does this loop
+1. ~~**A WORKLOG does not exist.** He named *«metricas e worklog»*; the metrics half is
+   `dispatch-metrics-stop.sh` and the worklog half has no equivalent in this tree.~~ **Struck
+   2026-09-23 (#499): a host-neutral, explicit worklog now exists at `scripts/worklog.py`, with its
+   contract in `docs/worklog/`.** It has no automatic producer and does not read the metrics hook.
+   **Do not read `dispatch-metrics-stop.sh` as the worklog:** it remains a separate cumulative
+   token/duration instrument with its existing format and deduplication.
+2. **The mapping from a story point to tokens and hours does not exist.** The worklog uses frozen
+   points for team planning velocity and deliberately does not make `sp:N` a token/hour denominator.
+   **The question is open and asked rather than answered:** *how does this loop
    decide that an item's cost or time has gone wrong?* There is no mechanism.
 3. **No AFK/HITL contract table is written into this harness.** The owner imported a blueprint carrying
    one; what exists here is the five-clause standard above and nothing tabular. **The table is his live

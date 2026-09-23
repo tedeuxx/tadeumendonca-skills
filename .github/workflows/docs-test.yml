@@ -194,6 +194,11 @@ jobs:
       - name: Assert the funnel rite distinguishes did-not-run from ran-and-found-nothing
         run: bash scripts/funnel-review.test.sh
 
+      - name: Assert worklog accounting is deterministic and mutation-resistant
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python3 scripts/worklog.test.py
+
       # THE CAVEAT GOES WHERE THE GREEN IS READ, and until this step existed it did not. The two arms
       # of this job surface to a human as a check name and a tick; what that tick does NOT mean lived
       # only in a script header and in the YAML comment above — neither of which is on the page where

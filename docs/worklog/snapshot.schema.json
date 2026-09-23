@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tadeumendonca.dev/schemas/worklog-snapshot-v1.json",
+  "title": "Worklog sprint snapshot v1",
+  "type": "object",
+  "required": ["schema_version", "sprint", "timezone", "starts_at", "ends_at", "repositories", "counting_units"],
+  "properties": {
+    "schema_version": {"const": 1}, "sprint": {"type": "string"}, "timezone": {"type": "string"},
+    "starts_at": {"type": ["string", "null"]}, "ends_at": {"type": ["string", "null"]},
+    "repositories": {"type": "array", "items": {"type": "object", "required": ["repository", "milestone_number"]}},
+    "counting_units": {"type": "array", "items": {"type": "object", "required": ["issue", "planned_points", "work_type", "parent"]}}
+  }
+}
