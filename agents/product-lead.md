@@ -23,8 +23,12 @@ skills:
     permission-guard.sh rule 5e denies `gh pr comment`, `gh issue comment` and `gh issue create`
     when `agent_type` matches `*:product-lead`.
 
-  `agent_type` is stamped by the HARNESS and the model cannot write it — the same signal rules 5d and
-  7b already key on — so this is a capability boundary again, not a promise, without un-merging the
+  ~~`agent_type` is stamped by the HARNESS and the model cannot write it~~ — **struck 2026-09-23
+  (#501), true on Claude Code only.** On Claude Code `agent_type` is stamped by the HARNESS and the
+  model cannot write it; on Codex, since #501, it is DECLARED by the session (a parent names the role
+  it spawns, and a config can declare any role name), so there this deny is a routing rule rather
+  than a capability boundary (ADR-0004's 2026-09-23 amendment). It is the same signal rules 5d and
+  7b already key on — so on Claude Code this is a capability boundary again, not a promise, without un-merging the
   persona the owner had just merged. It takes nothing this file declares it needs: the body below says
   it writes nothing at all, and `gh pr list` / `gh issue list` / `gh pr view` are untouched, which is
   what `Bash` is here for.

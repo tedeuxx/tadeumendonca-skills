@@ -280,9 +280,12 @@ a role registered as `[agents.probe_child]`. Four payloads, one turn:
 | 3 | `Bash` (the child's act) | **`probe_child`** | present |
 
 **ABSENT is not EMPTY, and an adapter that conflates them inverts this repository's own
-floor.** A translation that defaults a missing key to `""` hands the Codex parent thread the
-orchestrator's exemptions by accident — the Issue names this hazard, and this is the
-measurement that makes it concrete rather than anticipated.
+floor.** ~~A translation that defaults a missing key to `""` hands the Codex parent thread the
+orchestrator's exemptions by accident~~ — the Issue names this hazard, and this is the
+measurement that makes it concrete rather than anticipated. **Struck 2026-09-23 (#501): the
+adapter now sends `""` for a missing key ON PURPOSE**, after section 19 measured the root as the
+only keyless sender. The adapter still does not conflate the two: a present-but-empty value maps to
+`codex-unidentified`.
 
 ~~`permission-guard.sh` reads an *empty* `agent_type` as the orchestrator and grants it the
 orchestrator's position in rules 7 and 7b.~~ **Struck: the ruling is right and the evidence was
@@ -327,10 +330,18 @@ selected* and never *that the selector was entitled to select it*.
 
 **The operative rule for slice C, unchanged by this measurement having found a field:**
 
-> A caller-dependent exemption may not be bound to `agent_type`. It is a routing signal and
+> ~~A caller-dependent exemption may not be bound to `agent_type`.~~ It is a routing signal and
 > never a credential, and the direction of its error is the wrong one — the value a bridge
 > would most want to trust (`quality-assurance`, say) is exactly the one a model would name to
 > obtain the exemption.
+
+**The operative rule is STRUCK, OVERRULED by the owner on 2026-09-23 (#501); the reasoning in the
+same quote still stands.** Every role-keyed exemption is now bound to `agent_type` on Codex, on
+purpose, so a sprint can run entirely inside Codex. *«temos que funcionar de forma equivalente em
+todos harness suportados pela nossa distribuicao de plugin»*. The cost is stated in
+[ADR-0004](adr/0004-controls-and-enforcement.md)'s 2026-09-23 amendment: on Codex every role-keyed
+act, the irreversible merge included, rests on a declared identity. Section 19 below measures the
+route to that identity.
 
 **What that leaves available, and it is not nothing.** The ABSENCE of the key is not
 model-chosen — a parent cannot make itself a child. So *"deny everything caller-dependent to
@@ -338,8 +349,9 @@ every caller"* is implementable, and *"recognise that this is a child"* is imple
 *"recognise WHICH child"* is not, in any sense a floor may rely on.
 
 **Bound this to what was exercised.** One role, registered by the operator, one delegation
-depth. Whether a child can itself spawn a grandchild, and what `agent_type` reads there, was
-not measured.
+depth. ~~Whether a child can itself spawn a grandchild, and what `agent_type` reads there, was
+not measured.~~ **Measured 2026-09-23 (#501), section 19:** on this build's defaults a child has no
+spawn tool; with `max_depth = 2` the grandchild carries its own role.
 
 ## 7 · `write_stdin` — intercepting the command does NOT cover what is fed to it afterwards
 
@@ -525,19 +537,37 @@ was observed once, carrying the four characters `bash`, with the later input inv
 hook layer *and* to the runtime's own item stream (section 7). *"The shell is guarded"* is false
 on this runtime and must not be written.
 
-### What no Codex caller gets, stated as an operational restriction rather than buried
+### ~~What no Codex caller gets, stated as an operational restriction rather than buried~~ — what a Codex caller gets since #501: the same as on Claude Code
 
-**No caller-dependent exemption is available on Codex, to anybody.** Opening work and posting to
+~~**No caller-dependent exemption is available on Codex, to anybody.** Opening work and posting to
 a public surface are refused to every Codex caller, including one whose `agent_type` reads
-`quality-assurance`. `agent_type` is a **selection**, not a credential — section 6 — so binding
-an exemption to it would hand the exemption to whoever asked for the role.
+`quality-assurance`.~~ **STRUCK 2026-09-23 (#501), on the owner's decisions.** `agent_type` is a
+**selection**, not a credential (section 6), so binding an exemption to it hands the exemption to
+whoever asked for the role. The sentence the strike leaves is still true, and the owner accepted it
+as the price of a sprint that runs entirely inside Codex.
 
-The mapping that produces this is the one an adapter author gets backwards, so it is written out:
+**What the adapter sends now:**
+
+| what the payload carries | what the adapter sends | what the guard does with it |
+|---|---|---|
+| a build role id, e.g. `tadeumendonca_agents_lead` | ~~**the same value, verbatim**~~ **`tadeumendonca-skills:agents-lead`** — the ADAPTER rewrites it | ~~translates it to `tadeumendonca-skills:agents-lead`~~ reads it raw, as before #501, so the persona takes the same arm of every role-keyed rule as on Claude Code. **Struck at QA gate round 1:** the rewrite first lived in the shared guard, where it also fired on Claude Code for a local agent file named `tadeumendonca_<persona>`. It moved to the Codex-only adapter |
+| any other child role, e.g. `probe_child` | **the same value, verbatim** | a bare name fails **closed**, as before |
+| **no `agent_type` key** (the root session, measured as the only keyless sender) | **`""`** | the orchestrator's arm: posts; `gh issue create` falls to Codex's own layer; merge and trunk push denied |
+| `""`, `null`, or a non-string | **`codex-unidentified`** | denied by every caller-keyed rule's catch-all. ABSENT is still not EMPTY |
+
+The owner's three decisions, the full per-arm table and the cost are in
+[ADR-0004](adr/0004-controls-and-enforcement.md)'s 2026-09-23 amendment. **The claim is parity of
+guard VERDICTS, not of outcome.** An act the guard allows still needs a Codex permission profile
+with network (section 19).
+
+~~The mapping that produces this is the one an adapter author gets backwards, so it is written out:~~
+The mapping below is the pre-#501 one, kept because its measurement table is still the guard's
+behaviour:
 
 | what the payload carries | what the adapter sends | why |
 |---|---|---|
-| a child's role, e.g. `probe_child` | **the same value, verbatim and bare** | the guard's allowlists match the namespaced `<plugin>:<persona>` form, so a bare name fails **closed** |
-| **no `agent_type` key** (the parent) | **`codex-unidentified`** | a non-empty sentinel with no colon, denied by every caller-keyed rule's catch-all |
+| a child's role, e.g. `probe_child` | **the same value, verbatim and bare** | the guard's allowlists match the namespaced `<plugin>:<persona>` form, so a bare name fails **closed** ~~(a build id too)~~ — since #501 a `tadeumendonca_<persona>` id is rewritten by the adapter |
+| ~~**no `agent_type` key** (the parent)~~ | ~~**`codex-unidentified`**~~ | ~~a non-empty sentinel with no colon, denied by every caller-keyed rule's catch-all~~ — STRUCK #501: the root is sent `""` |
 | `""`, `null`, or a non-string | **`codex-unidentified`** | ABSENT is not EMPTY |
 
 **The defensive-looking move is the dangerous one, and this is the measurement that says so.**
@@ -1707,3 +1737,94 @@ The carrier and adapter suites pin the two-event registration, the shared comman
 shape, the exact local blocker set and its healthy abstention. Mutation removes `jq` and the guard in
 turn and makes the prompt block. Those checks prove the implementation can go red; only the opt-in
 native probe proves vendor routing.
+
+## 19 · ROLE PARITY (#501) — who is keyless, who can be declared, and whether 7c can read from a hook
+
+**Why this section exists.** The owner ruled that every role-keyed rule treats a persona the same
+on Codex as on Claude Code (*«temos que funcionar de forma equivalente em todos harness suportados
+pela nossa distribuicao de plugin»*). Two things had to be measured before that could be built
+safely: whether the root session is the ONLY keyless sender, which makes `absent -> ""` safe, and
+whether rule 7c can read a verdict from inside the Codex hook process. The decision and its cost are
+in [ADR-0004](adr/0004-controls-and-enforcement.md)'s 2026-09-23 amendment; this section is the
+evidence.
+
+### 19.1 · Method, and why it needed no credential
+
+codex-cli `0.151.0-alpha.7.2` (`~/.codex/plugins/.plugin-appserver/codex`), `app-server --stdio`,
+2026-09-23. Each run built a **new disposable `CODEX_HOME`** holding a `config.toml` with three
+things. First, a `model_provider` pointed at a **loopback Responses stand-in**
+(`requires_openai_auth = false`), so no credential was copied and no remote model was called.
+Second, the probe roles. Third, one `PreToolUse` command hook, trusted by writing its
+`trusted_hash` into that disposable file only. The stand-in scripted each context's tool calls. It
+told contexts apart by a nonce in each role's instructions. The hook recorded every payload. **The
+invoking user's real `~/.codex/config.toml` was hashed before and after every run and was unchanged
+every time.** The instrument was a scratch script reusing `scripts/codex-hook-probe.py`'s helpers
+(`AppServer`, `turn_config`, `trust_registrations`, `run_turn`). It is **not committed**: no gate
+would run it, so this repository's scratch rule says to discard it, and this paragraph is the
+reproduction recipe.
+
+**One surface detail a reader of section 6 would trip on.** On this app-server the spawn tool lives
+in the `multi_agent_v1` namespace, takes `{agent_type, fork_context, message}`, and its hook
+payload's `tool_name` is `spawn_agent`. It is not `collaborationspawn_agent` as recorded in section
+6 (a `collaboration` call returned `unsupported call`). The adapter abstains on every non-`Bash`
+route either way, so nothing here depends on the spelling. What changes is only the name in its
+list of known abstentions.
+
+### 19.2 · Who carries `agent_type`
+
+| spawn shape | payload `agent_type` |
+|---|---|
+| the root session's own `spawn_agent` call | **key absent** |
+| a registered role, depth 1 | `probe_child` |
+| `agent_type` omitted, `fork_context` false | `default` |
+| `agent_type` omitted, `fork_context` true (the "inherit" path; the child's request carried the parent's nonce, so the fork was real) | `default` |
+| a grandchild, `[agents] max_depth = 2` | `probe_grand`; the child's own spawn call carried `probe_child` |
+
+**On the defaults, a depth-1 child's tool list has no `multi_agent_v1` at all**, so it cannot spawn.
+The depth-2 row needed `max_depth = 2`. **No child shape was keyless**, which is the premise the
+adapter's `absent -> ""` rests on. Bounded: one build, the shapes above, `:workspace` permissions.
+
+### 19.3 · The declared identity — what a spawn can name
+
+| probe | result |
+|---|---|
+| the root spawns `tadeumendonca_quality_assurance`, **not registered** | refused by the runtime: `unknown agent_type 'tadeumendonca_quality_assurance'`; no child |
+| the same name **hand-declared** in the disposable `config.toml`, with a one-line instruction that is not the build's profile | honoured: the child's `Bash` payload read `agent_type = tadeumendonca_quality_assurance` |
+
+**So the build's role names are obtainable by anyone who can write the session's Codex config.**
+That is the cost the owner accepted in decision 2, now measured instead of hypothesised. **Not
+measured, and labelled as a hypothesis:** whether the model itself can do this mid-session by
+editing a workspace `.codex/config.toml` (through `apply_patch`, which no floor rule sees) and then
+spawning the new role without a restart.
+
+### 19.4 · Rule 7c from the hook process, and the act's own network
+
+The recorder was replaced by **this branch's real adapter**, wrapped only to tee the payload. A
+hand-declared `tadeumendonca_quality_assurance` child then ran two commands. #367 is closed and
+carries no verdict, so nothing could merge.
+
+| command | `:workspace` | `:danger-full-access` |
+|---|---|---|
+| `gh pr merge 367 --merge --repo tedeuxx/tadeumendonca-skills` | **blocked by 7c**: *"the last quality-assurance verdict on this PR's CURRENT head is 'none'"* | the same |
+| `gh pr view 367 --repo tedeuxx/tadeumendonca-skills --json state --jq .state` (guard abstains) | **`error connecting to api.github.com`**, exit 1 | `CLOSED`, exit 0 |
+
+**Two separate facts, and they must not be merged.**
+
+1. **The hook process reaches `gh` and the network under both profiles.** 7c's message is the one it
+   prints *after a successful read*, not its fail-closed "could not READ" message. So decision 2 is
+   not inert on this build.
+2. **The act's own shell does NOT reach the network under `:workspace`.** A Codex persona that the
+   guard lets post or merge still cannot do either unless the session runs a profile with network.
+   That is outcome, not guard verdict, and it is why the parity claim is scoped to verdicts.
+
+**Not measured: a merge that 7c CLEARS, executed from Codex.** A throwaway PR merged into `main`
+publishes a release, so it is not disposable. The fallback if it fails is
+`APPROVE-EXECUTOR-BLOCKED`.
+
+### 19.5 · What this section does not claim
+
+It does not claim authenticated identity: 19.3 is the opposite. It does not claim coverage of MCP
+tools, because `mcp-guard.sh` is not routed on Codex. It does not claim that the `Stop`,
+`SubagentStart`/`SubagentStop` or `SessionStart` hooks run: the carrier registers `PreToolUse` and
+`UserPromptSubmit` only. It does not claim anything about Kiro, where neither the guard nor persona
+identity is activated.

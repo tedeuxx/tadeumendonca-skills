@@ -1087,8 +1087,10 @@ before and after every run and any difference fails the run, on the error path t
 
 **Two design rules follow and are recorded in [ADR-0004](0004-controls-and-enforcement.md)'s
 2026-09-14 amendment rather than here**, because what they decide is whether a layer may carry a
-control: a caller-dependent exemption may not be bound to `agent_type`, and an adapter ships no
-`matcher` and dispatches on `tool_name`.
+control: ~~a caller-dependent exemption may not be bound to `agent_type`, and~~ an adapter ships no
+`matcher` and dispatches on `tool_name`. **The first of the two rules is struck, and the owner
+overruled it on 2026-09-23 (#501):** role-keyed exemptions are now bound to `agent_type` on Codex
+for role parity, at the cost stated in ADR-0004's 2026-09-23 amendment.
 
 ### Consequences, including the bad ones
 

@@ -163,10 +163,15 @@ POST = "gh pr comment 999999 --repo tedeuxx/tadeumendonca-skills --body-file /de
 
 absent = guard_verdict(OPEN_WORK, None)
 empty = guard_verdict(OPEN_WORK, "")
+# ~~identity (hazard) — … normalising absence to "" is the fail-open move this adapter
+# must not make~~ — the MEASUREMENT is kept and its reading changed (#501): the owner chose
+# role parity, and the root session was measured to be the only keyless payload, so "" is
+# now what the ROOT is deliberately sent. What this arm still proves is that "" and absent
+# are the same caller to the guard, so the adapter's choice is the whole decision.
 check(absent is None and empty is None,
-      "identity (hazard) — an ABSENT agent_type and an EMPTY one are indistinguishable "
-      "to the guard: both ABSTAIN on opening work, so normalising absence to \"\" is the "
-      "fail-open move this adapter must not make")
+      "identity (was: hazard) — an ABSENT agent_type and an EMPTY one are the same caller "
+      "to the guard: both ABSTAIN on opening work, so sending \"\" for the root is the "
+      "orchestrator's position, chosen deliberately under #501 rather than by accident")
 
 import importlib.util
 spec = importlib.util.spec_from_file_location("cha", ADAPTER)
@@ -193,23 +198,68 @@ check(guard_verdict(POST, "agents-lead") == "deny"
       "so passing Codex's bare value through verbatim fails closed")
 
 # And the mapping itself: what does the adapter actually send?
-check(cha.map_caller({}) == sentinel, "identity — a missing key maps to the sentinel")
+# ~~a missing key maps to the sentinel~~ — struck #501: it maps to the ROOT caller.
+check(cha.ROOT_CALLER == "" and cha.map_caller({}) == cha.ROOT_CALLER,
+      "identity — a MISSING key (the Codex root session) maps to \"\", the orchestrator "
+      "(#501 role parity)")
 check(cha.map_caller({"agent_type": ""}) == sentinel,
-      "identity — an EMPTY value maps to the sentinel, not to itself")
+      "identity — an EMPTY value is NOT the root: it maps to the sentinel, so absent and "
+      "empty still map to different values")
 check(cha.map_caller({"agent_type": None}) == sentinel,
       "identity — a null value maps to the sentinel")
 check(cha.map_caller({"agent_type": 7}) == sentinel,
       "identity — a non-string value maps to the sentinel")
 check(cha.map_caller({"agent_type": "probe_child"}) == "probe_child",
       "identity — a real child role is passed through VERBATIM, un-namespaced")
+# ~~a build role id is passed through VERBATIM; the GUARD translates it~~ — struck at QA gate
+# round 1 on #502: a guard-side rewrite also fired on Claude Code for a local agent file named
+# `tadeumendonca_<persona>`. The rewrite is HERE, on the Codex-only route.
+check(cha.map_caller({"agent_type": "tadeumendonca_quality_assurance"})
+      == "tadeumendonca-skills:quality-assurance",
+      "identity — a build role id is REWRITTEN by the adapter into its Claude Code form, so the "
+      "shared guard reads the raw field on both harnesses")
+# (Named `malformed`, not `bad`: `bad()` is this suite's failure reporter, and shadowing it
+# turned the first red here into a crash with no summary — found by the widened-case mutant.)
+for malformed in ("tadeumendonca_", "tadeumendonca__developer", "tadeumendonca_Developer",
+                  "xtadeumendonca_developer", "tadeumendonca_developer "):
+    check(cha.map_caller({"agent_type": malformed}) == malformed,
+          "identity — a malformed build id %r is passed through UNCHANGED, so it falls to the "
+          "catch-all rather than being coerced into a persona" % malformed)
 
-# End to end: a Codex parent payload (no agent_type key at all) must be BLOCKED on an act
-# that an empty caller would have been allowed.
-p = run_adapter(codex_payload(OPEN_WORK))
+# The four child payload shapes measured on 2026-09-23 (codex-cli 0.151.0-alpha.7.2,
+# disposable home, loopback model; docs/codex-hook-bridge.md section 19). Every one
+# CARRIES the key, which is the premise that makes ABSENT -> "" the root alone. They are
+# pinned as payloads so a change to the mapping that would hand one of them "" reddens.
+for shape, value in (("a registered role at depth 1", "probe_child"),
+                     ("a spawn with agent_type OMITTED", "default"),
+                     ("a full-history FORK with agent_type omitted", "default"),
+                     ("a grandchild at max_depth = 2", "probe_grand")):
+    check(cha.map_caller({"agent_type": value}) not in ("", None),
+          "identity (measured shape) — %s carries %r and is never sent as the root"
+          % (shape, value))
+
+# End to end: a Codex ROOT payload (no agent_type key at all) takes the orchestrator's
+# arm. ~~must be BLOCKED on an act that an empty caller would have been allowed~~ — struck
+# #501. It must now be ALLOWED to post (5e's "" arm) and still BLOCKED from merging (7b).
+p = run_adapter(codex_payload(POST))
+check((p.stdout or "").strip() == "",
+      "identity (end to end) — a payload with NO agent_type key may POST, as the "
+      "orchestrator may on Claude Code")
+p = run_adapter(codex_payload("gh pr merge 999999 --merge --repo tedeuxx/tadeumendonca-skills"))
 d = decision_of(p)
 check(d is not None and d.get("decision") == "block",
-      "identity (end to end) — a payload with NO agent_type key is refused opening work, "
-      "which is the exemption an \"\" mapping would have handed the Codex parent thread")
+      "identity (end to end, calibration) — the same keyless root is still REFUSED the "
+      "merge, so the orchestrator's position is not a blanket allow")
+p = run_adapter(codex_payload(POST, agent_type="tadeumendonca_agents_lead"))
+check((p.stdout or "").strip() == "",
+      "identity (end to end) — a Codex agents-lead child may post its lens marker (the "
+      "#498 refusal this Issue exists for)")
+p = run_adapter(codex_payload(POST, agent_type="tadeumendonca_product_lead"))
+d = decision_of(p)
+check(d is not None and d.get("decision") == "block"
+      and "`product-lead` writes nothing" in d.get("reason", ""),
+      "identity (end to end) — a Codex product-lead child is refused by product-lead's "
+      "NAMED arm, not the catch-all")
 
 # ── 3 · routes — an untranslated route abstains and says so ───────────────────────────
 
@@ -614,9 +664,11 @@ with tempfile.TemporaryDirectory() as work:
                                        "what makes a discarded one attributable")
     check(e.get("command") == "gh pr merge 999999 --merge",
           "log — the record carries the command the decision was about")
-    check(e.get("agent_type_sent") == "codex-unidentified",
-          "log — the record carries the identity actually SENT to the guard, not the raw "
-          "payload value, since the mapping is the part that inverts intuition")
+    # ~~== "codex-unidentified"~~ — struck #501: a keyless payload is the root, sent as "".
+    check(e.get("agent_type_sent") == "" and e.get("agent_type_raw") is None,
+          "log — the record carries the identity actually SENT to the guard (\"\", the "
+          "root) beside the raw payload value (absent), since the mapping is the part "
+          "that inverts intuition")
     check("process_cwd" in e and "payload_cwd" in e,
           "log — BOTH working directories are recorded; the guard follows the process "
           "one and the relative-command defect this bridge carries is about the other")
@@ -858,7 +910,12 @@ check(p.returncode == 0, "selfcheck — passes on a complete checkout")
 for needle, why in [
     ("TRUST IS NOT CHECKED HERE", "it says it cannot see trust"),
     ("COVERAGE:", "it states the route limit"),
-    ("CALLER:", "it states that no caller is exempt"),
+    # ~~("CALLER:", "it states that no caller is exempt")~~ — struck #501. The prefix alone
+    # let the note say anything; these pin what it must now say, per arm.
+    ("CALLER: ROLE PARITY with Claude Code", "it states the caller rule is role parity"),
+    ("only quality-assurance may merge", "it names the one merge executor"),
+    ("refused by their own named arms", "it states the named denies survive on Codex"),
+    ("THE IDENTITY IS DECLARED, NOT AUTHENTICATED", "it states the accepted cost"),
     ("INTERACTIVE SESSION STARTUP:", "it states which branch is in force"),
     # Added 2026-09-16. This was the only note of the set left unpinned, which made it
     # the one a later edit could delete in silence — and it is the note carrying the

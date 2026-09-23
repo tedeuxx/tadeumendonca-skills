@@ -2342,9 +2342,16 @@ limb, and **that rescue does not reach a backtick**. Every arm over this class n
 spellings and calibrates each separately — re-planting the defect reddens **6 of 6 backtick arms and
 5 of 6 dollar arms**, the survivor being exactly the trunk-push row.
 
-**Two consequences an operator meets immediately.** No Codex caller receives a caller-dependent
+**Two consequences an operator meets immediately.** ~~No Codex caller receives a caller-dependent
 exemption — opening work and posting to a public surface are refused to **every** caller, because
-`agent_type` routes and never authenticates. And the `write_stdin` gap is **open by decision**: the
+`agent_type` routes and never authenticates.~~ **Struck 2026-09-23 (#501): role parity.** A persona
+now takes the same arm of every role-keyed guard rule on Codex as on Claude Code. It posts, files a
+task or merges exactly where its Claude Code id would, and the Codex root session is the
+orchestrator. The owner chose this knowing `agent_type` still routes and never authenticates: **on
+Codex every role-keyed act, the merge included, rests on a declared identity** (ADR-0004's
+2026-09-23 amendment). The parity is of guard verdicts only. An allowed act still needs a Codex
+permission profile with network, and Kiro activates neither the guard nor persona identity. And the
+`write_stdin` gap is **open by decision**: the
 adapter ships permitting interactive session startup, with the alternative implemented behind one
 constant (`REFUSE_INTERACTIVE_SESSION_STARTUP`) and both branches gated. The bridge document prices
 both. Run `python3 scripts/codex-hook-adapter.py --selfcheck` to see which is in force and what the

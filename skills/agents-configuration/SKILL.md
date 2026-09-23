@@ -1701,8 +1701,11 @@ finding into an Issue has decided something should exist and is merely asking fo
 afterwards. Findings are **named** — in a verdict, in the PR, to the human — and the owner decides
 whether any of them becomes tracked work.
 
-**Enforced by WHO is asking.** `permission-guard` rule 5c reads `agent_type`, which the harness
-stamps and the model cannot forge; every subagent except `developer` (rule 5d) is denied
+**Enforced by WHO is asking.** `permission-guard` rule 5c reads `agent_type`, ~~which the harness
+stamps and the model cannot forge~~ which on Claude Code the harness stamps and the model cannot
+forge, and which on Codex, since #501, is DECLARED by the session (a parent names the role it
+spawns, and a config can declare any role name), so there it is a routing signal and not an
+identity check (ADR-0004's 2026-09-23 amendment); every subagent except `developer` (rule 5d) is denied
 `gh issue create` outright, and the main loop is asked. Reading, listing, commenting, labelling and
 closing stay open everywhere.
 

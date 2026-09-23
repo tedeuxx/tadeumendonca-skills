@@ -189,10 +189,10 @@ carrier that cannot state a limit is usually a carrier that is not a capability.
 
 - **tipo:** refusal
 - **carrier:** `hooks/scripts/permission-guard.sh`
-- **descrição:** Two rules of one file — trunk push and merge — keyed on an actor-identity field the harness stamps and the model cannot forge.
+- **descrição:** Two rules of one file — trunk push and merge — keyed on an actor-identity field the harness stamps and the model cannot forge. **On Claude Code.** On Codex, since #501, the same field is DECLARED by the session (a parent names the role it spawns, and a config can declare any role name), so there the merge executor's identity is a routing signal and not an authenticated one — the owner's accepted cost, ADR-0004's 2026-09-23 amendment.
 - **propósito:** An orchestrator that can merge can merge the output of its own dispatch, which turns the gate from a **control** into **advice**. The obligation is not "the orchestrator is disciplined"; it is that the actor holding the dispatch cannot also close the loop it dispatched.
 - **o que faz:** Reads the caller's agent type from the hook payload. The orchestrator is the actor with **no persona of its own**, so its value is empty by construction — the two rules fire against that empty value and deny the push to the trunk and the merge, whatever the command's spelling.
-- **o que não faz:** It does not verify that a review **happened**, or that it was any good; it only refuses one actor one act. And it needs a harness-stamped identity field to key on: a harness whose hook payload carries no caller identity cannot hold this floor at all, and should say so rather than claim it.
+- **o que não faz:** It does not verify that a review **happened**, or that it was any good; it only refuses one actor one act. And it needs a harness-stamped identity field to key on (on Codex, since #501, the field is declared rather than stamped, and the floor keys on it anyway — the owner's accepted cost): a harness whose hook payload carries no caller identity cannot hold this floor at all, and should say so rather than claim it.
 - **citação:** > "These rules enforce ROUTING, not capability."
 
 ### 0004 · review does not open work

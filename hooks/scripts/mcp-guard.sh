@@ -56,7 +56,9 @@
 # URL bound is the server's own `--allowedUrlPattern`, enforced by Chrome, not by anything here.
 #
 # It also cannot see a call the harness does not stamp. `agent_type` is harness-written and the model
-# cannot forge it — that is the property this rule rests on, the same one 5d and 7b rest on — but a
+# cannot forge it (on Claude Code — the only harness this hook runs on: it is NOT routed on Codex, and
+# where 5d and 7b do run on Codex the value is declared since #501, ADR-0004's 2026-09-23
+# amendment) — that is the property this rule rests on, the same one 5d and 7b rest on — but a
 # future dispatch shape that leaves it empty would read to this hook as the orchestrator.
 
 set -uo pipefail
