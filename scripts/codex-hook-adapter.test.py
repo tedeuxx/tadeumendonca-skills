@@ -29,6 +29,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -810,6 +811,20 @@ for command, label in FORWARDED_FRICTION:
     check(d is not None and d["decision"] == "block",
           "AC7 — %s IS forwarded: it manufactures the token every floor rule matches on, "
           "so omitting it is a floor hole rather than a narrowing" % label)
+
+# #500 gate round 1 (A3/B1): a LARGE input, through the adapter, with the adapter's own default
+# timeout in force. At e3b466f1 the Issue's QA fixture behind 4,000 unquoted heredoc openers took
+# 5.02 s in the guard, so this adapter abstained at 4.0 s and printed nothing — invisible to every
+# arm above, which all fed small inputs. An abstain here is `None`, so the arm needs no clock.
+_hd = ("cat" + " <<a" * 4000 + "\n" + "a\n" * 4000 +
+       'printf "%s" "$(gh sec' + 'ret set PROBE --body value)"')
+_t = time.time()
+_p = run_adapter(codex_payload(_hd))
+_dt = time.time() - _t
+d = decision_of(_p)
+check(d is not None and d["decision"] == "block",
+      "#500 — a 24 KB input (4,000 heredoc openers + the QA fixture) is BLOCKED through the adapter "
+      "in %.2fs, not abstained on at its 4.0 s timeout" % _dt)
 
 for command, label in FLOOR + MANUFACTURED:
     d = decision_of(run_adapter(codex_payload(command)))

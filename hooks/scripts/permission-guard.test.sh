@@ -2713,6 +2713,38 @@ if (( t1 - t0 <= 3 )); then
 else
   fail=$((fail + 1)); printf 'FAIL  #500 F4: the budget-scale walk took %ss, at or past the Codex adapter timeout\n' "$((t1 - t0))"
 fi
+# #500 GATE ROUND 1, B1 — THE BUDGET COUNTED CHARACTERS, AND THE COST WAS IN OPERATIONS. Popping the
+# heredoc queue with `pending=("${pending[@]:1}")` copied the whole queue per pop, so N unquoted
+# openers cost O(N^2): the Issue's QA fixture behind 4,000 of them (24,053 characters, 40% of the
+# budget) took 5.02 s and the Codex adapter ABSTAINED at 4.0 s. Two fixes, each sufficient alone: a
+# head index instead of the shift, and a per-opener charge (SUBST_HEREDOC_COST) so the budget bounds
+# the queue as well as the text. Both rows are timed in whole seconds (`$SECONDS`), so each threshold
+# sits well clear of the fixed figure and well inside the defect's.
+heredoc_n() { # N unquoted heredoc openers, their N bodies, then the QA fixture
+  printf 'cat'; printf ' <<a%.0s' $(seq "$1"); printf '\n'; printf 'a\n%.0s' $(seq "$1")
+  printf 'printf "%%s" "$(gh %s set PROBE --body value)"' "$qa_sec"
+}
+hd4000="$(heredoc_n 4000)"
+t0=$SECONDS
+check_reason DENY "#500 B1: 4,000 heredoc openers before the QA fixture still DENY" \
+              "Blocked: this command carries a command substitution" "$hd4000"
+t1=$SECONDS
+if (( t1 - t0 <= 3 )); then
+  pass=$((pass + 1)); printf 'ok    TIME   #500 B1: N=4000 answered in %ss, inside the adapter'"'"'s 4.0 s\n' "$((t1 - t0))"
+else
+  fail=$((fail + 1)); printf 'FAIL  #500 B1: N=4000 took %ss — at or past the Codex adapter timeout, where it abstains\n' "$((t1 - t0))"
+fi
+# Under the budget, so the per-opener charge does not end it early: this row times the QUEUE itself.
+# With the index it walks all 2,500 pops in well under a second; the shift took ~2 s here.
+hd2500="$(heredoc_n 2500)"
+t0=$SECONDS
+check_reason DENY "#500 B1: 2,500 heredoc openers — walked to the end, still found" "$S497" "$hd2500"
+t1=$SECONDS
+if (( t1 - t0 <= 1 )); then
+  pass=$((pass + 1)); printf 'ok    TIME   #500 B1: N=2500 walked in %ss (the queue pop is O(1))\n' "$((t1 - t0))"
+else
+  fail=$((fail + 1)); printf 'FAIL  #500 B1: N=2500 took %ss — the heredoc queue pop is no longer O(1)\n' "$((t1 - t0))"
+fi
 big_over="$(printf '%*s' 70000 '' | tr ' ' '$')"
 check_reason DENY "#500 F4: past the budget the answer is a DENY with its own reason, never silence" \
               "too large for this guard to verify" "printf %s $big_over '\$(date)'"

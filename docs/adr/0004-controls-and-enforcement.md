@@ -6641,7 +6641,10 @@ removes every backslash-newline first, as the shell does.~~ **STRUCK (round 3): 
 see the round-3 section.** A backslash-newline is a continuation only in unquoted text, double quotes
 and an unquoted heredoc body, and the scanner handles it there itself. It does **not** decode ANSI-C
 escapes, follow `eval` or a non-shell interpreter, parse a `case` arm, ~~see a heredoc started inside a
-`-c` payload~~ (struck round 3: payloads now keep their lines), or cover **process substitution** (`<(…)`, zsh `=(…)`) — that last one was ALLOW before
+`-c` payload~~ (struck round 3: payloads now keep their lines), unwrap a **`-c` wrapper followed by
+more text** (`bash -c '…' _`, `sh -c '…'; true` — the wrapper-quote strip needs the payload to end
+at its closing quote, so a substitution in such a payload is not seen; ALLOW before #497 and after
+it), or cover **process substitution** (`<(…)`, zsh `=(…)`) — that last one was ALLOW before
 this change and is ALLOW after it; it yields a path rather than a spliced token, so it sits outside
 rule 8's manufactured-token argument, and it is named here so no reader infers coverage. An
 arithmetic shift `(( x << 2 ))` is read as an UNQUOTED heredoc opener, which can only over-block.
@@ -6668,7 +6671,9 @@ double-quoted form as literal, so denying it is an over-block on zsh. Both deny 
 same spelling inside a `bash -c '…'` payload and an unquoted heredoc body; inside single quotes it
 stays ALLOW.
 
-**F4, the scanner was quadratic, and the budget is what keeps the denial a denial.** The first form
+**F4, the scanner was quadratic, and ~~the budget is what keeps the denial a denial~~ the budget
+bounds what it counts.** (Struck at the gate — see *Gate round 1* below: the walk was linear in
+characters and the heredoc queue was not.) The first form
 re-sliced the remaining string on every token. #500's lens measured about 13 s at 20,000
 one-character tokens — past the Codex adapter's 4.0 s guard timeout, where that adapter
 **abstains**, so on large input the new denial silently became no decision. It now walks fixed
@@ -6755,6 +6760,51 @@ clearing a pending `$` on a heredoc continuation (4), restoring the round-2 call
 letting a backslash continue a comment (9), dropping the payload views (28) and dropping their
 wrapper-quote strip (28) each turned the suite red. Calibration A is 33/33 and B 15/15; B's raw
 detector now joins every backslash-newline, the overbroad reading the scanner must not make.
+
+### Gate round 1 — the budget counted characters and the cost was in operations (#500, QA at `e3b466f1`)
+
+**B1.** Three published sentences said the budget keeps the denial from becoming an abstain. QA
+falsified all three with the Issue's QA fixture behind `N` unquoted heredoc openers, fed as data:
+4,000 openers — 24,053 characters, 40% of the budget — took **5.02 s** in the guard and the Codex
+adapter **abstained** at 4.0 s (N=9000: 23.63 s). The cause was isolated by toggling one line: popping
+the queue with `pending=("${pending[@]:1}")` copies the remaining queue on every pop, so N openers cost
+O(N²), and `subst_work` counted characters only.
+
+**Two repairs, each sufficient alone, both in.** The queue is popped by a head index (`pi`), and
+every opener is charged `SUBST_HEREDOC_COST` (16) to the same budget, so the budget bounds the queue as
+well as the text. Measured from the repository root on this machine (bash 3.2.57):
+
+```
+python3 -B -c '
+import json, subprocess, time
+fix = "printf \"%s\" \"$(gh sec" + "ret set PROBE --body value)\""
+for n in (2500, 4000, 9000):
+    c = "cat" + " <<a" * n + "\n" + "a\n" * n + fix
+    t = time.time()
+    o = subprocess.run(["bash", "hooks/scripts/permission-guard.sh"],
+                       input=json.dumps({"tool_input": {"command": c}}),
+                       capture_output=True, text=True).stdout
+    print(n, round(time.time() - t, 2),
+          json.loads(o)["hookSpecificOutput"]["permissionDecisionReason"][:45])'
+# 2500 0.36 Blocked: command substitution ($(...) or back
+# 4000 0.24 Blocked: this command carries a command subst
+# 9000 0.1 Blocked: this command carries a command subst
+```
+
+Nine other operation-heavy shapes near the budget (openers never closed, long-word delimiters,
+`<<<` runs, closed quoted heredocs, `$` churn, unclosed quotes, comments, nested `bash -c`) answered
+in at most **0.91 s**. **That is a measurement, not a guarantee**: the budget bounds what it counts —
+characters and heredoc openers — and a shape nobody fuzzed can still cost more per character.
+
+**Calibrated by mutation, in disposable copies:** with the shift restored alone, the N=2500 timing row
+reddens (2 s; the per-opener charge still ends N=4000 early); with the charge removed alone, the
+N=4000 row reddens on its reason (the index still walks it in 1 s); with both reverted — the
+`e3b466f1` state — the N=4000 row also reddens on time (5 s), and the adapter suite's new large-input
+row reddens (4.03 s, abstained). The adapter row passes at 0.27 s.
+
+**A1.** A `-c` wrapper followed by more text is named as not covered in the bounds paragraph above,
+in the bridge document and in README. It was ALLOW before #497 and is ALLOW now; its exposure is the
+owner's to price.
 
 ### Which layer carries it, and what the other harnesses get
 

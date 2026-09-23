@@ -675,24 +675,35 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 #     otherwise hide every later line — #500's lens found exactly that with `<<'E X'`;
 #   · the WORK BUDGET below. It returns 2, and rule 8 DENIES on 2 with its own reason.
 #
-# IT IS LINEAR, AND THE BUDGET IS WHAT KEEPS A DENIAL FROM BECOMING AN ABSTAIN. The first form
+# ~~IT IS LINEAR, AND THE BUDGET IS WHAT KEEPS A DENIAL FROM BECOMING AN ABSTAIN.~~ STRUCK (#500 gate
+# round 1, B1): FALSE at e3b466f1. The walk was linear in CHARACTERS, but popping the heredoc queue
+# with `pending=("${pending[@]:1}")` copied the whole queue per pop, and the budget counted only
+# characters — so 4,000 unquoted openers (24,053 characters, 40% of the budget) plus the QA fixture
+# took 5.02 s and the Codex adapter ABSTAINED at 4.0 s. What is true now, and measured: the queue is
+# popped by a head index (`pi`), and every heredoc opener is charged SUBST_HEREDOC_COST to the same
+# budget, so the budget bounds operations as well as text. Each alone keeps the N=4000 case inside the
+# timeout; both are in, and the suite's timing rows go red when either is removed (see the suite).
+# The first form
 # re-sliced the remaining string on every token, so its cost was tokens x length: #500's lens
 # measured ~13 s at 20,000 single-character tokens, past the Codex adapter's 4.0 s guard timeout —
 # and that adapter ABSTAINS on a timeout, so the new denial silently became no decision on large
 # input. This form walks fixed 256-byte chunks one character at a time (`LC_ALL=C`, so a substring is
 # a byte offset, not a multibyte walk), and every character is visited once except where a
 # fail-toward-scanning branch re-reads a suffix. `subst_work` counts the characters visited across
-# those re-reads; past SUBST_BUDGET the scan stops and returns 2. Measured on this machine, with the
-# command beside each figure in ADR-0004's 2026-09-23 amendment, the budget is reached well inside the
-# 4.0 s the adapter allows.
+# those re-reads, plus SUBST_HEREDOC_COST per heredoc opener; past SUBST_BUDGET the scan stops and
+# returns 2. MEASURED, not guaranteed: on this machine (bash 3.2.57) the worst of nine
+# operation-heavy shapes near the budget answered in 0.91 s and N=4000 in 0.24 s — the command is in
+# ADR-0004's 2026-09-23 amendment. A shape nobody fuzzed can still be slower; the budget bounds what
+# it counts, and it counts characters and heredoc openers, not every bash operation.
 SUBST_BUDGET=60000
+SUBST_HEREDOC_COST=16
 subst_work=0
 subst_active() {
   local LC_ALL=C
   local full="$1" n off cur nxt clen j c nc st=N pend=0 prev="${2:-$'\n'}" skip=0 open=-1
   local L m dash word quoted delim hd k wc wst
   local re_hd="^<<(-?)[[:blank:]]*(('[^']*'|\"([^\"\\\\]|\\\\.)*\"|\\\\.|[^[:blank:];&|<>()'\"\\\\"$'\n'"])+)"
-  local pending=() hdash='' hq=0 hdelim='' lbuf='' lover=0 lead=1 bstart=-1
+  local pi=0 pending=() hdash='' hq=0 hdelim='' lbuf='' lover=0 lead=1 bstart=-1
   local W=256
   n=${#full}
   subst_work=$(( subst_work + n ))
@@ -759,12 +770,16 @@ subst_active() {
                     esac
                   done
                   pending+=("$dash|$quoted|$delim")
+                  # a heredoc opener is an OPERATION, not a character: charge it, so the budget bounds
+                  # the queue as well as the text (#500 gate round 1, B1)
+                  subst_work=$(( subst_work + SUBST_HEREDOC_COST ))
+                  if (( subst_work > SUBST_BUDGET )); then return 2; fi
                   skip=$(( ${#m} - 1 ))
                 else skip=1; fi
               fi ;;
             $'\n')
-              if (( ${#pending[@]} > 0 )); then
-                hd="${pending[0]}"; pending=("${pending[@]:1}")
+              if (( ${#pending[@]} > pi )); then
+                hd="${pending[pi]}"; pi=$((pi + 1))
                 hdash="${hd%%|*}"; hq="${hd#*|}"; hq="${hq%%|*}"; hdelim="${hd#*|*|}"
                 st=H; lbuf=''; lover=0; lead=1; bstart=$((off + j + 1)); prev=$'\n'; continue
               fi ;;
@@ -778,8 +793,8 @@ subst_active() {
         H)
           if [ "$c" = $'\n' ]; then
             if (( ! lover )) && [ "$lbuf" = "$hdelim" ]; then
-              if (( ${#pending[@]} > 0 )); then
-                hd="${pending[0]}"; pending=("${pending[@]:1}")
+              if (( ${#pending[@]} > pi )); then
+                hd="${pending[pi]}"; pi=$((pi + 1))
                 hdash="${hd%%|*}"; hq="${hd#*|}"; hq="${hq%%|*}"; hdelim="${hd#*|*|}"
                 bstart=$((off + j + 1))
               else st=N; fi
@@ -806,7 +821,7 @@ subst_active() {
     done
   done
   # End of input — the last body line may carry no newline.
-  if [ "$st" = H ] && (( ! lover )) && [ "$lbuf" = "$hdelim" ] && (( ${#pending[@]} == 0 )); then st=N; fi
+  if [ "$st" = H ] && (( ! lover )) && [ "$lbuf" = "$hdelim" ] && (( ${#pending[@]} == pi )); then st=N; fi
   case "$st" in
     S|A|D) subst_active "${full:open+1}" x; return $? ;;
     H) if [ "$hq" = 1 ]; then subst_active "${full:bstart}"; return $?; fi ;;

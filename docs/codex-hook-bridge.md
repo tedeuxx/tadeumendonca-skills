@@ -1659,7 +1659,13 @@ heredoc body denies with its own reason, whatever `PERMISSION_GUARD_CONVENIENCE_
 **These spellings, not the class** — round 2 (#500's lens) added a heredoc whose quoted delimiter
 carries a blank or `;&|<>()`, which had hidden every later line, and `$\<NL>(…)` line continuation;
 process substitution `<(…)` is not covered. A command too large to scan inside the guard's time
-budget is denied with its own reason, never left to the adapter's 4.0 s timeout, where it abstains.
+budget is denied with its own reason, ~~never left to the adapter's 4.0 s timeout, where it abstains~~
+(struck at the gate, #500 B1: false at `e3b466f1` — 4,000 heredoc openers took 5.02 s and the adapter
+abstained; the queue is now popped by index and each opener is charged to the budget). What is
+measured, not guaranteed: the worst of nine operation-heavy shapes answered in 0.91 s and that
+24 KB input is blocked through the adapter in 0.27 s, asserted in its suite. **Not covered either:** a
+`-c` wrapper followed by more text — `bash -c '…' _`, `sh -c '…'; true` — is never unwrapped, so a
+substitution in that payload is not seen; ALLOW before #497 and after it.
 The scanner is **additive** to the old `$bare` predicate, so nothing that predicate denied can
 reach ALLOW, and every other rule still reads `$bare` unchanged. Through this adapter the QA fixture
 above now returns `block` — asserted, as data and never executed, in

@@ -2300,7 +2300,8 @@ blank or `;&|<>()` — on both Claude Code and Codex, with the convenience switc
 **Spellings, not the class**: the struck wording read as the class, and #500's lens found a
 `<<'E X'` heredoc that hid everything after it, so read the list, not the category. Process
 substitution (`<(…)`) is **not** covered and was not before. Single-quoted literals, escaped
-dollars, comments and quoted heredoc bodies stay inert. A command too large to scan within the
+dollars, comments and quoted heredoc bodies stay inert. A `-c` wrapper followed by more text
+(`bash -c '…' _`, `sh -c '…'; true`) is not unwrapped and is not covered. A command too large to scan within the
 guard's time budget is **denied** with its own reason rather than left to time out. The
 guard's decision and the adapter's translation are asserted in CI; the **native** effect is not
 re-measured, because installed `2.0.71` predates the repair — that run is owed. ADR-0004's
