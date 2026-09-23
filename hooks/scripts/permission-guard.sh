@@ -538,18 +538,13 @@ cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
 # THREE PASSES, for `bash -c "bash -c '…'"`. Bounded rather than `while`, because a hook that can loop
 # on adversarial input is a wedged agent; three is past any real nesting and terminates unconditionally.
 unwrap_scan="$cmd"
-# #497 round 2: the views are cut from a PARALLEL copy of the same text with every backslash-NEWLINE
-# removed first — the shell's line continuation, which the flattening above turns into `\ ` (an
-# escaped blank) and so hides `$\<NL>(…)` inside a payload. Only the views read this copy.
-unwrap_scan_j="$(printf '%s' "${command//\\$'\n'/}" | tr '\n\t' '  ')"
-# #497: each unwrapped payload is ALSO kept on its own, for rule 8's substitution scanner. It is NOT
-# a new consumer of `$cmd` and changes nothing any other rule reads. It is kept AS STRIPPED, with no
-# un-escaping, and that was decided on a measurement rather than for brevity: a first draft un-escaped
-# a double-quoted payload once (`\$` -> `$`, `\"` -> `"`), and no fixture could make it matter.
-# Inside a double-quoted wrapper every inner `"` is escaped, so the old `$bare` collapse finds no
-# span to hide anything in and the old predicate already sees every `$(` of that payload. The
-# single-quoted wrapper is the case the scanner exists for; ANSI-C escapes stay undecoded (below).
-subst_views=()
+# ~~#497: each unwrapped payload is ALSO kept on its own, for rule 8's substitution scanner.~~ ~~#497
+# round 2: the views are cut from a PARALLEL copy of the same text with every backslash-NEWLINE
+# removed first~~ — STRUCK (#497 round 3). Both forms cut the views out of the FLATTENED text, where
+# a payload's newlines are already blanks: a `#` comment then runs to the end of the payload and
+# hides every later line, and a joined copy additionally moved a line into a comment. The views are
+# now cut from the ORIGINAL multi-line command at rule 8, beside the scanner; this loop feeds `$cmd`
+# and nothing else, exactly as before #497.
 for _ in 1 2 3; do
   case "$unwrap_scan" in
     *-*c*) ;;
@@ -564,7 +559,6 @@ for _ in 1 2 3; do
   # `-R`, 5f's attached value). The optional trailing `[A-Za-z][A-Za-z0-9_-]*` is the OPTION'S OWN
   # ARGUMENT, which is what `-o posix` needs.
   unwrap_payload="$(printf '%s' "$unwrap_scan" | sed -E 's#^.*(^|[[:space:]]|/)(bash|sh|zsh|ksh|dash)([[:space:]]+--?[A-Za-z][A-Za-z-]*([[:space:]]+[A-Za-z][A-Za-z0-9_-]*)?)*[[:space:]]+-[A-Za-z]*c[A-Za-z]*[[:space:]]+##')"
-  unwrap_payload_j="$(printf '%s' "$unwrap_scan_j" | sed -E 's#^.*(^|[[:space:]]|/)(bash|sh|zsh|ksh|dash)([[:space:]]+--?[A-Za-z][A-Za-z-]*([[:space:]]+[A-Za-z][A-Za-z0-9_-]*)?)*[[:space:]]+-[A-Za-z]*c[A-Za-z]*[[:space:]]+##')"
   [ "$unwrap_payload" = "$unwrap_scan" ] && break
   # Strip ONE layer of surrounding quotes — that layer is the wrapper's, so removing it is what turns
   # the payload back into a command. Inner quoting is left alone for `$bare` to collapse as usual.
@@ -579,11 +573,8 @@ for _ in 1 2 3; do
   # asymmetry the unwrap was written to remove, relocated one spelling further out rather than removed.
   unwrap_payload="$(printf '%s' "$unwrap_payload" | sed -E -e 's/^\$//' -e "s/^'(.*)'\$/\\1/; s/^\"(.*)\"\$/\\1/")"
   [ -z "$unwrap_payload" ] && break
-  unwrap_payload_j="$(printf '%s' "$unwrap_payload_j" | sed -E -e 's/^\$//' -e "s/^'(.*)'\$/\\1/; s/^\"(.*)\"\$/\\1/")"
-  subst_views+=("$unwrap_payload_j")
   cmd="$cmd $unwrap_payload"
   unwrap_scan="$unwrap_payload"
-  unwrap_scan_j="$unwrap_payload_j"
 done
 
 # ~~Quoted spans collapsed~~ **MOVED UP, to just after `cmd`, on 2026-08-04.** The computation and this
@@ -645,7 +636,7 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 # So the substitution question gets its OWN view, and `$bare` is NOT changed: every other consumer
 # (5b, 5c, 5e, 5f, 7, 7b, 8b …) keeps reading exactly what it read before. The scanner below walks the
 # ORIGINAL multi-line command, so comments and heredocs keep their line structure, then each unwrapped
-# `-c` payload (recorded in `subst_views` by the unwrap loop above).
+# `-c` payload, cut from that same multi-line text at rule 8 so a payload keeps its lines too.
 #
 # IT IS ADDITIVE TO THE OLD PREDICATE, NOT A REPLACEMENT — rule 8 denies when EITHER fires. That is
 # what "prevent new collateral changes" costs and buys: no command the old `$bare` grep denied can
@@ -656,14 +647,22 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 # matching the old predicate's unquoted posture; that is an over-block, stated rather than hidden.
 #
 # WHAT IT IS NOT: a shell parser. It tracks single, ANSI-C and double quotes, backslashes, `#`
-# comments at a word start, and `<<`/`<<-` heredocs. Its CALLER removes every backslash-NEWLINE
+# comments at a word start, and `<<`/`<<-` heredocs. ~~Its CALLER removes every backslash-NEWLINE
 # first — the shell's line continuation — so `$\<NL>(…)` reaches it as `$(…)`; inside single quotes
-# or a quoted heredoc that removal is wrong and can only over-block. A heredoc delimiter is
+# or a quoted heredoc that removal is wrong and can only over-block.~~ STRUCK (#497 round 3): FALSE
+# twice. The shell does NOT remove every backslash-newline — never inside a `#` comment, which ends at
+# the newline regardless — so the caller's blanket removal pulled the NEXT LINE INTO a comment and
+# hid it: `true # note \` + NL + the Issue's QA fixture was DENY at fac222de and ALLOW at 463fae4b.
+# And "can only over-block" was the claim that made that look safe. A backslash-NEWLINE is now a
+# line continuation ONLY where the shell makes it one — unquoted text, double quotes and an unquoted
+# heredoc body — handled inside the scanner, where backslash parity is already tracked; in a comment,
+# single quotes, ANSI-C quotes and a quoted heredoc body it is ordinary text. A heredoc delimiter is
 # parsed as a shell WORD — quoted runs may carry blanks and `;&|<>()` (`<<'E X'`), and the shell's
 # quote removal gives the delimiter the body is compared against; a word carrying any quote or
 # backslash is quoted. It does not decode ANSI-C escapes, follow `eval`, a non-shell interpreter or a
-# `case` arm, or see a heredoc started inside a `-c` payload (payloads are single-line by
-# construction). PROCESS SUBSTITUTION (`<(…)`, zsh `=(…)`) is NOT covered, before or after #497: it
+# `case` arm. ~~or see a heredoc started inside a `-c` payload (payloads are single-line by
+# construction).~~ (Struck round 3: payloads are now cut from the multi-line command and keep their
+# lines, so a heredoc or a comment inside one is read as the inner shell reads it.) PROCESS SUBSTITUTION (`<(…)`, zsh `=(…)`) is NOT covered, before or after #497: it
 # executes, but it yields a PATH rather than a spliced token, so it is outside this branch's
 # manufactured-token argument — and `gh $(cat <(…)) set …` still meets the `$(` here. An arithmetic shift `(( x << 2 ))` is read as an UNQUOTED heredoc opener, which can
 # only over-block: the lines after it are scanned with quotes treated as text.
@@ -707,7 +706,10 @@ subst_active() {
       case "$st" in
         N|D)
           if [ "$c" = '\' ]; then
-            # the caller has already removed every backslash-NEWLINE, so this is always an escape
+            # a backslash-NEWLINE is a line continuation here (unquoted and double-quoted text): both
+            # characters vanish and nothing around them changes, so a pending `$` survives it. It is
+            # NOT one in state C — a comment ends at the newline whatever precedes it.
+            if [ "$nc" = $'\n' ]; then skip=1; continue; fi
             skip=1; pend=0; prev='x'; continue
           fi
           if (( pend )); then
@@ -789,7 +791,11 @@ subst_active() {
           if (( ${#lbuf} <= ${#hdelim} )); then lbuf+="$c"; else lover=1; fi
           if [ "$hq" = 0 ]; then
             # an UNQUOTED body expands: quotes are text, a backslash escapes, `$(`/backtick are live
-            if [ "$c" = '\' ]; then skip=1; lover=1; continue; fi
+            if [ "$c" = '\' ]; then
+              # continuation joins the body lines (a pending `$` survives); any other escape clears it
+              if [ "$nc" != $'\n' ]; then pend=0; fi
+              skip=1; lover=1; continue
+            fi
             if (( pend )); then pend=0; if [ "$c" = '(' ]; then return 0; fi; fi
             case "$c" in
               '`') return 0 ;;
@@ -2832,8 +2838,10 @@ fi
 #    `$(` nor a backtick, since no view derived from it could.~~ STRUCK (#497 round 2): FALSE — a
 #    backslash-NEWLINE between `$` and `(` is a line continuation, so `$\<NL>(…)` carries neither and
 #    still executes (bash; zsh reads the double-quoted form as literal). The fast path now also admits
-#    `$` followed by backslash-newline, and the scanner reads the command with every backslash-newline
-#    removed. The unquoted spelling was ALLOW before #497 as well; it is covered here, by the scanner.
+#    `$` followed by backslash-newline, and ~~the scanner reads the command with every backslash-newline
+#    removed~~ (STRUCK round 3 — that removal pulled a line into a comment; see `subst_active`) the
+#    scanner treats backslash-newline as a continuation only where the shell does. The unquoted
+#    spelling was ALLOW before #497 as well; it is covered here, by the scanner.
 #    A scanner result of 2 is the work budget running out: it DENIES with its own reason, because the
 #    alternative on Codex is a guard timeout, and that adapter abstains on a timeout.
 if printf '%s' "$bare" | grep -Eq '(\$\(|`)'; then
@@ -2844,7 +2852,24 @@ case "$command" in
     # 0 = an active substitution, 1 = none, 2 = the work budget ran out. The first non-1 answer wins.
     subst_work=0
     subst_hit=0
-    subst_active "${command//\\$'\n'/}" || subst_hit=$?
+    subst_active "$command" || subst_hit=$?
+    # The `-c` payload views, cut from the ORIGINAL multi-line command (round 3) — the same pattern as
+    # the unwrap loop's `sed`, as one bash regex, whose `.` crosses newlines where `sed` works a line at
+    # a time. One wrapper quote layer and a leading `$` are stripped, as there; three passes, as there.
+    subst_views=()
+    subst_re='^(.*)(^|[[:space:]]|/)(bash|sh|zsh|ksh|dash)([[:space:]]+--?[A-Za-z][A-Za-z-]*([[:space:]]+[A-Za-z][A-Za-z0-9_-]*)?)*[[:space:]]+-[A-Za-z]*c[A-Za-z]*[[:space:]]+(.*)$'
+    subst_v="$command"
+    for _ in 1 2 3; do
+      case "$subst_v" in *-*c*) ;; *) break ;; esac
+      [[ $subst_v =~ $subst_re ]] || break
+      subst_v="${BASH_REMATCH[6]}"; subst_v="${subst_v#\$}"
+      case "$subst_v" in
+        \'*\') subst_v="${subst_v:1:${#subst_v}-2}" ;;
+        \"*\") subst_v="${subst_v:1:${#subst_v}-2}" ;;
+      esac
+      [ -z "$subst_v" ] && break
+      subst_views+=("$subst_v")
+    done
     for subst_v in ${subst_views[@]+"${subst_views[@]}"}; do
       if [ "$subst_hit" = 1 ]; then subst_hit=0; subst_active "$subst_v" x || subst_hit=$?; fi
     done

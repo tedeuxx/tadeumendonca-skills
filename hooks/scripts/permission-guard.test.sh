@@ -2621,6 +2621,21 @@ echo \"\$(date)\""
 \$\\
 (date)
 EOF"
+  "#500 round 3: an ESCAPED backslash then a newline is not a continuation (dq)	printf \"%s\" \"\\\\
+\$(date)\""
+  "#500 R2-F1: a comment is NOT continued by a trailing backslash	true # note \\
+gh \"\$(echo secret)\" set PROBE --body v"
+  "#500 R2-F1: the same inside a bash -c payload	bash -c 'true # note \\
+gh \"\$(echo X)\" set P'"
+  "#500 R2-F1: a plain comment line inside a bash -c payload	bash -c 'true # note
+gh \"\$(echo X)\" set P'"
+  "#500 R2-F1: an unquoted heredoc inside a bash -c payload	bash -c 'cat <<EOF
+\"\$(date)\"
+EOF'"
+  "#500 R2-F1: '# … \\' in an unquoted heredoc body is text, and the continuation joins	cat <<EOF
+# note \\
+\"\$(date)\"
+EOF"
 )
 # Inert rows. Asserted ALLOW, which here means "the hook emitted no decision" (see the header).
 I497=(
@@ -2643,6 +2658,12 @@ E X
 echo ok"
   "#500 F2: backslash-newline inside SINGLE quotes is text	printf '%s' '\$\\
 (date)'"
+  "#500 R2-F1: '# … \\' then a dq substitution, all inside single quotes	printf '%s' 'a # b \\
+\"\$(date)\"'"
+  "#500 R2-F1: '# … \\' in a QUOTED heredoc body stays literal	cat <<'EOF'
+# note \\
+\"\$(date)\"
+EOF"
 )
 
 # Inert rows WITHOUT any `$(`/backtick character sit outside the arrays, because calibration B's
@@ -2671,6 +2692,12 @@ qa_sec="sec""ret"
 check_reason DENY "#500 F1: the QA fixture behind <<'E X' is still denied" "$S497" "cat <<'E X'
 b
 E X
+printf \"%s\" \"\$(gh $qa_sec set PROBE --body value)\""
+
+# #500 R2-F1 — THE ISSUE'S QA FIXTURE behind a comment that ends in a backslash. DENY at fac222de
+# (the old predicate saw nothing, but the first scanner ended the comment at the newline), ALLOW at
+# 463fae4b, whose caller-side join pulled the fixture INTO the comment. The shell executes it.
+check_reason DENY "#500 R2-F1: the QA fixture after 'true # note \\' is denied" "$S497" "true # note \\
 printf \"%s\" \"\$(gh $qa_sec set PROBE --body value)\""
 
 # #500 F4 — THE WORK BUDGET. The first scanner was quadratic (~13 s at 20,000 one-character tokens),
@@ -2727,7 +2754,9 @@ check_reason DENY "#497: a plain trunk push beside a quoted substitution is stil
 # A row that survives its mutation would be a green that cannot go red, and this arm reddens on it.
 CAL497="$(mktemp -d)"
 sed 's/^subst_active() {$/subst_active() { return 1/' "$GUARD" > "$CAL497/old.sh"
-raw_body='subst_active() { case "$1" in *'"'"'$('"'"'*|*'"'"'`'"'"'*) return 0 ;; esac; return 1'
+# The raw detector joins EVERY backslash-newline first (round 3), so it also answers yes to
+# `$\<NL>(` — the overbroad reading the scanner must NOT make, and the one the inert rows pin.
+raw_body='subst_active() { case "${1//\\$'"'"'\n'"'"'/}" in *'"'"'$('"'"'*|*'"'"'`'"'"'*) return 0 ;; esac; return 1'
 sed "s/^subst_active() {\$/$(printf '%s' "$raw_body" | sed 's/[&/\]/\\&/g')/" "$GUARD" > "$CAL497/raw.sh"
 for m in old raw; do
   if cmp -s "$GUARD" "$CAL497/$m.sh"; then

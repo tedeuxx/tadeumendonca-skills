@@ -769,6 +769,9 @@ FORWARDED_FRICTION = [
     ("cat <<'E X'\nb\nE X\n" + 'printf "%s" "$(gh sec' + 'ret set PROBE --body value)"',
      "the QA fixture behind <<'E X' (a delimiter with a blank used to hide every later line)"),
     ('gh "$\\\n(echo X)" set P', "a backslash-newline between $ and ( inside double quotes"),
+    # #500 round 3: a comment is not continued by a trailing backslash (463fae4b let this through).
+    ("true # note \\\n" + 'printf "%s" "$(gh sec' + 'ret set PROBE --body value)"',
+     "the QA fixture on the line after 'true # note \\\\'"),
 ]
 # The inert twin of the rows above: a single-quoted literal must still pass the adapter
 # untouched, or the arms above could be green on an adapter that blocks every '$('.

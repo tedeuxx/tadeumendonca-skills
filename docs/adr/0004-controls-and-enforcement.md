@@ -6636,10 +6636,12 @@ carries the measurements.
 
 It tracks single, ANSI-C and double quotes, backslashes, `#` at a word start and `<<`/`<<-`
 heredocs, whose delimiter is parsed as a shell WORD — quoted runs may carry blanks and `;&|<>()` —
-with the shell's quote removal applied to get the line the body is compared against. Its caller
-removes every backslash-newline first, as the shell does. It does **not** decode ANSI-C escapes,
-follow `eval` or a non-shell interpreter, parse a `case` arm, see a heredoc started inside a `-c`
-payload, or cover **process substitution** (`<(…)`, zsh `=(…)`) — that last one was ALLOW before
+with the shell's quote removal applied to get the line the body is compared against. ~~Its caller
+removes every backslash-newline first, as the shell does.~~ **STRUCK (round 3): the shell does not —
+see the round-3 section.** A backslash-newline is a continuation only in unquoted text, double quotes
+and an unquoted heredoc body, and the scanner handles it there itself. It does **not** decode ANSI-C
+escapes, follow `eval` or a non-shell interpreter, parse a `case` arm, ~~see a heredoc started inside a
+`-c` payload~~ (struck round 3: payloads now keep their lines), or cover **process substitution** (`<(…)`, zsh `=(…)`) — that last one was ALLOW before
 this change and is ALLOW after it; it yields a path rather than a spliced token, so it sits outside
 rule 8's manufactured-token argument, and it is named here so no reader infers coverage. An
 arithmetic shift `(( x << 2 ))` is read as an UNQUOTED heredoc opener, which can only over-block.
@@ -6716,6 +6718,43 @@ passing. Separately, nine single-point mutations of the source (comment skip, es
 quoted-heredoc detection, heredoc body scan, payload views, ANSI-C skip, POSIX single-quote form,
 backtick branch, and the fast path) were run against the unmodified suite; eight reddened it and the
 ninth — removing the fast path, which is an optimisation — correctly did not.
+
+### Round 3 — the round-2 join hid a line inside a comment (#500, lens at `463fae4b`)
+
+**R2-F1.** Round 2 repaired `$\<NL>(…)` by having the caller remove **every** backslash-newline
+before scanning, and wrote *"as the shell does"* beside it. The shell does not: a `#` comment ends at
+the newline whatever precedes it, so a trailing backslash does not continue a comment. The blanket
+removal pulled the next line INTO the comment, and the scanner then skipped it:
+
+| `true # note \` then, on the next line | `fac222de` | `463fae4b` | now | bash 3.2.57 · zsh 5.9 |
+|---|---|---|---|---|
+| `printf "%s" "$(gh secret set PROBE --body value)"` (the Issue's QA fixture) | DENY | **ALLOW** | **DENY** | — (never run) |
+| `gh "$(printf secret)" set PROBE --body v` | DENY | **ALLOW** | **DENY** | — |
+| `printf "%s" "$(printf EX)"` (harmless twin) | — | — | **DENY** | EXECUTED · EXECUTED |
+
+**The repair can only add denials relative to round 1, and it removes the caller-side join
+entirely.** The scanner reads the command RAW and treats backslash-newline as a continuation only in
+the states where the shell does — unquoted text, double quotes and an unquoted heredoc body — so a
+pending `$` survives it there, and backslash parity is the scanner's own rather than a text rewrite's.
+In a comment, single quotes, ANSI-C quotes and a quoted heredoc body it is ordinary text. A text
+rewrite had a second defect the lens did not need, measured the same way: `printf "%s" "\\\\` + NL
++ `$(printf EX)"` — escaped backslashes, then a newline — was ALLOW at `463fae4b`, because the
+rewrite paired the last backslash with the newline and left an escaped `$` behind; bash and zsh both
+execute it, and it denies now. It is a fixture.
+
+**The `-c` payload views had the same shape one layer out, and are repaired with it.** Rounds 1 and 2
+cut each payload from the FLATTENED command, where its newlines are blanks — so a `#` comment in a
+payload ran to the end of the payload and hid every later line, and a heredoc inside a payload could
+not be seen at all. The views are now cut from the ORIGINAL multi-line command with the unwrap
+loop's own pattern as one bash regex, so a payload keeps its lines. `bash -c 'true # note` + NL +
+`gh "$(echo X)" set P'` and an unquoted heredoc inside a `bash -c` payload now deny; both were ALLOW
+before #497. The unwrap loop feeds `$cmd` only, exactly as before #497.
+
+**Mutation-checked against the source**, unmodified suite: removing the N/D continuation (12 reds),
+clearing a pending `$` on a heredoc continuation (4), restoring the round-2 caller-side join (5),
+letting a backslash continue a comment (9), dropping the payload views (28) and dropping their
+wrapper-quote strip (28) each turned the suite red. Calibration A is 33/33 and B 15/15; B's raw
+detector now joins every backslash-newline, the overbroad reading the scanner must not make.
 
 ### Which layer carries it, and what the other harnesses get
 
