@@ -538,6 +538,10 @@ cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
 # THREE PASSES, for `bash -c "bash -c '…'"`. Bounded rather than `while`, because a hook that can loop
 # on adversarial input is a wedged agent; three is past any real nesting and terminates unconditionally.
 unwrap_scan="$cmd"
+# #497 round 2: the views are cut from a PARALLEL copy of the same text with every backslash-NEWLINE
+# removed first — the shell's line continuation, which the flattening above turns into `\ ` (an
+# escaped blank) and so hides `$\<NL>(…)` inside a payload. Only the views read this copy.
+unwrap_scan_j="$(printf '%s' "${command//\\$'\n'/}" | tr '\n\t' '  ')"
 # #497: each unwrapped payload is ALSO kept on its own, for rule 8's substitution scanner. It is NOT
 # a new consumer of `$cmd` and changes nothing any other rule reads. It is kept AS STRIPPED, with no
 # un-escaping, and that was decided on a measurement rather than for brevity: a first draft un-escaped
@@ -560,6 +564,7 @@ for _ in 1 2 3; do
   # `-R`, 5f's attached value). The optional trailing `[A-Za-z][A-Za-z0-9_-]*` is the OPTION'S OWN
   # ARGUMENT, which is what `-o posix` needs.
   unwrap_payload="$(printf '%s' "$unwrap_scan" | sed -E 's#^.*(^|[[:space:]]|/)(bash|sh|zsh|ksh|dash)([[:space:]]+--?[A-Za-z][A-Za-z-]*([[:space:]]+[A-Za-z][A-Za-z0-9_-]*)?)*[[:space:]]+-[A-Za-z]*c[A-Za-z]*[[:space:]]+##')"
+  unwrap_payload_j="$(printf '%s' "$unwrap_scan_j" | sed -E 's#^.*(^|[[:space:]]|/)(bash|sh|zsh|ksh|dash)([[:space:]]+--?[A-Za-z][A-Za-z-]*([[:space:]]+[A-Za-z][A-Za-z0-9_-]*)?)*[[:space:]]+-[A-Za-z]*c[A-Za-z]*[[:space:]]+##')"
   [ "$unwrap_payload" = "$unwrap_scan" ] && break
   # Strip ONE layer of surrounding quotes — that layer is the wrapper's, so removing it is what turns
   # the payload back into a command. Inner quoting is left alone for `$bare` to collapse as usual.
@@ -574,9 +579,11 @@ for _ in 1 2 3; do
   # asymmetry the unwrap was written to remove, relocated one spelling further out rather than removed.
   unwrap_payload="$(printf '%s' "$unwrap_payload" | sed -E -e 's/^\$//' -e "s/^'(.*)'\$/\\1/; s/^\"(.*)\"\$/\\1/")"
   [ -z "$unwrap_payload" ] && break
-  subst_views+=("$unwrap_payload")
+  unwrap_payload_j="$(printf '%s' "$unwrap_payload_j" | sed -E -e 's/^\$//' -e "s/^'(.*)'\$/\\1/; s/^\"(.*)\"\$/\\1/")"
+  subst_views+=("$unwrap_payload_j")
   cmd="$cmd $unwrap_payload"
   unwrap_scan="$unwrap_payload"
+  unwrap_scan_j="$unwrap_payload_j"
 done
 
 # ~~Quoted spans collapsed~~ **MOVED UP, to just after `cmd`, on 2026-08-04.** The computation and this
@@ -629,6 +636,11 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 #     printf '%s' $'a \' $(printf EX)'            literal    ANSI-C quoting does not substitute
 #     printf ok # "$(printf EX)"                  literal    a comment
 #     cat <<'EOF' / "$(printf EX)" / EOF          literal    a QUOTED heredoc delimiter
+#   round 2 (#500's lens):
+#     cat <<'E X' / b / E X / printf "%s" "$(printf EX)"   EXECUTED   a delimiter WORD may hold a blank
+#     printf "%s" "$\<NL>(printf EX)"             EXECUTED on bash, literal on zsh (line continuation)
+#     printf "%s" $\<NL>(printf EX)               EXECUTED   unquoted; ALLOW before #497 as well
+#     cat <(printf EX)                            EXECUTED   process substitution — NOT covered, see below
 #
 # So the substitution question gets its OWN view, and `$bare` is NOT changed: every other consumer
 # (5b, 5c, 5e, 5f, 7, 7b, 8b …) keeps reading exactly what it read before. The scanner below walks the
@@ -643,84 +655,156 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 # decline to ADD a denial. Arithmetic `$((…))` inside double quotes is treated as a substitution,
 # matching the old predicate's unquoted posture; that is an over-block, stated rather than hidden.
 #
-# WHAT IT IS NOT: a shell parser. It tokenises single, ANSI-C and double quotes, backslashes, `#`
-# comments at a word start, and `<<`/`<<-` heredoc delimiters (a delimiter word carrying any quote or
-# backslash is quoted). It does not decode ANSI-C escapes, follow `eval`, a non-shell interpreter, a
-# `case` arm, or a heredoc started inside a `-c` payload (payloads are single-line by construction).
-# An arithmetic shift `(( x << 2 ))` is read as a heredoc opener, so the lines after it up to one
-# reading `2` are scanned as a heredoc body — a narrowing of THIS predicate only; the old one still
-# reads them, so an unquoted `$(` there still denies.
-# An UNBALANCED quote is consumed as one literal character and scanning continues, so what follows it
-# is read as unquoted — fail-closed, the same direction as `$bare`'s own malformed-quote rule.
+# WHAT IT IS NOT: a shell parser. It tracks single, ANSI-C and double quotes, backslashes, `#`
+# comments at a word start, and `<<`/`<<-` heredocs. Its CALLER removes every backslash-NEWLINE
+# first — the shell's line continuation — so `$\<NL>(…)` reaches it as `$(…)`; inside single quotes
+# or a quoted heredoc that removal is wrong and can only over-block. A heredoc delimiter is
+# parsed as a shell WORD — quoted runs may carry blanks and `;&|<>()` (`<<'E X'`), and the shell's
+# quote removal gives the delimiter the body is compared against; a word carrying any quote or
+# backslash is quoted. It does not decode ANSI-C escapes, follow `eval`, a non-shell interpreter or a
+# `case` arm, or see a heredoc started inside a `-c` payload (payloads are single-line by
+# construction). PROCESS SUBSTITUTION (`<(…)`, zsh `=(…)`) is NOT covered, before or after #497: it
+# executes, but it yields a PATH rather than a spliced token, so it is outside this branch's
+# manufactured-token argument — and `gh $(cat <(…)) set …` still meets the `$(` here. An arithmetic shift `(( x << 2 ))` is read as an UNQUOTED heredoc opener, which can
+# only over-block: the lines after it are scanned with quotes treated as text.
+#
+# IT FAILS TOWARD SCANNING WHEREVER IT IS UNSURE — three places, each an over-block by design:
+#   · an UNCLOSED quote is treated as one literal character and everything after it is re-read as
+#     unquoted (the same direction as `$bare`'s own malformed-quote rule);
+#   · a QUOTED heredoc whose terminator never arrives has its body re-read as ordinary command text.
+#     The shell would end it at end of input, but a delimiter this scanner derived wrongly would
+#     otherwise hide every later line — #500's lens found exactly that with `<<'E X'`;
+#   · the WORK BUDGET below. It returns 2, and rule 8 DENIES on 2 with its own reason.
+#
+# IT IS LINEAR, AND THE BUDGET IS WHAT KEEPS A DENIAL FROM BECOMING AN ABSTAIN. The first form
+# re-sliced the remaining string on every token, so its cost was tokens x length: #500's lens
+# measured ~13 s at 20,000 single-character tokens, past the Codex adapter's 4.0 s guard timeout —
+# and that adapter ABSTAINS on a timeout, so the new denial silently became no decision on large
+# input. This form walks fixed 256-byte chunks one character at a time (`LC_ALL=C`, so a substring is
+# a byte offset, not a multibyte walk), and every character is visited once except where a
+# fail-toward-scanning branch re-reads a suffix. `subst_work` counts the characters visited across
+# those re-reads; past SUBST_BUDGET the scan stops and returns 2. Measured on this machine, with the
+# command beside each figure in ADR-0004's 2026-09-23 amendment, the budget is reached well inside the
+# 4.0 s the adapter allows.
+SUBST_BUDGET=60000
+subst_work=0
 subst_active() {
-  local s="$1" m c prev=$'\n' word dash quoted delim inner line hd
-  local re_plain="^[^\\\\'\"\`\$#<"$'\n'"]+"
-  local re_sq="^'[^']*'"
-  local re_ansic="^\\\$'([^'\\\\]|\\\\.)*'"
-  local re_dq="^\"([^\"\\\\]|\\\\.)*\""
-  local re_hd="^<<(-?)[[:blank:]]*([^[:blank:];&|<>()"$'\n'"]+)"
-  local pending=()
-  while [ -n "$s" ]; do
-    if [[ $s =~ $re_plain ]]; then
-      m="${BASH_REMATCH[0]}"; prev="${m: -1}"; s="${s:${#m}}"; continue
-    fi
-    c="${s:0:1}"
-    case "$c" in
-      '\') prev='x'; s="${s:2}" ;;
-      '`') return 0 ;;
-      '$')
-        case "${s:1:1}" in
-          '(') return 0 ;;
-          "'")
-            if [[ $s =~ $re_ansic ]]; then m="${BASH_REMATCH[0]}"; s="${s:${#m}}"; prev='x'
-            else s="${s:1}"; prev='$'; fi ;;
-          *) s="${s:1}"; prev='$' ;;
-        esac ;;
-      "'")
-        if [[ $s =~ $re_sq ]]; then m="${BASH_REMATCH[0]}"; s="${s:${#m}}"; prev='x'
-        else s="${s:1}"; prev="'"; fi ;;
-      '"')
-        # A double-quoted span: drop escaped PAIRS left to right (so backslash PARITY decides), then
-        # any `$(` or backtick left is live. The first live substitution in a span always precedes any
-        # quote nested inside it, so ending the span at the first unescaped `"` cannot hide one.
-        if [[ $s =~ $re_dq ]]; then
-          m="${BASH_REMATCH[0]}"; inner="${m:1:${#m}-2}"; inner="${inner//\\?/}"
-          case "$inner" in *'$('*|*'`'*) return 0 ;; esac
-          s="${s:${#m}}"; prev='x'
-        else s="${s:1}"; prev='"'; fi ;;
-      '#')
-        case "$prev" in
-          ' '|$'\t'|$'\n'|';'|'&'|'|'|'('|')')
-            if [[ $s == *$'\n'* ]]; then s=$'\n'"${s#*$'\n'}"; else s=''; fi ;;
-          *) s="${s:1}"; prev='#' ;;
-        esac ;;
-      '<')
-        if [ "${s:0:3}" = '<<<' ]; then s="${s:3}"; prev='<'
-        elif [[ $s =~ $re_hd ]]; then
-          m="${BASH_REMATCH[0]}"; dash="${BASH_REMATCH[1]}"; word="${BASH_REMATCH[2]}"
-          quoted=0; case "$word" in *[\'\"\\]*) quoted=1 ;; esac
-          delim="${word//[\'\"\\]/}"
-          pending+=("$dash|$quoted|$delim")
-          s="${s:${#m}}"; prev='x'
-        else s="${s:1}"; prev='<'; fi ;;
-      $'\n')
-        s="${s:1}"; prev=$'\n'
-        for hd in ${pending[@]+"${pending[@]}"}; do
-          dash="${hd%%|*}"; quoted="${hd#*|}"; quoted="${quoted%%|*}"; delim="${hd#*|*|}"
-          while [ -n "$s" ]; do
-            if [[ $s == *$'\n'* ]]; then line="${s%%$'\n'*}"; s="${s#*$'\n'}"; else line="$s"; s=''; fi
-            [ -n "$dash" ] && line="${line#"${line%%[!$'\t']*}"}"
-            [ "$line" = "$delim" ] && break
-            if [ "$quoted" = 0 ]; then
-              line="${line//\\?/}"
-              case "$line" in *'$('*|*'`'*) return 0 ;; esac
+  local LC_ALL=C
+  local full="$1" n off cur nxt clen j c nc st=N pend=0 prev="${2:-$'\n'}" skip=0 open=-1
+  local L m dash word quoted delim hd k wc wst
+  local re_hd="^<<(-?)[[:blank:]]*(('[^']*'|\"([^\"\\\\]|\\\\.)*\"|\\\\.|[^[:blank:];&|<>()'\"\\\\"$'\n'"])+)"
+  local pending=() hdash='' hq=0 hdelim='' lbuf='' lover=0 lead=1 bstart=-1
+  local W=256
+  n=${#full}
+  subst_work=$(( subst_work + n ))
+  if (( subst_work > SUBST_BUDGET )); then return 2; fi
+  for (( off = 0; off < n; off += W )); do
+    cur="${full:off:W}"; nxt="${full:off+W:W}"; clen=${#cur}
+    for (( j = 0; j < clen; j++ )); do
+      if (( skip > 0 )); then skip=$((skip - 1)); continue; fi
+      c="${cur:j:1}"
+      if (( j + 1 < clen )); then nc="${cur:j+1:1}"; else nc="${nxt:0:1}"; fi
+      case "$st" in
+        N|D)
+          if [ "$c" = '\' ]; then
+            # the caller has already removed every backslash-NEWLINE, so this is always an escape
+            skip=1; pend=0; prev='x'; continue
+          fi
+          if (( pend )); then
+            pend=0
+            case "$c" in
+              '(') return 0 ;;
+              "'") if [ "$st" = N ]; then st=A; open=$((off + j)); prev='x'; continue; fi ;;
+            esac
+          fi
+          case "$c" in
+            '`') return 0 ;;
+            '$') pend=1; prev='$'; continue ;;
+          esac
+          if [ "$st" = D ]; then
+            if [ "$c" = '"' ]; then st=N; prev='x'; fi
+            continue
+          fi
+          case "$c" in
+            "'") st=S; open=$((off + j)) ;;
+            '"') st=D; open=$((off + j)) ;;
+            '#')
+              case "$prev" in
+                ' '|$'\t'|$'\n'|';'|'&'|'|'|'('|')') st=C ;;
+              esac ;;
+            '<')
+              if [ "$nc" = '<' ]; then
+                L="${cur:j:W}${nxt}"
+                if [ "${L:0:3}" = '<<<' ]; then skip=2
+                elif [[ $L =~ $re_hd ]]; then
+                  m="${BASH_REMATCH[0]}"; dash="${BASH_REMATCH[1]}"; word="${BASH_REMATCH[2]}"
+                  quoted=0; case "$word" in *[\'\"\\]*) quoted=1 ;; esac
+                  # the shell's quote removal on the word gives the delimiter it compares against
+                  delim=''; wst=N
+                  for (( k = 0; k < ${#word}; k++ )); do
+                    wc="${word:k:1}"
+                    case "$wst" in
+                      S) if [ "$wc" = "'" ]; then wst=N; else delim+="$wc"; fi ;;
+                      D) if [ "$wc" = '"' ]; then wst=N
+                         elif [ "$wc" = '\' ] && [[ ${word:k+1:1} == [\$\`\"\\] ]]; then k=$((k + 1)); delim+="${word:k:1}"
+                         else delim+="$wc"; fi ;;
+                      N) case "$wc" in
+                           "'") wst=S ;;
+                           '"') wst=D ;;
+                           '\') k=$((k + 1)); delim+="${word:k:1}" ;;
+                           *) delim+="$wc" ;;
+                         esac ;;
+                    esac
+                  done
+                  pending+=("$dash|$quoted|$delim")
+                  skip=$(( ${#m} - 1 ))
+                else skip=1; fi
+              fi ;;
+            $'\n')
+              if (( ${#pending[@]} > 0 )); then
+                hd="${pending[0]}"; pending=("${pending[@]:1}")
+                hdash="${hd%%|*}"; hq="${hd#*|}"; hq="${hq%%|*}"; hdelim="${hd#*|*|}"
+                st=H; lbuf=''; lover=0; lead=1; bstart=$((off + j + 1)); prev=$'\n'; continue
+              fi ;;
+          esac
+          prev="$c" ;;
+        S) if [ "$c" = "'" ]; then st=N; prev='x'; fi ;;
+        A)
+          if [ "$c" = '\' ]; then skip=1
+          elif [ "$c" = "'" ]; then st=N; prev='x'; fi ;;
+        C) if [ "$c" = $'\n' ]; then st=N; j=$((j - 1)); fi ;;   # the newline is re-read in N
+        H)
+          if [ "$c" = $'\n' ]; then
+            if (( ! lover )) && [ "$lbuf" = "$hdelim" ]; then
+              if (( ${#pending[@]} > 0 )); then
+                hd="${pending[0]}"; pending=("${pending[@]:1}")
+                hdash="${hd%%|*}"; hq="${hd#*|}"; hq="${hq%%|*}"; hdelim="${hd#*|*|}"
+                bstart=$((off + j + 1))
+              else st=N; fi
             fi
-          done
-        done
-        pending=() ;;
-      *) s="${s:1}"; prev="$c" ;;
-    esac
+            lbuf=''; lover=0; lead=1; pend=0; prev=$'\n'; continue
+          fi
+          if (( lead )) && [ -n "$hdash" ] && [ "$c" = $'\t' ]; then continue; fi
+          lead=0
+          if (( ${#lbuf} <= ${#hdelim} )); then lbuf+="$c"; else lover=1; fi
+          if [ "$hq" = 0 ]; then
+            # an UNQUOTED body expands: quotes are text, a backslash escapes, `$(`/backtick are live
+            if [ "$c" = '\' ]; then skip=1; lover=1; continue; fi
+            if (( pend )); then pend=0; if [ "$c" = '(' ]; then return 0; fi; fi
+            case "$c" in
+              '`') return 0 ;;
+              '$') pend=1 ;;
+            esac
+          fi ;;
+      esac
+    done
   done
+  # End of input — the last body line may carry no newline.
+  if [ "$st" = H ] && (( ! lover )) && [ "$lbuf" = "$hdelim" ] && (( ${#pending[@]} == 0 )); then st=N; fi
+  case "$st" in
+    S|A|D) subst_active "${full:open+1}" x; return $? ;;
+    H) if [ "$hq" = 1 ]; then subst_active "${full:bstart}"; return $?; fi ;;
+  esac
   return 1
 }
 
@@ -2744,21 +2828,30 @@ fi
 #    unchanged: `gh "$(printf secret)" set X` hid its floor-matching word exactly as the unquoted form
 #    does. The first `if` below is the old predicate, UNCHANGED; the second is the #497 scanner, and
 #    rule 8 denies on EITHER, so nothing the old one denied can reach ALLOW. Both are plain `deny`,
-#    never `deny_convenience`. The fast path skips the scanner when the raw command carries neither
-#    `$(` nor a backtick, since no view derived from it could.
+#    never `deny_convenience`. ~~The fast path skips the scanner when the raw command carries neither
+#    `$(` nor a backtick, since no view derived from it could.~~ STRUCK (#497 round 2): FALSE — a
+#    backslash-NEWLINE between `$` and `(` is a line continuation, so `$\<NL>(…)` carries neither and
+#    still executes (bash; zsh reads the double-quoted form as literal). The fast path now also admits
+#    `$` followed by backslash-newline, and the scanner reads the command with every backslash-newline
+#    removed. The unquoted spelling was ALLOW before #497 as well; it is covered here, by the scanner.
+#    A scanner result of 2 is the work budget running out: it DENIES with its own reason, because the
+#    alternative on Codex is a guard timeout, and that adapter abstains on a timeout.
 if printf '%s' "$bare" | grep -Eq '(\$\(|`)'; then
   deny "Blocked: command substitution (\$(...) or backticks) forces a permission prompt even for allowlisted tools, because the matcher cannot expand it. Run the inner command as its own call and use the literal result."
 fi
 case "$command" in
-  *'$('*|*'`'*)
+  *'$('*|*'`'*|*'$\'$'\n'*)
+    # 0 = an active substitution, 1 = none, 2 = the work budget ran out. The first non-1 answer wins.
+    subst_work=0
     subst_hit=0
-    if subst_active "$command"; then subst_hit=1; fi
+    subst_active "${command//\\$'\n'/}" || subst_hit=$?
     for subst_v in ${subst_views[@]+"${subst_views[@]}"}; do
-      if [ "$subst_hit" = 0 ] && subst_active "$subst_v"; then subst_hit=1; fi
+      if [ "$subst_hit" = 1 ]; then subst_hit=0; subst_active "$subst_v" x || subst_hit=$?; fi
     done
-    if [ "$subst_hit" = 1 ]; then
-      deny "Blocked: command substitution (\$(...) or backticks) is still ACTIVE here — double quotes, escaped surrounding quotes and an unquoted heredoc body do not make it literal; only single quotes, a quoted heredoc delimiter or a backslash on the \$ do. It forces a permission prompt and can manufacture a token the other floor rules never see. Run the inner command as its own call and use the literal result."
-    fi
+    case "$subst_hit" in
+      0) deny "Blocked: command substitution (\$(...) or backticks) is still ACTIVE here — double quotes, escaped surrounding quotes and an unquoted heredoc body do not make it literal; only single quotes, a quoted heredoc delimiter or a backslash on the \$ do. It forces a permission prompt and can manufacture a token the other floor rules never see. Run the inner command as its own call and use the literal result." ;;
+      2) deny "Blocked: this command carries a command substitution (\$(...) or backticks) and is too large for this guard to verify within its time budget, so it is refused rather than passed unchecked — a guard that ran out of time would otherwise report no decision. Split it: run the inner command as its own call, or move a long script into a file and run the file." ;;
+    esac
     ;;
 esac
 # 8-chain. REMOVED 2026-09-05 (#383, slice S2). It denied `&&`, `||` and `;` on the premise struck

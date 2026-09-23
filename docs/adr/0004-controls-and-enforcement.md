@@ -6612,18 +6612,99 @@ verdict class:** `'it\'s $(fine)'` is malformed under POSIX (no escapes inside s
 
 ### Bounds — not a shell parser
 
-It tokenises single, ANSI-C and double quotes, backslashes, `#` at a word start and `<<`/`<<-`
-heredoc delimiters (a delimiter carrying any quote or backslash is quoted). It does **not** decode
-ANSI-C escapes, follow `eval` or a non-shell interpreter, parse a `case` arm, or see a heredoc
-started inside a `-c` payload (payloads are single-line by the unwrap's construction), and it reads
-an arithmetic shift `(( x << 2 ))` as a heredoc opener — which can only narrow the new predicate,
-never the old one beside it. The fast path skips the scanner for any command carrying neither `$(`
-nor a backtick. (A latency figure for large commands was taken while building this and is
-deliberately not published: the timing probe is not a tracked instrument, and a number without its
-command is the thing this repository withdraws.) An unbalanced
-quote is consumed as one literal character and scanning continues — fail-closed, the same direction
-as `$bare`'s own malformed-quote rule. **No universal shell parsing and no arbitrary-interpreter
+~~It tokenises single, ANSI-C and double quotes, backslashes, `#` at a word start and `<<`/`<<-`~~
+~~heredoc delimiters (a delimiter carrying any quote or backslash is quoted). It does **not** decode~~
+~~ANSI-C escapes, follow `eval` or a non-shell interpreter, parse a `case` arm, or see a heredoc~~
+~~started inside a `-c` payload (payloads are single-line by the unwrap's construction), and it reads~~
+~~an arithmetic shift `(( x << 2 ))` as a heredoc opener — which can only narrow the new predicate,~~
+~~never the old one beside it. The fast path skips the scanner for any command carrying neither `$(`~~
+~~nor a backtick. (A latency figure for large commands was taken while building this and is~~
+~~deliberately not published: the timing probe is not a tracked instrument, and a number without its~~
+~~command is the thing this repository withdraws.) An unbalanced~~
+~~quote is consumed as one literal character and scanning continues — fail-closed, the same direction~~
+~~as `$bare`'s own malformed-quote rule. **No universal shell parsing and no arbitrary-interpreter~~
+~~containment is claimed**; the existing interpreter non-containment stands.~~
+
+**STRUCK IN THE SAME PR, round 2 (#500's lens at `fac222de`) — two of its sentences were false and a
+third withheld the number the decision needed.** *"A delimiter carrying any quote … is quoted"* was
+true and the word boundary around it was not: the delimiter was cut at the first blank or `;&|<>()`
+even inside quotes, so `<<'E X'` gave the scanner `E`, the heredoc never ended, and **every later
+line was skipped** — the Issue's own QA fixture reached ALLOW behind it. *"The fast path skips …
+neither `$(` nor a backtick"* was false for `$\<NL>(…)`. And the scanner was **quadratic**, which the
+withheld latency figure would have shown. The replacement text follows; the round-2 section below
+carries the measurements.
+
+It tracks single, ANSI-C and double quotes, backslashes, `#` at a word start and `<<`/`<<-`
+heredocs, whose delimiter is parsed as a shell WORD — quoted runs may carry blanks and `;&|<>()` —
+with the shell's quote removal applied to get the line the body is compared against. Its caller
+removes every backslash-newline first, as the shell does. It does **not** decode ANSI-C escapes,
+follow `eval` or a non-shell interpreter, parse a `case` arm, see a heredoc started inside a `-c`
+payload, or cover **process substitution** (`<(…)`, zsh `=(…)`) — that last one was ALLOW before
+this change and is ALLOW after it; it yields a path rather than a spliced token, so it sits outside
+rule 8's manufactured-token argument, and it is named here so no reader infers coverage. An
+arithmetic shift `(( x << 2 ))` is read as an UNQUOTED heredoc opener, which can only over-block.
+**Where it is unsure it scans:** an unclosed quote is one literal character and the rest is re-read
+unquoted; a quoted heredoc whose terminator never arrives has its body re-read as command text; a
+command past the work budget is denied. **No universal shell parsing and no arbitrary-interpreter
 containment is claimed**; the existing interpreter non-containment stands.
+
+### Round 2 — the three findings, each measured before it was repaired (#500)
+
+**F1, a quoted heredoc delimiter with a blank or metacharacter.** Measured with the guard fed JSON,
+nothing executed, and the harmless twin run natively:
+
+| after `cat <<'E X'` / `b` / `E X` (lines) | guard at `fac222de` | guard now | bash 3.2.57 · zsh 5.9 |
+|---|---|---|---|
+| `gh "$(printf secret)" set PROBE --body v` | ALLOW | **DENY** | — (never run) |
+| the same after `<<'E;X'` | ALLOW | **DENY** | — |
+| `printf "%s" "$(printf EX)"` | ALLOW | **DENY** | EXECUTED · EXECUTED |
+| a body line `"$(date)"` inside `'E X'` (control) | ALLOW | ALLOW | literal |
+
+**F2, backslash-newline.** `gh "$\<NL>(printf X)" set P` and the unquoted `gh $\<NL>(printf X) set
+P` were both ALLOW — the unquoted one since before #497. bash executes both; zsh treats the
+double-quoted form as literal, so denying it is an over-block on zsh. Both deny now, and so does the
+same spelling inside a `bash -c '…'` payload and an unquoted heredoc body; inside single quotes it
+stays ALLOW.
+
+**F4, the scanner was quadratic, and the budget is what keeps the denial a denial.** The first form
+re-sliced the remaining string on every token. #500's lens measured about 13 s at 20,000
+one-character tokens — past the Codex adapter's 4.0 s guard timeout, where that adapter
+**abstains**, so on large input the new denial silently became no decision. It now walks fixed
+256-byte chunks once per character under `LC_ALL=C`, and stops at `SUBST_BUDGET` (60,000
+characters of work, counting the fail-toward-scanning re-reads), returning a verdict rule 8 DENIES
+with its own reason. Measured 2026-09-23 on this machine (Apple silicon, bash 3.2.57), from the
+repository root:
+
+```
+python3 -B -c '
+import json, subprocess, time
+for n in (20000, 59000, 70000):
+    c = "printf %s " + "$" * n + " \"$(date)\""
+    t = time.time()
+    o = subprocess.run(["bash", "hooks/scripts/permission-guard.sh"],
+                       input=json.dumps({"tool_input": {"command": c}}),
+                       capture_output=True, text=True).stdout
+    print(n, round(time.time() - t, 2),
+          json.loads(o)["hookSpecificOutput"]["permissionDecisionReason"][:45])'
+# 20000 0.35 Blocked: command substitution ($(...) or back
+# 59000 0.96 Blocked: command substitution ($(...) or back
+# 70000 0.12 Blocked: this command carries a command subst
+```
+
+So the worst case below the budget is about 1 s here, a quarter of the Codex timeout, and above it
+the answer is an immediate DENY rather than a timeout. **The price, stated:** a command over about
+60 KB that carries a `$(` or backtick anywhere, even a literal one, is refused and must be split or
+moved into a file; a command without either never reaches the scanner. The suite pins both: a
+50,000-token walk that must still find the substitution within 3 s, and a 70,000-token command that
+must deny with the budget reason. **The machine is part of the claim** — a slower runner moves the
+first figure, and nothing here measures Claude Code's behaviour on its own 5 s hook timeout.
+
+**Every round-2 repair was mutation-checked against the source**, with the unmodified suite: the
+blank-terminated delimiter regex, the unterminated-quoted-heredoc re-read, the unclosed-quote
+re-read, the fast-path `$\<NL>` clause, the call site's join, the payload views' join, a budget
+that fails open and a budget verdict that is not denied — each turned the suite red (1 to 17
+failures). An in-scanner backslash-newline branch made redundant by the caller's join was deleted
+after its mutation stayed green.
 
 ### Calibration — both directions, in disposable copies, and kept as an arm
 

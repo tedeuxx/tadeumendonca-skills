@@ -2594,6 +2594,33 @@ EOF"
   "bash -c single-quoted payload	bash -c 'printf \"%s\" \"\$(date)\"'"
   "sh -c payload with a backtick	sh -c 'echo \"\`date\`\"'"
   "zsh -lc payload	zsh -lc 'echo \"\$(date)\"'"
+  "#500 F1: a quoted delimiter with a BLANK does not hide the next line	cat <<'E X'
+b
+E X
+gh \"\$(echo secret)\" set PROBE --body v"
+  "#500 F1: a quoted delimiter with a ';' does not hide the next line	cat <<'E;X'
+b
+E;X
+gh \"\$(echo secret)\" set PROBE --body v"
+  "#500 F1: a double-quoted delimiter with a blank	cat <<\"E X\"
+b
+E X
+printf \"%s\" \"\$(date)\""
+  "#500 F1 fail-toward-scanning: a quoted heredoc whose terminator never arrives	cat <<'NEVER'
+b
+\"\$(date)\""
+  "#500 F1 fail-toward-scanning: an unclosed quote inside the delimiter word	cat <<'E X
+echo \"\$(date)\""
+  "#500 F2: backslash-newline between \$ and ( inside double quotes	gh \"\$\\
+(echo X)\" set P"
+  "#500 F2: backslash-newline between \$ and ( UNQUOTED (ALLOW before #497 too)	gh \$\\
+(echo secret) set P"
+  "#500 F2: backslash-newline inside a bash -c payload	bash -c 'gh \$\\
+(echo X) set P'"
+  "#500 F2: backslash-newline in an unquoted heredoc body	cat <<EOF
+\$\\
+(date)
+EOF"
 )
 # Inert rows. Asserted ALLOW, which here means "the hook emitted no decision" (see the header).
 I497=(
@@ -2610,6 +2637,12 @@ I497=(
 EOF"
   "bash -c payload with an escaped dollar	bash -c 'printf \"%s\" \"\\\$(date)\"'"
   "bash -c dq payload whose inner quotes are single	bash -c \"printf '%s' '\\\$(date)'\""
+  "#500 F1: a quoted blank delimiter still keeps ITS body literal	cat <<'E X'
+\"\$(date)\"
+E X
+echo ok"
+  "#500 F2: backslash-newline inside SINGLE quotes is text	printf '%s' '\$\\
+(date)'"
 )
 
 # Inert rows WITHOUT any `$(`/backtick character sit outside the arrays, because calibration B's
@@ -2631,6 +2664,33 @@ for v in on off ""; do
     check_env_reason DENY "$v" "#497 switch='$v': ${row%%	*}" "$S497" "${row#*	}"
   done
 done
+
+# #500 F1 — THE ISSUE'S OWN QA FIXTURE behind one quoted-blank heredoc, assembled so this file never
+# spells the floor act in one token. It reached ALLOW at fac222de.
+qa_sec="sec""ret"
+check_reason DENY "#500 F1: the QA fixture behind <<'E X' is still denied" "$S497" "cat <<'E X'
+b
+E X
+printf \"%s\" \"\$(gh $qa_sec set PROBE --body value)\""
+
+# #500 F4 — THE WORK BUDGET. The first scanner was quadratic (~13 s at 20,000 one-character tokens),
+# past the Codex adapter's 4.0 s guard timeout, where that adapter ABSTAINS. The scanner is linear now
+# and stops at SUBST_BUDGET characters of work, returning 2, which rule 8 DENIES with its own reason.
+big_ok="$(printf '%*s' 50000 '' | tr ' ' '$')"
+t0=$SECONDS
+check_reason DENY "#500 F4: 50,000 one-char tokens before a quoted substitution — still found" \
+              "$S497" "printf %s $big_ok \"\$(date)\""
+t1=$SECONDS
+if (( t1 - t0 <= 3 )); then
+  pass=$((pass + 1)); printf 'ok    TIME   #500 F4: that walk took %ss (budget-scale input, under the 4.0s adapter timeout)\n' "$((t1 - t0))"
+else
+  fail=$((fail + 1)); printf 'FAIL  #500 F4: the budget-scale walk took %ss, at or past the Codex adapter timeout\n' "$((t1 - t0))"
+fi
+big_over="$(printf '%*s' 70000 '' | tr ' ' '$')"
+check_reason DENY "#500 F4: past the budget the answer is a DENY with its own reason, never silence" \
+              "too large for this guard to verify" "printf %s $big_over '\$(date)'"
+check ALLOW "#500 F4: a large command with NO \$( or backtick never reaches the scanner" \
+            "printf %s $(printf '%*s' 70000 '' | tr ' ' 'a')"
 
 # PRE-EXISTING OUTCOMES, pinned so this slice cannot move them silently. Each is an OVER-block of
 # the OLD predicate that the scanner is additive to — so they stay DENY, and the reason is the old

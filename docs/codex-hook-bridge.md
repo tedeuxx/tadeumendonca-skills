@@ -1656,6 +1656,10 @@ policy.** Rule 8 of `hooks/scripts/permission-guard.sh` now also runs a substitu
 (`subst_active`) over the original command and each unwrapped `-c` payload, so an active `$(…)` or
 backtick inside double quotes, escaped surrounding quotes, mixed quote concatenation or an unquoted
 heredoc body denies with its own reason, whatever `PERMISSION_GUARD_CONVENIENCE_RULES` says.
+**These spellings, not the class** — round 2 (#500's lens) added a heredoc whose quoted delimiter
+carries a blank or `;&|<>()`, which had hidden every later line, and `$\<NL>(…)` line continuation;
+process substitution `<(…)` is not covered. A command too large to scan inside the guard's time
+budget is denied with its own reason, never left to the adapter's 4.0 s timeout, where it abstains.
 The scanner is **additive** to the old `$bare` predicate, so nothing that predicate denied can
 reach ALLOW, and every other rule still reads `$bare` unchanged. Through this adapter the QA fixture
 above now returns `block` — asserted, as data and never executed, in
@@ -1690,7 +1694,7 @@ not imported merely because the Claude registry declares them.
 | same installed carrier effect on VS Code `0.154` | **independently observed**, with the ambient permission-mode qualification above |
 | `UserPromptSubmit` can block a turn | **observed through a disposable native registration** |
 | the new carrier's `UserPromptSubmit` registration fires after release/install | **owed** — CI cannot start Codex, and the installed package predates this change |
-| quoted nested irreversible operations are covered | ~~**false at the measured shared guard** — separate repair required~~ **false at installed `2.0.71`; the shared guard's source denies the class since #497** (guard decision and adapter translation asserted in CI; native effect on an installed release carrying it **owed**) |
+| quoted nested irreversible operations are covered | ~~**false at the measured shared guard** — separate repair required~~ **false at installed `2.0.71`; the shared guard's source denies ~~the class~~ the measured spellings listed in ADR-0004's 2026-09-23 amendment since #497 — not the class, and not process substitution** (guard decision and adapter translation asserted in CI; native effect on an installed release carrying it **owed**) |
 | authenticated caller identity or whole-harness support | **not claimed** |
 
 The carrier and adapter suites pin the two-event registration, the shared command, the no-matcher

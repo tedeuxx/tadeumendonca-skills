@@ -765,6 +765,10 @@ FORWARDED_FRICTION = [
     ('printf "%s" "$(gh sec' + 'ret set PROBE --body value)"',
      "the QA-reported quoted nested secret write (fed as data, never executed)"),
     ('gh "$(echo sec' + 'ret)" set FOO --body x', "a quoted MANUFACTURED subcommand"),
+    # #500 round 2: the QA fixture behind a quoted-blank heredoc delimiter, and a line continuation.
+    ("cat <<'E X'\nb\nE X\n" + 'printf "%s" "$(gh sec' + 'ret set PROBE --body value)"',
+     "the QA fixture behind <<'E X' (a delimiter with a blank used to hide every later line)"),
+    ('gh "$\\\n(echo X)" set P', "a backslash-newline between $ and ( inside double quotes"),
 ]
 # The inert twin of the rows above: a single-quoted literal must still pass the adapter
 # untouched, or the arms above could be green on an adapter that blocks every '$('.

@@ -641,7 +641,7 @@ def selfcheck():
         "flag or config mutation was used by the verifier). This proves the installed "
         "PreToolUse/Bash route on those builds, not every route, authenticated caller "
         "identity or every shell spelling. A quoted nested substitution was observed "
-        "ABSTAINING and executing on 2.0.71; the SHARED guard repairs that class in "
+        "ABSTAINING and executing on 2.0.71; the SHARED guard denies those measured spellings in "
         "source at #497 (this adapter adds no policy for it), and a native re-run on an "
         "installed release carrying the repair is OWED. "
         "UserPromptSubmit separately blocked a disposable model turn on Desktop 0.151, "
