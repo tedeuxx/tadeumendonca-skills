@@ -1436,8 +1436,9 @@ explain 09-16 by itself: that session ran in the library working directory, wher
 `scripts/codex-hook-adapter.py` **would** have resolved. Two things are now known to be able to
 produce a silent floor on this carrier, and which one produced 09-16 is not decided here.
 
-**So *available, never active* remains the right wording for the carrier's own route** — and for a
-**measured** reason now rather than an unproven one. Nothing in this section licenses dropping it.
+~~**So *available, never active* remains the right wording for the carrier's own route** — and for a
+**measured** reason now rather than an unproven one. Nothing in this section licenses dropping it.~~
+**Struck 2026-09-22: section 18 records installed-carrier execution on both builds.**
 
 ### 16.6 · ~~The mitigation, named and NOT measured~~ — MEASURED 2026-09-22, see section 17
 
@@ -1570,22 +1571,32 @@ rather than restating it.
 
 ### 17.3 · What this does NOT make true
 
-**It does not make the floor active on Codex, and no sentence here may be read that way.** Three
-things stand between this commit and a held floor, and **none of them is in this repository**:
+~~**It does not make the floor active on Codex, and no sentence here may be read that way.** Three
+things stand between this commit and a held floor, and **none of them is in this repository**:~~
 
-1. **The plugin must be updated on the Codex side.** Measured 2026-09-22, the installed cache is at
+1. ~~**The plugin must be updated on the Codex side.** Measured 2026-09-22, the installed cache is at
    a version that still carries the relative command, so the repair is not live there until the
-   owner updates.
-2. **The registration must be TRUSTED.** Trust is a `[hooks.state."…"] trusted_hash` table in the
-   invoking user's own `config.toml`, and none of this carrier's registrations has one.
-3. **The route is measured firing on ONE build.** `0.151.0-alpha.7.2` is what this machine has;
+   owner updates.~~
+2. ~~**The registration must be TRUSTED.** Trust is a `[hooks.state."…"] trusted_hash` table in the
+   invoking user's own `config.toml`, and none of this carrier's registrations has one.~~
+3. ~~**The route is measured firing on ONE build.** `0.151.0-alpha.7.2` is what this machine has;
    the 2026-09-16 non-firing on `0.154.0-alpha.6.2` is neither reproduced nor refuted, and section
-   16.5's *build is the surviving explanation, unverified* is untouched by this slice.
+   16.5's *build is the surviving explanation, unverified* is untouched by this slice.~~
 
-**So the wording does not move to *active*.** What moves is narrower and worth saying exactly: the
+**Struck 2026-09-22: all three conditions were subsequently discharged for installed `2.0.71`,
+within the bounds in section 18.** The historical claim stays visible because it was correct for
+this slice and is false as a current activation statement.
+
+~~**So the wording does not move to *active*.** What moves is narrower and worth saying exactly: the
 carrier's registration was *known not to execute*, for a named reason, and that reason is repaired.
 Whether it now executes is **unverified** — no turn was run in this slice — and a repair verified
-only by its own test suite is a repair, not an observation.
+only by its own test suite is a repair, not an observation.~~
+
+**Struck with the block above, for the same reason: it was true of this slice, where no turn ran,
+and is false as a current statement.** Execution of the installed `2.0.71` `PreToolUse` registration
+is observed on two builds — see section 18.1 for the evidence and its bounds. What stays true is the
+general point: a repair verified only by its own test suite is a repair, not an observation — which
+is why section 18.4 still lists the carrier's own `UserPromptSubmit` registration as **owed**.
 
 ### 17.4 · What holds this section
 
@@ -1599,3 +1610,75 @@ each redden at least one arm, and the file re-greens on restore.
 **What no arm can assert is that the repaired command LAUNCHES**, because nothing in CI starts a
 Codex process. That is `codex-hook-probe.py`'s subject and needs a binary. The honest state is:
 the spelling is pinned to the measurement, and the execution is owed a turn.
+
+## 18 · INSTALLED AND BLOCKING on two builds; native preflight supported; semantic coverage still open
+
+### 18.1 · The installed carrier evidence, dated and bounded
+
+The owner authorised trust only where necessary for the preventive floor the loop already requires.
+Through the native TUI, the operator trusted the **individual displayed `PreToolUse` registration**
+for installed `tadeumendonca-skills@tadeumendonca` `2.0.71`; no trust-all action, bypass flag,
+manual hash write or permission override was used. The UI moved from one installed/zero active to
+one installed/one active and displayed `Trusted`.
+
+On Desktop `0.151.0-alpha.7.2`, session `01a0cb98-754c-7a22-b033-f64e97ecb832`, the installed
+adapter invocation log records three real model `Bash` events. An allowed `printf` executed. An
+unquoted command substitution produced `decision:block`, the native UI reported the
+`PreToolUse` block, and the shell did not execute. A quoted harmless substitution abstained and
+executed. This is installed-carrier invocation plus one positive and one negative effect control;
+it is not a claim about all shell spellings.
+
+Independent QA then ran installed `2.0.71` from the product repository through the VS Code binary
+`0.154.0-alpha.6.2`, session `01a0cbdf-c528-7641-99b0-6ef808ecb7e3`. The allowed call executed
+and the unquoted substitution was blocked and suppressed. Its payload reported ambient
+`permission_mode=bypassPermissions`; QA used no bypass flag, trust mutation or config mutation.
+The honest conclusion is carrier blocking on that runtime. The Desktop run separately provides the
+default-mode reading.
+
+These two runs refute the earlier surviving build hypothesis for the measured `PreToolUse`/`Bash`
+route. They do **not** authenticate `agent_type`, cover host/IDE shell routes, close the
+`write_stdin` gap, or turn installed trust into script-content integrity.
+
+### 18.2 · The quoted nested-operation gap is observed, not repaired here
+
+QA fed strings to the adapter without executing them. The quoted fixture
+`printf "%s" "$(gh secret set PROBE --body value)"` abstained; its unquoted sibling blocked as a
+secret write. Combined with the harmless native quoted substitution above, this proves a gap in the
+shared guard's quote-collapse semantics. No secret write was attempted.
+
+That finding blocks a complete AC4/AC7 coverage claim even though invocation itself is proven. The
+repair changes the shared Claude/Codex floor and its regression contract, so it is outside this
+Codex-only slice and has been authorised as a separate follow-up. This section does not claim that
+trust or carrier activation repaired it.
+
+### 18.3 · `UserPromptSubmit` can carry the Codex-native preflight
+
+The new `preflight` probe phase used a disposable Codex home and project, trusted exactly one
+disposable `UserPromptSubmit` command, then started one authorised model turn. The hook captured one
+real prompt payload, the host reported it blocked, and the requested marker was absent. The invoking
+user's real `config.toml` hash was identical before and after, and the copied credential was shredded.
+Measured on Desktop `0.151.0-alpha.7.2`, this settles the layer question: the event can prevent a
+degraded turn before tool dispatch.
+
+The implementation is intentionally smaller than Claude's `preflight.sh`. `codex-hooks.json`
+registers the same root-anchored adapter on `UserPromptSubmit`, and the adapter checks only the local
+dependencies of the activated Codex floor: `bash`, `jq`, and the shared guard file. Python and the
+adapter already exist if that code is executing; missing `git` or `gh` retain the guard's own
+per-branch degradation posture and stay selfcheck notes. Dependencies of Claude-only observers are
+not imported merely because the Claude registry declares them.
+
+### 18.4 · What is proven, what is still owed
+
+| claim | state |
+|---|---|
+| installed `2.0.71` carrier invokes `PreToolUse` and blocks the unquoted fixture on Desktop `0.151` | **observed** |
+| same installed carrier effect on VS Code `0.154` | **independently observed**, with the ambient permission-mode qualification above |
+| `UserPromptSubmit` can block a turn | **observed through a disposable native registration** |
+| the new carrier's `UserPromptSubmit` registration fires after release/install | **owed** — CI cannot start Codex, and the installed package predates this change |
+| quoted nested irreversible operations are covered | **false at the measured shared guard** — separate repair required |
+| authenticated caller identity or whole-harness support | **not claimed** |
+
+The carrier and adapter suites pin the two-event registration, the shared command, the no-matcher
+shape, the exact local blocker set and its healthy abstention. Mutation removes `jq` and the guard in
+turn and makes the prompt block. Those checks prove the implementation can go red; only the opt-in
+native probe proves vendor routing.

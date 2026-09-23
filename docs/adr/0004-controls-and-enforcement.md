@@ -6476,3 +6476,73 @@ host-specific friction, and the separation has to be in the source rather than i
 The altered decision is this record's own *UX amendment* — *"friction refusals may cover only a
 subset of what the current runtime actually stops"* — which is now conditional on **which** runtime,
 and has a mechanism behind it rather than a sentence.
+
+## Amendment (2026-09-22) — Codex gets a native prompt preflight after the event proved preventive (#455)
+
+**Deciders:** owner (authorised the model turn and trust only where required by the desired loop),
+written by `agents-lead`, measured on Codex Desktop `0.151.0-alpha.7.2`.
+
+### The decision
+
+The Codex carrier registers its root-anchored adapter on **two preventive events**:
+`PreToolUse` carries the translated command floor, and `UserPromptSubmit` refuses a prompt when the
+activated Codex floor's own local dependencies are absent. The preflight set is exactly `bash`,
+`jq`, and `hooks/scripts/permission-guard.sh`.
+
+It does **not** invoke Claude's `preflight.sh` and does not derive requirements from Claude's hook
+registry. Those dependencies belong to observers the Codex carrier does not activate. Importing them
+would turn an absent observer into a blanket Codex session denial, the failure AC6 forbids.
+
+`git` and `gh` are not global blockers. Their absence changes named branches inside the guard under
+the guard's existing posture, and `--selfcheck` reports each; neither makes every command
+unjudgeable. Python and the adapter are already present if `UserPromptSubmit` reaches this code.
+
+### The measurement that selects the layer
+
+An opt-in probe created a disposable Codex home and project, registered and trusted exactly one
+`UserPromptSubmit` hook, and began one authorised model turn whose harmless request would create a
+marker. The hook captured one real prompt payload, returned Codex's native `block` decision, the host
+reported the hook blocked, and the marker was absent. The real user config was byte-identical before
+and after and the disposable credential copy was removed.
+
+This was observed on Desktop `0.151.0-alpha.7.2`. It proves the event can carry prevention; it does
+not prove this new carrier registration fires until the changed plugin is released, installed and
+observed. That last check remains runtime evidence rather than a CI assertion.
+
+### Considered and rejected
+
+- **Selfcheck only.** Rejected: a report depends on the operator remembering to run it, while a
+  degraded command floor can otherwise abstain silently on later calls.
+- **Reuse the Claude preflight unchanged.** Rejected: it derives dependencies for a larger registry
+  and would deny Codex over routes that are not installed there.
+- **Run the preflight at `PreToolUse`.** Rejected: it discovers degradation one act late and repeats
+  on every tool call; the measured prompt event is earlier and directly preventive.
+- **Block on every optional command.** Rejected: this would replace the guard's explicit per-rule
+  failure posture with a new blanket policy in the translator.
+
+### Consequences and bounds
+
+Good: a missing `bash`, `jq` or shared guard is no longer indistinguishable from a healthy Codex
+floor once a prompt is submitted. The same helper feeds `--selfcheck`, so the report and preventive
+route cannot drift onto different local dependency sets.
+
+Bad: the event is another trusted registration and therefore another hash the native host exposes to
+the user. A false blocker stops the whole prompt before the user sees model output, so the set must
+stay limited to dependencies whose absence makes the activated preventive floor globally inert.
+
+This amendment changes no shared-floor semantics. In particular it does not repair the separately
+observed quoted-substitution gap and does not turn caller identity into authentication.
+
+### What holds it
+
+`scripts/codex-hook-adapter.test.py` asserts both event registrations, their shared root-anchored
+command and no-matcher shape; a healthy preflight abstains, while removing `jq` and the guard each
+produce a non-empty native block. `scripts/codex-hook-probe.py --phase preflight
+--allow-model-turn` is the opt-in routing measurement. CI can prove the source behavior and cannot
+prove the vendor invoked it.
+
+### Significance
+
+*Sets a cross-cutting pattern* and extends this record's Codex control decision: dependency failure
+that would make an installed preventive floor globally inert belongs on a measured native prompt
+event, while dependencies for unactivated routes do not.

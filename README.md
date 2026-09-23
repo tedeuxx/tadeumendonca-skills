@@ -2263,13 +2263,39 @@ adapter was invoked, decided `block`, and **the act did not happen**. The act wa
 harness's two Codex layers disagree (`gh pr merge` is `allow` in the execpolicy, `deny` in the
 guard), so the refusal is attributable to the hook and not to the cheaper layer.
 
-**What that does and does not settle.** It registers through `config.toml`, not through the plugin
+~~**What that does and does not settle.** It registers through `config.toml`, not through the plugin
 carrier, so the carrier's **own** route stays unmeasured and *"available, never active"* remains the
-right wording for it. And it does **not** overturn the 2026-09-16 non-firing on
+right wording for it.~~ **Struck 2026-09-22: installed-carrier evidence now exists on both builds,
+bounded below.** And it does **not** overturn the 2026-09-16 non-firing on
 `0.154.0-alpha.6.2`: the two runs differ in **build** and in **registration route** at once. What it
 does settle is that the standing hypothesis — *the runtime used an unhooked route* — **does not
 explain it as stated**, since a model tool call fired every registration on this build. Two readings
 survive where there were three. Section 15 of the bridge document carries the commands.
+
+**AMENDED 2026-09-22 (#455): installed carrier `2.0.71` is active on the two measured runtimes,
+and that statement is deliberately narrower than “Codex support is complete.”** On Desktop
+`0.151.0-alpha.7.2`, the individually trusted installed `PreToolUse` registration invoked the
+adapter for three real model `Bash` calls; an allowed `printf` executed and an unquoted command
+substitution returned `block`, surfaced the guard's reason and did not execute. An independent
+VS Code run on `0.154.0-alpha.6.2`, from the product repository, reproduced the allowed call and
+the blocked unquoted substitution through the same installed carrier. The second payload reported
+ambient `permission_mode=bypassPermissions`; the verifier used no bypass flag or config mutation,
+so that run proves the carrier's blocking effect on that runtime and no broader permission-mode
+claim. The Desktop run separately carries `permission_mode=default`.
+
+**The same evidence found a real limit, not a qualification to hide in a footnote.** A quoted
+nested substitution abstained through the adapter while its unquoted sibling blocked, and a harmless
+native quoted substitution executed. The shared guard collapses double-quoted spans before its
+substitution check. Therefore invocation is proven but AC4/AC7 semantic coverage is not; the repair
+belongs to the separately authorised shared-floor slice, not to this Codex carrier change.
+
+**Codex now carries a native preflight route too.** A disposable `UserPromptSubmit` registration
+on Desktop `0.151.0-alpha.7.2` captured a real prompt payload, returned `block`, and prevented the
+requested model turn from creating its marker while the real Codex config remained byte-identical.
+The carrier therefore registers the same root-anchored adapter on `UserPromptSubmit`; it refuses a
+prompt only when `bash`, `jq`, or the shared guard needed by the activated Codex floor is absent.
+It deliberately does not import dependencies from Claude-only observers. The event capability is
+measured; execution through the newly published carrier registration is owed after install.
 
 **And TWO of the three CONVENIENCE refusals are no longer forwarded (AC7).** An env-var prefix and
 a stdout redirect are friction rules that exist to turn a Claude *prompt* into a self-correcting
@@ -2956,4 +2982,3 @@ the React/Vite conventions are one context's answers. **Take the pattern, not th
 - [tadeumendonca.io/en/architecture](https://tadeumendonca.io/en/architecture) — the three pillars,
   and what sits in the intersection.
 - [LinkedIn](https://www.linkedin.com/in/luiz-tadeu-mendonca-83a16530/) · [GitHub](https://github.com/tedeuxx)
-
