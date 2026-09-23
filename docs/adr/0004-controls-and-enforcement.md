@@ -6531,7 +6531,9 @@ the user. A false blocker stops the whole prompt before the user sees model outp
 stay limited to dependencies whose absence makes the activated preventive floor globally inert.
 
 This amendment changes no shared-floor semantics. In particular it does not repair the separately
-observed quoted-substitution gap and does not turn caller identity into authentication.
+observed quoted-substitution gap and does not turn caller identity into authentication. *(That gap
+is repaired in the shared guard by the 2026-09-23 amendment below; this sentence stays true of the
+amendment it belongs to.)*
 
 ### What holds it
 
@@ -6546,3 +6548,280 @@ prove the vendor invoked it.
 *Sets a cross-cutting pattern* and extends this record's Codex control decision: dependency failure
 that would make an installed preventive floor globally inert belongs on a measured native prompt
 event, while dependencies for unactivated routes do not.
+
+## Amendment (2026-09-23) — a double quote does not make a substitution literal, so the substitution branch gets its OWN view of the command (#497)
+
+**Deciders:** owner (authorised the shared-floor correction on 2026-09-22), written by
+`agents-lead`, intake stress test by `agents-lead`, gate by `quality-assurance`.
+
+### The decision
+
+**Rule 8's substitution branch now denies when EITHER of two predicates fires.** The first is the
+old one, unchanged: `$(` or a backtick in `$bare`. The second is new: `subst_active`, a small
+tokeniser in `hooks/scripts/permission-guard.sh` that walks the ORIGINAL multi-line command and each
+unwrapped `-c` payload and reports whether a substitution is **active** — outside single quotes,
+ANSI-C quotes, comments and quoted heredoc bodies, and not escaped by an odd backslash run. Both
+are plain `deny`; neither goes through `deny_convenience`. **`$bare` itself is not changed, and every
+other rule keeps reading it.**
+
+### Why — the slice-D argument, applied to a spelling it did not reach
+
+The 2026-09-21 slice-D amendment above kept the substitution branch mandatory because *a
+substitution manufactures a token the other floor rules never see*. That argument does not care
+about quoting, but the predicate did: it read `$bare`, which collapses double-quoted spans because
+`git commit -m "gh secret set X"` is a message about the act. So `printf "%s" "$(gh secret set PROBE
+--body value)"` abstained through the Codex adapter while its unquoted sibling blocked (the bridge
+document's section 18.2), and #66's surviving ALLOW fixtures had certified two such spellings as
+inert. **A view that is right for "message or command?" is wrong for "will the shell execute
+this?"**, and the correction is to give the second question its own view rather than to change the
+first view under every rule that relies on it.
+
+### The measurement — executable versus literal, native, harmless
+
+Every row was run on `bash 3.2.57` and `zsh 5.9` with `printf EX` as the only inner command; the two
+shells agreed on every row. "Executed" means the output contained the expansion and not the text.
+Each row is reproduced by one harmless command per shell, the payload passed as a single-quoted
+argument so the OUTER shell does not interpret it:
+
+```
+bash -c 'printf "%s" "$(printf EX)"'      # -> EX              executed
+zsh  -c 'printf "%s" "\$(printf EX)"'     # -> $(printf EX)    literal
+```
+
+| spelling | shell | scanner |
+|---|---|---|
+| `"$(…)"` · `` "`…`" `` · `\"$(…)\"` · `"said \"$(…)\" x"` | executed | **active** |
+| `'a'"$(…)"'b'` · `"it's $(…)"` · `'x\' "$(…)" 'y'` · `'x\' $(…) 'y'` | executed | **active** |
+| `"\\$(…)"` (even backslash run) · nested `"$(… "$(…)")"` | executed | **active** |
+| unquoted heredoc body, with `"$(…)"` or `'$(…)'` in it | executed | **active** |
+| `bash -c 'printf "%s" "$(…)"'` | executed | **active** (via the payload view) |
+| `'$(…)'` · `"\$(…)"` · `` "\`…\`" `` · `"\\\$(…)"` (odd run) | literal | inert |
+| `$'a \' $(…)'` (ANSI-C) · `# "$(…)"` (comment) · `<<'EOF'` body | literal | inert |
+
+### What it deliberately does NOT change — additive, so no collateral ALLOW
+
+**Nothing the old predicate denied can reach ALLOW**, because the new predicate is an OR beside it.
+That is what keeps the slice's collateral one-directional: the pre-existing over-blocks stay and are
+now pinned, with the OLD message, in `permission-guard.test.sh` — an unquoted `$(…)` in a comment, a
+bare `$(…)` in a quoted heredoc, an escaped dollar outside quotes, and the well-formed `'it'\''s …'`
+idiom, which the old escape-aware single-quote collapse still misreads. **One NEW over-block is
+accepted and stated:** arithmetic `$((…))` inside double quotes is read as a substitution, matching
+the old predicate's unquoted posture on `$((`. **One #66 fixture changed meaning rather than
+verdict class:** `'it\'s $(fine)'` is malformed under POSIX (no escapes inside single quotes), so the
+`$(` after `'it\'` is unquoted; it now denies, fail-closed, like the unbalanced-quote control.
+
+### Bounds — not a shell parser
+
+~~It tokenises single, ANSI-C and double quotes, backslashes, `#` at a word start and `<<`/`<<-`~~
+~~heredoc delimiters (a delimiter carrying any quote or backslash is quoted). It does **not** decode~~
+~~ANSI-C escapes, follow `eval` or a non-shell interpreter, parse a `case` arm, or see a heredoc~~
+~~started inside a `-c` payload (payloads are single-line by the unwrap's construction), and it reads~~
+~~an arithmetic shift `(( x << 2 ))` as a heredoc opener — which can only narrow the new predicate,~~
+~~never the old one beside it. The fast path skips the scanner for any command carrying neither `$(`~~
+~~nor a backtick. (A latency figure for large commands was taken while building this and is~~
+~~deliberately not published: the timing probe is not a tracked instrument, and a number without its~~
+~~command is the thing this repository withdraws.) An unbalanced~~
+~~quote is consumed as one literal character and scanning continues — fail-closed, the same direction~~
+~~as `$bare`'s own malformed-quote rule. **No universal shell parsing and no arbitrary-interpreter~~
+~~containment is claimed**; the existing interpreter non-containment stands.~~
+
+**STRUCK IN THE SAME PR, round 2 (#500's lens at `fac222de`) — two of its sentences were false and a
+third withheld the number the decision needed.** *"A delimiter carrying any quote … is quoted"* was
+true and the word boundary around it was not: the delimiter was cut at the first blank or `;&|<>()`
+even inside quotes, so `<<'E X'` gave the scanner `E`, the heredoc never ended, and **every later
+line was skipped** — the Issue's own QA fixture reached ALLOW behind it. *"The fast path skips …
+neither `$(` nor a backtick"* was false for `$\<NL>(…)`. And the scanner was **quadratic**, which the
+withheld latency figure would have shown. The replacement text follows; the round-2 section below
+carries the measurements.
+
+It tracks single, ANSI-C and double quotes, backslashes, `#` at a word start and `<<`/`<<-`
+heredocs, whose delimiter is parsed as a shell WORD — quoted runs may carry blanks and `;&|<>()` —
+with the shell's quote removal applied to get the line the body is compared against. ~~Its caller
+removes every backslash-newline first, as the shell does.~~ **STRUCK (round 3): the shell does not —
+see the round-3 section.** A backslash-newline is a continuation only in unquoted text, double quotes
+and an unquoted heredoc body, and the scanner handles it there itself. It does **not** decode ANSI-C
+escapes, follow `eval` or a non-shell interpreter, parse a `case` arm, ~~see a heredoc started inside a
+`-c` payload~~ (struck round 3: payloads now keep their lines), unwrap a **`-c` wrapper followed by
+more text** (`bash -c '…' _`, `sh -c '…'; true` — the wrapper-quote strip needs the payload to end
+at its closing quote, so a substitution in such a payload is not seen; ALLOW before #497 and after
+it), or cover **process substitution** (`<(…)`, zsh `=(…)`) — that last one was ALLOW before
+this change and is ALLOW after it; it yields a path rather than a spliced token, so it sits outside
+rule 8's manufactured-token argument, and it is named here so no reader infers coverage. An
+arithmetic shift `(( x << 2 ))` is read as an UNQUOTED heredoc opener, which can only over-block.
+**Where it is unsure it scans:** an unclosed quote is one literal character and the rest is re-read
+unquoted; a quoted heredoc whose terminator never arrives has its body re-read as command text; a
+command past the work budget is denied. **No universal shell parsing and no arbitrary-interpreter
+containment is claimed**; the existing interpreter non-containment stands.
+
+### Round 2 — the three findings, each measured before it was repaired (#500)
+
+**F1, a quoted heredoc delimiter with a blank or metacharacter.** Measured with the guard fed JSON,
+nothing executed, and the harmless twin run natively:
+
+| after `cat <<'E X'` / `b` / `E X` (lines) | guard at `fac222de` | guard now | bash 3.2.57 · zsh 5.9 |
+|---|---|---|---|
+| `gh "$(printf secret)" set PROBE --body v` | ALLOW | **DENY** | — (never run) |
+| the same after `<<'E;X'` | ALLOW | **DENY** | — |
+| `printf "%s" "$(printf EX)"` | ALLOW | **DENY** | EXECUTED · EXECUTED |
+| a body line `"$(date)"` inside `'E X'` (control) | ALLOW | ALLOW | literal |
+
+**F2, backslash-newline.** `gh "$\<NL>(printf X)" set P` and the unquoted `gh $\<NL>(printf X) set
+P` were both ALLOW — the unquoted one since before #497. bash executes both; zsh treats the
+double-quoted form as literal, so denying it is an over-block on zsh. Both deny now, and so does the
+same spelling inside a `bash -c '…'` payload and an unquoted heredoc body; inside single quotes it
+stays ALLOW.
+
+**F4, the scanner was quadratic, and ~~the budget is what keeps the denial a denial~~ the budget
+bounds what it counts.** (Struck at the gate — see *Gate round 1* below: the walk was linear in
+characters and the heredoc queue was not.) The first form
+re-sliced the remaining string on every token. #500's lens measured about 13 s at 20,000
+one-character tokens — past the Codex adapter's 4.0 s guard timeout, where that adapter
+**abstains**, so on large input the new denial silently became no decision. It now walks fixed
+256-byte chunks once per character under `LC_ALL=C`, and stops at `SUBST_BUDGET` (60,000
+characters of work, counting the fail-toward-scanning re-reads), returning a verdict rule 8 DENIES
+with its own reason. Measured 2026-09-23 on this machine (Apple silicon, bash 3.2.57), from the
+repository root:
+
+```
+python3 -B -c '
+import json, subprocess, time
+for n in (20000, 59000, 70000):
+    c = "printf %s " + "$" * n + " \"$(date)\""
+    t = time.time()
+    o = subprocess.run(["bash", "hooks/scripts/permission-guard.sh"],
+                       input=json.dumps({"tool_input": {"command": c}}),
+                       capture_output=True, text=True).stdout
+    print(n, round(time.time() - t, 2),
+          json.loads(o)["hookSpecificOutput"]["permissionDecisionReason"][:45])'
+# 20000 0.35 Blocked: command substitution ($(...) or back
+# 59000 0.96 Blocked: command substitution ($(...) or back
+# 70000 0.12 Blocked: this command carries a command subst
+```
+
+So the worst case below the budget is about 1 s here, a quarter of the Codex timeout, and above it
+the answer is an immediate DENY rather than a timeout. **The price, stated:** a command over about
+60 KB that carries a `$(` or backtick anywhere, even a literal one, is refused and must be split or
+moved into a file; a command without either never reaches the scanner. The suite pins both: a
+50,000-token walk that must still find the substitution within 3 s, and a 70,000-token command that
+must deny with the budget reason. **The machine is part of the claim** — a slower runner moves the
+first figure, and nothing here measures Claude Code's behaviour on its own 5 s hook timeout.
+
+**Every round-2 repair was mutation-checked against the source**, with the unmodified suite: the
+blank-terminated delimiter regex, the unterminated-quoted-heredoc re-read, the unclosed-quote
+re-read, the fast-path `$\<NL>` clause, the call site's join, the payload views' join, a budget
+that fails open and a budget verdict that is not denied — each turned the suite red (1 to 17
+failures). An in-scanner backslash-newline branch made redundant by the caller's join was deleted
+after its mutation stayed green.
+
+### Calibration — both directions, in disposable copies, and kept as an arm
+
+`permission-guard.test.sh` builds two mutated copies of the guard at run time and requires every row
+to flip: **(A)** `subst_active` disabled — the pre-#497 predicate alone — must let every active row
+reach ALLOW; **(B)** `subst_active` replaced by a raw `$(`/backtick character detector must deny every
+inert row. Each copy is checked to differ from the source, so a dead `sed` anchor reddens instead of
+passing. Separately, nine single-point mutations of the source (comment skip, escaped-pair drop,
+quoted-heredoc detection, heredoc body scan, payload views, ANSI-C skip, POSIX single-quote form,
+backtick branch, and the fast path) were run against the unmodified suite; eight reddened it and the
+ninth — removing the fast path, which is an optimisation — correctly did not.
+
+### Round 3 — the round-2 join hid a line inside a comment (#500, lens at `463fae4b`)
+
+**R2-F1.** Round 2 repaired `$\<NL>(…)` by having the caller remove **every** backslash-newline
+before scanning, and wrote *"as the shell does"* beside it. The shell does not: a `#` comment ends at
+the newline whatever precedes it, so a trailing backslash does not continue a comment. The blanket
+removal pulled the next line INTO the comment, and the scanner then skipped it:
+
+| `true # note \` then, on the next line | `fac222de` | `463fae4b` | now | bash 3.2.57 · zsh 5.9 |
+|---|---|---|---|---|
+| `printf "%s" "$(gh secret set PROBE --body value)"` (the Issue's QA fixture) | DENY | **ALLOW** | **DENY** | — (never run) |
+| `gh "$(printf secret)" set PROBE --body v` | DENY | **ALLOW** | **DENY** | — |
+| `printf "%s" "$(printf EX)"` (harmless twin) | — | — | **DENY** | EXECUTED · EXECUTED |
+
+**The repair can only add denials relative to round 1, and it removes the caller-side join
+entirely.** The scanner reads the command RAW and treats backslash-newline as a continuation only in
+the states where the shell does — unquoted text, double quotes and an unquoted heredoc body — so a
+pending `$` survives it there, and backslash parity is the scanner's own rather than a text rewrite's.
+In a comment, single quotes, ANSI-C quotes and a quoted heredoc body it is ordinary text. A text
+rewrite had a second defect the lens did not need, measured the same way: `printf "%s" "\\\\` + NL
++ `$(printf EX)"` — escaped backslashes, then a newline — was ALLOW at `463fae4b`, because the
+rewrite paired the last backslash with the newline and left an escaped `$` behind; bash and zsh both
+execute it, and it denies now. It is a fixture.
+
+**The `-c` payload views had the same shape one layer out, and are repaired with it.** Rounds 1 and 2
+cut each payload from the FLATTENED command, where its newlines are blanks — so a `#` comment in a
+payload ran to the end of the payload and hid every later line, and a heredoc inside a payload could
+not be seen at all. The views are now cut from the ORIGINAL multi-line command with the unwrap
+loop's own pattern as one bash regex, so a payload keeps its lines. `bash -c 'true # note` + NL +
+`gh "$(echo X)" set P'` and an unquoted heredoc inside a `bash -c` payload now deny; both were ALLOW
+before #497. The unwrap loop feeds `$cmd` only, exactly as before #497.
+
+**Mutation-checked against the source**, unmodified suite: removing the N/D continuation (12 reds),
+clearing a pending `$` on a heredoc continuation (4), restoring the round-2 caller-side join (5),
+letting a backslash continue a comment (9), dropping the payload views (28) and dropping their
+wrapper-quote strip (28) each turned the suite red. Calibration A is 33/33 and B 15/15; B's raw
+detector now joins every backslash-newline, the overbroad reading the scanner must not make.
+
+### Gate round 1 — the budget counted characters and the cost was in operations (#500, QA at `e3b466f1`)
+
+**B1.** Three published sentences said the budget keeps the denial from becoming an abstain. QA
+falsified all three with the Issue's QA fixture behind `N` unquoted heredoc openers, fed as data:
+4,000 openers — 24,053 characters, 40% of the budget — took **5.02 s** in the guard and the Codex
+adapter **abstained** at 4.0 s (N=9000: 23.63 s). The cause was isolated by toggling one line: popping
+the queue with `pending=("${pending[@]:1}")` copies the remaining queue on every pop, so N openers cost
+O(N²), and `subst_work` counted characters only.
+
+**Two repairs, each sufficient alone, both in.** The queue is popped by a head index (`pi`), and
+every opener is charged `SUBST_HEREDOC_COST` (16) to the same budget, so the budget bounds the queue as
+well as the text. Measured from the repository root on this machine (bash 3.2.57):
+
+```
+python3 -B -c '
+import json, subprocess, time
+fix = "printf \"%s\" \"$(gh sec" + "ret set PROBE --body value)\""
+for n in (2500, 4000, 9000):
+    c = "cat" + " <<a" * n + "\n" + "a\n" * n + fix
+    t = time.time()
+    o = subprocess.run(["bash", "hooks/scripts/permission-guard.sh"],
+                       input=json.dumps({"tool_input": {"command": c}}),
+                       capture_output=True, text=True).stdout
+    print(n, round(time.time() - t, 2),
+          json.loads(o)["hookSpecificOutput"]["permissionDecisionReason"][:45])'
+# 2500 0.36 Blocked: command substitution ($(...) or back
+# 4000 0.24 Blocked: this command carries a command subst
+# 9000 0.1 Blocked: this command carries a command subst
+```
+
+Nine other operation-heavy shapes near the budget (openers never closed, long-word delimiters,
+`<<<` runs, closed quoted heredocs, `$` churn, unclosed quotes, comments, nested `bash -c`) answered
+in at most **0.91 s**. **That is a measurement, not a guarantee**: the budget bounds what it counts —
+characters and heredoc openers — and a shape nobody fuzzed can still cost more per character.
+
+**Calibrated by mutation, in disposable copies:** with the shift restored alone, the N=2500 timing row
+reddens (2 s; the per-opener charge still ends N=4000 early); with the charge removed alone, the
+N=4000 row reddens on its reason (the index still walks it in 1 s); with both reverted — the
+`e3b466f1` state — the N=4000 row also reddens on time (5 s), and the adapter suite's new large-input
+row reddens (4.03 s, abstained). The adapter row passes at 0.27 s.
+
+**A1.** A `-c` wrapper followed by more text is named as not covered in the bounds paragraph above,
+in the bridge document and in README. It was ALLOW before #497 and is ALLOW now; its exposure is the
+owner's to price.
+
+### Which layer carries it, and what the other harnesses get
+
+The **shared guard**, which both carriers already run. The Codex adapter gains **no** policy: its
+suite asserts that the quoted rows, including QA's secret-write fixture as data, now translate to
+`block`, and that a single-quoted literal and an escaped dollar still pass. Claude Code's event and
+verdict envelope and the convenience default are unchanged. Kiro remains knowledge-only. **What is
+proven is the guard's decision and the adapter's translation; the native runtime effect on Codex is
+owed**, because installed `2.0.71` predates this change.
+
+### What nothing enforces
+
+Whether a future edit routes this branch through `deny_convenience` is caught by the suite's switch
+arms (unset, `on`, `off`, every active row). Whether the tokeniser is right about a spelling nobody
+listed is not caught by anything — **these spellings, measured; never the class.**
+
+### Significance
+
+*Alters a previously-recorded decision's reach* (slice D's mandatory substitution branch) and
+*changes the shared irreversible floor* for both carriers.

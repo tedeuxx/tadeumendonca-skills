@@ -29,6 +29,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -757,7 +758,28 @@ CONVENIENCE = [
 FORWARDED_FRICTION = [
     ("echo $(date)", "command substitution, $( ) spelling"),
     ("echo " + BT + "date" + BT, "command substitution, BACKTICK spelling"),
+    # #497: the DOUBLE-QUOTED spellings. At 2.0.71 these abstained through this adapter while
+    # the shell executed them; the repair is in the SHARED guard, so this adapter gains no policy
+    # of its own and these arms only prove the translation carries the new guard verdict.
+    ('printf "%s" "$(date)"', "command substitution INSIDE double quotes, $( ) spelling"),
+    ('printf "%s" "' + BT + "date" + BT + '"', "command substitution INSIDE double quotes, BACKTICK"),
+    ('printf "%s" "$(gh sec' + 'ret set PROBE --body value)"',
+     "the QA-reported quoted nested secret write (fed as data, never executed)"),
+    ('gh "$(echo sec' + 'ret)" set FOO --body x', "a quoted MANUFACTURED subcommand"),
+    # #500 round 2: the QA fixture behind a quoted-blank heredoc delimiter, and a line continuation.
+    ("cat <<'E X'\nb\nE X\n" + 'printf "%s" "$(gh sec' + 'ret set PROBE --body value)"',
+     "the QA fixture behind <<'E X' (a delimiter with a blank used to hide every later line)"),
+    ('gh "$\\\n(echo X)" set P', "a backslash-newline between $ and ( inside double quotes"),
+    # #500 round 3: a comment is not continued by a trailing backslash (463fae4b let this through).
+    ("true # note \\\n" + 'printf "%s" "$(gh sec' + 'ret set PROBE --body value)"',
+     "the QA fixture on the line after 'true # note \\\\'"),
 ]
+# The inert twin of the rows above: a single-quoted literal must still pass the adapter
+# untouched, or the arms above could be green on an adapter that blocks every '$('.
+check(decision_of(run_adapter(codex_payload("printf '%s' '$(date)'"))) is None,
+      "#497 — a SINGLE-QUOTED literal substitution is still not blocked through the adapter")
+check(decision_of(run_adapter(codex_payload('printf "%s" "\\$(date)"'))) is None,
+      "#497 — an ESCAPED dollar inside double quotes is still not blocked through the adapter")
 FLOOR = [
     (_TF + " " + _AP, "an IaC mutation"),
     ("git push origin main", "a trunk push"),
@@ -789,6 +811,20 @@ for command, label in FORWARDED_FRICTION:
     check(d is not None and d["decision"] == "block",
           "AC7 — %s IS forwarded: it manufactures the token every floor rule matches on, "
           "so omitting it is a floor hole rather than a narrowing" % label)
+
+# #500 gate round 1 (A3/B1): a LARGE input, through the adapter, with the adapter's own default
+# timeout in force. At e3b466f1 the Issue's QA fixture behind 4,000 unquoted heredoc openers took
+# 5.02 s in the guard, so this adapter abstained at 4.0 s and printed nothing — invisible to every
+# arm above, which all fed small inputs. An abstain here is `None`, so the arm needs no clock.
+_hd = ("cat" + " <<a" * 4000 + "\n" + "a\n" * 4000 +
+       'printf "%s" "$(gh sec' + 'ret set PROBE --body value)"')
+_t = time.time()
+_p = run_adapter(codex_payload(_hd))
+_dt = time.time() - _t
+d = decision_of(_p)
+check(d is not None and d["decision"] == "block",
+      "#500 — a 24 KB input (4,000 heredoc openers + the QA fixture) is BLOCKED through the adapter "
+      "in %.2fs, not abstained on at its 4.0 s timeout" % _dt)
 
 for command, label in FLOOR + MANUFACTURED:
     d = decision_of(run_adapter(codex_payload(command)))
@@ -836,6 +872,8 @@ for needle, why in [
     ("0.154.0-alpha.6.2", "it names the independently checked VS Code build"),
     ("quoted nested substitution was observed ABSTAINING",
      "it states the known semantic gap instead of flattening invocation into coverage"),
+    ("a native re-run on an installed release carrying the repair is OWED",
+     "it does not present the #497 source repair as native evidence"),
     ("UserPromptSubmit separately blocked", "it bounds native preflight support to the "
                                              "event measurement actually taken"),
     ("INVOCATION LOG", "it names the invocation log and its state, which is the only "

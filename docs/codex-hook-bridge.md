@@ -1639,7 +1639,7 @@ These two runs refute the earlier surviving build hypothesis for the measured `P
 route. They do **not** authenticate `agent_type`, cover host/IDE shell routes, close the
 `write_stdin` gap, or turn installed trust into script-content integrity.
 
-### 18.2 · The quoted nested-operation gap is observed, not repaired here
+### 18.2 · The quoted nested-operation gap ~~is observed, not repaired here~~ — observed at `2.0.71`, repaired in the shared guard's source at #497
 
 QA fed strings to the adapter without executing them. The quoted fixture
 `printf "%s" "$(gh secret set PROBE --body value)"` abstained; its unquoted sibling blocked as a
@@ -1650,6 +1650,31 @@ That finding blocks a complete AC4/AC7 coverage claim even though invocation its
 repair changes the shared Claude/Codex floor and its regression contract, so it is outside this
 Codex-only slice and has been authorised as a separate follow-up. This section does not claim that
 trust or carrier activation repaired it.
+
+**AMENDED 2026-09-23 (#497) — the follow-up landed in the SHARED guard, and the adapter gained no
+policy.** Rule 8 of `hooks/scripts/permission-guard.sh` now also runs a substitution-specific scanner
+(`subst_active`) over the original command and each unwrapped `-c` payload, so an active `$(…)` or
+backtick inside double quotes, escaped surrounding quotes, mixed quote concatenation or an unquoted
+heredoc body denies with its own reason, whatever `PERMISSION_GUARD_CONVENIENCE_RULES` says.
+**These spellings, not the class** — round 2 (#500's lens) added a heredoc whose quoted delimiter
+carries a blank or `;&|<>()`, which had hidden every later line, and `$\<NL>(…)` line continuation;
+process substitution `<(…)` is not covered. A command too large to scan inside the guard's time
+budget is denied with its own reason, ~~never left to the adapter's 4.0 s timeout, where it abstains~~
+(struck at the gate, #500 B1: false at `e3b466f1` — 4,000 heredoc openers took 5.02 s and the adapter
+abstained; the queue is now popped by index and each opener is charged to the budget). What is
+measured, not guaranteed: the worst of nine operation-heavy shapes answered in 0.91 s and that
+24 KB input is blocked through the adapter in 0.27 s, asserted in its suite. **Not covered either:** a
+`-c` wrapper followed by more text — `bash -c '…' _`, `sh -c '…'; true` — is never unwrapped, so a
+substitution in that payload is not seen; ALLOW before #497 and after it.
+The scanner is **additive** to the old `$bare` predicate, so nothing that predicate denied can
+reach ALLOW, and every other rule still reads `$bare` unchanged. Through this adapter the QA fixture
+above now returns `block` — asserted, as data and never executed, in
+`scripts/codex-hook-adapter.test.py`'s AC7 section beside two inert twins (a single-quoted literal and
+an escaped dollar) that must still pass. **Three layers, kept apart:** the guard's DECISION is
+proven by `hooks/scripts/permission-guard.test.sh`; the adapter's TRANSLATION of it by the adapter
+suite; the native RUNTIME effect is **not** re-measured — installed `2.0.71` predates the repair, so
+a native run on an installed release carrying it is owed. The executable/literal table, the measured
+shells and the bounds are in ADR-0004's 2026-09-23 amendment.
 
 ### 18.3 · `UserPromptSubmit` can carry the Codex-native preflight
 
@@ -1675,7 +1700,7 @@ not imported merely because the Claude registry declares them.
 | same installed carrier effect on VS Code `0.154` | **independently observed**, with the ambient permission-mode qualification above |
 | `UserPromptSubmit` can block a turn | **observed through a disposable native registration** |
 | the new carrier's `UserPromptSubmit` registration fires after release/install | **owed** — CI cannot start Codex, and the installed package predates this change |
-| quoted nested irreversible operations are covered | **false at the measured shared guard** — separate repair required |
+| quoted nested irreversible operations are covered | ~~**false at the measured shared guard** — separate repair required~~ **false at installed `2.0.71`; the shared guard's source denies ~~the class~~ the measured spellings listed in ADR-0004's 2026-09-23 amendment since #497 — not the class, and not process substitution** (guard decision and adapter translation asserted in CI; native effect on an installed release carrying it **owed**) |
 | authenticated caller identity or whole-harness support | **not claimed** |
 
 The carrier and adapter suites pin the two-event registration, the shared command, the no-matcher
