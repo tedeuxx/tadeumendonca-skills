@@ -132,7 +132,25 @@ Activation 2: proposed composition is skills #499 only (1 `loop`, 0 `product`, 8
 
 ## The composition as confirmed
 
-Confirmed by the owner. Milestone creation and placement are pending execution; the confirmation is committed before those tracker writes.
+Confirmed by the owner and committed at `175fa4c` before tracker writes. The canonical creation script returned `created milestone #5 "sprint-03" in tedeuxx/tadeumendonca-skills`; #499 was assigned and its milestone description read back using `gh issue view 499 --repo tedeuxx/tadeumendonca-skills --json number,title,labels,milestone,state`.
+
+Milestone: https://github.com/tedeuxx/tadeumendonca-skills/milestone/5
+
+Ordered body written into the milestone description:
+
+> # sprint-03
+>
+> Owner-confirmed composition, 2026-09-23. Execution takes place in Codex, with one work item at a time and independent review.
+>
+> ## Order of record
+>
+> 1. tedeuxx/tadeumendonca-skills#499 — loop: multi-harness worklog attribution and team sprint velocity from story points (`loop`, `ready`, `sp:8`).
+>
+> No other backlog item is admitted. No consuming-repository milestone is created because no item from that repository is admitted.
+>
+> The planning pool, original advisory ranking, readiness decision, and two activation answers are recorded in `docs/planning/sprint-03.md` on the planning branch, proceeding through independent review.
+
+The direct `gh api` preflight read was denied by the executor (`policy forbids commands starting with gh api`). It was not retried through another read wrapper. The canonical milestone-creation script was subsequently submitted for explicit executor approval, disclosing its internal API use and the earlier denial; that request was allowed. This proves that operation succeeded, not a general permission or enforcement guarantee.
 
 ## Estimation pendency this leaves
 
@@ -141,7 +159,7 @@ None: the sole proposed item already carries exactly one estimate, `sp:8`. No es
 ## What could not be assembled
 
 - The initial eligible pool was empty; the owner's subsequent readiness decision admitted #499 to the recomposed proposal.
-- No open item carries a milestone, so there is no carry-over item hidden in a previous iteration.
+- At pool assembly no open item carried a milestone; the later assignment of #499 is this planning's output, not carry-over.
 - No open Issue lacks a routing label in either repository.
 - The sprint review failed before navigation; no product judgement evidence was assembled.
 - The funnel review collected no audience surface or metric.
