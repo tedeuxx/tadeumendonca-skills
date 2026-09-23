@@ -156,7 +156,10 @@ command="$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/nu
 
 # WHO is running this call. The harness stamps a subagent's tool calls with agent_type
 # (`<plugin>:<subagent>`) and leaves it empty for the main agent. The merge gate (rule 7b) and the
-# filing exemption (5d) both read it.
+# filing exemption (5d) both read it. **That is Claude Code.** On Codex (#501) the adapter sends the
+# child's DECLARED role (`tadeumendonca_<persona>`, which the `caller` transform below maps onto the
+# same arms) and `""` for the root session. Everything this block says about "cannot claim" holds
+# there for a command string; the role itself is a selection, and the cost is stated at `caller`.
 #
 # THE PROPERTY IS "CANNOT CLAIM", NOT "CANNOT OBTAIN", and the difference matters enough to state:
 # `agent_type` is read from the ROOT of the payload, while the model's only contribution is
@@ -2361,7 +2364,8 @@ fi
 
 # 7b. Merging a PR is the deploy — ADR-0004 makes it the quality-assurance's act alone,
 #     and this is where that stops being a promise the main agent must remember. The
-#     harness stamps agent_type on a subagent's tool calls (`<plugin>:quality-assurance`)
+#     harness stamps agent_type on a subagent's tool calls (`<plugin>:quality-assurance`;
+#     on Codex, since #501, the DECLARED Codex id of that persona, via `caller`)
 #     and leaves it empty for the main agent, so `gh pr merge` is allowed ONLY from the
 #     reviewer; the main agent and every other subagent are denied. It turns "did the
 #     reviewer run?" into a precondition the model cannot satisfy by recall — only by
@@ -2438,6 +2442,8 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
   fi
   case "$caller" in
     *:quality-assurance)
+      # (#501: on Codex the caller reaching here is DECLARED, not proven — the owner accepted that a
+      # declared `quality-assurance` may merge; the verdict-at-head read below is unchanged for it.)
       # 7c. THE CALLER IS ALREADY PROVEN — this check is about WHETHER ITS OWN VERDICT SAYS SO,
       # on the PR's CURRENT head. ADR-0004's "The merge precondition is a floor, not an instruction"
       # section proposed exactly this: the strongest rule in this loop (a merge requires a clean gate

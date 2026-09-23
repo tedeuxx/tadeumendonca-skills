@@ -287,9 +287,12 @@ jobs:
       # naming: that one gates an INSTRUMENT and touches no control, while this one pipes real
       # payloads into the LIVE permission guard and asserts what Codex is and is not exempted
       # from. A regression here is a hole in the irreversible floor on a second harness — the
-      # sharpest form being an adapter that maps a missing `agent_type` to the empty string,
-      # which hands the Codex PARENT THREAD the orchestrator's exemptions and is a one-line
-      # defect with no visible effect. It still starts no Codex process: no runner has one, and
+      # ~~sharpest form being an adapter that maps a missing `agent_type` to the empty string,
+      # which hands the Codex PARENT THREAD the orchestrator's exemptions~~ (STRUCK #501: the
+      # adapter now does that ON PURPOSE for the root, the only keyless sender measured) — the
+      # sharpest form now being an adapter that maps a present-but-EMPTY value to the empty
+      # string, or a guard transform that stops agreeing with the build's role ids, each a
+      # one-line defect with no visible effect. It still starts no Codex process: no runner has one, and
       # `docs/codex-hook-bridge.md` says at its own head what a green here does not mean.
       - name: Check the Codex floor adapter and its carrier
         run: python3 scripts/codex-hook-adapter.test.py

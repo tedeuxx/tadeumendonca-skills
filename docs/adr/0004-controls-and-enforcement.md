@@ -5961,10 +5961,17 @@ parent's own `collaborationspawn_agent` call carries `{"agent_type": "<role>", �
 **the parent NAMES the child's identity.** So the field authenticates *which role config was
 selected* and never *that the selector was entitled to select it*.
 
-> **Ruling, and it is this capability's rule rather than a Codex detail: a caller-dependent
-> exemption may not be bound to `agent_type` on that harness.** The direction of its error is the
+> ~~**Ruling, and it is this capability's rule rather than a Codex detail: a caller-dependent
+> exemption may not be bound to `agent_type` on that harness.**~~ The direction of its error is the
 > wrong one. The value a bridge would most want to trust is exactly the one a model would name to
 > obtain the exemption, and the error is invisible — the exemption simply applies.
+
+**The ruling is STRUCK and OVERRULED by the owner on 2026-09-23 (#501). The analysis beneath it
+stands, and is why the overruling is recorded as an accepted cost rather than a correction.** Every
+sentence of the paragraph above is still true of Codex. The owner chose to bind the role-keyed
+exemptions to `agent_type` anyway, so that a sprint can run entirely inside Codex — see the
+2026-09-23 amendment at the end of this record, *"role parity across harnesses"*, which quotes his
+three decisions and states the cost in his terms.
 
 **What that leaves usable is not nothing, and the distinction is worth keeping.** The **absence** of
 the key is not model-chosen, since a parent cannot make itself a child. *Deny every caller-dependent
@@ -5972,9 +5979,15 @@ act to every caller* is implementable; *this is a child* is implementable; *whic
 any sense a floor may rest on. #455's own AC5 already required exactly this and is satisfied by
 refusal rather than by construction.
 
-**And ABSENT is not EMPTY.** **An adapter that defaults a missing key to `""` hands the Codex parent
-thread the orchestrator's exemptions by accident.** The hazard was anticipated in #455's body; this
+**And ABSENT is not EMPTY.** ~~**An adapter that defaults a missing key to `""` hands the Codex parent
+thread the orchestrator's exemptions by accident.**~~ The hazard was anticipated in #455's body; this
 is the measurement that makes it concrete.
+
+**Struck 2026-09-23 (#501): the adapter now does exactly that, ON PURPOSE, and only after the
+premise was measured.** The key was found absent on the ROOT session's payloads and present on every
+child the runtime could spawn, depth 2 included, so `""` reaches the root alone. The measurement and
+its bounds are in the 2026-09-23 amendment below. ABSENT and EMPTY still map to different values
+(`""` and `codex-unidentified`).
 
 ~~`hooks/scripts/permission-guard.sh` reads an empty `agent_type` as the orchestrator and grants it
 that position in rules 7 and 7b.~~ **Struck within this slice, on the gate's finding: the ruling is
@@ -6163,7 +6176,7 @@ held by whoever reviews slice C.
 It crosses the *alters a previously-recorded decision* arm twice. The 2026-09-08 amendment recorded
 that a Codex permission layer exists and declares a scope ceiling; this one measures what the layer
 beneath it — the hook — can and cannot carry, and rules that one class of control (caller-dependent
-exemptions) may not be carried there at all. It also discharges the unmeasured rows slice A's own
+exemptions) may not be carried there at all (a ruling the owner overruled on 2026-09-23, #501). It also discharges the unmeasured rows slice A's own
 record published as blocking, which were recorded in ADR-0005's 2026-09-11 amendment; those rows are
 struck in `docs/codex-hook-bridge.md` rather than deleted, because slice A published them as the
 reason no adapter could be written.
@@ -6185,17 +6198,25 @@ one-clause edit rather than a rewrite.
 1. **One authored floor, two carriers.** The adapter contains no rule. Every verdict it emits
    came out of the guard. A rule in the adapter would be a second floor drifting from the first
    with nothing watching, which is the failure this repository names most often.
-2. **A caller-dependent exemption is unavailable on Codex, to every caller.** Slice B ruled that
+2. ~~**A caller-dependent exemption is unavailable on Codex, to every caller.** Slice B ruled that
    `agent_type` may not carry authority; this implements the ruling by mapping any unusable
    identity to a non-empty sentinel (`codex-unidentified`, deliberately without a colon so it
    cannot match the guard's namespaced allowlists) and passing a real child role through bare.
    Opening work and posting to a public surface are therefore refused to every Codex caller,
    including one whose `agent_type` reads `quality-assurance`. **That is a boundary limitation,
    not a new merge executor**, and the way to lift it is native authenticated caller binding,
-   which does not exist.
-3. **The naive mapping is the SAFE one, and this is the sentence an adapter author gets
-   backwards.** Absence must not normalise to `""`. Measured against the live guard, and
-   re-derived by the suite on every run rather than quoted:
+   which does not exist.~~ **STRUCK 2026-09-23 (#501), on the owner's decisions.** Every Codex
+   persona now takes the same arm of every role-keyed rule as on Claude Code, **the Codex
+   `quality-assurance` id IS a merge executor** (it reaches rule 7c), and native authenticated
+   caller binding still does not exist: the owner chose to proceed without it. The sentinel
+   survives for a present-but-unusable value. See the 2026-09-23 amendment at the end of this
+   record.
+3. ~~**The naive mapping is the SAFE one, and this is the sentence an adapter author gets
+   backwards.** Absence must not normalise to `""`.~~ **STRUCK 2026-09-23 (#501): absence now
+   normalises to `""`, for the root session only, after it was measured to be the only keyless
+   payload.** The table below is still the guard's behaviour and is still re-derived by the
+   adapter suite; what changed is which row the adapter chooses for a keyless payload. Measured
+   against the live guard, and re-derived by the suite on every run rather than quoted:
 
    | caller sent to the guard | opening work (5c/5d) | posting (5e) |
    |---|---|---|
@@ -6825,3 +6846,172 @@ listed is not caught by anything — **these spellings, measured; never the clas
 
 *Alters a previously-recorded decision's reach* (slice D's mandatory substitution branch) and
 *changes the shared irreversible floor* for both carriers.
+
+## Amendment (2026-09-23) — role parity across harnesses: on Codex, every role-keyed act, the irreversible merge included, rests on a DECLARED identity (#501)
+
+**Deciders:** owner (decisions 1-3 below, 2026-09-23), written by `agents-lead`, intake stress test
+by `agents-lead`, gate by `quality-assurance`.
+
+### The owner's decisions, verbatim
+
+1. Asked *"Como o sprint no Codex publica os pareceres, se o nome da persona lá não é autenticado?"*,
+   the owner chose **"Allowlist Codex ids"**. The sprint runs 100% in Codex, and the cost is
+   accepted: a declared, not authenticated, identity on the floor.
+2. Asked *"No sprint dentro do Codex, quem executa o merge depois que o QA aprova?"*, the owner chose
+   **"QA do Codex mergeia"**. The rejected alternative was **"Só postar"**, which would have left the
+   merge in the owner's hands (`APPROVE-EXECUTOR-BLOCKED`) or in a Claude Code session. **He accepted
+   explicitly that merge authority then rests on a declared, not authenticated, `agent_type`.**
+3. Unprompted, the governing principle: *«temos que funcionar de forma equivalente em todos harness
+   suportados pela nossa distribuicao de plugin»*.
+
+### The decision
+
+**Every role-keyed rule in `hooks/scripts/permission-guard.sh` grants and denies a persona the same
+act under its Codex id as under its Claude Code id, by the same named arm.** The guard computes one
+`caller` from `agent_type` by reversing the Codex agent build's id scheme (`scripts/codex-agent-build.py`
+names a persona's native role `tadeumendonca_` + the persona name with `-` turned into `_`), so
+`tadeumendonca_<persona>` becomes `tadeumendonca-skills:<persona>`. The four sites that read the caller
+read `caller`: rule 5e (posting), 5c and 5d (opening work), and 7b (merge, which then runs 7c
+unchanged). `agent_type` itself is never reassigned, so a deny message prints what the harness sent.
+
+**The Codex ROOT session is treated as the orchestrator.** The adapter (`scripts/codex-hook-adapter.py`)
+sends `""` for a payload with no `agent_type` key, which is how Claude Code stamps the main session.
+A present but empty, null or non-string value still becomes `codex-unidentified`.
+
+| act | Claude Code id | Codex id (the build's) | arm, on both |
+|---|---|---|---|
+| post a PR/Issue comment, file an Issue (5e) | `…:developer`, `…:tech-lead`, `…:agents-lead`, `…:quality-assurance` | `tadeumendonca_<same>` | allowed |
+| the same (5e) | `…:product-lead`, `…:content-writer`, `…:content-reviewer`, `…:scrum-master` | `tadeumendonca_<same>` | that persona's **named** deny |
+| file an Issue (5d) | `…:developer` | `tadeumendonca_developer` | exempt (a task under a story) |
+| the same (5d) | the other three 5e-allowed personas | their Codex ids | 5d's deny |
+| merge (7b, then 7c) | `…:quality-assurance` | `tadeumendonca_quality_assurance` | reaches 7c, which clears only on `APPROVE-AND-MERGE(-BOUNDARY)` at head |
+| the same (7b) | every other persona, and the orchestrator | their Codex ids, and the Codex root | 7b's deny |
+| anything | an unknown or malformed id | `tadeumendonca_unknown_persona`, `tadeumendonca_`, `tadeumendonca__developer`, `tadeumendonca_Developer`, `tadeumendonca_developer_x` | each rule's catch-all |
+
+**Rule 7 (trunk push) reads no caller** and was already at parity; it is unchanged.
+
+### What it costs — stated plainly, because it is the whole cost of decision 2
+
+**On Codex, `agent_type` is declared by the session, not authenticated by the harness.** So on
+Codex the allowlist is a routing rule and not an identity check, and **every role-keyed act the
+guard grants on Codex, THE IRREVERSIBLE MERGE INCLUDED, rests on a declared `agent_type`.** This is
+the same limit `docs/codex-hook-bridge.md` already names (*"NOT CLAIMED: authenticated caller
+identity"*), now carrying authority.
+
+**The route to the declared identity was measured, not assumed** (2026-09-23, codex-cli
+`0.151.0-alpha.7.2`, a disposable `CODEX_HOME` and a loopback model; the bridge document's
+section 19 has the method):
+
+- **A spawn naming an UNREGISTERED role is refused by the runtime**: the parent received
+  `unknown agent_type 'tadeumendonca_quality_assurance'` and no child ran.
+- **A HAND-DECLARED role of that exact name is honoured.** A disposable `config.toml` declaring
+  `[agents.tadeumendonca_quality_assurance]` with a one-line instruction that is not the build's
+  profile produced a child whose payload read `agent_type = tadeumendonca_quality_assurance` at the
+  decision point. The build's installer refuses to overwrite a role in its namespace
+  (`install_config`), but that check guards the build's own writes and not a hand-edited config.
+
+**So anyone who can write the session's Codex config can obtain the merge executor's identity.**
+**HYPOTHESIS, unmeasured: that writer can be the model itself.** The build registers roles in a
+project's own `.codex/config.toml`, a workspace path. A file edit reaches it through `apply_patch`,
+a route the adapter does not translate, so the guard never sees that edit. Whether a running
+session re-reads a changed role declaration without a restart was not measured. A run that edits the
+file mid-session and then spawns the new role would settle it.
+
+Rule 7c still requires the gate's own verdict at the PR's current head, so what a declared
+`quality-assurance` can merge is a PR that already carries a clearance at head. The verdict 7c reads
+is not attributable (the guard says so itself: *"THE VERDICT 7c READS CANNOT BE ATTRIBUTED"*), so a
+Codex session can also spawn a declared `quality-assurance` to post that clearance and then merge.
+That is the same routing-not-capability shape as on Claude Code, and it is one step cheaper here.
+
+**The guard cannot tell which harness called it.** A bare `tadeumendonca_<persona>` id sent from a
+Claude Code session takes the same arm too. That is the same class as the existing `*:<persona>`
+patterns, which already admit `anyplugin:<persona>`, and it is accepted.
+
+### Why the root may be `""` — the premise was measured before it was used
+
+Mapping an absent key to `""` gives whatever sends a keyless payload the orchestrator's position:
+it may post, and its `gh issue create` falls through to Codex's own layer. That is only safe if the
+root is the only keyless sender. **Measured on the same build and harness:**
+
+| spawn shape | the child's `agent_type` at the decision point |
+|---|---|
+| a registered role, depth 1 | the role (`probe_child`) |
+| `agent_type` omitted | `default` |
+| `agent_type` omitted, full-history fork (the "inherit" path) | `default` |
+| a grandchild, with `[agents] max_depth = 2` | its own role (`probe_grand`) |
+| the root session's own calls (`spawn_agent`) | **key absent** |
+
+**On this build's defaults a depth-1 child has no spawn tool at all** (the `multi_agent_v1`
+namespace is absent from its tool list), so depth 2 needed `max_depth = 2`. At depth 2 the
+child's own spawn call carried `probe_child` and the grandchild carried `probe_grand`. **No child
+shape measured was keyless.** A future build that sends a keyless child payload would hand that child
+the orchestrator's position, which on this floor means posting and opening work, never merge or trunk
+push. The adapter suite pins the four measured shapes by name.
+
+### The claim is PARITY OF GUARD VERDICTS, not parity of outcome
+
+Where the guard **denies**, both harnesses stop. Where it **abstains**, the next layer decides, and
+that layer differs by harness:
+
+- **The act's own network is a property of the Codex permission profile, not of the guard.**
+  Measured: the same `gh pr view` read executed by a Codex child failed under `:workspace`
+  (`error connecting to api.github.com`) and succeeded under `:danger-full-access`. **So a Codex
+  persona that the guard lets post or merge still cannot do either under a profile without network.**
+- **The orchestrator's `gh issue create` falls to Codex's own approval layer**, which does not list
+  it (`.codex/rules/claude-command-policy.rules`); on Claude Code it reaches a prompt. **What Codex
+  does with it is unmeasured.**
+- **`hooks/scripts/mcp-guard.sh` is role-keyed and is not routed on Codex at all.** The adapter
+  translates only `tool_name == "Bash"`, so no persona's MCP use is bounded on Codex. This is a live
+  permissive gap outside this amendment's scope, named here so the parity claim is not read as
+  covering it.
+- **The Codex carrier registers `PreToolUse` and `UserPromptSubmit` only**, so the `Stop`,
+  `SubagentStart`/`SubagentStop` and `SessionStart` hooks do not run on Codex: no dispatch metrics,
+  no stale-marker or PR-link detectors, no session notices.
+
+**Kiro is outside the parity claim.** The Power installer transports the tree but the loader reads
+only `plugin.json`, `skills/`, `mcp.json` and `dev.kiro/` (README's Kiro section; ADR-0005's
+2026-08-21 amendment). On Kiro there is no guard, no persona identity and no merge gate to make
+equivalent. What equivalence means there today is the knowledge layer only, with that gap named
+wherever support is claimed. Porting the enforcement layer is separate work, and only the owner can
+open it.
+
+### Rule 7c from the Codex hook process — measured to READ; a clearing merge is UNMEASURED
+
+Measured on the same harness: the real adapter from this branch was the trusted hook, and a
+hand-declared `tadeumendonca_quality_assurance` child ran `gh pr merge 367 --merge --repo
+tedeuxx/tadeumendonca-skills` (#367 is closed and carries no verdict, so nothing could merge). The
+guard blocked with *"the last quality-assurance verdict on this PR's CURRENT head is 'none'"*.
+**That is the branch 7c takes after a successful read, not its fail-closed "could not READ" branch.**
+So `gh` and the network are reachable from the Codex hook process, under both `:workspace` and
+`:danger-full-access`.
+
+**A merge that 7c CLEARS, executed by a Codex `quality-assurance` child, was not performed:
+unmeasured.** A throwaway PR merged into `main` publishes a release (ADR-0005), so it is not a
+disposable measurement. **If it fails in practice, the fallback is the one this record already has:
+the gate posts `APPROVE-EXECUTOR-BLOCKED` and the merge is the owner's by exception.**
+
+### What holds it
+
+- `hooks/scripts/permission-guard.test.sh` enumerates the roles from the build's own `snapshot()`
+  manifest and asserts that every role takes **the same arm**, not only the same verdict, under both
+  ids: across four acts and two verdict fixtures, the whole guard output is compared with the raw id
+  replaced by a placeholder. There are also named-arm arms, default-deny arms for the malformed ids
+  above, and an arm asserting that the guard names no persona by its Codex id.
+- **Mutation-checked against the source.** Each of these turned the suite red, and it went green
+  again once restored: dropping the transform, dropping its `_`→`-` rewrite, reverting any one of the
+  three `case` sites to the raw `agent_type`, changing the build's prefix, keeping `-` in the build's
+  id. **One mutant survives and is equivalent:** letting the transform accept uppercase maps
+  `tadeumendonca_Developer` to `…:Developer`, and every role pattern is lowercase and case-sensitive,
+  so the catch-all still answers.
+- The scheme's prefix and its `_`/`-` rule live in both the Python build and the bash guard. That
+  duplication is accepted only because the parity arm derives the role set from the build.
+
+**What nothing holds:** whether the identity a Codex payload declares is the persona that actually
+did the work. That is the cost above, and no layer here can check it.
+
+### Significance
+
+*Alters a previously-recorded decision* twice: the 2026-09-14 slice B ruling (*"a caller-dependent
+exemption may not be bound to `agent_type`"*) and decisions 2 and 3 of the 2026-09-14 slice C
+amendment, all struck in place above. It *changes the shared irreversible floor*: the merge executor
+set gains a declared identity.
