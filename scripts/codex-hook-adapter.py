@@ -29,31 +29,69 @@ later input is invisible to the hook layer AND to the runtime's own item stream
 (section 7). See `REFUSE_INTERACTIVE_SESSION_STARTUP` below — that gap is an OWNER
 DECISION this file leaves explicit rather than answering on its own authority.
 
-── IDENTITY — the naive mapping is the SAFE one ──────────────────────────────────────
+── IDENTITY — ROLE PARITY since #501; the section below it is the struck predecessor ──
 `agent_type` is present on a native child's payload and the key is ABSENT on the
 parent's. It is a routing signal and never a credential: the parent NAMES the role in
-its own spawn call, so a model that can call the spawn tool can request any role.
+its own spawn call, so a model that can call the spawn tool can request any role — and
+an operator can hand-declare a role of any name, the build's own names included
+(measured 2026-09-23, docs/codex-hook-bridge.md section 19).
 
-The trap is that the defensive-looking move is the dangerous one. Measured against the
-live guard at `25dbd030`, with `codex-hook-adapter.test.py` re-deriving it:
+**What this file sends now (#501, owner decisions 1-3, 2026-09-23):**
+
+    what the payload carries        what the adapter sends     measured as
+    <key absent>                    ""                         the ROOT session only
+    a child's role, e.g. `tadeumendonca_quality_assurance`
+                                    the same value, verbatim   every child, at depth 1 and 2
+    "", null, or a non-string       codex-unidentified         (never observed; kept closed)
+
+The owner's rule: «temos que funcionar de forma equivalente em todos harness suportados
+pela nossa distribuicao de plugin». So the Codex ROOT session is treated as the
+orchestrator (the context that dispatches every persona, with no role of its own), and
+a child's Codex role id is translated by the GUARD, not here, into the same namespaced
+id a Claude Code session stamps (`permission-guard.sh`, the `caller` transform). Every
+role-keyed rule then grants and denies a persona the same act on both harnesses.
+
+**Why ABSENT -> "" is safe now when it was the hazard below: it was MEASURED to be the
+root only.** A disposable-home run on codex-cli 0.151.0-alpha.7.2 with a loopback model
+found the key absent on the root's own payloads and present on EVERY child: a registered
+role, a spawn with the type omitted (`default`), a full-history fork (`default`) and a
+grandchild at `max_depth = 2` (its own role). A child cannot make itself keyless in any
+spawn shape measured, and a parent cannot make itself a child. If a later build ever
+sends a keyless CHILD payload, this mapping hands that child the orchestrator's position,
+which on this floor means posting and opening work, never merge or trunk push (7 and 7b
+deny an empty caller). The adapter test pins the four measured shapes by name.
+
+**The cost, and the owner accepted it in these words:** on Codex every role-keyed act,
+the irreversible merge included, rests on a DECLARED identity, not an authenticated one.
+
+~~── IDENTITY — the naive mapping is the SAFE one ──~~ STRUCK 2026-09-23 (#501). It was
+correct about the floor it described and the owner changed the floor. Kept because it is
+the analysis a reader must know was overruled, not forgotten:
+
+~~The trap is that the defensive-looking move is the dangerous one. Measured against the
+live guard at `25dbd030`, with `codex-hook-adapter.test.py` re-deriving it:~~
 
     caller value          opening work (5c/5d)     posting (5e)
-    <key absent>          abstains                 abstains      <- the hazard
+    <key absent>          abstains                 abstains      <- ~~the hazard~~ now: the root
     ""                    abstains                 abstains      <- identical to absent
-    codex-unidentified    deny                     deny          <- what this file sends
+    codex-unidentified    deny                     deny          <- ~~what this file sends~~
 
-So normalising a missing identity to `""` hands the Codex PARENT THREAD the
-orchestrator's exemptions by accident. A BARE name fails closed instead, because the
-guard's allowlists match the namespaced `<plugin>:<persona>` form — `agents-lead` is
-denied by 5e while `tadeumendonca-skills:agents-lead` abstains. Codex's own value is
-bare. **So passing the value through verbatim, and substituting a non-empty sentinel
-when there is none, is both the simplest mapping and the closed one.**
+~~So normalising a missing identity to `""` hands the Codex PARENT THREAD the
+orchestrator's exemptions by accident.~~ It hands them ON PURPOSE now, and to the root
+alone, which is the measured half the struck sentence did not have. ~~A BARE name fails
+closed instead, because the guard's allowlists match the namespaced `<plugin>:<persona>`
+form~~ — still true of a bare name that is NOT the build's scheme (`agents-lead`,
+`probe_child`); a `tadeumendonca_<persona>` id is translated by the guard.
 
-The consequence is stated rather than worked around: on Codex, NO caller obtains a
+~~The consequence is stated rather than worked around: on Codex, NO caller obtains a
 caller-dependent exemption. Opening work and posting to a public surface are refused to
 every Codex caller, including one whose `agent_type` reads `quality-assurance`. That is
 a boundary limitation of this harness, not a new merge executor, and the way to lift it
-is native authenticated caller binding, which does not exist.
+is native authenticated caller binding, which does not exist.~~ STRUCK: false since #501.
+A Codex caller whose role is a build id gets exactly what the same persona gets on
+Claude Code, and the Codex `quality-assurance` id IS a merge executor (it reaches rule 7c,
+which still reads the verdict at head). Native authenticated caller binding still does
+not exist; the owner chose to proceed without it.
 
 ── FAILURE POSTURE ───────────────────────────────────────────────────────────────────
 The `PreToolUse` translation fails open, matching the guard's own general contract: a
@@ -134,6 +172,11 @@ UNTRANSLATED_ROUTES = ("apply_patch", "collaborationspawn_agent", "collaboration
 # matches the namespaced form, so `codex:quality-assurance` would be a synthesised
 # identity that works. There is deliberately no colon in it at all.
 UNIDENTIFIED_CALLER = "codex-unidentified"
+
+# What the ROOT session is sent (#501): the empty value, which is the orchestrator's
+# identity on Claude Code. Named rather than written inline so the one place the adapter
+# grants the orchestrator's position is findable by grep.
+ROOT_CALLER = ""
 
 # Seconds. The carrier declares its own host-side timeout; this one is deliberately
 # shorter so a slow guard returns an abstention WITH a stderr line rather than being
@@ -387,8 +430,15 @@ def abstain(note=None):
 
 
 def map_caller(payload):
-    """ABSENT is not EMPTY. Any value that is not a non-empty string becomes the
-    sentinel, which the guard's caller-keyed rules deny through their catch-all."""
+    """ABSENT is still not EMPTY, and the two now map to DIFFERENT values (#501).
+
+    A missing key is the Codex ROOT session, measured as the only payload without one,
+    so it becomes `""` — the orchestrator, exactly as Claude Code stamps it. A present
+    but empty, null or non-string value was never observed and stays the sentinel, which
+    every caller-keyed rule denies through its catch-all. A non-empty string passes
+    through verbatim; the guard translates a `tadeumendonca_<persona>` id itself."""
+    if "agent_type" not in payload:
+        return ROOT_CALLER
     value = payload.get("agent_type")
     if isinstance(value, str) and value.strip():
         return value
@@ -619,9 +669,21 @@ def selfcheck():
         "COVERAGE: the model's tool calls only. command/exec, process/spawn and "
         "thread/shellCommand fire no hook; input fed into a running session with "
         "write_stdin is observed by nothing.")
+    # The former note ("no Codex caller receives a caller-dependent exemption ...
+    # refused to every caller on this harness") was struck on 2026-09-23 (#501); it went
+    # false when the owner chose role parity.
     notes.append(
-        "CALLER: no Codex caller receives a caller-dependent exemption. Opening work and "
-        "posting to a public surface are refused to every caller on this harness.")
+        "CALLER: ROLE PARITY with Claude Code (#501). The ROOT session is sent as the "
+        "orchestrator (\"\"): it may post, its `gh issue create` falls to Codex's own "
+        "approval layer, and merge and trunk push are denied. A child's "
+        "tadeumendonca_<persona> id takes that persona's arm in every role-keyed rule: "
+        "developer, tech-lead, agents-lead and quality-assurance may post; product-lead, "
+        "content-writer, content-reviewer and scrum-master are refused by their own named "
+        "arms; only developer may open work (a task); only quality-assurance may merge, "
+        "and only when rule 7c reads APPROVE-AND-MERGE(-BOUNDARY) at the PR's head. Any "
+        "other value is refused by each rule's catch-all. THE IDENTITY IS DECLARED, NOT "
+        "AUTHENTICATED: a parent names the role it spawns, and a hand-written config can "
+        "declare any role name.")
     notes.append(
         "TWO CONVENIENCE REFUSALS ARE NOT FORWARDED (%s=off): an env-var prefix and a "
         "stdout redirect. Measured 2026-09-21 on codex-cli 0.151.0-alpha.7.2, both "

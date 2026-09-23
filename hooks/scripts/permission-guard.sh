@@ -183,6 +183,46 @@ command="$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/nu
 # `tech-lead`'s.
 agent_type="$(printf '%s' "$input" | jq -r '.agent_type // empty' 2>/dev/null || true)"
 
+# ROLE PARITY ACROSS HARNESSES (#501). `caller` is what every ROLE-KEYED arm below reads — 5e
+# (posting), 5c/5d (opening work) and 7b (merge) — and it is `agent_type` with ONE transform applied:
+# the reverse of the Codex agent build's id scheme. `scripts/codex-agent-build.py` names a persona's
+# native Codex role `tadeumendonca_` + the persona name with `-` turned into `_`, and refuses any
+# persona name that is not `[a-z0-9]+(-[a-z0-9]+)*`, so no persona name contains `_` and the reverse
+# is unambiguous. A value of that shape becomes the same namespaced id a Claude Code session stamps,
+# so the Codex id of `quality-assurance` and `tadeumendonca-skills:quality-assurance` take THE SAME ARM
+# of every role-keyed rule — the same allow, the same named deny, the same catch-all.
+#
+# The owner's rule, 2026-09-23, verbatim: «temos que funcionar de forma equivalente em todos harness
+# suportados pela nossa distribuicao de plugin».
+#
+# WHAT THIS COSTS, AND IT IS THE WHOLE COST (ADR-0004's 2026-09-23 amendment). On Claude Code the
+# harness stamps `agent_type` and the model cannot forge it. On Codex it is a SELECTION: the parent
+# names the role in its spawn call, and an operator can hand-declare a role of that exact name with
+# arbitrary instructions — measured, not assumed. So on Codex every act these arms grant, the
+# irreversible merge included, rests on a DECLARED identity and not an authenticated one. The owner
+# accepted that in those words. This transform is where that acceptance becomes mechanical.
+#
+# THREE THINGS IT DELIBERATELY DOES NOT DO.
+#   * It does not reassign `agent_type`. Every deny message still prints the RAW value, so a refusal
+#     names what the harness actually sent.
+#   * It does not name a persona. There is no per-persona literal here, only the scheme's prefix; a
+#     malformed id (`tadeumendonca_`, a double or trailing `_`, an uppercase letter) is left untouched
+#     and falls to each rule's catch-all, and a well-formed id that names no persona
+#     (`tadeumendonca_<persona>_x` -> `…:<persona>-x`) matches no arm but the catch-all either.
+#   * It is not the only copy of the scheme. The prefix and the `_`/`-` rule also live in the Python
+#     build, which is a duplication, and it is acceptable only because `permission-guard.test.sh`
+#     enumerates the build's OWN role list and asserts every role takes the same arm as its Claude
+#     id. Change the build's prefix, or break this transform, and that arm goes red.
+caller="$agent_type"
+case "$agent_type" in
+  tadeumendonca_*)
+    codex_persona="${agent_type#tadeumendonca_}"
+    if [[ "$codex_persona" =~ ^[a-z0-9]+(_[a-z0-9]+)*$ ]]; then
+      caller="tadeumendonca-skills:${codex_persona//_/-}"
+    fi
+    ;;
+esac
+
 # ~~NEVER INHERITED FROM THE ENVIRONMENT. `developer_may` is set only by rule 5d below and read as
 # `${developer_may:-}`, so an exported variable of that name in the hook's environment would skip
 # the owner's ASK — a main-agent `gh issue create` coming out with no decision at all. That is the
@@ -1781,7 +1821,7 @@ fi
 # personas ALLOWED to post directly, and anything else — including a future persona nobody remembered
 # to list here — denies by default.
 if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+(pr[[:space:]]+comment|issue[[:space:]]+(comment|create))([[:space:]]|\$)"; then
-  case "$agent_type" in
+  case "$caller" in
     ""|*:developer|*:tech-lead|*:agents-lead|*:quality-assurance)
       : ;;  # allowlisted — none of these reads .brand/ as a matter of course, and each posts as part
             # of its normal work (verdicts, findings, task filing). Falls through to the rest of the
@@ -1966,7 +2006,7 @@ fi
 #     quoted here on purpose — a comment carrying the pattern would itself read as a fourth copy.)
 #     It now asserts they are identical within this file, not only across the two hooks.
 if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]=]*|--repo[[:space:]=]*)[^[:space:]]+)?[[:space:]]+issue[[:space:]]+create'; then
-  if [ -n "$agent_type" ]; then
+  if [ -n "$caller" ]; then
     # 5d. DECOMPOSING IS NOT OPENING (#122, gitflow-single-env). One narrow exception, and the
     #     distinction it rests on is real rather than a convenience:
     #
@@ -2007,7 +2047,7 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])gh([[:space:]]+(-R[[:space:]
     #     gate (7b) and the composition check (8). `gh issue create … && git push origin main` came
     #     out with NO decision at all, where before it was denied twice over. An exception in one
     #     rule silently became a bypass of the whole floor. Falling through is the only safe shape.
-    case "$agent_type" in
+    case "$caller" in
       *:developer) : ;;  # a no-op that CONTINUES to EVERY rule below this block — see the `NOT exit 0` note above
       *) deny "Blocked: a subagent does not open work. Filing tasks under an approved story belongs to \`developer\`, the persona that executes them — a review citing a story is still a review opening work. Report the finding in your verdict and let the owner decide whether it becomes an issue." ;;
     esac
@@ -2396,7 +2436,7 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
     # caller a second deny in a row.
     deny "Blocked: never squash-merge. Use a real merge commit ('gh pr merge <number> --merge', reference first) — per-commit history is the record of how the change was reached, and a squash discards it irreversibly once it is on the trunk."
   fi
-  case "$agent_type" in
+  case "$caller" in
     *:quality-assurance)
       # 7c. THE CALLER IS ALREADY PROVEN — this check is about WHETHER ITS OWN VERDICT SAYS SO,
       # on the PR's CURRENT head. ADR-0004's "The merge precondition is a floor, not an instruction"
