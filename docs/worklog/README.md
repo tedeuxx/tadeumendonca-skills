@@ -14,7 +14,7 @@ No producer is automatic. Planning writes the snapshot; the acting context prepa
 
 ## Accounting
 
-The delivery key is the fully qualified Issue (`owner/repo#number`). A PR, dispatch, attempt, event, or comment is never a delivery key. The first implementation-start event freezes the estimate and its provenance. Mutable labels and milestone moves do not rewrite it. Corrections preserve the original input and reference the superseded event.
+The delivery key is the fully qualified Issue (`owner/repo#number`). A PR, dispatch, attempt, event, or comment is never a delivery key. The event's `revision.repository` identifies the repository containing the applicable code revision and may name a sibling repository; it does not create another delivery. The source comment remains bound to the repository of the Issue that carries it. The first implementation-start event freezes the estimate and its provenance. Mutable labels and milestone moves do not rewrite it. Corrections preserve the original input and reference the superseded event.
 
 The cutoff is an as-of boundary, not display metadata. A fact enters a report only once its source comment and event timestamp are at or before the cutoff. A correction has two times: the correction comment/event says when the replacement became available; the embedded event timestamp says when the corrected fact was effective. A later backdated correction therefore changes later reports and never earlier ones.
 
