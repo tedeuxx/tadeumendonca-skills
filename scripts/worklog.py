@@ -120,8 +120,6 @@ def validate_event(event: Any, where: str = "event") -> dict[str, Any]:
     require(revision, ["repository", "branch", "commit"], f"{where}.revision")
     if not isinstance(revision["repository"], str) or not REPO_RE.fullmatch(revision["repository"]):
         raise ContractError(f"{where}.revision: repository must be owner/repo")
-    if revision["repository"] != event["issue"].split("#")[0]:
-        raise ContractError(f"{where}.revision: repository disagrees with issue")
     nonempty_string(revision["branch"], f"{where}.revision.branch")
     if revision["commit"] not in (None, "unknown") and not SHA_RE.fullmatch(str(revision["commit"])):
         raise ContractError(f"{where}.revision: commit must be a git SHA, unknown, or null")

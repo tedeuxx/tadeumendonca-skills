@@ -65,6 +65,30 @@ class WorklogTest(unittest.TestCase):
         self.assertTrue(any("incomplete attribution coverage: acme/site#8" == warning
                             for warning in result["warnings"]))
 
+    def test_one_delivery_retains_revisions_from_sibling_repositories(self):
+        events = copy.deepcopy(FIXTURE["events"][:3])
+        sibling = copy.deepcopy(events[1])
+        sibling.update({"event_id": "skills-7-site-checkpoint", "timestamp": "2026-09-02T12:00:00Z",
+                        "event_type": "checkpoint", "stage": "build",
+                        "predecessor_event_id": "skills-7-start"})
+        sibling["revision"] = {"repository": "acme/site", "branch": "feat/7-counterpart",
+                               "commit": "ccccccc"}
+        sibling["handoff"] = {"state": "active", "to": None}
+        events.append(sibling)
+
+        result = worklog.report(FIXTURE["snapshot"], tracker_export(events), "reproduce")
+        item = next(item for item in result["items"] if item["issue"] == "acme/skills#7")
+        self.assertEqual(1, sum(entry["issue"] == "acme/skills#7"
+                                for entry in result["items"]))
+        self.assertEqual(8, item["points"])
+        self.assertEqual({"acme/skills", "acme/site"},
+                         {segment["revision"]["repository"] for segment in item["segments"]})
+
+        invalid_source = tracker_export(events)
+        invalid_source["comments"][0]["repository"] = "acme/site"
+        with self.assertRaisesRegex(worklog.ContractError, "issue disagrees with repository"):
+            worklog.report(FIXTURE["snapshot"], invalid_source, "reproduce")
+
     def test_conflicting_duplicate_fails(self):
         events = copy.deepcopy(FIXTURE["events"])
         conflict = copy.deepcopy(events[0])
@@ -276,7 +300,6 @@ class WorklogTest(unittest.TestCase):
             ("plugin not object", changed(start, ("attribution", "plugin"), [])),
             ("revision not object", changed(start, ("revision",), [])),
             ("bad revision repo", changed(start, ("revision", "repository"), "bad")),
-            ("revision repo mismatch", changed(start, ("revision", "repository"), "other/repo")),
             ("blank branch", changed(start, ("revision", "branch"), "")),
             ("bad commit", changed(start, ("revision", "commit"), "not-a-sha")),
             ("blank evidence", changed(start, ("evidence",), [" "])),
