@@ -146,8 +146,11 @@ check("the recorder writes a payload when invoked, so a zero delta is a real zer
 check("the offline and turn phase sets are disjoint",
       not (set(probe.OFFLINE_PHASES) & set(probe.TURN_PHASES)),
       str(sorted(set(probe.OFFLINE_PHASES) & set(probe.TURN_PHASES))))
+check("the loopback set shares no member with either other set",
+      not (set(probe.LOOPBACK_PHASES) & (set(probe.OFFLINE_PHASES) | set(probe.TURN_PHASES))))
 check("every phase belongs to exactly one set",
-      set(probe.PHASES) == set(probe.OFFLINE_PHASES) | set(probe.TURN_PHASES))
+      set(probe.PHASES) == (set(probe.OFFLINE_PHASES) | set(probe.TURN_PHASES)
+                            | set(probe.LOOPBACK_PHASES)))
 check("native preflight measurement is opt-in because it starts a model turn",
       "preflight" in probe.TURN_PHASES and "preflight" not in probe.OFFLINE_PHASES)
 
@@ -602,7 +605,7 @@ check("and it returns empty on an environment carrying no such name, so it is no
 
 # The phase must not conclude what it was written to observe.
 root_src = (ROOT / "scripts" / "codex-hook-probe.py").read_text().split(
-    "def phase_carrierroot")[1].split("\nOFFLINE_PHASES")[0]
+    "def phase_carrierroot")[1].split("# Phase: stalepath")[0]
 ROOT_CONTROLS_MARKER = "the controls, in the order that makes a zero readable"
 check("the phase's control block is findable by the marker this arm splits on",
       root_src.count(ROOT_CONTROLS_MARKER) == 1,
@@ -653,6 +656,40 @@ check("every pinned key is compared by the phase, so a pin cannot go unread",
       str(sorted(probe.ROOT_MEASURED)))
 check("the pinned comparison is REPORTED and not raised on",
       "pinned_agreement" not in root_controls, root_controls[:200])
+
+# --- arm 9: the `stalepath` loopback phase (#508) ----------------------------
+probe_src = (ROOT / "scripts" / "codex-hook-probe.py").read_text()
+# It starts real app-server processes and turns, so it must not leak into `--phase all`;
+# it spends nothing, so it must not demand `--allow-model-turn` either. Both are properties
+# of the partition, and the partition is all CI can reach.
+check("stalepath is the one loopback phase", set(probe.LOOPBACK_PHASES) == {"stalepath"},
+      str(sorted(probe.LOOPBACK_PHASES)))
+check("stalepath is unreachable from --phase all and --phase turn",
+      "stalepath" not in probe.OFFLINE_PHASES and "stalepath" not in probe.TURN_PHASES)
+stale_src = probe_src.split("def phase_stalepath")[1].split("\nLOOPBACK_PHASES")[0]
+stale_all = probe_src.split("# Phase: stalepath")[1].split("\nLOOPBACK_PHASES")[0]
+check("stalepath never copies a credential — the model is the loopback stand-in",
+      "seed_credential" not in stale_all and "requires_openai_auth = false" in stale_all)
+check("stalepath installs the SHIPPED registration read from codex-hooks.json, not a "
+      "fixture that resembles it", 'codex-hooks.json").read_text()' in stale_src
+      and "shipped, shipped" in stale_src)
+check("stalepath's recorder carries the adapter's own file name, so the shipped command's "
+      "in-package path resolves to it", '"codex-hook-adapter.py"' in stale_all)
+check("stalepath keeps the legacy command as the control that must strand",
+      probe.STALE_LEGACY_COMMAND == "python3 ${PLUGIN_ROOT}/scripts/codex-hook-adapter.py")
+check("stalepath's control turn before any update is RAISED on, so a silent zero is not "
+      "readable as a stale root", "the CONTROL turn before any update" in stale_all)
+check("the stalepath pins are REPORTED and not raised on",
+      "pinned_agreement" in stale_src
+      and "raise Failure" not in stale_src.split("pinned_agreement")[1].split(
+          "The one reading")[0])
+check("every stalepath pin is compared by the phase, so a pin cannot go unread",
+      all(('STALE_MEASURED["%s"]' % k) in stale_src
+          for k in probe.STALE_MEASURED if k != "build"),
+      str(sorted(probe.STALE_MEASURED)))
+check("the exit-status pin records that ONLY exit 2 blocks, the fact the shipped resolver's "
+      "refusals are built on", probe.STALE_MEASURED["exit_status"]
+      == {"1": "failed", "2": "blocked", "127": "failed"})
 
 print("\n%d passed, %d failed" % (passed, failed))
 if passed == 0:

@@ -29,6 +29,12 @@ TWO CLASSES OF PHASE, and the second one SPENDS THE OPERATOR'S TOKENS.
                     each is refused unless `--allow-model-turn` is passed. The flag is
                     not a convenience: a probe that could start a paid turn by default
                     is a probe nobody can run to check the offline claims.
+  loopback phases — `stalepath` (#508). It starts real app-server processes and real
+                    turns, but the MODEL is a loopback stand-in on 127.0.0.1 declared in
+                    the disposable config with `requires_openai_auth = false`: no
+                    credential is copied and no token is spent. It is not in `--phase
+                    all` because it takes about a minute and needs a Codex binary; it
+                    needs no `--allow-model-turn` because it spends nothing.
 
 CREDENTIAL HANDLING, because the turn phases need one. `~/.codex/auth.json` is COPIED
 into the disposable home. That is a READ of the real Codex home and never a write, and
@@ -1981,6 +1987,404 @@ def phase_carrierroot(binary, work, report):
             "reproduce the carrierfire result, where the same route recorded.")
 
 
+# ---------------------------------------------------------------------------
+# Phase: stalepath (#508) — when does a RUNNING session resolve ${PLUGIN_ROOT}?
+# ---------------------------------------------------------------------------
+#
+# The loop publishes a patch on every merge, and the Codex plugin cache keeps one
+# version. On 2026-09-23 a running Codex session kept launching a version directory that
+# an update had removed, and every tool call was denied. This phase reproduces that with
+# no credential: the model is a loopback stand-in that scripts one shell call per turn.
+#
+# The fixture package's recorder is NAMED `scripts/codex-hook-adapter.py`, so the SHIPPED
+# registration string is installed verbatim from this checkout's `codex-hooks.json` —
+# the phase measures the real command rather than a fixture that resembles it.
+
+STALE_MARKET = "stalepath-market"
+STALE_PLUGIN = "stalepathprobe"
+STALE_LEGACY_COMMAND = "python3 ${PLUGIN_ROOT}/scripts/codex-hook-adapter.py"
+
+# WHAT THIS PHASE MEASURED. codex-cli 0.151.0-alpha.7.2, 2026-09-24, loopback model.
+# Pinned as DOCUMENTATION and reported as `pinned_agreement`, never raised on — the same
+# posture as ROOT_MEASURED, for the same reason.
+#
+#   RESOLUTION IS PER PROCESS. A running app-server keeps the root it resolved; a new
+#   THREAD in that process gets the old root too. A FRESH process gets the new one.
+#   AN INSTALL IN THE SAME PROCESS REFRESHES IT — the outage needs the update to come
+#   from a DIFFERENT process (a second session, the desktop app, `codex plugin add`).
+#   No refresh was observed after 45 s idle, so nothing watches the cache.
+#   THE INSTALLING CALL DELETES THE OLD VERSION, synchronously: after `plugin/install`
+#   (app-server) and after `codex plugin add` (CLI) only the new directory remained.
+#   TRUST SURVIVES A RELEASE and a CHANGED COMMAND DOES NOT: the trust key names no
+#   version and the hash covers the DECLARED command, so an identical template stays
+#   `trusted`, while a new template reads `modified` and the hook is SKIPPED — the act
+#   executes with no hook at all until the operator re-trusts.
+#   ONLY EXIT 2 BLOCKS. Exit 1 and exit 127 read `failed` and the act executes; section
+#   16.4's fail-closed launch failure holds only because python3 exits 2 on a missing
+#   script.
+#   THE COMMAND RUNS IN A SHELL — the user's login shell (zsh here, even with SHELL set to
+#   bash): `;`, `||`, quoting and `$HOME` all behave as a shell's.
+#   PLUGIN_DATA IS VERSION-INDEPENDENT (`<CODEX_HOME>/plugins/data/<plugin>-<market>`)
+#   and is not created by the installer.
+STALE_MEASURED = {
+    "build": "codex-cli 0.151.0-alpha.7.2",
+    "legacy_other_process": {"after_update_same_thread": "blocked",
+                             "after_update_new_thread": "blocked",
+                             "fresh_process": "new-version"},
+    "legacy_same_process": {"after_update_same_thread": "new-version",
+                            "after_update_new_thread": "new-version"},
+    "shipped_other_process": {"after_update_same_thread": "new-version",
+                              "after_update_new_thread": "new-version"},
+    "migration_trust_status": "modified",
+    "migration_hook_ran": False,
+    "exit_status": {"1": "failed", "2": "blocked", "127": "failed"},
+    "old_version_left_after_install": False,
+}
+
+
+class LoopbackModel:
+    """A Responses-API stand-in on 127.0.0.1 that scripts one shell call per turn.
+
+    The user prompt carries `CMD<<…>>CMD`; the first request of a turn gets a function
+    call running exactly that, and the request carrying its output gets a one-word reply.
+    Nothing leaves the machine, so the phase needs no credential and spends nothing.
+    """
+
+    def __init__(self):
+        import http.server
+        import socketserver
+        outer = self
+        self.requests = 0
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def log_message(self, *args):
+                pass
+
+            def do_GET(self):
+                self.send_response(404)
+                self.end_headers()
+
+            def do_POST(self):
+                body = self.rfile.read(int(self.headers.get("content-length") or 0))
+                outer.requests += 1
+                n = outer.requests
+                try:
+                    req = json.loads(body)
+                except ValueError:
+                    req = {}
+                items = req.get("input") or []
+                last = items[-1] if items else {}
+                tools = [t.get("name") for t in (req.get("tools") or [])]
+                if last.get("type") in ("function_call_output", "custom_tool_call_output"):
+                    item = {"type": "message", "role": "assistant", "id": "msg_%d" % n,
+                            "content": [{"type": "output_text", "text": "DONE"}]}
+                else:
+                    text = json.dumps(last)
+                    cmd = (text.split("CMD<<")[1].split(">>CMD")[0]
+                           if "CMD<<" in text else "true")
+                    name = "exec_command" if "exec_command" in tools else "shell"
+                    args = ({"cmd": cmd} if name == "exec_command"
+                            else {"command": ["bash", "-lc", cmd]})
+                    item = {"type": "function_call", "name": name, "id": "fc_%d" % n,
+                            "call_id": "call_%d" % n, "arguments": json.dumps(args)}
+                usage = {"input_tokens": 1, "input_tokens_details": {"cached_tokens": 0},
+                         "output_tokens": 1,
+                         "output_tokens_details": {"reasoning_tokens": 0},
+                         "total_tokens": 2}
+                events = [
+                    ("response.created", {"type": "response.created",
+                                          "response": {"id": "resp_%d" % n}}),
+                    ("response.output_item.done", {"type": "response.output_item.done",
+                                                   "item": item}),
+                    ("response.completed", {"type": "response.completed",
+                                            "response": {"id": "resp_%d" % n,
+                                                         "usage": usage}}),
+                ]
+                out = "".join("event: %s\ndata: %s\n\n" % (e, json.dumps(d))
+                              for e, d in events).encode()
+                self.send_response(200)
+                self.send_header("content-type", "text/event-stream")
+                self.send_header("content-length", str(len(out)))
+                self.end_headers()
+                self.wfile.write(out)
+
+        self._server = socketserver.ThreadingTCPServer(("127.0.0.1", 0), Handler)
+        self.port = self._server.server_address[1]
+        threading.Thread(target=self._server.serve_forever, daemon=True).start()
+
+    def config_head(self):
+        """Top-level keys: they must precede every table in config.toml."""
+        return 'model = "loopback-probe"\nmodel_provider = "loopback"\n'
+
+    def config_table(self):
+        return ('\n[model_providers.loopback]\nname = "loopback"\n'
+                'base_url = "http://127.0.0.1:%d/v1"\nwire_api = "responses"\n'
+                'requires_openai_auth = false\nrequest_max_retries = 0\n'
+                'stream_max_retries = 0\n' % self.port)
+
+    def close(self):
+        self._server.shutdown()
+
+
+STALE_RECORDER = (
+    "#!/usr/bin/env python3\n"
+    "import json, os, sys, time\n"
+    "d = %r\n"
+    "payload = sys.stdin.read()\n"
+    "with open(os.path.join(d, 'payload-%%d.json' %% (time.time_ns() + os.getpid())),"
+    " 'w') as fh:\n"
+    "    json.dump({'version': %r, 'file': __file__, 'stdin': payload,\n"
+    "               'env': {k: v for k, v in os.environ.items() if 'PLUGIN_' in k}}, fh)\n"
+    "sys.exit(0)\n")
+
+
+def write_stale_package(market_root, version, command, capture):
+    pkg = market_root / STALE_PLUGIN
+    if pkg.exists():
+        shutil.rmtree(str(pkg))
+    (pkg / "scripts").mkdir(parents=True)
+    (pkg / "skills" / STALE_PLUGIN).mkdir(parents=True)
+    (pkg / "skills" / STALE_PLUGIN / "SKILL.md").write_text(
+        "---\nname: " + STALE_PLUGIN + "\ndescription: Use when probing a stale plugin "
+        "root.\n---\nFixture body.\n")
+    rec = pkg / "scripts" / "codex-hook-adapter.py"
+    rec.write_text(STALE_RECORDER % (str(capture), version))
+    rec.chmod(0o755)
+    write_json(pkg / ".codex-plugin" / "plugin.json", {
+        "name": STALE_PLUGIN, "version": version,
+        "description": "Stale-root probe fixture. Not distributable.",
+        "hooks": "./codex-hooks.json", "skills": "./skills/"})
+    commands = command if isinstance(command, list) else [command]
+    write_json(pkg / "codex-hooks.json", {"hooks": {"PreToolUse": [{"hooks": [
+        {"type": "command", "command": c} for c in commands]}]}})
+
+
+def stale_turn(server, thread_id, prompt_cmd, capture, timeout=120):
+    """One turn on an EXISTING thread; returns hook statuses and recorder versions."""
+    mark = len(server.notifications)
+    seen = set(p.name for p in capture.iterdir())
+    started = server.call("turn/start", {"threadId": thread_id, "input": [
+        {"type": "text", "text": "Run CMD<<" + prompt_cmd + ">>CMD"}],
+        "permissions": ":workspace"}, timeout=90)
+    if "__error__" in started:
+        raise Failure("turn/start failed: %s" % started["__error__"])
+    deadline = time.time() + timeout
+    terminal = None
+    while time.time() < deadline and terminal is None:
+        for note in server.notifications[mark:]:
+            if note.get("method") in ("turn/completed", "turn/failed", "turn/aborted"):
+                terminal = note
+                break
+        if terminal is None:
+            time.sleep(0.5)
+    if terminal is None:
+        raise Failure("a loopback turn produced no terminal notification in %ds" % timeout)
+    time.sleep(1.5)
+    runs = [n["params"]["run"] for n in server.notifications[mark:]
+            if n.get("method") == "hook/completed"]
+    fresh = [p for p in capture.iterdir() if p.name not in seen]
+    records = [json.loads(p.read_text()) for p in fresh]
+    versions = sorted(r.get("version") for r in records)
+    return {"terminal": terminal.get("method"),
+            "plugin_env": [r.get("env") for r in records],
+            "statuses": [r.get("status") for r in runs],
+            "feedback": [e.get("text") for r in runs for e in (r.get("entries") or [])],
+            "recorder_versions": versions}
+
+
+def stale_reading(turn):
+    """Collapse one turn into the three words the pinned expectations use."""
+    if turn["recorder_versions"]:
+        return "new-version" if "1.0.1" in turn["recorder_versions"] else "old-version"
+    if "blocked" in turn["statuses"]:
+        return "blocked"
+    return "no-hook" if not turn["statuses"] else "/".join(turn["statuses"])
+
+
+def stale_scenario(binary, work, model, name, first, second, update_via):
+    """Install `first` at 1.0.0, hold a session open, update to `second` at 1.0.1."""
+    base = work / ("stalepath-" + name)
+    capture = base / "capture"
+    capture.mkdir(parents=True)
+    market_root = base / "market"
+    (market_root / ".claude-plugin").mkdir(parents=True)
+    write_json(market_root / ".claude-plugin" / "marketplace.json", {
+        "name": STALE_MARKET, "owner": {"name": "Probe"},
+        "plugins": [{"name": STALE_PLUGIN, "source": "./" + STALE_PLUGIN}]})
+    marketplace = market_root / ".claude-plugin" / "marketplace.json"
+    home = base / "home"
+    home.mkdir()
+    project = base / "project"
+    project.mkdir()
+    cache = home / "plugins" / "cache" / STALE_MARKET / STALE_PLUGIN
+    out = {"update_via": update_via}
+
+    def install(label):
+        inst = AppServer(binary, project, disposable_env(home), base / (label + ".stderr"))
+        try:
+            inst.initialize()
+            install_plugin(inst, marketplace, STALE_PLUGIN)
+        finally:
+            inst.close()
+
+    def configure(records):
+        config = home / "config.toml"
+        installed = config.read_text() if config.exists() else ""
+        installed = installed.split("# ---- stalepath additions ----")[0]
+        installed = installed.replace(model.config_head(), "")
+        if "[plugins." not in installed:
+            raise Failure("plugin/install wrote no [plugins.…] enablement (%r); appending "
+                          "trust would measure a disabled plugin" % installed[:200])
+        config.write_text(model.config_head() + installed
+                          + "\n# ---- stalepath additions ----\n" + model.config_table()
+                          + '\n[projects."' + str(project) + '"]\ntrust_level = "trusted"\n'
+                          + carrier_state_block(records))
+
+    def versions_on_disk():
+        return sorted(p.name for p in cache.iterdir()) if cache.exists() else []
+
+    write_stale_package(market_root, "1.0.0", first, capture)
+    install("install-1.0.0")
+    configure([])
+    records = list_hooks(binary, home, project, base / "list-untrusted.stderr")
+    if not records:
+        raise Failure("%s: the installed fixture registered no hooks" % name)
+    configure(records)
+    trusted = list_hooks(binary, home, project, base / "list-trusted.stderr")
+    if [r["trustStatus"] for r in trusted] != ["trusted"] * len(records):
+        raise Failure("%s: not every registration reached trusted: %s"
+                      % (name, [r["trustStatus"] for r in trusted]))
+
+    s1 = AppServer(binary, project, disposable_env(home), base / "s1.stderr")
+    try:
+        s1.initialize()
+        t1 = s1.call("thread/start", {"cwd": str(project)})["thread"]["id"]
+        before = stale_turn(s1, t1, "touch " + str(project / "m1"), capture)
+        if before["recorder_versions"] != ["1.0.0"]:
+            raise Failure("%s: the CONTROL turn before any update did not run the 1.0.0 "
+                          "recorder (%s); nothing after it is readable" % (name, before))
+        out["before_update"] = before
+        write_stale_package(market_root, "1.0.1", second, capture)
+        if update_via == "same-process":
+            install_plugin(s1, marketplace, STALE_PLUGIN)
+        else:
+            install("install-1.0.1")
+        out["versions_on_disk_after_install"] = versions_on_disk()
+        out["trust_after_update"] = [r["trustStatus"] for r in list_hooks(
+            binary, home, project, base / "list-after.stderr")]
+        out["after_update_same_thread"] = stale_turn(
+            s1, t1, "touch " + str(project / "m2"), capture)
+        t2 = s1.call("thread/start", {"cwd": str(project)})["thread"]["id"]
+        out["after_update_new_thread"] = stale_turn(
+            s1, t2, "touch " + str(project / "m3"), capture)
+    finally:
+        s1.close()
+    s2 = AppServer(binary, project, disposable_env(home), base / "s2.stderr")
+    try:
+        s2.initialize()
+        t3 = s2.call("thread/start", {"cwd": str(project)})["thread"]["id"]
+        out["fresh_process"] = stale_turn(s2, t3, "touch " + str(project / "m4"), capture)
+    finally:
+        s2.close()
+    out["markers"] = {m: (project / m).exists() for m in ("m1", "m2", "m3", "m4")}
+    out["plugin_data_exists"] = (home / "plugins" / "data").exists()
+    for key in ("after_update_same_thread", "after_update_new_thread", "fresh_process"):
+        out[key]["reading"] = stale_reading(out[key])
+    return out
+
+
+def stale_exit_codes(binary, work, model):
+    """One registration per exit code, one turn each: which codes does the runtime block on?"""
+    readings = {}
+    for code in ("1", "2", "127"):
+        base = work / ("stalepath-exit" + code)
+        home = base / "home"
+        home.mkdir(parents=True)
+        project = base / "project"
+        project.mkdir()
+        command = ("nonexistent-command-stalepath-probe" if code == "127"
+                   else "echo exit%s >&2; exit %s" % (code, code))
+        body = lambda state: (model.config_head() + model.config_table()
+                              + turn_config(project, [(None, command)], state))
+        trust_registrations(binary, home, project, body, base / "trust.stderr")
+        server = AppServer(binary, project, disposable_env(home), base / "turn.stderr")
+        try:
+            server.initialize()
+            thread = server.call("thread/start", {"cwd": str(project)})["thread"]["id"]
+            capture = base / "capture"
+            capture.mkdir()
+            turn = stale_turn(server, thread, "touch " + str(project / "m"), capture)
+        finally:
+            server.close()
+        readings[code] = {"statuses": turn["statuses"], "feedback": turn["feedback"],
+                          "act_executed": (project / "m").exists()}
+    return readings
+
+
+def phase_stalepath(binary, work, report):
+    """Reproduce the stale-root outage without a credential, and measure the repair."""
+    shipped_doc = json.loads((ADAPTER_PATH.parent.parent / "codex-hooks.json").read_text())
+    shipped = shipped_doc["hooks"]["PreToolUse"][0]["hooks"][0]["command"]
+    model = LoopbackModel()
+    try:
+        scenarios = {
+            "legacy_other_process": stale_scenario(
+                binary, work, model, "legacy-other", STALE_LEGACY_COMMAND,
+                STALE_LEGACY_COMMAND, "other-process"),
+            "legacy_same_process": stale_scenario(
+                binary, work, model, "legacy-same", STALE_LEGACY_COMMAND,
+                STALE_LEGACY_COMMAND, "same-process"),
+            "shipped_other_process": stale_scenario(
+                binary, work, model, "shipped-other", shipped, shipped, "other-process"),
+            "migration": stale_scenario(
+                binary, work, model, "migration", STALE_LEGACY_COMMAND, shipped,
+                "other-process"),
+        }
+        exits = stale_exit_codes(binary, work, model)
+    finally:
+        model.close()
+    mig = scenarios["migration"]
+    report["stalepath"] = {
+        "shipped_command": shipped,
+        "legacy_command": STALE_LEGACY_COMMAND,
+        "loopback_requests_served": model.requests,
+        "credential_copied": False,
+        "scenarios": scenarios,
+        "exit_codes": exits,
+    }
+    report["stalepath"]["pinned_agreement"] = {
+        "pinned": STALE_MEASURED,
+        "legacy_other_process": all(
+            scenarios["legacy_other_process"][k]["reading"] == v
+            for k, v in STALE_MEASURED["legacy_other_process"].items()),
+        "legacy_same_process": all(
+            scenarios["legacy_same_process"][k]["reading"] == v
+            for k, v in STALE_MEASURED["legacy_same_process"].items()),
+        "shipped_other_process": all(
+            scenarios["shipped_other_process"][k]["reading"] == v
+            for k, v in STALE_MEASURED["shipped_other_process"].items()),
+        "migration_trust_status":
+            mig["trust_after_update"] == [STALE_MEASURED["migration_trust_status"]],
+        "migration_hook_ran":
+            (mig["fresh_process"]["reading"] != "no-hook")
+            == STALE_MEASURED["migration_hook_ran"],
+        "exit_status": {c: exits[c]["statuses"] == [s]
+                        for c, s in STALE_MEASURED["exit_status"].items()},
+        "old_version_left_after_install": all(
+            ("1.0.0" in s["versions_on_disk_after_install"])
+            == STALE_MEASURED["old_version_left_after_install"]
+            for s in scenarios.values()),
+    }
+    # The one reading that makes the rest uninterpretable: the old version must actually
+    # be gone, or a "blocked" is not about a vanished root.
+    if "1.0.0" in scenarios["legacy_other_process"]["versions_on_disk_after_install"]:
+        raise Failure("the installer left 1.0.0 on disk; the legacy scenario did not "
+                      "remove the root it was supposed to strand, so its reading is about "
+                      "something else")
+
+
+LOOPBACK_PHASES = {"stalepath": phase_stalepath}
+
 OFFLINE_PHASES = {"carrier": phase_carrier, "trust": phase_trust, "routes": phase_routes}
 TURN_PHASES = {"payload": phase_payload, "block": phase_block,
                "identity": phase_identity, "stdin": phase_stdin,
@@ -1990,6 +2394,7 @@ TURN_PHASES = {"payload": phase_payload, "block": phase_block,
                "preflight": phase_preflight}
 PHASES = dict(OFFLINE_PHASES)
 PHASES.update(TURN_PHASES)
+PHASES.update(LOOPBACK_PHASES)
 
 
 def main():
@@ -1999,7 +2404,8 @@ def main():
     parser.add_argument("--phase", choices=sorted(PHASES) + ["all", "turn"],
                         default="all",
                         help="'all' runs the offline phases only; 'turn' runs every "
-                             "phase that starts a model turn")
+                             "phase that starts a PAID model turn; a loopback phase "
+                             "runs only when named")
     parser.add_argument("--allow-model-turn", action="store_true",
                         help="required for any phase that starts a model turn, which "
                              "spends the operator's own tokens")
