@@ -10,7 +10,8 @@ nonzero, so a silent pass over an empty set is not reachable.
 
 It never WRITES to the invoking user's real Codex home. Every phase builds its own
 disposable CODEX_HOME and fixture tree in a new temporary directory and leaves the
-artifacts there for inspection.
+artifacts there for inspection — except a PASSING loopback-only run, which removes them
+unless `--keep-artifacts` is passed (see the end of `main`).
 
 ~~It never reads a credential and never starts a model turn.~~ Struck 2026-09-14: both
 halves are false of the turn phases below, and the sentence is struck rather than edited
@@ -2038,6 +2039,12 @@ STALE_MEASURED = {
     "migration_trust_status": "modified",
     "migration_hook_ran": False,
     "exit_status": {"1": "failed", "2": "blocked", "127": "failed"},
+    "shipped_adapter_failure": {
+        "control": {"statuses": ["completed"], "act_executed": True},
+        "uncaught_exception": {"statuses": ["blocked"], "act_executed": False},
+        "syntax_error": {"statuses": ["blocked"], "act_executed": False},
+        "python3_missing": {"statuses": ["blocked"], "act_executed": False},
+    },
     "old_version_left_after_install": False,
 }
 
@@ -2138,7 +2145,10 @@ STALE_RECORDER = (
     "sys.exit(0)\n")
 
 
-def write_stale_package(market_root, version, command, capture):
+def write_stale_package(market_root, version, command, capture, adapter_body=None):
+    """`adapter_body`, when given, REPLACES the recorder — the failure scenarios install a
+    deliberately broken adapter under the shipped command to read what the runtime does
+    with the resolver's own exit code."""
     pkg = market_root / STALE_PLUGIN
     if pkg.exists():
         shutil.rmtree(str(pkg))
@@ -2148,7 +2158,8 @@ def write_stale_package(market_root, version, command, capture):
         "---\nname: " + STALE_PLUGIN + "\ndescription: Use when probing a stale plugin "
         "root.\n---\nFixture body.\n")
     rec = pkg / "scripts" / "codex-hook-adapter.py"
-    rec.write_text(STALE_RECORDER % (str(capture), version))
+    rec.write_text(adapter_body if adapter_body is not None
+                   else STALE_RECORDER % (str(capture), version))
     rec.chmod(0o755)
     write_json(pkg / ".codex-plugin" / "plugin.json", {
         "name": STALE_PLUGIN, "version": version,
@@ -2321,6 +2332,85 @@ def stale_exit_codes(binary, work, model):
     return readings
 
 
+# The adapter can fail in ways the resolver does not choose: an uncaught exception or a
+# SyntaxError exits 1, and a missing interpreter exits 127 — and this runtime lets both
+# codes through (STALE_MEASURED["exit_status"]). The shipped command therefore runs the
+# adapter WITHOUT `exec` and maps any non-zero status to 2. These readings install that
+# command verbatim over a deliberately broken adapter and read the runtime's own status.
+# `python3_missing` removes /usr/bin from the app-server's PATH; whether the hook shell
+# restores it is part of what is read (`python3_reachable_in_hook_shell`). `control` is
+# the working recorder under the same command and the same act, so `act_executed: False`
+# on the failing kinds is read against a run where the act DID execute. The control has
+# the full PATH; no control exists for the restricted PATH (a working adapter there needs
+# the interpreter that PATH removes), so for `python3_missing` the load-bearing reading is
+# the runtime's `blocked` status, and `act_executed` is corroboration only.
+STALE_FAILING_ADAPTERS = {
+    "control": None,
+    "uncaught_exception": "import sys\nsys.stdin.read()\nraise RuntimeError('probe')\n",
+    "syntax_error": "def f(:\n",
+    "python3_missing": None,
+}
+STALE_NO_PYTHON_PATH = "/bin:/usr/sbin:/sbin"
+
+
+def stale_adapter_failures(binary, work, model, shipped):
+    readings = {}
+    for kind, body in STALE_FAILING_ADAPTERS.items():
+        base = work / ("stalepath-fail-" + kind)
+        capture = base / "capture"
+        capture.mkdir(parents=True)
+        market_root = base / "market"
+        (market_root / ".claude-plugin").mkdir(parents=True)
+        write_json(market_root / ".claude-plugin" / "marketplace.json", {
+            "name": STALE_MARKET, "owner": {"name": "Probe"},
+            "plugins": [{"name": STALE_PLUGIN, "source": "./" + STALE_PLUGIN}]})
+        marketplace = market_root / ".claude-plugin" / "marketplace.json"
+        home = base / "home"
+        home.mkdir()
+        project = base / "project"
+        project.mkdir()
+        write_stale_package(market_root, "1.0.0", shipped, capture, adapter_body=body)
+        inst = AppServer(binary, project, disposable_env(home), base / "install.stderr")
+        try:
+            inst.initialize()
+            install_plugin(inst, marketplace, STALE_PLUGIN)
+        finally:
+            inst.close()
+        config = home / "config.toml"
+        installed = config.read_text() if config.exists() else ""
+        if "[plugins." not in installed:
+            raise Failure("%s: plugin/install wrote no [plugins.…] enablement" % kind)
+
+        def configure(records):
+            config.write_text(model.config_head() + installed + model.config_table()
+                              + '\n[projects."' + str(project) + '"]\n'
+                              'trust_level = "trusted"\n' + carrier_state_block(records))
+        configure([])
+        records = list_hooks(binary, home, project, base / "list-untrusted.stderr")
+        configure(records)
+        trusted = [r["trustStatus"] for r in list_hooks(
+            binary, home, project, base / "list-trusted.stderr")]
+        if trusted != ["trusted"] * len(records) or not records:
+            raise Failure("%s: the failing-adapter fixture did not reach trusted: %s"
+                          % (kind, trusted))
+        env = disposable_env(home)
+        if kind == "python3_missing":
+            env["PATH"] = STALE_NO_PYTHON_PATH
+        server = AppServer(binary, project, env, base / "turn.stderr")
+        marker = project / "m"
+        try:
+            server.initialize()
+            thread = server.call("thread/start", {"cwd": str(project)})["thread"]["id"]
+            turn = stale_turn(server, thread, "echo x > " + str(marker), capture)
+        finally:
+            server.close()
+        readings[kind] = {"statuses": turn["statuses"], "feedback": turn["feedback"],
+                          "act_executed": marker.exists(),
+                          "python3_reachable_in_hook_shell":
+                              bool(turn["recorder_versions"])}
+    return readings
+
+
 def phase_stalepath(binary, work, report):
     """Reproduce the stale-root outage without a credential, and measure the repair."""
     shipped_doc = json.loads((ADAPTER_PATH.parent.parent / "codex-hooks.json").read_text())
@@ -2341,6 +2431,7 @@ def phase_stalepath(binary, work, report):
                 "other-process"),
         }
         exits = stale_exit_codes(binary, work, model)
+        failures = stale_adapter_failures(binary, work, model, shipped)
     finally:
         model.close()
     mig = scenarios["migration"]
@@ -2351,6 +2442,7 @@ def phase_stalepath(binary, work, report):
         "credential_copied": False,
         "scenarios": scenarios,
         "exit_codes": exits,
+        "adapter_failures": failures,
     }
     report["stalepath"]["pinned_agreement"] = {
         "pinned": STALE_MEASURED,
@@ -2370,6 +2462,10 @@ def phase_stalepath(binary, work, report):
             == STALE_MEASURED["migration_hook_ran"],
         "exit_status": {c: exits[c]["statuses"] == [s]
                         for c, s in STALE_MEASURED["exit_status"].items()},
+        "shipped_adapter_failure": {
+            k: {"statuses": failures[k]["statuses"] == v["statuses"],
+                "act_executed": failures[k]["act_executed"] == v["act_executed"]}
+            for k, v in STALE_MEASURED["shipped_adapter_failure"].items()},
         "old_version_left_after_install": all(
             ("1.0.0" in s["versions_on_disk_after_install"])
             == STALE_MEASURED["old_version_left_after_install"]
@@ -2409,6 +2505,10 @@ def main():
     parser.add_argument("--allow-model-turn", action="store_true",
                         help="required for any phase that starts a model turn, which "
                              "spends the operator's own tokens")
+    parser.add_argument("--keep-artifacts", action="store_true",
+                        help="keep the temporary artifacts directory after a PASSING "
+                             "loopback-only run (every other run, and every FAIL, keeps "
+                             "it already)")
     parser.add_argument("--repo", type=Path, default=Path(__file__).resolve().parent.parent,
                         help="library checkout supplying hooks/hooks.json")
     args = parser.parse_args()
@@ -2478,6 +2578,19 @@ def main():
         report["failure"] = ("the invoking user's ~/.codex/config.toml CHANGED during "
                              "this run; a phase reached the ambient Codex home")
         status = 1
+    # The artifacts directory. The header's rule stands for every OFFLINE and TURN phase —
+    # the fixture trees are left behind on purpose, and a turn phase's trees cost tokens to
+    # regenerate. A LOOPBACK-only run (#508) is the exception: it costs nothing to re-run,
+    # each run leaves a dozen disposable CODEX_HOMEs behind, and on a PASS every reading it
+    # produced is already in the report — so it removes its directory unless the operator
+    # passes --keep-artifacts. On a FAIL it is always KEPT: it is the only place the failing
+    # phase's stderr and captures survive, and its path is in the report as `artifacts`.
+    loopback_only = all(p in LOOPBACK_PHASES for p in selected)
+    report["artifacts_kept"] = (bool(status) or bool(args.keep_artifacts)
+                                or not loopback_only)
+    if not report["artifacts_kept"]:
+        shutil.rmtree(str(work), ignore_errors=True)
+        report["artifacts_kept"] = work.exists()
     print(json.dumps(report, indent=2))
     if status:
         print("\nFAIL: %s" % report["failure"], file=sys.stderr)

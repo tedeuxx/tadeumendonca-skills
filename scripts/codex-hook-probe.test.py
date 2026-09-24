@@ -690,6 +690,25 @@ check("every stalepath pin is compared by the phase, so a pin cannot go unread",
 check("the exit-status pin records that ONLY exit 2 blocks, the fact the shipped resolver's "
       "refusals are built on", probe.STALE_MEASURED["exit_status"]
       == {"1": "failed", "2": "blocked", "127": "failed"})
+check("the shipped-command failure pin records every adapter failure as BLOCKED with the "
+      "act not executed, against a control whose act DID execute",
+      probe.STALE_MEASURED["shipped_adapter_failure"] == {
+          "control": {"statuses": ["completed"], "act_executed": True},
+          "uncaught_exception": {"statuses": ["blocked"], "act_executed": False},
+          "syntax_error": {"statuses": ["blocked"], "act_executed": False},
+          "python3_missing": {"statuses": ["blocked"], "act_executed": False}},
+      str(probe.STALE_MEASURED.get("shipped_adapter_failure")))
+check("every failure pin has a scenario that produces it, and the failing adapters run "
+      "under the SHIPPED command", set(probe.STALE_FAILING_ADAPTERS)
+      == set(probe.STALE_MEASURED["shipped_adapter_failure"])
+      and "stale_adapter_failures(binary, work, model, shipped)" in stale_src)
+check("the no-python scenario's PATH really excludes the interpreter's directory",
+      "/usr/bin" not in probe.STALE_NO_PYTHON_PATH.split(":"), probe.STALE_NO_PYTHON_PATH)
+main_src = probe_src.split("def main():")[1]
+check("a PASSING loopback-only run removes its artifacts, and a FAIL or any other phase "
+      "keeps them", "loopback_only = all(p in LOOPBACK_PHASES for p in selected)" in main_src
+      and "bool(status) or bool(args.keep_artifacts)" in main_src
+      and "or not loopback_only" in main_src and "shutil.rmtree(str(work)" in main_src)
 
 print("\n%d passed, %d failed" % (passed, failed))
 if passed == 0:
