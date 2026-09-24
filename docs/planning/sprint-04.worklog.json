@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "sprint": "sprint-04",
+  "timezone": "America/Sao_Paulo",
+  "starts_at": null,
+  "ends_at": null,
+  "repositories": [
+    {
+      "repository": "tedeuxx/tadeumendonca-skills",
+      "milestone_number": 6
+    }
+  ],
+  "counting_units": [
+    {
+      "issue": "tedeuxx/tadeumendonca-skills#508",
+      "planned_points": 8,
+      "work_type": "loop",
+      "parent": null,
+      "estimate_provenance": {
+        "agents-lead": 5,
+        "quality-assurance": 8,
+        "median": 6.5,
+        "recorded": 8,
+        "owner_commitment": "the owner confirmed a composition showing sp:8; the rounding of 6.5 up to 8 was the orchestrator's call, since no ratified rule rounds a median of two, and the owner did not rule on the rounding itself"
+      },
+      "source_revision": "1afb64578a505fe1e62d911b399fe387c33b0b98"
+    },
+    {
+      "issue": "tedeuxx/tadeumendonca-skills#509",
+      "planned_points": 5,
+      "work_type": "loop",
+      "parent": null,
+      "estimate_provenance": {
+        "agents-lead": 5,
+        "quality-assurance": 5,
+        "median": 5,
+        "owner_commitment": "confirmed in sprint-04 planning"
+      },
+      "source_revision": "1afb64578a505fe1e62d911b399fe387c33b0b98"
+    }
+  ]
+}
