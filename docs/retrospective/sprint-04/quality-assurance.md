@@ -106,6 +106,16 @@ merged PR body into the Release. That is a workflow change with its own review, 
 recommending it. **Price of leaving it:** a merge that is safe on its own becomes unsafe when somebody
 installs it, and on a harness where the permission floor is the only guard, the failure is silent.
 
+**Added after this file was first committed, so the section does not read stale.** At 2026-09-24
+15:40:14Z the **orchestrator** (not the owner; both post from the same GitHub account) posted the
+three-step post-install action on #508
+(<https://github.com/tedeuxx/tadeumendonca-skills/issues/508#issuecomment-5817283620>). That is 26
+minutes after #508 was closed by hand, so it did not reach him at the moment he acted. It was applied
+**to #508 only**, and it is a **stopgap** for this one release. #509 still carries no comment for
+#518's unmeasured install-notice check, and the Release body is unchanged. **The proposal above is
+unchanged.** It is a general rule for every boundary verdict that leaves a post-install owner action.
+It is not a request to repair #508.
+
 ## What I would leave alone
 
 - **The head-scoped hold-2 read.** The corrected `commit:`-line selector ran on all five sprint-04
@@ -115,8 +125,40 @@ installs it, and on a harness where the permission floor is the only guard, the 
 - **`Refs #N` and no `closes:` line.** Every one of the twelve PRs has an empty
   `closingIssuesReferences`. Where acceptance was met, the verdicts said so and left the close to the
   owner. No close was earned by a keyword. The cost is one manual close per Issue, and that is cheap.
-- **The round count being unavailable.** 9 of 15 verdicts say *not supplied*, all of sprint-04's
-  among them. It cost nothing: every sprint-04 PR passed the gate first time, and where rounds did
+- **The round count being unavailable.** ~~9 of 15 verdicts say *not supplied*, all of sprint-04's
+  among them.~~ **Struck: the figure shipped with no selector, so nobody could check it, and the lens
+  marker on PR #520 showed that two readings of it disagree.** Re-derived over the fifteen verdict
+  bodies, with the selector anchored to a *round* mention so it counts statements about the round
+  count and nothing else:
+
+  ```sh
+  python3 -c '
+  import subprocess, json, re
+  S=[("tedeuxx/tadeumendonca-skills",n) for n in (503,504,505,506,507,516,517,518,519)] \
+   +[("tedeuxx/tadeumendonca-io",n) for n in (675,676,677)]
+  R=re.compile(r"round[^\n]{0,30}(not supplied|did not supply)|did not supply a gate round", re.I)
+  L=re.compile(r"not supplied|did not supply", re.I)
+  tot=rc=lit=0; hits=[]
+  for r,n in S:
+      bs=json.loads(subprocess.check_output(["gh","pr","view",str(n),"--repo",r,"--json","comments","--jq",
+        "[.comments[]|select(.body|startswith(\"<!-- gatekeeper-verdict: quality-assurance\"))|.body]"],text=True))
+      for i,b in enumerate(bs):
+          tot+=1; lit+=bool(L.search(b))
+          if R.search(b): rc+=1; hits.append("%s#%d[%d]"%(r[-2:],n,i))
+  print("verdicts=%d any_phrase=%d round_count_absent=%d"%(tot,lit,rc)); print(" ".join(hits))'
+  # -> verdicts=15 any_phrase=10 round_count_absent=9
+  #    ls#503[0] ls#504[0] ls#505[0] ls#516[0] ls#517[0] ls#518[0] ls#519[0] io#675[0] io#677[0]
+  ```
+
+  **9 of 15 verdicts state that the round count was not supplied, and all five sprint-04 verdicts
+  (#516 #517 #518 #519, `-io` #677) are among them.** Eight use the phrase *not supplied*; #516 says
+  *"did not supply a gate round number"*. **The unanchored phrase count is 10, and the tenth is not
+  about rounds.** It is #506's round-2 verdict, *"Function/branch coverage is not supplied"*, and that
+  verdict opens with *"Round: 2"*, so its round count was supplied. **I disagree with part of the lens
+  finding, and I record that here rather than absorbing it.** The lens was right that the figure could
+  not be checked as published, and that the literal-phrase reading and the meaning reading give
+  different sets. Its meaning count of 10 includes the #506 coverage sentence. With the selector
+  anchored to rounds, the number and the sprint-04 claim both hold. It cost nothing: every sprint-04 PR passed the gate first time, and where rounds did
   happen (#506, #507, `-io` #676) the Codex orchestrator supplied the number. My sprint-01 section
   already raised the missing counter. Raising it again would add work without new evidence.
 - **The per-verdict length.** The #506 verdicts run 10 to 17 KB each, and the reproductions they carry
