@@ -532,7 +532,7 @@ for event in ("PreToolUse", "UserPromptSubmit"):
           "carrier — %s has NO matcher; dispatch happens visibly in the adapter" % event)
     cmd = regs[0]["hooks"][0]["command"] if regs else ""
     commands.append(cmd)
-    check(ADAPTER.name in cmd and cmd.startswith("python3 "),
+    check(("scripts/" + ADAPTER.name) in cmd and 'python3 "$r/$a"; s=$?;' in cmd,
           "carrier — %s names the adapter through an explicit interpreter" % event)
     check(set(regs[0]["hooks"][0]) == {"type", "command"} if regs else False,
           "carrier — %s uses only the two measured hook keys" % event)
@@ -591,34 +591,247 @@ check(bool(root_names),
       "carrier root — at least one injected name ends _ROOT, or the allowed set is empty "
       "and the membership arm below could never fail")
 
-adapter_arg = cmd.split(" ", 1)[1] if " " in cmd else ""
+# ── 8c · the registration SURVIVES A RELEASE (#508) ────────────────────────────────────
+#
+# WHY THE SHAPE CHANGED. A running Codex process resolves ${PLUGIN_ROOT} ONCE and keeps
+# it: measured on 0.151.0-alpha.7.2 against a loopback model (bridge document, section
+# 20), an update installed by ANOTHER process deletes the old version directory, and every
+# later tool call in the running process — same thread or a new one — launched the
+# vanished path and was blocked. A merge PUBLISHES a patch; it does not install one. A
+# running session strands only when a process OTHER than itself installs the update (an
+# install through the running process refreshes it — probe `legacy_same_process`), and
+# whether Codex ever installs a plugin update by itself is UNMEASURED. So the outage rate
+# is one per out-of-process update per open session, which equals one per merge only if
+# such an update follows every merge. The registration therefore resolves the adapter AT
+# CALL TIME: the registered root if it still holds the adapter, otherwise the ONE sibling
+# version directory that does, otherwise a refusal.
+#
+# WHY /bin/sh IS PINNED. The hook command runs in the user's LOGIN shell (measured: $0 was
+# /bin/zsh even with SHELL=/bin/bash in the app-server's environment), and in zsh a glob
+# that matches nothing is an ERROR with exit 1 — which this runtime treats as a FAILED
+# hook and lets the act through. Only exit 2 blocks (measured: exit 1 and exit 127 both
+# read `failed` and the act executed; exit 2 read `blocked`). Wrapping the script in one
+# single-quoted `/bin/sh -c` argument means the login shell expands nothing and a POSIX
+# shell makes every refusal an exit 2, whatever the user's shell is.
 
-check(not adapter_arg.startswith("scripts/"),
-      "carrier root — the adapter argument is NOT the bare relative path measured failing "
-      "to launch through the installed carrier")
+SH_PREFIX = "/bin/sh -c '"
+check(cmd.startswith(SH_PREFIX) and cmd.endswith("'")
+      and "'" not in cmd[len(SH_PREFIX):-1],
+      "carrier root — the whole resolver is ONE single-quoted argument to /bin/sh, so the "
+      "user's login shell (zsh here) expands nothing and cannot turn a no-match glob into "
+      "an exit 1 that this runtime reads as a failed hook and lets through")
+inner = cmd[len(SH_PREFIX):-1] if cmd.startswith(SH_PREFIX) else ""
+
+check(not inner.startswith("scripts/") and "python3 scripts/" not in inner,
+      "carrier root — the adapter is NOT the bare relative path measured failing to launch "
+      "through the installed carrier (section 16.3)")
 
 import re as _re
-_tok = _re.match(r"^\$\{([A-Z_]+)\}/", adapter_arg)
+_tok = _re.search(r"\br=\$\{([A-Z_]+):-\}", inner)
 check(_tok is not None,
-      "carrier root — the argument OPENS with a ${NAME}/ expansion. A token anywhere later "
-      "in the word still leaves a relative leading segment, which resolves against the "
-      "session cwd exactly as the broken form did: %r" % adapter_arg)
-
+      "carrier root — the registered root is read from an environment variable with an "
+      "explicit empty default, so an unset name is DETECTED and refused rather than "
+      "collapsing the path to the filesystem root")
 token_name = _tok.group(1) if _tok else ""
 check(token_name in root_names,
-      "carrier root — the token names a root variable MEASURED as injected on the plugin "
-      "route (%s). CODEX_PLUGIN_ROOT is the plausible spelling and was measured NOT TO "
-      "EXIST under either mechanism, and an unset name does not arrive empty here — the "
-      "word collapses to a filesystem-root path, the launch fails, and the runtime's "
-      "blanket denial is indistinguishable from the floor holding. Got %r"
-      % (",".join(sorted(root_names)) or "<none>", token_name))
+      "carrier root — the root variable is one MEASURED as injected on the plugin route "
+      "(%s). CODEX_PLUGIN_ROOT is the plausible spelling and was measured NOT TO EXIST "
+      "under either mechanism. Got %r" % (",".join(sorted(root_names)) or "<none>", token_name))
+check("a=scripts/%s;" % ADAPTER.name in inner,
+      "carrier root — the in-package path is the adapter's, relative to the resolved root")
 
-check(adapter_arg == "${%s}/scripts/%s" % (token_name, ADAPTER.name) if token_name else False,
-      "carrier root — the argument is the token, then the in-package path, and NOTHING "
-      "ELSE. It is deliberately UNQUOTED: expansion here was measured to word-split (an "
-      "unset name drops its whole argument), and whether a quoted token survives is "
-      "UNMEASURED, so a quoted form would be shipping on an assumption. The cost is "
-      "stated rather than guarded — a plugin-cache path containing a space would split")
+
+def run_registration(command, plugin_root, payload='{"probe": 1}'):
+    """Execute the registered command the way the runtime does: through a shell, with
+    PLUGIN_ROOT in the environment and the payload on stdin. `bash -c` stands in for the
+    login shell, which only has to parse one single-quoted word."""
+    env = dict(os.environ)
+    env.pop("PLUGIN_ROOT", None)
+    env.pop("CLAUDE_PLUGIN_ROOT", None)
+    if plugin_root is not None:
+        env[token_name or "PLUGIN_ROOT"] = str(plugin_root)
+    return subprocess.run(["bash", "-c", command], input=payload, env=env,
+                          capture_output=True, text=True, timeout=30)
+
+
+STUB = ("import sys\nfrom pathlib import Path\n"
+        "data = sys.stdin.read()\n"
+        "print('RAN ' + Path(__file__).resolve().parent.parent.name + ' ' + str(len(data)))\n")
+
+
+def version_dir(base, version, with_adapter=True):
+    d = base / version
+    (d / "scripts").mkdir(parents=True)
+    if with_adapter:
+        (d / "scripts" / ADAPTER.name).write_text(STUB)
+    return d
+
+
+with tempfile.TemporaryDirectory() as work:
+    cache = Path(work) / "cache" / "market" / "tadeumendonca-skills"
+
+    # 1. the registered root still holds the adapter: it runs, and stdin reaches it
+    live = version_dir(cache, "9.0.0")
+    p = run_registration(cmd, live)
+    check(p.returncode == 0 and p.stdout.strip() == "RAN 9.0.0 12",
+          "survives a release — a live root runs ITS OWN adapter and the payload reaches "
+          "it on stdin (rc=%s out=%r err=%r)" % (p.returncode, p.stdout, p.stderr[-200:]))
+
+    # 2. the registered root is gone and exactly one installed version replaced it
+    shutil.rmtree(live)
+    version_dir(cache, "9.0.1")
+    p = run_registration(cmd, live)
+    check(p.returncode == 0 and p.stdout.strip() == "RAN 9.0.1 12",
+          "survives a release — a VANISHED root falls through to the one version that "
+          "replaced it, which is what keeps a running session alive across a merge "
+          "(rc=%s out=%r err=%r)" % (p.returncode, p.stdout, p.stderr[-200:]))
+
+    # 3. a sibling that does not carry the adapter is not a candidate
+    version_dir(cache, "not-a-release", with_adapter=False)
+    p = run_registration(cmd, live)
+    check(p.returncode == 0 and p.stdout.strip() == "RAN 9.0.1 12",
+          "survives a release — a sibling directory WITHOUT the adapter is not counted "
+          "(rc=%s out=%r)" % (p.returncode, p.stdout))
+
+    # 4. two candidates: ambiguous, so it refuses — and refuses with the BLOCKING code
+    version_dir(cache, "9.0.2")
+    p = run_registration(cmd, live)
+    check(p.returncode == 2 and "RAN" not in p.stdout and "refusing" in p.stderr,
+          "fail-closed — TWO candidate versions is ambiguous and exits 2, the only code "
+          "this runtime reads as `blocked` (rc=%s out=%r)" % (p.returncode, p.stdout))
+
+    # 5. no candidate at all: the plugin is gone
+    shutil.rmtree(cache)
+    cache.mkdir(parents=True)
+    p = run_registration(cmd, live)
+    check(p.returncode == 2 and "RAN" not in p.stdout and "no longer exists" in p.stderr,
+          "fail-closed — a vanished root with NO replacement exits 2, preserving section "
+          "16.4's blocking posture instead of degrading to exit 1 or 127, which this "
+          "runtime lets through (rc=%s err=%r)" % (p.returncode, p.stderr[-200:]))
+
+    # 6. the root variable is absent altogether
+    p = run_registration(cmd, None)
+    check(p.returncode == 2 and "RAN" not in p.stdout and "unset" in p.stderr,
+          "fail-closed — an UNSET root exits 2 rather than globbing the filesystem root "
+          "(rc=%s err=%r)" % (p.returncode, p.stderr[-200:]))
+
+    # 7. a cache path containing a space: the resolver quotes every expansion
+    spaced = Path(work) / "a cache" / "market" / "tadeumendonca-skills"
+    s_live = version_dir(spaced, "9.1.0")
+    p = run_registration(cmd, s_live)
+    check(p.returncode == 0 and p.stdout.strip() == "RAN 9.1.0 12",
+          "quoting — a plugin-cache path containing a space launches, which the former "
+          "UNQUOTED form could not (rc=%s err=%r)" % (p.returncode, p.stderr[-200:]))
+    shutil.rmtree(s_live)
+    version_dir(spaced, "9.1.1")
+    p = run_registration(cmd, s_live)
+    check(p.returncode == 0 and p.stdout.strip() == "RAN 9.1.1 12",
+          "quoting — the fallback also survives a space in the path (rc=%s err=%r)"
+          % (p.returncode, p.stderr[-200:]))
+
+# ── 8d · ANY adapter failure is exit 2, through the shipped command (#508) ─────────────
+#
+# The resolver's own refusals were exit 2, but the process it launched was not: under
+# `exec python3 …` an uncaught exception or a SyntaxError exited 1 and a missing python3
+# exited 127, and this runtime reads both as a FAILED hook and lets the act run
+# (probe STALE_MEASURED["exit_status"]). The shipped command runs the adapter WITHOUT exec
+# and maps every non-zero status to 2. The adapter's own intended outcomes are unaffected:
+# a block is JSON on stdout with exit 0, an abstention is empty stdout with exit 0, and the
+# only non-zero `return` in it belongs to `--selfcheck`, which no hook passes. The same
+# mapping was read through the RUNTIME by the probe's `stalepath` phase
+# (STALE_MEASURED["shipped_adapter_failure"]); these arms hold the command's half in CI.
+
+FAILING = {
+    "an uncaught exception (exit 1)":
+        "import sys\nsys.stdin.read()\nraise RuntimeError('boom')\n",
+    "a SyntaxError (exit 1)": "def f(:\n",
+    "an arbitrary non-zero exit (3)": "import sys\nsys.stdin.read()\nsys.exit(3)\n",
+}
+BLOCK_JSON = ('import sys, json\nsys.stdin.read()\n'
+              'print(json.dumps({"decision": "block", "reason": "r"}))\n')
+SHELLS = [s for s in ("bash", "zsh") if shutil.which(s)]
+check("bash" in SHELLS,
+      "exit mapping — bash is available to stand in for the login shell, so the arms "
+      "below ran at all (%s)" % SHELLS)
+if "zsh" not in SHELLS:
+    print("NOTE  zsh is not installed here; the exit-mapping arms ran under bash only")
+
+
+def run_via(shell, command, plugin_root, path=None):
+    env = dict(os.environ)
+    env.pop("PLUGIN_ROOT", None)
+    env.pop("CLAUDE_PLUGIN_ROOT", None)
+    env[token_name or "PLUGIN_ROOT"] = str(plugin_root)
+    if path is not None:
+        env["PATH"] = path
+    return subprocess.run([shutil.which(shell), "-c", command], input='{"probe": 1}', env=env,
+                          capture_output=True, text=True, timeout=30)
+
+
+with tempfile.TemporaryDirectory() as work:
+    base = Path(work)
+    for shell in SHELLS:
+        for label, body in FAILING.items():
+            cache = base / shell / label.split(" (")[0].replace(" ", "-") / "c"
+            d = cache / "1.0.0" / "scripts"
+            d.mkdir(parents=True)
+            (d / ADAPTER.name).write_text(body)
+            p = run_via(shell, cmd, cache / "1.0.0")
+            check(p.returncode == 2 and "not judged" in p.stderr,
+                  "fail-closed — %s in the adapter exits 2 through the shipped command "
+                  "under %s, not the 1 this runtime lets through (rc=%s err=%r)"
+                  % (label, shell, p.returncode, p.stderr[-160:]))
+        # the fallback branch runs the SAME tail, so a crashing replacement is refused too
+        cache = base / shell / "fallback" / "c"
+        d = cache / "1.0.1" / "scripts"
+        d.mkdir(parents=True)
+        (d / ADAPTER.name).write_text(FAILING["an uncaught exception (exit 1)"])
+        p = run_via(shell, cmd, cache / "1.0.0")
+        check(p.returncode == 2 and "not judged" in p.stderr,
+              "fail-closed — a CRASHING replacement reached through the fallback exits 2 "
+              "under %s (rc=%s err=%r)" % (shell, p.returncode, p.stderr[-160:]))
+        # no python3 on PATH: 127 from the shell, mapped to 2. /bin/sh is absolute, so it
+        # still launches; only the interpreter lookup fails.
+        cache = base / shell / "nopython" / "c"
+        d = cache / "1.0.0" / "scripts"
+        d.mkdir(parents=True)
+        (d / ADAPTER.name).write_text(BLOCK_JSON)
+        p = run_via(shell, cmd, cache / "1.0.0", path=str(base / "empty-path"))
+        check(p.returncode == 2 and "exited 127" in p.stderr,
+              "fail-closed — a MISSING python3 exits 2 under %s, not the 127 this runtime "
+              "lets through (rc=%s err=%r)" % (shell, p.returncode, p.stderr[-160:]))
+        # the control: a block is exit 0 with its JSON intact on stdout
+        cache = base / shell / "blockjson" / "c"
+        d = cache / "1.0.0" / "scripts"
+        d.mkdir(parents=True)
+        (d / ADAPTER.name).write_text(BLOCK_JSON)
+        p = run_via(shell, cmd, cache / "1.0.0")
+        check(p.returncode == 0 and json.loads(p.stdout or "null") == {
+                  "decision": "block", "reason": "r"},
+              "exit mapping — the adapter's own BLOCK still leaves as exit 0 with its JSON "
+              "on stdout, so the mapping changed no intended outcome under %s (rc=%s out=%r)"
+              % (shell, p.returncode, p.stdout[:120]))
+
+# ── 8e · the hashed command is PINNED (#508) ──────────────────────────────────────────
+#
+# Codex keys an operator's trust on the DECLARED command (probe STALE_MEASURED: an
+# unchanged command stays `trusted`, a changed one reads `modified` and the hook is
+# SKIPPED — the act runs with no hook and no status is emitted). So ANY byte of this
+# string, including the wording of a message nothing tests, is part of the floor's
+# on/off switch on every installed Codex. The behavioural arms above cannot see a
+# rewording; this pin can. It is a change DETECTOR over the string, not a reproduction
+# of Codex's own hash formula, which was not measured.
+PINNED_COMMAND_SHA256 = "0eb02872e9a07c1035695be4931ff2d109fe7d76b4fbb717df5a5e92347581bd"
+import hashlib as _hashlib
+for event, command in zip(("PreToolUse", "UserPromptSubmit"), commands):
+    got = _hashlib.sha256(command.encode("utf-8")).hexdigest()
+    check(got == PINNED_COMMAND_SHA256,
+          "command pin — the %s command is byte-identical to the pinned one (sha256 %s). "
+          "CHANGING THIS STRING FORCES THE OWNER TO RE-TRUST BOTH CODEX HOOKS "
+          "(PreToolUse and UserPromptSubmit): every installed Codex reads the registration "
+          "as `modified` and SKIPS it, so the Codex floor is SILENTLY OFF from the update "
+          "until the re-trust. Update PINNED_COMMAND_SHA256 only in the same change as an "
+          "ACTION REQUIRED note on the PR and in the release it ships in." % (event, got))
 
 check(measured.get("expansion_observed") is True
       and measured.get("per_plugin_values") is True,

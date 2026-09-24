@@ -2391,10 +2391,24 @@ repository's own named worst shape occurring in the layer that is supposed to be
 carrier-registered hook's own environment and argv: four names are injected as environment variables
 on the plugin route (**none** on the config route), the same names **expand** inside the declared
 command, the values are **per plugin**, and `CODEX_PLUGIN_ROOT` — the spelling a reader invents —
-**does not exist** under either mechanism. `codex-hooks.json` now registers
-`python3 ${PLUGIN_ROOT}/scripts/codex-hook-adapter.py`. `PLUGIN_ROOT` rather than the Claude-shaped
-name because a config addressed to other machinery names no harness-specific token; **unquoted**
-because expansion here word-splits and whether a quoted token survives is **not measured**.
+**does not exist** under either mechanism. ~~`codex-hooks.json` now registers
+`python3 ${PLUGIN_ROOT}/scripts/codex-hook-adapter.py`.~~ `PLUGIN_ROOT` rather than the Claude-shaped
+name because a config addressed to other machinery names no harness-specific token. ~~**unquoted**
+because expansion here word-splits and whether a quoted token survives is **not measured**.~~
+
+**Struck 2026-09-24 (#508): that form stranded a running Codex session whenever ANOTHER process
+installed a release.** A running process resolves `${PLUGIN_ROOT}` once. An update from another
+process deletes the old version directory. A merge only publishes a release; whether Codex installs
+one on its own is not measured. After that, every tool call in the running process, on any thread, launched the
+vanished path and was blocked. This was measured with no credential against a loopback model, and it
+is the outage the first Codex sprint hit twice. `codex-hooks.json` now registers a `/bin/sh -c`
+resolver instead. It runs the registered root's adapter, falls back to the **one** installed version
+that replaced it, and in every other case exits 2, the only code this runtime blocks on. An adapter
+that crashes, or a missing `python3`, is turned into exit 2 as well. **Updating
+to the release that carries this requires re-trusting both Codex registrations once**, because the
+command changed. Until that is done the Codex floor is **skipped, silently**. To check it, ask the
+agent in a Codex session to run `echo $(true)`: it must be refused. Section 20 of
+[the bridge document](docs/codex-hook-bridge.md) has the readings, the costs and the rejected options.
 
 **This turns nothing on, and the paragraph above the strike is untouched on that point.** The
 registration still needs a `trusted_hash` in the invoking user's own `config.toml`, the Codex-side

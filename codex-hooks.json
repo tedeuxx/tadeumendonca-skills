@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${PLUGIN_ROOT}/scripts/codex-hook-adapter.py"
+            "command": "/bin/sh -c 'a=scripts/codex-hook-adapter.py; r=${PLUGIN_ROOT:-}; if [ -z \"$r\" ]; then echo \"codex-hook: PLUGIN_ROOT is unset, so the adapter cannot be located; refusing this call\" >&2; exit 2; fi; if [ ! -f \"$r/$a\" ]; then n=0; for d in \"${r%/*}\"/*/; do if [ -f \"$d$a\" ]; then c=${d%/}; n=$((n+1)); fi; done; if [ \"$n\" -ne 1 ]; then echo \"codex-hook: this session registered $r, which no longer exists, and $n installed versions carry the adapter; refusing this call. Restart the Codex session.\" >&2; exit 2; fi; r=$c; fi; python3 \"$r/$a\"; s=$?; if [ \"$s\" -ne 0 ]; then echo \"codex-hook: the adapter exited $s instead of 0, so this call was not judged; refusing it\" >&2; exit 2; fi'"
           }
         ]
       }
@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${PLUGIN_ROOT}/scripts/codex-hook-adapter.py"
+            "command": "/bin/sh -c 'a=scripts/codex-hook-adapter.py; r=${PLUGIN_ROOT:-}; if [ -z \"$r\" ]; then echo \"codex-hook: PLUGIN_ROOT is unset, so the adapter cannot be located; refusing this call\" >&2; exit 2; fi; if [ ! -f \"$r/$a\" ]; then n=0; for d in \"${r%/*}\"/*/; do if [ -f \"$d$a\" ]; then c=${d%/}; n=$((n+1)); fi; done; if [ \"$n\" -ne 1 ]; then echo \"codex-hook: this session registered $r, which no longer exists, and $n installed versions carry the adapter; refusing this call. Restart the Codex session.\" >&2; exit 2; fi; r=$c; fi; python3 \"$r/$a\"; s=$?; if [ \"$s\" -ne 0 ]; then echo \"codex-hook: the adapter exited $s instead of 0, so this call was not judged; refusing it\" >&2; exit 2; fi'"
           }
         ]
       }
