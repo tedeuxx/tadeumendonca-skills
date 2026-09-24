@@ -34,7 +34,88 @@ it is not automatically loaded. `source-manifest.json` describes the inputs and 
 `--check` performs no writes and fails on changed source, changed output, missing files and unexpected
 files. Rebuilding into the same directory is allowed only when its bytes already match. To update,
 build a new directory and verify it before changing the session or project registration. This retains
-the precise snapshot used by an in-flight review.
+the precise snapshot used by an in-flight review — **as long as the old directory is kept**, which is
+measured below rather than assumed (see *Updating without breaking an in-flight review*).
+
+## Knowing the registered snapshot is behind (#509)
+
+A snapshot is pinned on purpose, so it falls behind every release until someone rebuilds it. On
+2026-09-24 the consumer registered a `2.0.44` snapshot while the plugin was at `2.0.79`, and nothing
+told the Codex session. **The Codex hook adapter now says so.** On every `UserPromptSubmit`, once the
+floor's own preflight passes, `scripts/codex-hook-adapter.py` reads the project registration and
+compares each registered snapshot's `source-manifest.json` `version` with the installed plugin's
+`VERSION`. When a snapshot is older, or its version cannot be read, the model receives a notice
+headed `PERSONA SNAPSHOT BEHIND` before it acts on the prompt. The notice names both versions and the
+update procedure below. **It reports and blocks nothing.** A current snapshot produces no output.
+
+- **The carrier is the existing `UserPromptSubmit` registration.** The hook command did not change, so
+  its trust hash did not change and no re-trust is owed (`scripts/codex-hook-adapter.test.py` §8e
+  pins it). A `SessionStart` registration would have fired once per session instead of once per
+  prompt. It was not used because adding or editing a registration leaves it skipped until the
+  owner re-trusts it, and that window turns the floor off silently.
+- **Measured, loopback model, `codex-cli 0.151.0-alpha.7.2`:** the notice reached the turn's first
+  model request as a `developer` message after the user's prompt. The hook run read `completed`, not
+  `blocked`, and the act ran. With the snapshot at the installed version, the request carried no
+  notice. Re-run with
+  `python3 scripts/codex-hook-probe.py <codex> --phase snapshotnotice`.
+  A scratch run the same day also installed this working tree through the plugin carrier into a
+  disposable home. Both registrations read `trusted`, both ran `completed`, and the notice reached the
+  model. That run was not a released install.
+- **What it reads:** the `[agents.tadeumendonca_*]` tables in `.codex/config.toml`, from the prompt's
+  `cwd` up to and including the git root. The nearest file wins for each role.
+- **What it cannot see, so it stays silent:** a registration passed as `-c` flags by `--exec`, one in
+  the user-level `config.toml`, and a thread that started before the project config was edited. That
+  last case matters after an update. The notice reads the new file and goes quiet, while the old
+  thread still uses the old snapshot (measured below).
+- **Cost:** 689 characters of developer context on every prompt while one snapshot is behind, plus the
+  length of its directory path. The figure comes from:
+
+  ```sh
+  python3 -c "
+  import importlib.util
+  s=importlib.util.spec_from_file_location('a','scripts/codex-hook-adapter.py')
+  m=importlib.util.module_from_spec(s); s.loader.exec_module(m)
+  print(len(m.snapshot_notice_text('2.0.81', [('', '2.0.44', ['r']*8)])))"
+  ```
+
+  The notice is not debounced. Debouncing would need a state file written on every prompt, and this
+  adapter keeps no default side effects.
+- **It never refuses.** The shipped command maps any non-zero adapter exit to 2, and exit 2 blocks the
+  prompt. So every failure inside the notice is caught and becomes silence plus one stderr line. A
+  missed notice costs a stale persona. A crash would cost the session.
+
+Run `python3 scripts/codex-hook-adapter.py --selfcheck` from a project to get the same answer on
+demand. It prints a `PERSONA SNAPSHOT (#509)` note. For a harness without this adapter, the same
+behaviour is written up as a portable prompt:
+[`docs/prompts/persona-snapshot-staleness.md`](prompts/persona-snapshot-staleness.md).
+
+## Updating without breaking an in-flight review (#509)
+
+Two runtime facts decide the procedure. Both were measured on `codex-cli 0.151.0-alpha.7.2` with a
+loopback model and disposable homes (`--phase snapshotnotice`):
+
+| after the project registration is rewritten from snapshot A to snapshot B | the spawned child received |
+|---|---|
+| a spawn in a thread that was open before the rewrite | **A** |
+| a spawn in a new thread of the same running process | B |
+| a spawn in a fresh process | B |
+| **A's directory deleted**, then a spawn in a thread still registered to A | **no child**: `agent type is currently not available` |
+
+**A thread keeps the registration it started with. A child's profile is read from disk when the child
+is spawned.** So a review in flight survives a registration change. It does not survive deleting the
+snapshot it started on. The procedure:
+
+1. **Build a new directory** from the installed plugin root. Never rebuild into the old one; the
+   builder refuses unless the bytes already match.
+2. **Verify it** with `--check`.
+3. **Re-register it** with `--install-config` (with `--backup`). Open threads keep the old snapshot.
+4. **Continue in a new thread** (or restart the session). Only new threads receive the new personas.
+5. **Keep the old directory until every thread that started before step 3 has finished.** Deleting it
+   is what breaks an in-flight review: the next dispatch in that thread gets no child.
+
+A review started before the update finishes on the snapshot it started with. A re-dispatch of the gate
+in that same thread also uses the old snapshot. If the review must apply a rule that is newer than the
+old snapshot, run it in a new thread after step 3.
 
 ## Activate a session without changing configuration
 

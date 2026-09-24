@@ -1761,6 +1761,7 @@ not imported merely because the Claude registry declares them.
 | the new carrier's `UserPromptSubmit` registration fires after release/install | **owed** — CI cannot start Codex, and the installed package predates this change |
 | quoted nested irreversible operations are covered | ~~**false at the measured shared guard** — separate repair required~~ **false at installed `2.0.71`; the shared guard's source denies ~~the class~~ the measured spellings listed in ADR-0004's 2026-09-23 amendment since #497 — not the class, and not process substitution** (guard decision and adapter translation asserted in CI; native effect on an installed release carrying it **owed**) |
 | authenticated caller identity or whole-harness support | **not claimed** |
+| the carrier's `UserPromptSubmit` registration fires and its `additionalContext` reaches the model (#509) | **observed** with this working tree installed through `plugin/install` into a disposable home, using a loopback model. Both registrations read `trusted`, both ran `completed`, and the notice arrived as a `developer` message. This was not a released install. Section 21 |
 
 The carrier and adapter suites pin the two-event registration, the shared command, the no-matcher
 shape, the exact local blocker set and its healthy abstention. Mutation removes `jq` and the guard in
@@ -2102,3 +2103,72 @@ dozen disposable homes, and on a PASS every reading is already in the report. Th
 `artifacts_kept false`. Pass `--keep-artifacts` to keep them. A FAIL always keeps the directory,
 because it is the only place the failing scenario's stderr survives. Offline and turn phases are
 unchanged, and they keep their fixture trees as the probe's header says (section 11).
+
+## 21 · THE PERSONA-SNAPSHOT NOTICE (#509) — a report on the prompt route, and what a running thread keeps
+
+**Why.** Native personas are pinned snapshots (`docs/codex-native-personas.md`). On 2026-09-24 the
+consumer registered a `2.0.44` snapshot while the plugin was at `2.0.79`, and no Codex session was
+told. The adapter's `UserPromptSubmit` arm now reports it. After the floor's preflight passes, it
+compares every registered `tadeumendonca_*` snapshot's `source-manifest.json` version with the
+installed `VERSION`. When a snapshot is behind, it prints
+`{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":…}}`.
+**It never prints a `decision`.** The registration and its command did not change, so the trust hash
+did not change either. Section 8e of `scripts/codex-hook-adapter.test.py` stayed green.
+
+### 21.1 · The channel, measured
+
+`python3 scripts/codex-hook-probe.py <codex> --phase snapshotnotice` is a loopback phase: no
+credential, no token, disposable homes. It registers the real adapter from this checkout on
+`UserPromptSubmit` and reads the model's own request. On `codex-cli 0.151.0-alpha.7.2`, 2026-09-24
+(pinned as `SNAPSHOT_MEASURED`, every key agreed):
+
+| reading | stale snapshot (0.0.1) | snapshot at the installed version |
+|---|---|---|
+| notice in the turn's first model request | **yes**, as a `developer` message after the user's prompt | no |
+| hook run status | `completed` | `completed` |
+| the turn's act executed | yes | yes |
+
+Scratch readings from the same day are not in the phase. A plain-text stdout reached the model the
+same way. A `{"systemMessage": …}` object appeared in the hook's feedback and did **not** reach the
+model, which is why the adapter does not use it. A second scratch run installed this working tree
+through `plugin/install` into a disposable home and trusted both carrier registrations. Both ran
+`completed`, and the notice reached the model through the **shipped** command. This was not a released
+install, so the row in 18.4 says so.
+
+### 21.2 · What a running session keeps — the fact the update procedure rests on
+
+In the same phase, a role was registered to snapshot A. A spawn was the control, and the phase raises
+if it fails. Then the project registration was rewritten to B:
+
+| spawn | child received |
+|---|---|
+| same thread, after the rewrite | **A** |
+| new thread, same process | B |
+| fresh process | B |
+| A's directory deleted, same thread still registered to A | **no child** — `agent type is currently not available` |
+
+**The registration is fixed per thread, and the profile is read from disk at spawn time.** So a
+review in flight survives a re-registration. It does not survive deleting its snapshot. The procedure
+built on this is in `docs/codex-native-personas.md`, *Updating without breaking an in-flight review*.
+The same fact limits the notice. It reads the file, so after an update it goes quiet in an old thread
+that still uses the old snapshot.
+
+### 21.3 · What holds this section
+
+- `scripts/codex-hook-adapter.test.py` section 3b covers these cases:
+  - a stale snapshot produces the context shape and no `decision`;
+  - a current snapshot and a newer one produce silence (the calibration);
+  - an unreadable manifest is reported;
+  - quoted table headers and literal-string paths are read;
+  - a foreign role, a config above the git root, and a nearer current registration produce silence;
+  - a failing preflight still blocks;
+  - an exception inside the notice still exits 0 with no stdout.
+- `scripts/codex-hook-probe.test.py` arm 10 pins the instrument: loopback only, the real adapter, the
+  raised controls, and every pin compared.
+- **Nothing in CI starts Codex.** The channel and the per-thread behaviour are held by re-running the
+  phase on a machine with a binary. **Owed:** the notice from a **released** install, and any reading
+  on `0.154.0-alpha.6.2`.
+- **Containment:** every scenario used its own disposable `CODEX_HOME`, and the run reported
+  `real_config_unchanged true` and `credential_copies_made 0`. The consumer's real
+  `.codex/config.toml` was read once, by hand, to confirm the notice fires against it (`2.0.44` against
+  this checkout's `2.0.81`). It was never written.
