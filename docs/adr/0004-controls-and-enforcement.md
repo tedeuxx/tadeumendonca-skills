@@ -7084,3 +7084,67 @@ did the work. That is the cost above, and no layer here can check it.
 exemption may not be bound to `agent_type`"*) and decisions 2 and 3 of the 2026-09-14 slice C
 amendment, all struck in place above. It *changes the shared irreversible floor*: the merge executor
 set gains a declared identity.
+
+## Amendment (2026-09-24) — the Codex registration resolves its adapter at CALL time, so a release no longer strands a running session (#508)
+
+**Deciders:** owner (filed #508 and admitted it to sprint-04), written by `agents-lead`. Measured on
+`codex-cli 0.151.0-alpha.7.2` against a loopback model, with no credential.
+
+### The decision
+
+Both Codex registrations (`PreToolUse`, `UserPromptSubmit`) change from
+`python3 ${PLUGIN_ROOT}/scripts/codex-hook-adapter.py` to a single-quoted `/bin/sh -c` resolver.
+The resolver runs the registered root's adapter. If that root is gone, it runs the adapter of the
+**one** sibling version directory that carries it. In every other case it **exits 2**.
+
+### Why — the measurement
+
+A running Codex process resolves `${PLUGIN_ROOT}` once and keeps it, on every thread. An install from
+another process deletes the old version directory synchronously. From then on, every tool call in
+the running process launched a path that no longer existed, and every call was blocked. Every merge
+publishes a patch (ADR-0005), so every merge stopped every open Codex session. The readings, the
+command and the bounds are in section 20 of
+[the bridge document](../codex-hook-bridge.md).
+
+**Fail-closed is kept, and the exit code is what keeps it.** Only exit 2 blocks. Exit 1 and exit 127
+read `failed`, **and the act executes**. The old form blocked on a missing file only because
+`python3` exits 2. The resolver makes every refusal an exit 2 on purpose. It pins `/bin/sh` because
+the hook runs in the user's login shell, and in zsh a glob that matches nothing is an exit 1.
+
+### Considered and rejected
+
+- **A documented restart obligation alone.** It keeps the trust hash stable. It was rejected because
+  it costs one blanket outage per merge for every open Codex session. The obligation is a habit that
+  nothing enforces, and the outage it prevents looks exactly like the floor holding.
+- **A launcher in `PLUGIN_DATA`.** The directory is version-independent, but the installer does not
+  create it. The first hook after a fresh install would find nothing to launch.
+- **Picking the highest of several versions.** The Codex cache keeps one version. Two candidates
+  arise only mid-install or after tampering, so the resolver refuses rather than guesses.
+
+### Consequences
+
+Good: a session that started on this release survives later releases. Its hooks follow the version
+that was installed. The refusal cases say what happened and ask for a restart. A cache path with a
+space now launches, because every expansion is quoted.
+
+**Bad, and the first cost is the serious one: the command changed, so the trust hash changed.** A
+`modified` registration was measured to be **skipped**, not blocked. After updating to the release
+that carries this, the Codex floor is **off, silently**, until the owner re-trusts both registrations.
+The same thing happens whenever a later release edits the command. A session that started before
+this release strands once more. A running session runs new adapter code under its old registration
+set. A missing `python3` still exits 127 and is let through; that was already true and is not changed
+here.
+
+### What holds it
+
+`scripts/codex-hook-adapter.test.py` section 8c runs the shipped command string against fabricated
+version trees and asserts each refusal exits 2. Every arm was calibrated by mutating
+`codex-hooks.json`. `scripts/codex-hook-probe.py --phase stalepath` is the runtime measurement, and
+CI does not run it. **Nothing holds the re-trust.** No layer in this repository can see a
+`modified` hash in the owner's own config.
+
+### Significance
+
+*Alters a previously-recorded decision*: the shipped command form in section 17.2 of the bridge
+document and the "whether that repaired registration launches" paragraph above. It touches the
+harness's own hook registration, which makes it boundary class.

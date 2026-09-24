@@ -1450,6 +1450,13 @@ not separate, and it is the argument for the log having been built at all.
   stops. An operator sees a refusal and a python error in feedback, and the refusal looks like the
   floor doing its job.
 
+**AMENDED 2026-09-24 (#508): the fail-closed launch failure depends on ONE exit code, and that code
+comes from `python3`, not from the runtime.** Measured on the same build against a loopback model
+(section 20.4): a hook that exits **2** reads `blocked` and the act does not run. A hook that exits
+**1** or **127** reads `failed`, **and the act executes**. A missing script blocks only because
+`python3` exits 2 when it cannot open its file. The same failure under an interpreter that exits 127
+would fail **open**. Section 20 keeps the refusal at exit 2 on purpose.
+
 ### 16.5 · What this closes, and what it explicitly does not
 
 **Closed:** the install path is reachable and is the vendor's own · the installed package carries
@@ -1581,6 +1588,12 @@ separates them is this repository's own portable-brief rule: an artifact address
 machinery names no harness-specific token. `codex-hooks.json` is a Codex config, and spelling a
 Claude-shaped name inside it is the same mistake `AGENTS.md` exists to prevent, one layer down.
 
+**AMENDED 2026-09-24 (#508): the residual below is discharged, and the command it describes is no
+longer the shipped one.** The hook command runs in the user's login shell (section 20.4), so a
+double-quoted `"${PLUGIN_ROOT}/…"` was measured to launch, and a quoted argument with a space arrived
+as one argument. The shipped registration is now the resolver in section 20.3, and it quotes every
+expansion. The paragraph is kept because it says what the `python3 ${PLUGIN_ROOT}/…` form cost.
+
 **It is UNQUOTED, and that is a residual rather than a decision.** Expansion here was measured to
 behave as shell word-splitting — an unset name does not arrive empty, it *vanishes* — so the
 expansion is unquoted by the runtime. **Whether a quoted token survives, and whether a quoted value
@@ -1629,6 +1642,11 @@ general point: a repair verified only by its own test suite is a repair, not an 
 is why section 18.4 still lists the carrier's own `UserPromptSubmit` registration as **owed**.
 
 ### 17.4 · What holds this section
+
+**AMENDED 2026-09-24 (#508):** the arms described in the next paragraph pinned the
+`python3 ${PLUGIN_ROOT}/…` form. They were replaced when section 20 replaced that form. The
+measured-name membership arm (`_ROOT`, derived from `ROOT_MEASURED`) survives, and section 20.6
+lists the rest.
 
 **The repair itself is gated:** `scripts/codex-hook-adapter.test.py` asserts the argument opens with
 a `${NAME}/` expansion, that the name is one measured as injected *and ends `_ROOT`* (`PLUGIN_DATA`
@@ -1828,3 +1846,169 @@ tools, because `mcp-guard.sh` is not routed on Codex. It does not claim that the
 `SubagentStart`/`SubagentStop` or `SessionStart` hooks run: the carrier registers `PreToolUse` and
 `UserPromptSubmit` only. It does not claim anything about Kiro, where neither the guard nor persona
 identity is activated.
+
+## 20 · A RELEASE NO LONGER STRANDS A RUNNING SESSION (#508)
+
+**The outage.** On 2026-09-23, during the first sprint run inside Codex, a running session kept
+launching `…/tadeumendonca-skills/2.0.74/scripts/codex-hook-adapter.py`, and later `2.0.77`, after
+those directories had been removed. Every tool call was denied until the owner stepped in. This
+happened twice. The loop caused both outages itself: every merge publishes a patch (ADR-0005), and
+the Codex plugin cache keeps one version.
+
+### 20.1 · Method — real processes, a loopback model, no credential
+
+```sh
+python3 scripts/codex-hook-probe.py ~/.codex/plugins/.plugin-appserver/codex --phase stalepath
+```
+
+The phase starts real `codex app-server --stdio` processes against a **new disposable
+`CODEX_HOME` per scenario**. Plugins are installed through the vendor's own `plugin/install`, and
+turns are real turns. The **model** is a loopback Responses stand-in on `127.0.0.1`, declared in the
+disposable config with `requires_openai_auth = false`. It scripts one shell call per turn. **No
+credential is copied and no token is spent**, which is why this phase needs no `--allow-model-turn`.
+Its own run reports `credential_copies_made 0`. It still runs only when named, because it takes
+about a minute and needs a binary.
+
+The fixture's recorder is **named `scripts/codex-hook-adapter.py`**, so the scenario that tests the
+shipped registration installs the command **verbatim from this checkout's `codex-hooks.json`**. The
+old form, `python3 ${PLUGIN_ROOT}/scripts/codex-hook-adapter.py`, is the control that must strand.
+
+Measured 2026-09-24 on `codex-cli 0.151.0-alpha.7.2` (`~/.codex/plugins/.plugin-appserver/codex`).
+The readings are pinned in `STALE_MEASURED` and reported as `pinned_agreement`. That run agreed on
+every key. **Bounded:** one build, one machine, macOS, and a loopback model rather than a real one.
+The VS Code build `0.154.0-alpha.6.2` was not run.
+
+### 20.2 · When the path is resolved — once per PROCESS
+
+Each scenario installs `1.0.0`, trusts it, opens a session S1 and runs a control turn (which must run
+the `1.0.0` recorder, or the phase fails). It then installs `1.0.1` and runs three more turns: one on
+S1's existing thread, one on a new thread in S1, and one in a fresh process.
+
+| scenario | S1, same thread | S1, new thread | fresh process |
+|---|---|---|---|
+| old command, update from **another** process | **blocked** — `can't open file …/1.0.0/scripts/codex-hook-adapter.py` | **blocked** | `1.0.1` runs |
+| old command, update **through S1 itself** | `1.0.1` runs | `1.0.1` runs | `1.0.1` runs |
+| **shipped** command, update from another process | **`1.0.1` runs** | **`1.0.1` runs** | `1.0.1` runs |
+
+- **The root is resolved per process and kept.** A new thread in the same process gets the stale
+  root as well. S1's recorder environment still read `PLUGIN_ROOT=…/1.0.0` after the update, while the
+  fresh process read `…/1.0.1`.
+- **An install through the running process refreshes it.** So the outage needs the update to come from
+  a **different** process: a second session, the desktop app, or the CLI. Which process performed
+  the owner's update on 2026-09-23 is **not measured**.
+- **The installing call deletes the old version, synchronously.** Immediately after
+  `plugin/install` returned, only `1.0.1` was on disk. That is the `versions_on_disk_after_install`
+  reading in every scenario. `codex plugin add` (the CLI) did the same in a scratch run against a
+  disposable home. That CLI run is **not** in the phase, so treat it as observed once rather than
+  pinned.
+- **Nothing watches the cache.** In a scratch run S1 stayed stale after 45 idle seconds. This is also
+  not in the phase.
+- **`PLUGIN_DATA` is version-independent** (`<CODEX_HOME>/plugins/data/<plugin>-<market>`), and the
+  installer does not create it. It was a candidate home for a stable launcher, and it was **not used**:
+  nothing would put the launcher there before the first hook fires. Section 20.5 covers the
+  alternatives.
+
+### 20.3 · The registration now shipped
+
+```sh
+/bin/sh -c 'a=scripts/codex-hook-adapter.py; r=${PLUGIN_ROOT:-}; if [ -z "$r" ]; then … exit 2; fi;
+  if [ ! -f "$r/$a" ]; then n=0; for d in "${r%/*}"/*/; do if [ -f "$d$a" ]; then c=${d%/};
+  n=$((n+1)); fi; done; if [ "$n" -ne 1 ]; then … exit 2; fi; r=$c; fi; exec python3 "$r/$a"'
+```
+
+(Wrapped here for reading. `codex-hooks.json` holds it as one line, the same for both events.)
+
+**The command resolves the adapter at CALL time rather than at process start.** It uses the
+registered root if that root still holds the adapter. Otherwise it uses the **one** sibling version
+directory that holds it. The Codex cache keeps exactly one version, so after an update that is the
+new version. In every other case it refuses:
+
+| situation | result |
+|---|---|
+| the registered root is present | its own adapter runs (the common case, and the only one before this change) |
+| the root is gone and exactly one sibling carries the adapter | the sibling's adapter runs. **This is the repair** |
+| the root is gone and **no** sibling carries it (plugin removed) | exit 2, **blocked**, with a message naming the vanished root and asking for a restart |
+| the root is gone and **two or more** carry it | exit 2, **blocked**. The resolver will not pick between versions |
+| `PLUGIN_ROOT` unset | exit 2, **blocked**, and it does not glob the filesystem root |
+
+**Fail-closed is preserved, and it now comes from the resolver rather than from luck.** Every refusal
+exits 2, the only code measured to block (20.4). The earlier form blocked only because `python3`
+exits 2 on a missing file.
+
+**`/bin/sh` is pinned because the user's shell is not POSIX-guaranteed.** The hook command runs in the
+user's login shell, which is zsh on this machine (20.4). In zsh a glob that matches nothing is an
+**error with exit 1**, and this runtime lets exit 1 through. The whole resolver is one single-quoted
+argument, so the login shell expands nothing and hands the script to `/bin/sh`. Under `/bin/sh` a
+glob that matches nothing stays literal, `n` stays 0, and the result is exit 2. This was checked
+locally by running the same script body, called from zsh, with four inner shells in the
+no-candidate case: `/bin/sh`, `/bin/dash` and `/bin/bash` exited **2**, and `/bin/zsh` exited **1**.
+The live-root and one-replacement cases ran the right adapter under all four.
+
+### 20.4 · Three runtime facts the design rests on
+
+| fact | reading |
+|---|---|
+| **only exit 2 blocks** | exit 2 → `blocked`, act not run · exit 1 → `failed`, **act executed** · exit 127 → `failed`, **act executed**. The phase's `exit_codes` reading |
+| **the command runs in a shell** | `;`, `||`, single and double quotes and `$HOME` all behaved as a shell's, and a quoted `"a b"` arrived as one argument (scratch run, not in the phase). This is enough to explain section 17.1's "expansion" without a separate runtime substitution step. Whether Codex also substitutes on its own cannot be separated from these readings |
+| **the shell is the login shell, not `$SHELL`** | `$0` read `/bin/zsh`, and it still read `/bin/zsh` with `SHELL=/bin/bash` in the app-server's environment (scratch run). Whether it comes from the account record or is fixed on macOS was **not** separated |
+
+### 20.5 · What it costs, and the options not taken
+
+- **A one-time re-trust, and until then the Codex floor is OFF, silently.** Trust is keyed without a
+  version (`<plugin>@<market>:codex-hooks.json:pre_tool_use:0:0`), and the hash covers the **declared**
+  command. So an unchanged command stays `trusted` across releases: every scenario above read
+  `trusted` after the update. A **changed** command reads `modified`, and a `modified` registration is
+  **skipped**. The migration scenario installed the old form, updated to this one, and then ran the
+  fresh process's act with **no hook at all** (`fresh_process: no-hook`, marker created). This
+  release changes the command, so after updating to it the owner must re-trust **both**
+  registrations (`PreToolUse` and `UserPromptSubmit`) in the native UI. Until then the floor fails
+  **open** and nothing in the session says so. The preflight cannot report it, because the preflight
+  is the other skipped registration. The same cost comes back whenever a later release edits this
+  command.
+- **A one-time restart.** A session started on a release before this one holds the old registration
+  and strands once more on the next update. The repair only protects sessions that **started** on it.
+- **A running session runs NEW adapter code under its OLD registration set.** The script body follows
+  the update, but the events and the command template stay as they were when the process started. If
+  a later release adds an event or changes the template, running sessions keep the old ones until
+  restarted.
+- **It selects code by directory listing** inside the plugin's own cache directory. That is the same
+  trust domain the installer already writes to. As 18.1 says, trust was never script-content
+  integrity: the unchanged hash across releases means trust already ran whatever version was
+  installed.
+- **Unchanged and still open:** with no `python3` on `PATH`, `exec` exits 127 and the act is **let
+  through**. That was already true before this change, and it is named here rather than repaired.
+
+**Options not taken.** (1) **A documented restart obligation alone.** The Issue allowed it, and it
+keeps the command and the trust hash unchanged. It was rejected because it costs one blanket outage
+**per merge** for every open Codex session. That is a habit with no mechanism behind it, and the
+outage it prevents looks exactly like the floor holding (16.4). (2) **A launcher in `PLUGIN_DATA`.**
+That directory is version-independent, but the installer does not create it, so the first hook call
+after a fresh install would have nothing to launch. (3) **Picking the highest version when several
+exist.** The cache keeps one, so the ambiguous case only arises mid-install or after tampering.
+Refusing it costs one blocked call. Guessing it could run the wrong code.
+
+### 20.6 · What holds this section
+
+- **`scripts/codex-hook-adapter.test.py`, section 8c, runs the SHIPPED command string in CI** through
+  `bash -c`, then `/bin/sh`, against fabricated version trees. The arms cover: the root present, the
+  root gone with one replacement, a sibling without the adapter ignored, two candidates refused with
+  exit 2, no candidate refused with exit 2, an unset root refused with exit 2, and a path containing a
+  space in both branches. Each arm was calibrated by mutating **`codex-hooks.json`**: the old command,
+  no fallback, `-ne 1`→`-lt 1`, `exit 2`→`exit 1`, `CODEX_PLUGIN_ROOT`, counting directories without
+  the adapter, an unquoted `exec`, and no unset guard. Every mutation turned at least one arm red, and
+  the suite went green again on restore.
+- **`scripts/codex-hook-probe.test.py`, arm 9, pins the instrument, not the runtime.** It checks that
+  the phase is loopback-only, copies no credential, installs the shipped command verbatim, raises on a
+  silent control turn, and compares every pinned key.
+- **Nothing in CI starts Codex.** The behaviour in 20.2 and 20.4 is held by re-running the phase on a
+  machine that has a binary, and which binary is part of the claim. **Owed:** a native run of an
+  **installed** release carrying this command, across a real update, and any reading on
+  `0.154.0-alpha.6.2`.
+
+### 20.7 · Containment
+
+Every scenario used its own disposable `CODEX_HOME`, which held the plugin, the trust write and the
+config. The run reported `real_config_unchanged true` and `credential_copies_made 0`. The owner's
+real install at `~/.codex/plugins/cache/tadeumendonca/` was listed and never written. No global
+setting and no trust outside the disposable homes was changed. The act in every turn was a `touch`
+inside the disposable project.
