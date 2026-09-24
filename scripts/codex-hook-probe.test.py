@@ -662,12 +662,15 @@ probe_src = (ROOT / "scripts" / "codex-hook-probe.py").read_text()
 # It starts real app-server processes and turns, so it must not leak into `--phase all`;
 # it spends nothing, so it must not demand `--allow-model-turn` either. Both are properties
 # of the partition, and the partition is all CI can reach.
-check("stalepath is the one loopback phase", set(probe.LOOPBACK_PHASES) == {"stalepath"},
+# ~~stalepath is the one loopback phase~~ — #509 added `snapshotnotice`; the partition
+# property below is what this arm was for, and it now names both members.
+check("the loopback phases are exactly stalepath and snapshotnotice",
+      set(probe.LOOPBACK_PHASES) == {"stalepath", "snapshotnotice"},
       str(sorted(probe.LOOPBACK_PHASES)))
 check("stalepath is unreachable from --phase all and --phase turn",
       "stalepath" not in probe.OFFLINE_PHASES and "stalepath" not in probe.TURN_PHASES)
-stale_src = probe_src.split("def phase_stalepath")[1].split("\nLOOPBACK_PHASES")[0]
-stale_all = probe_src.split("# Phase: stalepath")[1].split("\nLOOPBACK_PHASES")[0]
+stale_src = probe_src.split("def phase_stalepath")[1].split("# Phase: snapshotnotice")[0]
+stale_all = probe_src.split("# Phase: stalepath")[1].split("# Phase: snapshotnotice")[0]
 check("stalepath never copies a credential — the model is the loopback stand-in",
       "seed_credential" not in stale_all and "requires_openai_auth = false" in stale_all)
 check("stalepath installs the SHIPPED registration read from codex-hooks.json, not a "
@@ -704,6 +707,43 @@ check("every failure pin has a scenario that produces it, and the failing adapte
       and "stale_adapter_failures(binary, work, model, shipped)" in stale_src)
 check("the no-python scenario's PATH really excludes the interpreter's directory",
       "/usr/bin" not in probe.STALE_NO_PYTHON_PATH.split(":"), probe.STALE_NO_PYTHON_PATH)
+# --- arm 10: the `snapshotnotice` loopback phase (#509) ------------------------
+snap_all = probe_src.split("# Phase: snapshotnotice")[1].split("\nLOOPBACK_PHASES")[0]
+snap_src = snap_all.split("def phase_snapshotnotice")[1]
+check("snapshotnotice is unreachable from --phase all and --phase turn",
+      "snapshotnotice" not in probe.OFFLINE_PHASES and "snapshotnotice" not in probe.TURN_PHASES)
+check("snapshotnotice never copies a credential — the model is the loopback stand-in",
+      "seed_credential" not in snap_all and "LoopbackModel()" in snap_src)
+check("snapshotnotice registers the REAL adapter from this checkout, not a recorder that "
+      "prints a notice", "ADAPTER_PATH" in snap_all and "make_hook" not in snap_all)
+check("snapshotnotice raises when the prompt hook did not run, so an absent notice is never "
+      "read as silence", "did not run in a notice turn" in snap_src)
+check("snapshotnotice raises on a failed CONTROL spawn before the swap and before the deletion",
+      snap_src.count("the CONTROL spawn before") == 2)
+check("the snapshotnotice pins are REPORTED and not raised on",
+      "pinned_agreement" in snap_src
+      and "raise Failure" not in snap_src.split("pinned_agreement")[1])
+check("every snapshotnotice pin is compared by the phase, so a pin cannot go unread",
+      all(('SNAPSHOT_MEASURED["%s"]' % k) in snap_src
+          for k in probe.SNAPSHOT_MEASURED if k != "build"),
+      str(sorted(probe.SNAPSHOT_MEASURED)))
+check("the calibration turn runs the SAME tree at the installed version, so the notice "
+      "reading is a comparison and not a constant",
+      'snapshot_notice_turn(binary, work, model, "current", installed)' in snap_src
+      and probe.SNAPSHOT_MEASURED["current_notice_in_request"] is False
+      and probe.SNAPSHOT_MEASURED["notice_in_first_request"] is True)
+check("the in-flight pins record what the update procedure rests on: an open thread keeps A, "
+      "a new thread gets B, a deleted snapshot yields no child",
+      (probe.SNAPSHOT_MEASURED["same_thread_after_swap"],
+       probe.SNAPSHOT_MEASURED["new_thread_after_swap"],
+       probe.SNAPSHOT_MEASURED["deleted_snapshot_spawn"]) == ("A", "B", "no-child"))
+# The stand-in change the phase needed: the prompt is the latest item CARRYING a marker, since
+# additionalContext is appended after the user message. Reading the last item scripted `true`.
+loop_src = probe_src.split("class LoopbackModel:")[1].split("def config_head")[0]
+check("the loopback stand-in reads the script marker from the latest item carrying it",
+      "prompt = scripted[-1] if scripted else last" in loop_src
+      and "text = json.dumps(prompt)" in loop_src)
+
 main_src = probe_src.split("def main():")[1]
 check("a PASSING loopback-only run removes its artifacts, and a FAIL or any other phase "
       "keeps them", "loopback_only = all(p in LOOPBACK_PHASES for p in selected)" in main_src

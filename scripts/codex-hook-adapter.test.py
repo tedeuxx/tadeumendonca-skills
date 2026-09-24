@@ -317,6 +317,146 @@ with tempfile.TemporaryDirectory() as work:
           "preflight — a missing shared guard refuses the prompt; the check is against "
           "the activated Codex path, not the Claude observer registry")
 
+# ── 3b · the persona-snapshot notice (#509) — a REPORT, never a refusal ────────────────
+# The notice rides the EXISTING UserPromptSubmit registration so the trusted command
+# string does not move (8e). Its channel — additionalContext, reaching the model as a
+# developer message — was measured by `codex-hook-probe.py --phase snapshotnotice`; these
+# arms prove the file produces that shape, silence when current, and never a `block`.
+
+INSTALLED = (ROOT / "VERSION").read_text().strip()
+
+
+def snapshot_dir(base, name, version, manifest=True, roles=("tadeumendonca_quality_assurance",)):
+    d = Path(base) / name
+    (d / "profiles").mkdir(parents=True)
+    for role in roles:
+        (d / "profiles" / (role + ".toml")).write_text('name = "%s"\n' % role)
+    if manifest:
+        (d / "source-manifest.json").write_text(json.dumps({"schema": 1, "version": version}))
+    return d
+
+
+def register(project, snapshot, roles=("tadeumendonca_quality_assurance",), quoted=False,
+             literal=False, extra=""):
+    cfg = Path(project) / ".codex" / "config.toml"
+    cfg.parent.mkdir(parents=True, exist_ok=True)
+    body = 'model = "x"\n' + extra
+    for role in roles:
+        header = '[agents."%s"]' % role if quoted else "[agents.%s]" % role
+        path = str(Path(snapshot) / "profiles" / (role + ".toml"))
+        value = ("'%s'" % path) if literal else json.dumps(path)
+        body += "\n%s\nconfig_file = %s\ndescription = \"d\"\n" % (header, value)
+    cfg.write_text(body)
+    return cfg
+
+
+def prompt_at(cwd, env=None, source=None):
+    return run_adapter({"hook_event_name": "UserPromptSubmit", "prompt": "p", "cwd": str(cwd)},
+                       env=env, source=source)
+
+
+def context_of(p):
+    d = decision_of(p) or {}
+    return ((d.get("hookSpecificOutput") or {}).get("additionalContext") or ""), d
+
+
+with tempfile.TemporaryDirectory() as work:
+    proj = Path(work) / "proj"
+    (proj / ".git").mkdir(parents=True)
+    stale = snapshot_dir(work, "snap-old", "0.0.1")
+    register(proj, stale)
+    p = prompt_at(proj)
+    text, d = context_of(p)
+    check(p.returncode == 0 and "decision" not in d
+          and (d.get("hookSpecificOutput") or {}).get("hookEventName") == "UserPromptSubmit"
+          and cha.SNAPSHOT_TAG in text and "0.0.1" in text and INSTALLED in text,
+          "snapshot notice — a registered snapshot BEHIND the installed plugin is reported "
+          "as additionalContext naming both versions, exit 0 and no `decision` key")
+    check("--install-config" in text and "NEW thread" in text
+          and "keep the old directory" in text and "blocks nothing" in text,
+          "snapshot notice — it carries the update procedure the in-flight measurement "
+          "supports: new directory, re-register, new thread, keep the old directory")
+
+    # Calibration: the SAME tree with the snapshot at the installed version is silent, so
+    # the arm above is a version comparison and not a constant.
+    current = snapshot_dir(work, "snap-now", INSTALLED)
+    register(proj, current)
+    p = prompt_at(proj)
+    check(p.returncode == 0 and (p.stdout or "").strip() == "",
+          "snapshot notice — calibration: a snapshot AT the installed version is silent")
+    newer = snapshot_dir(work, "snap-new", "999.0.0")
+    register(proj, newer)
+    check((prompt_at(proj).stdout or "").strip() == "",
+          "snapshot notice — a snapshot NEWER than the plugin is not reported as behind")
+
+    nomanifest = snapshot_dir(work, "snap-bare", None, manifest=False)
+    register(proj, nomanifest)
+    text, d = context_of(prompt_at(proj))
+    check("UNREADABLE" in text and cha.SNAPSHOT_TAG in text,
+          "snapshot notice — a snapshot whose version cannot be read is REPORTED, because "
+          "unknown is not current")
+
+    register(proj, stale, quoted=True, literal=True)
+    check("0.0.1" in context_of(prompt_at(proj))[0],
+          "snapshot notice — a quoted table header and a literal-string path are read too")
+
+    register(proj, stale, roles=("somebody_else",))
+    check((prompt_at(proj).stdout or "").strip() == "",
+          "snapshot notice — a role outside the tadeumendonca_ namespace is not this "
+          "notice's business")
+
+    # Nearest config wins per role; the walk stops at the git root.
+    sub = proj / "apps" / "fed"
+    sub.mkdir(parents=True)
+    register(proj, stale)
+    check("0.0.1" in context_of(prompt_at(sub))[0],
+          "snapshot notice — from a subdirectory, the project root's registration is found")
+    register(sub, current)
+    check((prompt_at(sub).stdout or "").strip() == "",
+          "snapshot notice — the NEAREST registration wins per role, as a project layer does")
+    outer = Path(work) / "outer"
+    inner = outer / "repo"
+    (inner / ".git").mkdir(parents=True)
+    register(outer, stale)
+    check((prompt_at(inner).stdout or "").strip() == "",
+          "snapshot notice — a config ABOVE the git root is not read")
+
+    (proj / ".codex" / "config.toml").unlink()
+    (sub / ".codex" / "config.toml").unlink()
+    check((prompt_at(proj).stdout or "").strip() == "",
+          "snapshot notice — no registration, no notice")
+
+    # A failing preflight still BLOCKS, and the notice does not displace it.
+    register(proj, stale)
+    only_bash = Path(work) / "bin"
+    only_bash.mkdir()
+    os.symlink("/bin/bash", only_bash / "bash")
+    d = decision_of(prompt_at(proj, env={"PATH": str(only_bash)})) or {}
+    check(d.get("decision") == "block" and "jq is not on PATH" in d.get("reason", ""),
+          "snapshot notice — a missing floor dependency still refuses the prompt; the "
+          "notice is reached only on a healthy floor")
+
+    # NEVER A REFUSAL, even when the notice's own code raises: the shipped resolver maps
+    # any non-zero exit to 2, and 2 blocks the prompt, so a crash here would be a denial.
+    # The copy lives outside the checkout, so its REPO_ROOT is pinned back to the checkout;
+    # otherwise the guard is "missing" and the preflight blocks before the notice runs.
+    src = mutated_adapter(work, [(
+        "REPO_ROOT = Path(__file__).resolve().parent.parent",
+        "REPO_ROOT = Path(%r)" % str(ROOT)), (
+        '    installed = (REPO_ROOT / "VERSION").read_text(encoding="utf-8").strip()\n',
+        '    raise RuntimeError("probe")\n')])
+    p = prompt_at(proj, source=src)
+    check(p.returncode == 0 and (p.stdout or "").strip() == ""
+          and "could not be computed" in (p.stderr or ""),
+          "snapshot notice — an exception inside it degrades to silence with exit 0 and a "
+          "stderr line, never to exit 1 (which the shipped command would turn into a block)")
+
+    p = subprocess.run([sys.executable, str(ADAPTER), "--selfcheck"],
+                       capture_output=True, text=True, cwd=str(proj))
+    check(p.returncode == 0 and "PERSONA SNAPSHOT (#509): " + cha.SNAPSHOT_TAG in p.stdout,
+          "snapshot notice — selfcheck reports it for the current directory as a NOTE, and "
+          "a stale snapshot does not turn selfcheck into NOT ACTIVE")
+
 check(cha.SHELL_TOOL == "Bash",
       "routes — the shell route is `Bash`; `shell` matches nothing and would register a "
       "hook that reads as installed and never fires")

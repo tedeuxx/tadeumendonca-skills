@@ -3,7 +3,7 @@
 """The Codex side of the permission floor. A TRANSLATOR, never a second policy.
 
 `hooks/scripts/permission-guard.sh` stays the only authored floor in this repository.
-This file does five things and deliberately nothing else:
+This file does six things and deliberately nothing else:
 
   1. reads a native Codex `PreToolUse` payload on stdin;
   2. decides whether the route is one the floor can speak about at all;
@@ -11,8 +11,12 @@ This file does five things and deliberately nothing else:
   4. runs the guard and translates its verdict into Codex's own vocabulary.
   5. on `UserPromptSubmit`, refuses a degraded session when the Codex floor's own
      local dependencies are absent.
+  6. on `UserPromptSubmit`, when the floor is healthy, REPORTS — never refuses — that the
+     project registers native personas from a snapshot older than the installed plugin
+     (#509). See THE PERSONA-SNAPSHOT NOTICE below.
 
-There is no rule here. A rule added here would be a second floor that drifts from the
+There is no rule here. The sixth item is not one either: it reads two version strings and
+says so, and every path through it ends in exit 0 with no `block`. A rule added here would be a second floor that drifts from the
 first with nothing watching, which is the failure this repository names most often.
 
 ── WHAT THIS DOES NOT COVER, AND IT IS STRUCTURAL ────────────────────────────────────
@@ -591,12 +595,187 @@ def floor_blockers():
     return blocking
 
 
+# ── THE PERSONA-SNAPSHOT NOTICE (#509) — a REPORT on the prompt route, never a refusal ──
+#
+# WHAT IT CLOSES. `scripts/codex-agent-build.py` pins a consumer's native personas to a
+# snapshot directory on purpose (docs/codex-native-personas.md), and nothing told a Codex
+# session that the snapshot had fallen behind the installed plugin: on 2026-09-24 the
+# consumer registered 2.0.44 while the plugin was at 2.0.79, and the orchestrator
+# compensated by ordering each persona to re-read the source, which cannot be verified.
+# Claude Code has `hooks/scripts/session-plugin-version.sh`; Codex had no equivalent.
+#
+# WHY IT LIVES HERE, and it is the cheapest carrier available rather than the natural one.
+# A `SessionStart` registration would fire once instead of on every prompt, but ANY edit
+# to `codex-hooks.json` changes a trusted command or adds an untrusted registration, and a
+# changed command is SKIPPED until the owner re-trusts it (bridge section 20.5) — the
+# floor off, silently, to buy a notice. The UserPromptSubmit registration already exists
+# and already runs this file, and the file's CONTENTS are not in the trusted hash. So the
+# notice rides the existing registration and the command string does not move
+# (`codex-hook-adapter.test.py` section 8e is the pin that says so).
+#
+# THE CHANNEL IS MEASURED, not assumed from Claude Code. On codex-cli 0.151.0-alpha.7.2
+# with a loopback model (`codex-hook-probe.py --phase snapshotnotice`), a UserPromptSubmit
+# hook printing `{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit",
+# "additionalContext":…}}` reached the model's FIRST request of the turn as a
+# `developer`-role message after the user's prompt, the run read `completed` (not
+# `blocked`) and the turn's act executed. A `systemMessage` shape reached the UI and NOT
+# the model, which is why that shape is not used.
+#
+# IT MUST NEVER DENY, and the resolver makes that a property to be defended rather than a
+# default. The shipped command maps ANY non-zero exit to 2, and 2 BLOCKS the prompt
+# (bridge section 20.3). So an uncaught exception in this code would refuse every prompt
+# over a notice. Every path is inside `try/except Exception` and degrades to silence —
+# which is the permissive direction: a missed notice costs a stale persona, a refused
+# prompt costs the session.
+#
+# WHAT IT READS, and what it cannot. The registrations in `<dir>/.codex/config.toml` for
+# the payload's `cwd` and each ancestor up to and including the first one holding `.git`;
+# the nearest file wins per role, as a project layer does. For each registered
+# `tadeumendonca_*` role, the snapshot directory is the parent of its `profiles/` file, and
+# its version is `source-manifest.json`'s `version`. That is compared with THIS plugin
+# root's `VERSION`, which is the installed version by construction: the resolver ran this
+# copy of the file. NOT READ, so silent: a registration passed as `-c` flags by the
+# builder's `--exec` launcher, one in the user-level `config.toml`, and — the one that
+# matters — a THREAD that started before the file was edited. Measured on the same build:
+# a running thread keeps the registration it started with, so after an update this notice
+# reads the new file and goes quiet in an old thread that is still on the old snapshot.
+SNAPSHOT_ROLE_PREFIX = "tadeumendonca_"
+SNAPSHOT_MANIFEST = "source-manifest.json"
+SNAPSHOT_TAG = "PERSONA SNAPSHOT BEHIND"
+_AGENT_TABLE_RE = re.compile(
+    r"\s*\[\s*agents\s*\.\s*\"?(" + SNAPSHOT_ROLE_PREFIX + r"[a-z0-9_]+)\"?\s*\]\s*(?:#.*)?")
+_CONFIG_FILE_RE = re.compile(
+    r"\s*config_file\s*=\s*(\"(?:[^\"\\]|\\.)*\"|'[^']*')\s*(?:#.*)?")
+
+
+def project_config_files(cwd):
+    """`.codex/config.toml` from `cwd` upward, nearest first, stopping at a git root."""
+    found = []
+    if not cwd or not os.path.isdir(cwd):
+        return found
+    current = Path(cwd).resolve()
+    for _ in range(64):
+        candidate = current / ".codex" / "config.toml"
+        if candidate.is_file():
+            found.append(candidate)
+        if (current / ".git").exists() or current.parent == current:
+            break
+        current = current.parent
+    return found
+
+
+def registered_profiles(text):
+    """{role: config_file} for every `[agents.tadeumendonca_*]` table in one config.
+
+    A line scanner rather than a TOML parser, deliberately: this file runs on the
+    interpreter the host provides, and `tomllib` is 3.11+. The builder writes each table
+    as a header plus a JSON-quoted `config_file` line, which is all this reads; any other
+    header ends the table. A form it cannot read yields nothing, and nothing is silence."""
+    profiles = {}
+    role = None
+    for line in text.splitlines():
+        header = _AGENT_TABLE_RE.fullmatch(line)
+        if header:
+            role = header.group(1)
+            continue
+        if line.lstrip().startswith("["):
+            role = None
+            continue
+        if role is None or role in profiles:
+            continue
+        value = _CONFIG_FILE_RE.fullmatch(line)
+        if value:
+            raw = value.group(1)
+            profiles[role] = json.loads(raw) if raw.startswith('"') else raw[1:-1]
+    return profiles
+
+
+def version_tuple(text):
+    match = re.fullmatch(r"\s*(\d+)\.(\d+)\.(\d+)\s*", text or "")
+    return tuple(int(part) for part in match.groups()) if match else None
+
+
+def snapshot_findings(cwd):
+    """(installed_version, [(snapshot_dir, version_or_None, [roles])]) for every
+    registered snapshot that is BEHIND the installed plugin or whose version cannot be
+    read. An empty list means nothing to report. Raises on nothing it can foresee; the
+    callers still wrap it, because a raise here would become exit 2."""
+    installed = (REPO_ROOT / "VERSION").read_text(encoding="utf-8").strip()
+    installed_tuple = version_tuple(installed)
+    if installed_tuple is None:
+        return installed, []
+    profiles = {}
+    for config in project_config_files(cwd):
+        for role, path in registered_profiles(config.read_text(encoding="utf-8")).items():
+            profiles.setdefault(role, path)
+    by_dir = {}
+    for role, path in sorted(profiles.items()):
+        profile = Path(os.path.expanduser(path))
+        directory = profile.parent.parent if profile.parent.name == "profiles" else profile.parent
+        by_dir.setdefault(str(directory), []).append(role)
+    findings = []
+    for directory, roles in sorted(by_dir.items()):
+        version = None
+        try:
+            manifest = json.loads((Path(directory) / SNAPSHOT_MANIFEST).read_text(encoding="utf-8"))
+            version = manifest.get("version") if isinstance(manifest, dict) else None
+        except (OSError, ValueError):
+            version = None
+        registered = version_tuple(version if isinstance(version, str) else None)
+        if registered is None or registered < installed_tuple:
+            findings.append((directory, version if registered else None, roles))
+    return installed, findings
+
+
+def snapshot_notice_text(installed, findings):
+    parts = []
+    for directory, version, roles in findings:
+        parts.append("%s at %s (%d role%s)" % (
+            ("version %s" % version) if version else "an UNREADABLE version",
+            directory, len(roles), "" if len(roles) == 1 else "s"))
+    oldest = min((f[1] for f in findings if f[1]), key=version_tuple, default=None)
+    return (
+        "%s (codex-hook-adapter, #509). This project's .codex/config.toml registers native "
+        "tadeumendonca_* personas from %s, but the installed plugin is %s. A persona you "
+        "dispatch receives that snapshot's briefs verbatim, not the current ones: say so "
+        "before dispatching, and treat any rule newer than %s as absent from it. To "
+        "update: build a NEW snapshot directory from the installed plugin root, "
+        "verify it with --check, re-register it with --install-config, then continue in a "
+        "NEW thread; keep the old directory until every thread started before the update "
+        "has finished (docs/codex-native-personas.md). This notice reports and blocks nothing."
+        % (SNAPSHOT_TAG, "; ".join(parts), installed, oldest or "the snapshot"))
+
+
+def snapshot_notice(cwd):
+    """The notice text, or None. Never raises: see the block above for why."""
+    try:
+        installed, findings = snapshot_findings(cwd)
+        if not findings:
+            return None
+        return snapshot_notice_text(installed, findings)
+    except Exception as exc:                          # noqa: BLE001 — a raise here is exit 2
+        sys.stderr.write("codex-hook-adapter: the persona-snapshot notice could not be "
+                         "computed (%s); nothing was reported and nothing was refused\n" % exc)
+        return None
+
+
+def emit_context(text):
+    """Codex's measured non-blocking channel: additionalContext on UserPromptSubmit."""
+    sys.stdout.write(json.dumps({"hookSpecificOutput": {
+        "hookEventName": PREFLIGHT_EVENT, "additionalContext": text}}))
+    sys.stdout.write("\n")
+    OUTCOME["decision"] = "context"
+    OUTCOME["note"] = text
+    return 0
+
+
 def translate(payload):
     """Codex payload in, exit code out; the decision is written to stdout."""
     if payload.get("hook_event_name") == PREFLIGHT_EVENT:
         blocking = floor_blockers()
         if not blocking:
-            return abstain()
+            notice = snapshot_notice(payload.get("cwd") or "")
+            return emit_context(notice) if notice else abstain()
         return emit_block(
             "Codex hook preflight failed: %s. Fix the installed plugin or PATH before "
             "continuing; %d blocking condition(s) found."
@@ -782,6 +961,20 @@ def selfcheck():
         "INTERACTIVE SESSION STARTUP: %s"
         % ("REFUSED" if REFUSE_INTERACTIVE_SESSION_STARTUP else
            "permitted, and the write_stdin gap is therefore OPEN"))
+
+    # A report about the CURRENT directory, so an operator can ask the question on demand
+    # from the project they are about to work in. It is a note in every outcome, never a
+    # BLOCK: a stale persona snapshot does not stop the floor from running (#509).
+    notice = snapshot_notice(os.getcwd())
+    notes.append(
+        "PERSONA SNAPSHOT (#509): %s On UserPromptSubmit a registered snapshot older than "
+        "this plugin's VERSION, or one whose version cannot be read, is REPORTED to the "
+        "model as additionalContext and never refused. Not read, so silent: registrations "
+        "passed as -c flags by the builder's --exec launcher, the user-level config.toml, and "
+        "a thread that started before the project config was edited."
+        % (notice if notice else
+           "no registered tadeumendonca_* snapshot behind this plugin was found from %s."
+           % os.getcwd()))
 
     for note in notes:
         sys.stdout.write("note:  %s\n" % note)

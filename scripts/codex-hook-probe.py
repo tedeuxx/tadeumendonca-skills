@@ -2057,11 +2057,18 @@ class LoopbackModel:
     Nothing leaves the machine, so the phase needs no credential and spends nothing.
     """
 
+    # The role a `SPAWN<<tag>>SPAWN` prompt asks the stand-in to spawn (#509). Set by the
+    # phase that uses it; the shell-call path above ignores it.
+    spawn_role = None
+
     def __init__(self):
         import http.server
         import socketserver
         outer = self
         self.requests = 0
+        # Every request body, kept so a phase can read WHAT the runtime sent the model —
+        # the only place a hook's additionalContext, or a child's profile, is observable.
+        self.bodies = []
 
         class Handler(http.server.BaseHTTPRequestHandler):
             def log_message(self, *args):
@@ -2074,6 +2081,7 @@ class LoopbackModel:
             def do_POST(self):
                 body = self.rfile.read(int(self.headers.get("content-length") or 0))
                 outer.requests += 1
+                outer.bodies.append(body.decode("utf-8", "replace"))
                 n = outer.requests
                 try:
                     req = json.loads(body)
@@ -2082,11 +2090,27 @@ class LoopbackModel:
                 items = req.get("input") or []
                 last = items[-1] if items else {}
                 tools = [t.get("name") for t in (req.get("tools") or [])]
+                # The prompt is the latest item CARRYING a script marker, not the last item:
+                # a UserPromptSubmit hook's additionalContext is appended AFTER the user's
+                # message (#509), and reading only the last item scripted `true` instead.
+                scripted = [i for i in items if "CMD<<" in json.dumps(i)
+                            or "SPAWN<<" in json.dumps(i)]
+                prompt = scripted[-1] if scripted else last
                 if last.get("type") in ("function_call_output", "custom_tool_call_output"):
                     item = {"type": "message", "role": "assistant", "id": "msg_%d" % n,
                             "content": [{"type": "output_text", "text": "DONE"}]}
+                elif "SPAWN<<" in json.dumps(prompt) and outer.spawn_role:
+                    tag = json.dumps(prompt).split("SPAWN<<")[1].split(">>SPAWN")[0]
+                    item = {"type": "function_call", "name": "spawn_agent",
+                            "namespace": "multi_agent_v1", "id": "fc_%d" % n,
+                            "call_id": "call_%d" % n, "arguments": json.dumps({
+                                "agent_type": outer.spawn_role, "fork_context": False,
+                                "message": "CHILDTASK " + tag})}
+                elif "CHILDTASK" in json.dumps(items) and not scripted:
+                    item = {"type": "message", "role": "assistant", "id": "msg_%d" % n,
+                            "content": [{"type": "output_text", "text": "DONE"}]}
                 else:
-                    text = json.dumps(last)
+                    text = json.dumps(prompt)
                     cmd = (text.split("CMD<<")[1].split(">>CMD")[0]
                            if "CMD<<" in text else "true")
                     name = "exec_command" if "exec_command" in tools else "shell"
@@ -2479,7 +2503,231 @@ def phase_stalepath(binary, work, report):
                       "something else")
 
 
-LOOPBACK_PHASES = {"stalepath": phase_stalepath}
+# ---------------------------------------------------------------------------
+# Phase: snapshotnotice (#509) — does the persona-snapshot notice reach the MODEL, and
+# what does a RUNNING session do when the snapshot registration is replaced?
+# ---------------------------------------------------------------------------
+#
+# Two questions, both loopback, no credential.
+#
+#   CHANNEL. The adapter reports a stale persona snapshot on UserPromptSubmit through
+#   `hookSpecificOutput.additionalContext`. The phase registers the REAL adapter from this
+#   checkout (`ADAPTER_PATH`) on that event, points a project registration at a fabricated
+#   snapshot whose manifest reads 0.0.1, and reads the model's own request: is the notice
+#   in it, as which role, and did the hook refuse anything? The calibration is the same
+#   tree with the snapshot at this checkout's VERSION, which must reach the model with NO
+#   notice — so the positive reading is a version comparison and not a constant.
+#
+#   IN-FLIGHT. The update procedure the notice prescribes is only safe if a thread that is
+#   mid-review keeps the snapshot it started with. The phase registers role A, spawns a
+#   child (the CONTROL, raised on), rewrites the project registration to B, and spawns
+#   again in the same thread, in a new thread of the same process, and in a fresh
+#   process. A second scenario deletes A's directory under a thread still registered to it.
+#
+# The registration is a DIRECT config registration, not the plugin carrier: the carrier's
+# route and command are the `stalepath` phase's subject, and the notice changes neither.
+
+SNAPSHOT_PROBE_ROLE = "tadeumendonca_probe_role"
+
+# WHAT THIS PHASE MEASURED. codex-cli 0.151.0-alpha.7.2, 2026-09-24, loopback model.
+# Reported as `pinned_agreement`, never raised on — the same posture as STALE_MEASURED.
+#
+#   THE NOTICE REACHES THE MODEL. additionalContext arrived in the turn's FIRST model
+#   request as a `developer`-role message placed after the user's prompt; the hook run
+#   read `completed`, not `blocked`, and the act ran. At the installed version the
+#   request carried no notice. (Scratch readings the same day, not in this phase: plain
+#   stdout text reached the model the same way; a `systemMessage` object did NOT.)
+#   A RUNNING THREAD KEEPS ITS REGISTRATION. After the project registration was rewritten
+#   A -> B, a spawn in the SAME thread still received A's profile; a NEW thread in the
+#   same process, and a fresh process, received B. The PROFILE FILE is read when the
+#   child is spawned: with A's directory deleted, a spawn in a thread registered to A
+#   was refused ("agent type is currently not available") and no child ran.
+SNAPSHOT_MEASURED = {
+    "build": "codex-cli 0.151.0-alpha.7.2",
+    "notice_in_first_request": True,
+    "notice_role": "developer",
+    "notice_statuses": ["completed"],
+    "notice_act_executed": True,
+    "current_notice_in_request": False,
+    "same_thread_after_swap": "A",
+    "new_thread_after_swap": "B",
+    "fresh_process_after_swap": "B",
+    "deleted_snapshot_spawn": "no-child",
+}
+
+
+def snapshot_fixture(base, label, version):
+    """A snapshot directory the way the builder lays one out: profiles/ + manifest."""
+    d = base / ("snapshot-" + label)
+    (d / "profiles").mkdir(parents=True)
+    profile = d / "profiles" / (SNAPSHOT_PROBE_ROLE + ".toml")
+    profile.write_text('name = "%s"\ndescription = "probe"\n'
+                       'developer_instructions = "SNAPSHOT_NONCE_%s"\n'
+                       % (SNAPSHOT_PROBE_ROLE, label))
+    write_json(d / "source-manifest.json", {"schema": 1, "version": version})
+    return profile
+
+
+def snapshot_register(project, profile):
+    config = project / ".codex" / "config.toml"
+    config.parent.mkdir(parents=True, exist_ok=True)
+    config.write_text("[agents.%s]\nconfig_file = %s\ndescription = \"probe\"\n"
+                      % (SNAPSHOT_PROBE_ROLE, json.dumps(str(profile))))
+
+
+def snapshot_notice_turn(binary, work, model, name, version):
+    base = work / ("snapshotnotice-" + name)
+    home = base / "home"
+    home.mkdir(parents=True)
+    project = base / "project"
+    (project / ".git").mkdir(parents=True)
+    snapshot_register(project, snapshot_fixture(base, name, version))
+    command = "python3 " + json.dumps(str(ADAPTER_PATH))
+    body = lambda state: (model.config_head() + model.config_table()
+                          + turn_config(project, [(None, command)], state,
+                                        event="UserPromptSubmit"))
+    trust_registrations(binary, home, project, body, base / "trust.stderr")
+    mark = len(model.bodies)
+    capture = base / "capture"
+    capture.mkdir()
+    server = AppServer(binary, project, disposable_env(home), base / "turn.stderr")
+    try:
+        server.initialize()
+        thread = server.call("thread/start", {"cwd": str(project)})["thread"]["id"]
+        turn = stale_turn(server, thread, "touch " + str(project / "m"), capture)
+    finally:
+        server.close()
+    bodies = model.bodies[mark:]
+    first = json.loads(bodies[0]) if bodies else {}
+    roles = [i.get("role") for i in (first.get("input") or [])
+             if "PERSONA SNAPSHOT BEHIND" in json.dumps(i)]
+    return {"statuses": turn["statuses"], "requests": len(bodies),
+            "notice_in_first_request": bool(roles),
+            "notice_role": roles[0] if roles else None,
+            "act_executed": (project / "m").exists()}
+
+
+def snapshot_spawn(server, thread, model, tag, wait=12):
+    """One `SPAWN<<tag>>SPAWN` turn; which snapshot nonce did the child's request carry?"""
+    mark = len(model.bodies)
+    nmark = len(server.notifications)
+    started = server.call("turn/start", {"threadId": thread, "input": [
+        {"type": "text", "text": "Please SPAWN<<" + tag + ">>SPAWN"}],
+        "permissions": ":workspace"}, timeout=90)
+    if "__error__" in started:
+        raise Failure("turn/start failed: %s" % started["__error__"])
+    deadline = time.time() + 90
+    while time.time() < deadline and not any(
+            n.get("method") in ("turn/completed", "turn/failed", "turn/aborted")
+            for n in server.notifications[nmark:]):
+        time.sleep(0.5)
+    time.sleep(wait)
+    child = [b for b in model.bodies[mark:]
+             if ("CHILDTASK " + tag) in b and "SPAWN<<" not in b]
+    saw = sorted({label for label in ("A", "B") for b in child
+                  if "SNAPSHOT_NONCE_" + label in b})
+    if not child:
+        return "no-child"
+    return saw[0] if len(saw) == 1 else "/".join(saw) or "neither"
+
+
+def phase_snapshotnotice(binary, work, report):
+    model = LoopbackModel()
+    model.spawn_role = SNAPSHOT_PROBE_ROLE
+    installed = (ADAPTER_PATH.parent.parent / "VERSION").read_text().strip()
+    out = {}
+    try:
+        out["stale"] = snapshot_notice_turn(binary, work, model, "stale", "0.0.1")
+        out["current"] = snapshot_notice_turn(binary, work, model, "current", installed)
+        if not out["stale"]["statuses"] or not out["current"]["statuses"]:
+            raise Failure("the UserPromptSubmit registration did not run in a notice turn "
+                          "(%s); a missing notice would then say nothing about the adapter"
+                          % out)
+
+        base = work / "snapshotnotice-swap"
+        home = base / "home"
+        home.mkdir(parents=True)
+        project = base / "project"
+        (project / ".git").mkdir(parents=True)
+        (home / "config.toml").write_text(
+            model.config_head() + model.config_table()
+            + '\n[projects."' + str(project) + '"]\ntrust_level = "trusted"\n')
+        a = snapshot_fixture(base, "A", "0.0.1")
+        b = snapshot_fixture(base, "B", "0.0.2")
+        snapshot_register(project, a)
+        s1 = AppServer(binary, project, disposable_env(home), base / "s1.stderr")
+        try:
+            s1.initialize()
+            t1 = s1.call("thread/start", {"cwd": str(project)})["thread"]["id"]
+            control = snapshot_spawn(s1, t1, model, "c1")
+            if control != "A":
+                raise Failure("the CONTROL spawn before the swap did not receive snapshot "
+                              "A (%s); nothing after it is readable" % control)
+            snapshot_register(project, b)
+            out["same_thread_after_swap"] = snapshot_spawn(s1, t1, model, "c2")
+            t2 = s1.call("thread/start", {"cwd": str(project)})["thread"]["id"]
+            out["new_thread_after_swap"] = snapshot_spawn(s1, t2, model, "c3")
+        finally:
+            s1.close()
+        s2 = AppServer(binary, project, disposable_env(home), base / "s2.stderr")
+        try:
+            s2.initialize()
+            t3 = s2.call("thread/start", {"cwd": str(project)})["thread"]["id"]
+            out["fresh_process_after_swap"] = snapshot_spawn(s2, t3, model, "c4")
+        finally:
+            s2.close()
+
+        base = work / "snapshotnotice-delete"
+        home = base / "home"
+        home.mkdir(parents=True)
+        project = base / "project"
+        (project / ".git").mkdir(parents=True)
+        (home / "config.toml").write_text(
+            model.config_head() + model.config_table()
+            + '\n[projects."' + str(project) + '"]\ntrust_level = "trusted"\n')
+        a = snapshot_fixture(base, "A", "0.0.1")
+        snapshot_register(project, a)
+        s3 = AppServer(binary, project, disposable_env(home), base / "s3.stderr")
+        try:
+            s3.initialize()
+            t4 = s3.call("thread/start", {"cwd": str(project)})["thread"]["id"]
+            control = snapshot_spawn(s3, t4, model, "d1")
+            if control != "A":
+                raise Failure("the CONTROL spawn before the deletion did not receive "
+                              "snapshot A (%s)" % control)
+            shutil.rmtree(str(a.parent.parent))
+            out["deleted_snapshot_spawn"] = snapshot_spawn(s3, t4, model, "d2")
+        finally:
+            s3.close()
+    finally:
+        model.close()
+    stale, current = out["stale"], out["current"]
+    report["snapshotnotice"] = {
+        "adapter": str(ADAPTER_PATH), "installed_version": installed,
+        "loopback_requests_served": model.requests, "credential_copied": False,
+        "readings": out}
+    report["snapshotnotice"]["pinned_agreement"] = {
+        "pinned": SNAPSHOT_MEASURED,
+        "notice_in_first_request":
+            stale["notice_in_first_request"] == SNAPSHOT_MEASURED["notice_in_first_request"],
+        "notice_role": stale["notice_role"] == SNAPSHOT_MEASURED["notice_role"],
+        "notice_statuses": stale["statuses"] == SNAPSHOT_MEASURED["notice_statuses"],
+        "notice_act_executed":
+            stale["act_executed"] == SNAPSHOT_MEASURED["notice_act_executed"],
+        "current_notice_in_request": current["notice_in_first_request"]
+            == SNAPSHOT_MEASURED["current_notice_in_request"],
+        "same_thread_after_swap":
+            out["same_thread_after_swap"] == SNAPSHOT_MEASURED["same_thread_after_swap"],
+        "new_thread_after_swap":
+            out["new_thread_after_swap"] == SNAPSHOT_MEASURED["new_thread_after_swap"],
+        "fresh_process_after_swap":
+            out["fresh_process_after_swap"] == SNAPSHOT_MEASURED["fresh_process_after_swap"],
+        "deleted_snapshot_spawn":
+            out["deleted_snapshot_spawn"] == SNAPSHOT_MEASURED["deleted_snapshot_spawn"],
+    }
+
+
+LOOPBACK_PHASES = {"stalepath": phase_stalepath, "snapshotnotice": phase_snapshotnotice}
 
 OFFLINE_PHASES = {"carrier": phase_carrier, "trust": phase_trust, "routes": phase_routes}
 TURN_PHASES = {"payload": phase_payload, "block": phase_block,
