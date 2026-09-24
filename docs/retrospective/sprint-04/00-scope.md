@@ -73,8 +73,30 @@ gh pr list --repo tedeuxx/tadeumendonca-io --state all --limit 20 \
 | `-io` | 676 | MERGED | `fix/499-worklog-velocity-carrier` | — | docs: align worklog velocity carrier |
 | `-io` | 677 | MERGED | `docs/sprint-03-review` | — | docs: record sprint-03 and sprint-04 review sweeps |
 
-`closes` is empty on every row in that range, so on these PRs `closingIssuesReferences` does not tie a
-PR to its Issue. The link is in the branch name and the title.
+~~`closes` is empty on every row in that range, so on these PRs `closingIssuesReferences` does not tie a
+PR to its Issue. The link is in the branch name and the title.~~ **Struck: false of the range the
+command selects.** The `-skills` command above also returns three rows the table leaves out, and two of
+them carry a closing reference. Re-run 2026-09-24:
+
+```json
+{"closes":[497],"h":"loop/quoted-substitution-497","n":500,"s":"MERGED","t":"fix(hooks): deny an active command substitution inside double quotes (#497)"}
+{"closes":[501],"h":"loop/role-parity-501","n":502,"s":"MERGED","t":"loop: role parity across harnesses — every agent_type-keyed guard rule treats a persona the same on Codex as on Claude (#501)"}
+{"closes":[],"h":"chore/sprint-04-retrospective","n":520,"s":"OPEN","t":"docs: record sprint-03+04 retrospective"}
+```
+
+**Why they are left out of the table.** #500 and #502 close #497 and #501, and neither Issue carries a
+milestone, so they are not work of sprint-03 or sprint-04:
+
+```sh
+gh issue list --repo tedeuxx/tadeumendonca-skills --state all --limit 200 --json number,milestone \
+  --jq '[.[]|select(.number==497 or .number==501)|{n:.number,m:(.milestone.title // null)}]'
+# -> [{"m":null,"n":501},{"m":null,"n":497}]
+```
+
+#520 is the pull request carrying this record, opened after the `commit:` above.
+
+**What holds of the rows the table shows:** `closes` is empty on every one of them, so on these PRs
+`closingIssuesReferences` does not tie a PR to its Issue. The link is in the branch name and the title.
 
 ## 2 · `loop` items with NO milestone (backlog size, not a defect)
 
@@ -136,7 +158,10 @@ has no Issue in either iteration, so nothing there was queried.
 
 - **The metrics instrument recorded nothing from #438 (2026-09-10) until #508.** That gap is the
   subject of open Issue #513, titled *"dispatch-metrics has recorded nothing since 2026-09-10, and the
-  retrospective read the silence as "no persona ran""* (title returned by the §1 Issue query). This
+  retrospective read the silence as "no persona ran""* ~~(title returned by the §1 Issue query)~~.
+  **Struck: false.** The §1 query keeps only milestoned Issues and selects no title; #513 has no
+  milestone. The title comes from
+  `gh issue view 513 --repo tedeuxx/tadeumendonca-skills --json title`, re-run 2026-09-24. This
   record cites that finding and did not re-measure it. **An empty map for #499 does not mean no
   persona ran.**
 - **Sprint-03's work (#499; `-skills` PRs #503–#505; `-io` PRs #675/#676) was run by a different
