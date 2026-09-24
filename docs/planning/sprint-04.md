@@ -77,3 +77,29 @@ Composition: 2 `loop`, 0 `product`, 13 points, all in `tedeuxx/tadeumendonca-ski
 - **Answer:** **Confirmar**.
 
 One activation; the bound of two was not reached.
+
+## The composition as confirmed
+
+Milestone `sprint-04` was created as #6 in `tedeuxx/tadeumendonca-skills` by `scripts/milestone-create.sh`, with this description:
+
+```
+Order of record (owner-confirmed 2026-09-24; docs/planning/sprint-04.md):
+1. #508 codex: a patch release blocks every tool call in a running Codex session — sp:8
+2. #509 codex: native persona snapshot pinned at 2.0.44, and nothing says so — sp:5
+Sequence within loop is a filing-order tiebreak, not a ranking.
+```
+
+Both items were admitted and then read back: `gh issue view <n> --json milestone,labels` returns `6 sprint-04 ready,loop,sp:8` for #508 and `6 sprint-04 ready,loop,sp:5` for #509. No io milestone was created.
+
+## Worklog snapshot
+
+`docs/planning/sprint-04.worklog.json` records the explicit milestone number (6), both counting units, their estimates and provenance, and the timezone. The recorded 8 for #508 sits beside its true median of 6.5. `starts_at` and `ends_at` are `null`, because the owner set no boundary.
+
+## Estimation pendency this leaves
+
+None. Both admitted items carry `ready` and `sp:N`.
+
+## What could not be assembled
+
+- The sprint-03 closing-rite outputs, which do not exist yet (see *The pool as assembled*). Any proposal a sprint-03 retrospective would produce reaches the next planning instead.
+- The repository list was supplied, not derived. A third tree would have been invisible.
