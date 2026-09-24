@@ -21,7 +21,7 @@
         "quality-assurance": 8,
         "median": 6.5,
         "recorded": 8,
-        "owner_commitment": "confirmed in sprint-04 planning; no ratified rule rounds a median of two, so the orchestrator recorded the next Fibonacci value up"
+        "owner_commitment": "the owner confirmed a composition showing sp:8; the rounding of 6.5 up to 8 was the orchestrator's call, since no ratified rule rounds a median of two, and the owner did not rule on the rounding itself"
       },
       "source_revision": "1afb64578a505fe1e62d911b399fe387c33b0b98"
     },
