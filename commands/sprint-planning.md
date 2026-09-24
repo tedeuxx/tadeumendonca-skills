@@ -641,6 +641,10 @@ one, and the bound is two — see step 3c>
 ## The composition as confirmed
 <the ordered body, as written into the milestone description — or the reason it could not be>
 
+## Worklog snapshot
+<the path to docs/planning/<iteration>.worklog.json; explicit repository/milestone numbers,
+counting units, commitment estimates and their provenance, timezone, and known or null boundaries>
+
 ## Estimation pendency this leaves
 <the admitted items carrying no sp:N — see step 6>
 
@@ -654,6 +658,13 @@ ordered list of the items admitted"*, and it was never built; the same file alre
 description a **weak home** for the order. This file is a third home, and it is better than the milestone
 description in exactly one way — it is versioned, diffable and goes through the gate — and worse in one
 way: nothing else in the loop reads it either. **The specified object is still owed.**
+
+**The adjacent `.worklog.json` is a different artifact and is machine-readable by design (#499).**
+Write it only after the whole composition is confirmed. Its stable sprint key maps the explicit
+repository/milestone numbers and counted Issues; matching milestone titles is insufficient. Preserve
+the commitment estimate and provenance. A boundary the owner did not set is `null`, never inferred
+from the first implementation timestamp or a milestone date. This artifact activates no observer:
+the acting contexts still prepare explicit events, and `scripts/worklog.py` only reads retained files.
 
 ## Step 6 — report the pendency the drain will refuse on, and do not resolve it
 

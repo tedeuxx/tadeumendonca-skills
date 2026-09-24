@@ -350,6 +350,12 @@ Follow `/agents-configuration`. Nothing here relaxes it:
   for it. **What that changes for an autonomous run:** a content or loop slice no longer parks waiting
   for the owner — it ships, and the owner reviews it live. So the thing to surface at the next natural
   break is *what went live*, not *what is waiting*.
+- **Record explicit worklog events when #499's contract is in use:** implementation start freezes the
+  estimate and provenance; a checkpoint or handoff records the new segment; an outcome names accepted,
+  reopened or non-delivery state with public evidence. Prepare the canonical body with
+  `scripts/worklog.py prepare-event` and publish only through the existing file-backed Issue-comment
+  route. This is an instruction, not automatic capture; unknown runtime or plugin evidence stays
+  unknown, and `dispatch-metrics` remains a separate instrument.
 - `product-lead` on reader-facing copy, long-form prose included — it holds the copy lens since
   `marketing-lead` merged into it (2026-08-04), and its **truth findings block**. **Nothing enforces this
   dispatch** — no check, job or hook — so an undispatched lens fails silently. Where the repo's guide

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://tadeumendonca.dev/schemas/worklog-export-v1.json",
+  "title": "Retained tracker export v1", "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "cutoff", "repositories", "prior_inventory", "comments"],
+  "properties": {
+    "schema_version": {"type": "integer", "const": 1}, "cutoff": {"type": "string", "format": "date-time"},
+    "repositories": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["repository", "pagination_complete"],
+      "properties": {"repository": {"type": "string", "pattern": "^[^/\\s]+/[^/#\\s]+$"}, "pagination_complete": {"type": "boolean"}}}},
+    "prior_inventory": {"type": "object", "additionalProperties": false, "required": ["complete", "comment_ids"],
+      "properties": {"complete": {"type": "boolean"}, "comment_ids": {"type": "array", "items": {"type": ["string", "integer"]}}}},
+    "comments": {"type": "array", "items": {"type": "object", "additionalProperties": false,
+      "required": ["repository", "issue", "comment_id", "created_at", "updated_at", "body", "body_sha256"],
+      "properties": {"repository": {"type": "string", "pattern": "^[^/\\s]+/[^/#\\s]+$"}, "issue": {"type": "string", "pattern": "^[^/\\s]+/[^#\\s]+#[1-9][0-9]*$"},
+        "comment_id": {"type": ["string", "integer"]}, "created_at": {"type": "string", "format": "date-time"}, "updated_at": {"type": ["string", "null"], "format": "date-time"},
+        "body": {"type": "string"}, "body_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}}}
+  }
+}
