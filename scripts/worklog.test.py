@@ -199,7 +199,6 @@ class WorklogTest(unittest.TestCase):
     def test_malformed_contract_values_and_marker_versions_fail(self):
         malformed_events = [
             ("boolean schema", "unsupported schema_version", {"schema_version": True}),
-            ("object event type", "must be a non-empty string", {"event_type": {}}),
             ("blank acceptance evidence", "entries must be non-empty strings", {"acceptance_evidence": [" \t"]}),
         ]
         for label, message, changes in malformed_events:
@@ -208,6 +207,20 @@ class WorklogTest(unittest.TestCase):
                 event.update(changes)
                 with self.assertRaisesRegex(worklog.ContractError, message):
                     worklog.validate_event(event)
+        enum_fields = [
+            ("event_type", ("event_type",)),
+            ("provenance", ("attribution", "provenance")),
+            ("outcome", ("outcome",)),
+        ]
+        invalid_enum_types = [
+            ("object", {}), ("array", []), ("null", None), ("boolean", True), ("number", 7),
+        ]
+        for field, path in enum_fields:
+            for kind, value in invalid_enum_types:
+                with self.subTest(enum=field, invalid_type=kind):
+                    event = changed(FIXTURE["events"][2], path, value)
+                    with self.assertRaisesRegex(worklog.ContractError, "must be a non-empty string"):
+                        worklog.validate_event(event)
         snapshot = copy.deepcopy(FIXTURE["snapshot"])
         snapshot["counting_units"][0]["planned_points"] = True
         with self.assertRaisesRegex(worklog.ContractError, "positive integer"):
@@ -427,7 +440,6 @@ class WorklogTest(unittest.TestCase):
 
             malformed_events = [
                 ("boolean-schema", {"schema_version": True}),
-                ("object-event-type", {"event_type": {}}),
                 ("blank-proof", {"acceptance_evidence": [""]}),
             ]
             for label, changes in malformed_events:
@@ -440,6 +452,24 @@ class WorklogTest(unittest.TestCase):
                                             capture_output=True, text=True)
                     self.assertEqual(2, failed.returncode)
                     self.assertNotIn("Traceback", failed.stderr)
+            enum_fields = [
+                ("event_type", ("event_type",)),
+                ("provenance", ("attribution", "provenance")),
+                ("outcome", ("outcome",)),
+            ]
+            invalid_enum_types = [
+                ("object", {}), ("array", []), ("null", None), ("boolean", True), ("number", 7),
+            ]
+            for field, path in enum_fields:
+                for kind, value in invalid_enum_types:
+                    with self.subTest(cli_enum=field, invalid_type=kind):
+                        event.write_text(json.dumps(changed(FIXTURE["events"][2], path, value)))
+                        failed = subprocess.run(["python3", "-B", str(ROOT / "scripts/worklog.py"),
+                                                 "validate-event", str(event)], check=False,
+                                                capture_output=True, text=True)
+                        self.assertEqual(2, failed.returncode)
+                        self.assertIn("must be a non-empty string", failed.stderr)
+                        self.assertNotIn("Traceback", failed.stderr)
             invalid_export = tracker_export(FIXTURE["events"])
             invalid_export["prior_inventory"]["comment_ids"] = [{}]
             export.write_text(json.dumps(invalid_export))

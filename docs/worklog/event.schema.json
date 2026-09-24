@@ -9,7 +9,7 @@
       "required": ["harness", "runtime_version", "plugin", "persona", "provenance"],
       "properties": {
         "harness": {"type": "string", "minLength": 1}, "runtime_version": {"type": "string", "minLength": 1},
-        "persona": {"type": "string", "minLength": 1}, "provenance": {"enum": ["observed", "declared", "unknown"]},
+        "persona": {"type": "string", "minLength": 1}, "provenance": {"type": "string", "enum": ["observed", "declared", "unknown"]},
         "plugin": {"type": "object", "additionalProperties": false, "required": ["version", "source_revision"],
           "properties": {"version": {"type": "string", "minLength": 1}, "source_revision": {"type": "string", "minLength": 1}}}
       }
@@ -28,16 +28,16 @@
     "schema_version": {"type": "integer", "const": 1}, "event_id": {"type": "string", "minLength": 1},
     "issue": {"type": "string", "pattern": "^[^/\\s]+/[^#\\s]+#[1-9][0-9]*$"},
     "timestamp": {"type": "string", "format": "date-time"},
-    "event_type": {"enum": ["implementation_start", "checkpoint", "handoff", "outcome", "correction"]},
+    "event_type": {"type": "string", "enum": ["implementation_start", "checkpoint", "handoff", "outcome", "correction"]},
     "stage": {"type": "string", "minLength": 1}, "run_id": {"type": "string", "minLength": 1}, "attempt_id": {"type": "string", "minLength": 1},
     "predecessor_event_id": {"type": ["string", "null"], "minLength": 1}, "resume_of_event_id": {"type": ["string", "null"], "minLength": 1},
     "attribution": {"$ref": "#/$defs/identity"}, "revision": {"$ref": "#/$defs/revision"},
     "evidence": {"type": "array", "items": {"$ref": "#/$defs/publicString"}}, "handoff": {"$ref": "#/$defs/handoff"},
     "frozen_estimate": {"$ref": "#/$defs/estimate"},
-    "outcome": {"enum": ["accepted", "reopened", "cancelled", "superseded", "no_longer_relevant"]},
+    "outcome": {"type": "string", "enum": ["accepted", "reopened", "cancelled", "superseded", "no_longer_relevant"]},
     "completion_sprint": {"type": "string", "minLength": 1}, "acceptance_evidence": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/publicString"}},
     "supersedes_event_id": {"type": "string", "minLength": 1},
-    "corrected_event": {"allOf": [{"$ref": "#"}, {"properties": {"event_type": {"enum": ["implementation_start", "checkpoint", "handoff", "outcome"]}}}]}
+    "corrected_event": {"allOf": [{"$ref": "#"}, {"properties": {"event_type": {"type": "string", "enum": ["implementation_start", "checkpoint", "handoff", "outcome"]}}}]}
   },
   "allOf": [
     {"if": {"properties": {"event_type": {"const": "implementation_start"}}}, "then": {"required": ["frozen_estimate"]}, "else": {"not": {"required": ["frozen_estimate"]}}},

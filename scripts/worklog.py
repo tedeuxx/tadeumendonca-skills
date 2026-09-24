@@ -82,6 +82,7 @@ def validate_identity(identity: Any, where: str) -> None:
     if not isinstance(identity, dict):
         raise ContractError(f"{where}: attribution must be an object")
     require(identity, ["harness", "runtime_version", "plugin", "persona", "provenance"], where)
+    nonempty_string(identity["provenance"], f"{where}.provenance")
     if identity["provenance"] not in PROVENANCE:
         raise ContractError(f"{where}: invalid provenance")
     for field in ("harness", "runtime_version", "persona"):
@@ -148,6 +149,7 @@ def validate_event(event: Any, where: str = "event") -> dict[str, Any]:
         raise ContractError(f"{where}: frozen_estimate is only valid on implementation_start")
     if event["event_type"] == "outcome":
         require(event, ["outcome"], where)
+        nonempty_string(event["outcome"], f"{where}.outcome")
         if event["outcome"] not in OUTCOMES:
             raise ContractError(f"{where}: invalid outcome")
         if event["outcome"] == "accepted":
