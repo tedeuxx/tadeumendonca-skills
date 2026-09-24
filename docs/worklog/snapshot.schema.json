@@ -3,7 +3,7 @@
   "title": "Worklog sprint snapshot v1", "type": "object",
   "required": ["schema_version", "sprint", "timezone", "starts_at", "ends_at", "repositories", "counting_units"],
   "properties": {
-    "schema_version": {"const": 1}, "sprint": {"type": "string", "minLength": 1}, "timezone": {"type": "string", "minLength": 1},
+    "schema_version": {"type": "integer", "const": 1}, "sprint": {"type": "string", "minLength": 1}, "timezone": {"type": "string", "minLength": 1},
     "starts_at": {"type": ["string", "null"], "format": "date-time"}, "ends_at": {"type": ["string", "null"], "format": "date-time"},
     "repositories": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["repository", "milestone_number"],
       "properties": {"repository": {"type": "string", "pattern": "^[^/\\s]+/[^/#\\s]+$"}, "milestone_number": {"type": "integer", "minimum": 1}}}},

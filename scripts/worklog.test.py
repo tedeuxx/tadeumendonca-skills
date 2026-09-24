@@ -37,6 +37,15 @@ def tracker_export(events, complete=True, cutoff="2026-10-01T00:00:00Z"):
             "comments": comments}
 
 
+def changed(source, path, value):
+    result = copy.deepcopy(source)
+    target = result
+    for key in path[:-1]:
+        target = target[key]
+    target[path[-1]] = value
+    return result
+
+
 class WorklogTest(unittest.TestCase):
     def baseline(self):
         snapshot = worklog.validate_snapshot(copy.deepcopy(FIXTURE["snapshot"]))
@@ -188,6 +197,17 @@ class WorklogTest(unittest.TestCase):
         self.assertTrue(result["partial"])
 
     def test_malformed_contract_values_and_marker_versions_fail(self):
+        malformed_events = [
+            ("boolean schema", "unsupported schema_version", {"schema_version": True}),
+            ("object event type", "must be a non-empty string", {"event_type": {}}),
+            ("blank acceptance evidence", "entries must be non-empty strings", {"acceptance_evidence": [" \t"]}),
+        ]
+        for label, message, changes in malformed_events:
+            with self.subTest(label=label):
+                event = copy.deepcopy(FIXTURE["events"][2])
+                event.update(changes)
+                with self.assertRaisesRegex(worklog.ContractError, message):
+                    worklog.validate_event(event)
         snapshot = copy.deepcopy(FIXTURE["snapshot"])
         snapshot["counting_units"][0]["planned_points"] = True
         with self.assertRaisesRegex(worklog.ContractError, "positive integer"):
@@ -199,6 +219,10 @@ class WorklogTest(unittest.TestCase):
         export = tracker_export(FIXTURE["events"])
         export["prior_inventory"]["complete"] = "false"
         with self.assertRaisesRegex(worklog.ContractError, "must be a boolean"):
+            worklog.report(FIXTURE["snapshot"], export, "reproduce")
+        export = tracker_export(FIXTURE["events"])
+        export["prior_inventory"]["comment_ids"] = [{}]
+        with self.assertRaisesRegex(worklog.ContractError, "entries must be strings or integers"):
             worklog.report(FIXTURE["snapshot"], export, "reproduce")
         event = copy.deepcopy(FIXTURE["events"][0])
         event["frozen_estimate"]["points"] = True
@@ -222,18 +246,98 @@ class WorklogTest(unittest.TestCase):
         with self.assertRaisesRegex(worklog.ContractError, "unsupported worklog marker version"):
             worklog.report(FIXTURE["snapshot"], export, "reproduce")
 
+    def test_contract_rejects_malformed_fields_at_their_boundaries(self):
+        start = FIXTURE["events"][0]
+        accepted = FIXTURE["events"][2]
+        checkpoint = FIXTURE["events"][1]
+        event_cases = [
+            ("not object", None),
+            ("bad issue", changed(start, ("issue",), "missing-number")),
+            ("non-UTC timestamp", changed(start, ("timestamp",), "2026-09-01")),
+            ("invalid timestamp", changed(start, ("timestamp",), "not-a-dateZ")),
+            ("unknown event type", changed(start, ("event_type",), "invented")),
+            ("blank stage", changed(start, ("stage",), " ")),
+            ("blank predecessor", changed(checkpoint, ("predecessor_event_id",), "")),
+            ("attribution not object", changed(start, ("attribution",), [])),
+            ("bad provenance", changed(start, ("attribution", "provenance"), "inferred")),
+            ("plugin not object", changed(start, ("attribution", "plugin"), [])),
+            ("revision not object", changed(start, ("revision",), [])),
+            ("bad revision repo", changed(start, ("revision", "repository"), "bad")),
+            ("revision repo mismatch", changed(start, ("revision", "repository"), "other/repo")),
+            ("blank branch", changed(start, ("revision", "branch"), "")),
+            ("bad commit", changed(start, ("revision", "commit"), "not-a-sha")),
+            ("blank evidence", changed(start, ("evidence",), [" "])),
+            ("handoff not object", changed(start, ("handoff",), [])),
+            ("blank handoff target", changed(start, ("handoff", "to"), "")),
+            ("estimate not object", changed(start, ("frozen_estimate",), [])),
+            ("bad commitment", changed(start, ("frozen_estimate", "commitment_points"), True)),
+            ("estimate on checkpoint", changed(checkpoint, ("frozen_estimate",), start["frozen_estimate"])),
+            ("invalid outcome", changed(accepted, ("outcome",), "done")),
+            ("empty acceptance list", changed(accepted, ("acceptance_evidence",), [])),
+            ("completion on reopened", changed(FIXTURE["events"][7], ("completion_sprint",), "sprint-03")),
+            ("outcome on checkpoint", changed(checkpoint, ("outcome",), "accepted")),
+            ("correction field on checkpoint", changed(checkpoint, ("supersedes_event_id",), "event-1")),
+        ]
+        for label, event in event_cases:
+            with self.subTest(event=label), self.assertRaises(worklog.ContractError):
+                worklog.validate_event(event)
+
+        snapshot = FIXTURE["snapshot"]
+        duplicate_repo = copy.deepcopy(snapshot)
+        duplicate_repo["repositories"].append(copy.deepcopy(duplicate_repo["repositories"][0]))
+        duplicate_unit = copy.deepcopy(snapshot)
+        duplicate_unit["counting_units"].append(copy.deepcopy(duplicate_unit["counting_units"][0]))
+        snapshot_cases = [
+            ("not object", None),
+            ("no repositories", changed(snapshot, ("repositories",), [])),
+            ("repo not object", changed(snapshot, ("repositories", 0), [])),
+            ("bad repo", changed(snapshot, ("repositories", 0, "repository"), "bad")),
+            ("duplicate repo", duplicate_repo),
+            ("bad milestone", changed(snapshot, ("repositories", 0, "milestone_number"), True)),
+            ("units not array", changed(snapshot, ("counting_units",), {})),
+            ("unit not object", changed(snapshot, ("counting_units", 0), [])),
+            ("bad unit issue", changed(snapshot, ("counting_units", 0, "issue"), "bad")),
+            ("undeclared unit repo", changed(snapshot, ("counting_units", 0, "issue"), "other/repo#1")),
+            ("bad parent", changed(snapshot, ("counting_units", 0, "parent"), "bad")),
+            ("duplicate unit", duplicate_unit),
+        ]
+        for label, value in snapshot_cases:
+            with self.subTest(snapshot=label), self.assertRaises(worklog.ContractError):
+                worklog.validate_snapshot(value)
+
     def test_live_correction_segments_and_markdown_are_auditable(self):
-        event_paths = sorted((ROOT / "docs/worklog/events").glob("sprint-03-499-*.json"))
-        events = [json.loads(path.read_text()) for path in event_paths]
         snapshot = json.loads((ROOT / "docs/planning/sprint-03.worklog.json").read_text())
-        result = worklog.report(snapshot, tracker_export(events), "python3 scripts/worklog.py report ...")
+        published = [
+            (5804402298, "2026-09-23T23:04:31Z", "published-5804402298.md"),
+            (5804452881, "2026-09-23T23:09:16Z", "published-5804452881.md"),
+        ]
+        comments = []
+        for comment_id, created_at, filename in published:
+            body = (ROOT / "scripts/fixtures/worklog" / filename).read_text()
+            comments.append({"repository": "tedeuxx/tadeumendonca-skills",
+                             "issue": "tedeuxx/tadeumendonca-skills#499", "comment_id": comment_id,
+                             "created_at": created_at, "updated_at": None, "body": body,
+                             "body_sha256": hashlib.sha256(body.encode()).hexdigest()})
+        export = {"schema_version": 1, "cutoff": "2026-09-24T00:00:00Z",
+                  "repositories": [{"repository": "tedeuxx/tadeumendonca-skills",
+                                    "pagination_complete": True}],
+                  "prior_inventory": {"complete": True, "comment_ids": [item[0] for item in published]},
+                  "comments": comments}
+        result = worklog.report(snapshot, export, "python3 scripts/worklog.py report ...")
         self.assertFalse(any("missing predecessor_event_id" in warning for warning in result["warnings"]))
+        self.assertTrue(result["partial"])
+        self.assertEqual(2, len([warning for warning in result["warnings"]
+                                if warning.startswith("comment edit timestamp unavailable:")]))
         item = result["items"][0]
         serialized = json.dumps(item, sort_keys=True)
         self.assertIn("2.0.74", serialized)
         self.assertIn("2.0.77", serialized)
         self.assertIn('"runtime_version": "unknown"', serialized)
         self.assertIn("skills-499-implementation-start-20260923t224133z-corrected", serialized)
+        combined_sources = [segment["source"]["comment_id"] for segment in item["segments"]
+                            if segment["event_id"] in {"skills-499-correct-start-plugin-20260923t230719z",
+                                                       "skills-499-resume-plugin-2077-20260923t230719z"}]
+        self.assertEqual([5804452881, 5804452881], combined_sources)
         rendered = worklog.markdown(result)
         for needle in ("report version", "schema version", "cohort points", "work-type points",
                        "comment IDs", "Items and retained segments", "2.0.74", "2.0.77", "unknown"):
@@ -320,6 +424,31 @@ class WorklogTest(unittest.TestCase):
                     self.assertEqual(2, worklog.main())
                 self.assertIn("cannot read JSON", stderr.getvalue())
                 self.assertNotIn("Traceback", stderr.getvalue())
+
+            malformed_events = [
+                ("boolean-schema", {"schema_version": True}),
+                ("object-event-type", {"event_type": {}}),
+                ("blank-proof", {"acceptance_evidence": [""]}),
+            ]
+            for label, changes in malformed_events:
+                with self.subTest(label=label):
+                    invalid_event = copy.deepcopy(FIXTURE["events"][2])
+                    invalid_event.update(changes)
+                    event.write_text(json.dumps(invalid_event))
+                    failed = subprocess.run(["python3", "-B", str(ROOT / "scripts/worklog.py"),
+                                             "validate-event", str(event)], check=False,
+                                            capture_output=True, text=True)
+                    self.assertEqual(2, failed.returncode)
+                    self.assertNotIn("Traceback", failed.stderr)
+            invalid_export = tracker_export(FIXTURE["events"])
+            invalid_export["prior_inventory"]["comment_ids"] = [{}]
+            export.write_text(json.dumps(invalid_export))
+            failed = subprocess.run(["python3", "-B", str(ROOT / "scripts/worklog.py"), "report",
+                                     "--snapshot", str(snapshot), "--export", str(export),
+                                     "--format", "json", "--reproduction-command", "reproduce"],
+                                    check=False, capture_output=True, text=True)
+            self.assertEqual(2, failed.returncode)
+            self.assertNotIn("Traceback", failed.stderr)
 
 
 if __name__ == "__main__":

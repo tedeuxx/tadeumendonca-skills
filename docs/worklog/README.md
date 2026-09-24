@@ -4,7 +4,7 @@ The worklog is an append-only-by-convention event contract for recording which h
 
 ## Surfaces
 
-- `event.schema.json` documents one event. A canonical comment begins with `<!-- worklog-event:v1 -->` and contains exactly one JSON fence.
+- `event.schema.json` documents one event. `prepare-event` emits one canonical `<!-- worklog-event:v1 -->` plus JSON-fence envelope. A retained tracker comment may contain more than one complete envelope; each marker must pair with one valid event fence, as the published correction-plus-resume comment does.
 - `snapshot.schema.json` documents the planning snapshot. Repositories are paired by explicit repository and milestone number, not title. `counting_units` is the authoritative delivery set.
 - `export.schema.json` documents retained tracker input, including pagination state, source comments, hashes, cutoff, and prior inventory.
 - `scripts/worklog.py prepare-event EVENT.json` writes a comment body to stdout. Save it in the session scratchpad, inspect it, then use the existing authorized `gh issue comment --body-file` route.
@@ -28,7 +28,7 @@ The report assigns a whole item to one mutually exclusive attribution cohort:
 
 Points are never duplicated per contributor or split arbitrarily. Missing estimates remain unquantified. A snapshot counting unit with no retained event history is missing evidence, not observed no-work, and makes the report partial; a snapshot with no counting units can honestly report a complete zero. Unknown harness participation makes coverage partial even when the surrounding identity was declared. Missing repositories, incomplete pagination, absent prior inventory, unknown sprint boundaries, edited records, or unmapped events likewise make the report explicit about partial evidence; malformed JSON, hash mismatches, unsupported marker/schema versions, conflicting event IDs, invalid corrections, and wrong scalar/container types fail with exit 2.
 
-`prior_inventory` can expose a retained comment ID that later disappears. It cannot prove that an older comment absent from every retained inventory never existed. Complete pagination and inventory are declarations about the supplied capture, not authentication of an unobserved past; reports keep this detection limit visible in the source metadata and never promote it to a stronger claim.
+`prior_inventory` can expose a retained comment ID that later disappears. It cannot prove that an older comment absent from every retained inventory never existed. A null source `updated_at` likewise leaves edit-time evidence unknown; it is retained as null and makes the report partial rather than being silently treated as the creation time. Complete pagination and inventory are declarations about the supplied capture, not authentication of an unobserved past; reports keep these detection limits visible in the source metadata and never promote them to a stronger claim.
 
 These are team planning measurements. They do not convert points to tokens/hours, score individuals, or establish causal harness rankings across different work mixes.
 

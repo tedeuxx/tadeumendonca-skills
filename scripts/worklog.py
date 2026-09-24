@@ -62,6 +62,8 @@ def public_strings(value: Any, where: str, *, nonempty: bool = False) -> list[st
         raise ContractError(f"{where}: must be a string array")
     if nonempty and not value:
         raise ContractError(f"{where}: must not be empty")
+    if any(not item.strip() for item in value):
+        raise ContractError(f"{where}: entries must be non-empty strings")
     if any(PRIVATE_EVIDENCE.search(item) for item in value):
         raise ContractError(f"{where}: contains private or machine-local material")
     return value
@@ -96,12 +98,13 @@ def validate_event(event: Any, where: str = "event") -> dict[str, Any]:
         raise ContractError(f"{where}: must be an object")
     require(event, ["schema_version", "event_id", "issue", "timestamp", "event_type", "stage",
                     "run_id", "attempt_id", "attribution", "revision", "evidence", "handoff"], where)
-    if event["schema_version"] != 1:
+    if type(event["schema_version"]) is not int or event["schema_version"] != 1:
         raise ContractError(f"{where}: unsupported schema_version {event['schema_version']!r}")
     nonempty_string(event["event_id"], f"{where}.event_id")
     if not isinstance(event["issue"], str) or not ISSUE_RE.fullmatch(event["issue"]):
         raise ContractError(f"{where}: issue must be owner/repo#number")
     timestamp(event["timestamp"], where)
+    nonempty_string(event["event_type"], f"{where}.event_type")
     if event["event_type"] not in EVENT_TYPES:
         raise ContractError(f"{where}: invalid event_type")
     for field in ("stage", "run_id", "attempt_id"):
@@ -173,7 +176,7 @@ def validate_snapshot(snapshot: Any) -> dict[str, Any]:
         raise ContractError("snapshot: must be an object")
     require(snapshot, ["schema_version", "sprint", "timezone", "starts_at", "ends_at",
                        "repositories", "counting_units"], "snapshot")
-    if snapshot["schema_version"] != 1:
+    if type(snapshot["schema_version"]) is not int or snapshot["schema_version"] != 1:
         raise ContractError("snapshot: unsupported schema_version")
     nonempty_string(snapshot["sprint"], "snapshot.sprint")
     nonempty_string(snapshot["timezone"], "snapshot.timezone")
@@ -224,7 +227,7 @@ def extract_events(export: Any) -> tuple[list[dict[str, Any]], list[str], dict[s
     if not isinstance(export, dict):
         raise ContractError("export: must be an object")
     require(export, ["schema_version", "cutoff", "repositories", "prior_inventory", "comments"], "export")
-    if export["schema_version"] != 1:
+    if type(export["schema_version"]) is not int or export["schema_version"] != 1:
         raise ContractError("export: unsupported schema_version")
     cutoff = timestamp(export["cutoff"], "export.cutoff")
     warnings: list[str] = []
@@ -254,6 +257,10 @@ def extract_events(export: Any) -> tuple[list[dict[str, Any]], list[str], dict[s
         raise ContractError("export.prior_inventory.complete: must be a boolean")
     if not isinstance(prior["comment_ids"], list):
         raise ContractError("export.prior_inventory.comment_ids: must be an array")
+    if not all((type(comment_id) is int) or
+               (isinstance(comment_id, str) and bool(comment_id.strip()))
+               for comment_id in prior["comment_ids"]):
+        raise ContractError("export.prior_inventory.comment_ids: entries must be strings or integers")
     if not prior["complete"]:
         warnings.append("historical integrity unknown: prior inventory is absent or incomplete")
     comments = export["comments"]
@@ -277,7 +284,11 @@ def extract_events(export: Any) -> tuple[list[dict[str, Any]], list[str], dict[s
         if not isinstance(comment["comment_id"], (str, int)) or isinstance(comment["comment_id"], bool):
             raise ContractError(f"comment[{index}].comment_id: must be a string or integer")
         created_at = timestamp(comment["created_at"], f"comment[{index}].created_at")
-        updated_at = timestamp(comment["updated_at"], f"comment[{index}].updated_at")
+        if comment["updated_at"] is None:
+            warnings.append(f"comment edit timestamp unavailable: comment {comment['comment_id']}")
+            updated_at = created_at
+        else:
+            updated_at = timestamp(comment["updated_at"], f"comment[{index}].updated_at")
         if updated_at < created_at:
             raise ContractError(f"comment[{index}]: updated_at precedes created_at")
         if not isinstance(comment["body"], str):
@@ -288,14 +299,14 @@ def extract_events(export: Any) -> tuple[list[dict[str, Any]], list[str], dict[s
         current_comment_ids.add(comment["comment_id"])
         if body_hash != comment["body_sha256"]:
             raise ContractError(f"comment[{index}]: body hash mismatch; record was edited or input is corrupt")
-        if comment["created_at"] != comment["updated_at"]:
+        if comment["updated_at"] is not None and comment["created_at"] != comment["updated_at"]:
             warnings.append(f"edited historical record: comment {comment['comment_id']}")
         marker_versions = EVENT_MARKER_RE.findall(comment["body"])
         unsupported = [version for version in marker_versions if version != "1"]
         if unsupported:
             raise ContractError(f"comment[{index}]: unsupported worklog marker version v{unsupported[0]}")
         matches = EVENT_RE.findall(comment["body"])
-        if marker_versions and (len(marker_versions) != 1 or len(matches) != 1):
+        if marker_versions and len(marker_versions) != len(matches):
             raise ContractError(f"comment[{index}]: malformed worklog event body")
         for match in matches:
             try:

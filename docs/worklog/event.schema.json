@@ -3,7 +3,7 @@
   "$id": "https://tadeumendonca.dev/schemas/worklog-event-v1.json",
   "title": "Worklog event v1",
   "$defs": {
-    "publicString": {"type": "string", "not": {"pattern": "(?:^|[\\s`])(?:/Users/|/private/tmp/|file://|\\.brand/)"}},
+    "publicString": {"type": "string", "pattern": "\\S", "not": {"pattern": "(?:^|[\\s`])(?:/Users/|/private/tmp/|file://|\\.brand/)"}},
     "identity": {
       "type": "object", "additionalProperties": false,
       "required": ["harness", "runtime_version", "plugin", "persona", "provenance"],
@@ -25,7 +25,7 @@
   "type": "object",
   "required": ["schema_version", "event_id", "issue", "timestamp", "event_type", "stage", "run_id", "attempt_id", "attribution", "revision", "evidence", "handoff"],
   "properties": {
-    "schema_version": {"const": 1}, "event_id": {"type": "string", "minLength": 1},
+    "schema_version": {"type": "integer", "const": 1}, "event_id": {"type": "string", "minLength": 1},
     "issue": {"type": "string", "pattern": "^[^/\\s]+/[^#\\s]+#[1-9][0-9]*$"},
     "timestamp": {"type": "string", "format": "date-time"},
     "event_type": {"enum": ["implementation_start", "checkpoint", "handoff", "outcome", "correction"]},
