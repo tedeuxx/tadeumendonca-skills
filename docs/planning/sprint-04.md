@@ -14,7 +14,7 @@ eligible: 2 · awaiting the owner: 16 · content (not drained): 41
   - io: #456, #575, #597, #635, #640, #655, #662, #663, #669
 - **content** — 41 io Issues, 13 of them carrying `ready`. Not drained, by rule.
 
-**Correction, found at the lens:** the first push of this file said 40 content Issues, 14 of them `ready`, and the same wrong 40 went into the brief sent to `scrum-master`. It was a hand-count error; no content Issue moved between assembly and the lens. The ranking below is kept verbatim with the wrong figure in it, because the rule is to keep it verbatim. The figure has no effect on the ranking, since content is never in the pool.
+**Correction, found at the lens:** the first push of this file said 40 content Issues, 14 of them `ready`, and the same wrong 40 went into the brief sent to `scrum-master`. It was a hand-count error; no content Issue moved between assembly and the lens. The ranking below keeps the wrong figure, because the rule is to keep it verbatim. The figure has no effect on the ranking, since content is never in the pool.
 
 Proposals from `docs/retrospective/`: **none for sprint-03 — no sprint-03 retrospective exists.** This is a finding about the handoff, not an empty result. `ls -d docs/retrospective/*/` returns `sprint-01/` and `sprint-02/` only. The sprint-03 sweep report exists only staged and unpushed in the io working tree (`docs/iteration-sweep/sprint-03.md`), and the sprint-03 funnel review has not run. So **the sprint-03 closing rites are owed**. The owner confirmed this composition knowing that; the activation stated it.
 
@@ -47,40 +47,44 @@ The median of 5 and 8 is 6.5, which is not a Fibonacci value, and no ratified ru
 
 ## The ranking as returned
 
-This is `scrum-master`'s hand-back as the orchestrator transcribed it after the lens. **It is not a byte-verified copy.** The first push condensed it, nothing kept the original output as a file, and this transcription is the closest record that exists. It carries the brief's wrong content figure (40 content, 14 `ready`); see the correction above.
+Verbatim: this is the `SubagentHandback.message` that `scrum-master` returned, copied byte for byte from the dispatch's session transcript (`subagents/agent-a956244b06c272cf3.jsonl`, local and untracked). The only change is the fence around it. It carries the brief's wrong content figure (40 content, 14 `ready`); see the correction above.
 
 ```text
 ## Selection 1 — 2026-09-24
 iteration: sprint-04   pool-as-shown: 2 items (eligible), plus 16 non-eligible and 40 `content` named in the brief
 
 ### Eligible pool, ranked
-1. #508 `loop` `sp:pending` — codex: a patch release blocks every tool call in a running Codex session — the hook path names the removed version — tiebreak only; no ratified rule orders within this class
-2. #509 `loop` `sp:pending` — codex: native persona snapshot pinned at 2.0.44 while source is 2.0.79, and nothing says so — tiebreak only; no ratified rule orders within this class
+1. #508 `loop` `sp:pending` — codex: a patch release blocks every tool call in a running Codex session because the hook path names the removed version — tiebreak only; no ratified rule orders within this class
+2. #509 `loop` `sp:pending` — codex: native persona snapshot pinned at 2.0.44 while source is 2.0.79, and nothing reports it — tiebreak only; no ratified rule orders within this class
 
-   Excluded from the pool, with the predicate:
-   - -skills #473, #510, #511, #512, #513, #514, #515 — `loop`, not `ready` (the owner's transition alone on the `loop` lane, record 0015's Corollary 4)
-   - -io #456, #575, #597, #635, #640, #655, #662, #663, #669 — `product`, not `ready`
-   - -io `content` (40 items, 14 carrying `ready`) — not drained; `content` is selected by the owner one piece at a time and never batch-drained. None was put in this pool.
-   - The #339 loop-before-product rule partitioned nothing here: the eligible set is entirely `loop`, so its whole ordering is the tiebreak.
+   Excluded from the pool, and why:
+   - **-skills #473, #510, #511, #512, #513, #514, #515** (`loop`): no `ready`. On the `loop` lane `ready` is the owner's transition alone (record 0015, Corollary 4).
+   - **-io #456, #575, #597, #635, #640, #655, #662, #663, #669** (`product`): no `ready`.
+   - **-io `content`, 40 Issues (14 carry `ready`)**: `content` is selected one piece at a time and never drained. None was put in this pool.
+   - **The loop-before-product rule (#339) had nothing to separate here.** The eligible set is all `loop`, so the ordering above comes entirely from the tiebreak.
 
 ### Process findings
-- **The sprint-03 closing rites are owed and not in evidence in canonical order.** Sprint-03's only admitted item (#499) closed 2026-09-24T01:29Z, so its entry snapshot is exhausted — the terminal condition under `scrum`. The order is `/sprint-review` → `/funnel-review` → `/sprint-retrospective` → `/sprint-planning`, and this planning is running while: the sprint-03 sweep report (`docs/iteration-sweep/sprint-03.md`) exists only staged and unpushed in the -io working tree, so whether that rite completed is not something I can see — only that no landed artifact exists; the funnel review has not run; and `docs/retrospective/` holds only sprint-01 and sprint-02, so there is no sprint-03 retrospective and its proposals are absent from this planning's candidate set. Owed: review and funnel review before the retrospective, and the retrospective before this planning. Nothing sequences these rites and nothing fires them; this record is the only place the gap surfaces.
-- **#473 ("the funnel review has never run") sits in awaiting-the-owner while the sprint-03 funnel review is itself unrun.** Those are the same process gap seen from two sides. Named for pairing only — making #473 `ready` is the owner's transition.
-- **Both eligible items carry `ready` and neither carries `sp:N`.** The readiness bar includes `sp:N` in both modes; until it lands these two do not meet the bar, and `/autonomy on`'s preflight will refuse on them. The brief says estimates are being produced separately and I am excluded from estimating — the gap is named so the label lands before any drain, not filled here.
-- **The owner selected #508 and #509 before this ranking was produced.** That is legitimate — composition is his act — but it means this ranking did not inform the selection and must not be presented as if it had; it contributes only a presentation order with known provenance.
-- **sprint-04 carries zero `product` items.** -io has no eligible item; nine `product` Issues await `ready`. "A session with zero product slices is a finding" — at iteration grain, this iteration ships nothing a reader sees. For the owner to know, not a correction to the ranking.
-- **Named for later, if this iteration runs at `wip` > 1:** both items are `loop` and both concern the Codex distribution surface (the hook-path pinning and the persona snapshot version), so a file collision between them is likely and the `loop` lane is this repository's worst parallelism candidate. I cannot assess it without their bodies. If both are to run together, whether they touch the same system surface is `tech-lead`'s to answer, and whether they ship independently is `product-lead`'s — for the orchestrator to dispatch, not me.
-- Detection, not prevention: this record names who should act and prevents nothing. Nothing reads `SELECTION-RECORD`, and nothing stops the main session acting outside it.
+- **The closing rites for sprint-03 are owed and have not run in order.** Sprint-03's only Issue, #499, closed at 2026-09-24T01:29Z, so the iteration is exhausted. That is the terminal condition under `scrum`. The order is `/sprint-review` → `/funnel-review` → `/sprint-retrospective` → `/sprint-planning`. Planning is running now, but:
+  - **sprint-review:** its report (`docs/iteration-sweep/sprint-03.md`) is staged in the -io working tree and not pushed. I cannot tell whether the rite finished. What I can say is that no landed artifact exists yet.
+  - **funnel-review:** has not run.
+  - **sprint-retrospective:** `docs/retrospective/` holds only sprint-01 and sprint-02, so there is no sprint-03 retrospective. Its proposals are therefore missing from this planning's candidates.
+  - You owe the review and the funnel review before the retrospective, and the retrospective before this planning. Nothing sequences these rites and nothing fires them, so this record is the only place the gap shows up.
+- **#473 ("funnel review never ran") is waiting on the owner while the sprint-03 funnel review is also missing.** These are two faces of one process gap. I am naming the pairing only. The Issue is the owner's to make `ready` or not.
+- **Neither eligible item carries `sp:N`, but both carry `ready`.** The readiness bar includes `sp:N` in both modes. Until the label is applied these items do not meet the bar, and `/autonomy on`'s preflight will refuse to enter on them. You say estimates are coming separately, and I am excluded from estimating. The label has to land before any drain.
+- **The owner chose #508 and #509 before this ranking was produced.** The composition is his act, so that is legitimate. But this ranking did not inform his choice, and it should not be presented as if it had. It adds only a presentation order with known provenance.
+- **sprint-04 contains no `product` item at all.** -io has nothing eligible; nine `product` Issues are waiting for `ready`. "A session with zero product slices is a finding." At iteration scale this iteration delivers nothing a reader can see. That is for the owner to know, not a correction to the ranking.
+- **Named for later, in case the iteration runs at `wip` > 1:** both items are `loop` and both concern the Codex distribution surface (hook path pinning and the persona snapshot version). They are likely to touch the same files, and the `loop` lane is this repository's worst candidate for parallel work. I could not assess this without their bodies. If both are to run at once, `tech-lead` should answer whether they touch the same system surface and `product-lead` whether they can ship independently. The orchestrator would dispatch them; I cannot.
+- **Detection, not prevention:** this record names who should act but prevents nothing. Nothing reads `SELECTION-RECORD`, and nothing stops the main session acting outside it.
 
 ### What I could not see
-- No ratified rule orders within a class; the intra-class sequence below is a filing-order tiebreak, not a ranking — here that means #508 before #509 is issue-number order and nothing else, and must not be read as a judgement that #508 is more important or more urgent, whatever its title suggests.
-- No order of record exists to rank against at planning — the sprint-04 milestone description is what this rite produces — so I ranked by the ratified rules alone (eligibility, then #339's loop-before-product) plus the declared filing-order tiebreak.
-- The mode and `wip` were stated to me, not seen: I was told `scrum` in both repositories from `docs/loop-mode.md`, and I was not shown the `wip:` value.
-- I did not see the pool first-hand: it is exactly what the brief listed, as assembled at `1afb6457` (-skills). I cannot tell whether that assembly was truncated or stale.
-- I saw no Issue bodies, so no scope, dependency, `invocable:` declaration or file-overlap between #508 and #509 was checkable.
-- I did not see the contents of the sprint-03 sweep report or whether it is complete.
-- I cannot see whether a sprint-04 milestone already exists in either repository.
-- Nothing here is enforced: this record is an influence mechanism, not a control.
+- **There is no ranking here.** No ratified rule orders items within a class. The order within `loop` (#508 before #509) is a filing-order tiebreak (issue number ascending). It must not be read as a judgement that #508 matters more, whatever its title suggests about severity.
+- **Nothing to check the order against.** At planning there is no order of record: the sprint-04 milestone description is what this rite produces. I ranked by the ratified rules alone (eligibility, then loop-before-product under #339) and nothing else.
+- **Mode and `wip` were stated to me, not seen.** I was told `scrum` in both repositories, read from `docs/loop-mode.md`, and I did not see the record myself. I was not shown the `wip:` value.
+- **I did not see the pool first-hand.** It is exactly what the brief listed, as assembled at `1afb6457` (-skills). I cannot tell whether that list was truncated or stale.
+- **I saw no Issue bodies.** So I could not check scope, dependencies, `invocable:` declarations or file overlap for #508 and #509.
+- **I did not see the content of the sprint-03 sweep report**, or whether it is complete.
+- **I cannot see whether the sprint-04 milestone exists** in either repository.
+- **Nothing here is enforced.** This record is an influence mechanism, not a control.
 
 SELECTION-RECORD
 ```
