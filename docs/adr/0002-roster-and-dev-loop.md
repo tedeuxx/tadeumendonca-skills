@@ -1353,7 +1353,8 @@ mechanical for this persona (rules 5d and 7b's catch-alls), not a new hook or a 
 latter was considered and rejected on the record already made at `agents/quality-assurance.md:100-102`
 (the `security`/`Edit(.claude/**)` failure). `agents-lead` also gains a durable, posted verdict
 (ADR-0006's shape) and a real Issue for its harness proposals (`loop`-typed), with `ready` on a
-`loop`-typed Issue now an **owner-only** transition — closing the question the routing decision named
+`loop`-typed Issue now ~~an **owner-only** transition~~ the owner's decision (applied by the main session
+once aligned with him since the 2026-09-25 amendment, #512) — closing the question the routing decision named
 and left open (*"whether `loop` items should ever reach `ready` autonomously the way `product` items
 can"*). Both now live in this document: see its *Issue type is the routing axis, and it is exclusive
 (absorbed 2026-08-20, record 0012)* and *`agents-lead` implements the harness it reviews (absorbed
@@ -2379,7 +2380,8 @@ rejected-options list contains:
 
 **Read to the comma it rejects this amendment. Read whole it rejects something else entirely** — a single
 dispatch that *proposes and builds in one act*. That separation is untouched here: `agents-lead` closes
-the description at intake, the owner applies `ready`, and the build is a **second, separate** dispatch.
+the description at intake, ~~the owner applies `ready`~~ the owner decides `ready` and the main session
+applies it once aligned with him (struck 2026-09-25, #512), and the build is a **second, separate** dispatch.
 It is the only place in either library where the string *"`agents-lead` alone"* appears, so anyone
 implementing this rule will meet it and must not argue the rule back out on it.
 
@@ -2470,7 +2472,8 @@ owed on its own terms, which is also what the decision itself says.
 
 **Owner decision, 2026-08-24 ([#326](https://github.com/tedeuxx/tadeumendonca-skills/issues/326)):
 the loop adopts iterations as the unit of work.** He applied `loop`-typed `ready` himself, which on that
-lane is his transition alone (the *`agents-lead` implements the harness it reviews* section, Corollary 4).
+lane ~~is his transition alone~~ was then his transition alone — since 2026-09-25 (#512) it is his
+decision, applied by the main session once aligned with him (the *`agents-lead` implements the harness it reviews* section, Corollary 4).
 The falsifier that opened the Issue re-ran clean at head before this slice — `iteration`, `iteração` and
 `sprint` matched **nothing** in `commands/`, `skills/` or `docs/adr/` — so the rites existed as knowledge
 and the axis did not exist at all.
@@ -2600,7 +2603,8 @@ it.** At **22:31 on 2026-08-24** a comment placed implementation **on hold** pen
 finished implementation — the axis, the tracker object, the ceremony chain and the `/autonomy on` stop
 condition, all explicitly not proceeding. At **00:00:25** the **ratified sprint model** was posted: later
 in time, and a **complete design** rather than a deferral. The owner then applied `loop`-typed `ready`,
-which on that lane is his transition alone and is the loop's own signal that an Issue is executable.
+which on that lane ~~is his transition alone~~ was then his transition alone (since 2026-09-25, #512,
+his decision applied by the main session once aligned with him) and is the loop's own signal that an Issue is executable.
 
 **The ratified model supersedes the hold, and the hold's reason survives in narrowed form.** Its argument
 was interoperability — building a shape here that the source project's finished implementation would
@@ -2761,7 +2765,8 @@ is NOT a gate"*, in the preload every persona carries; this record is the argume
 **It ranks only what is ELIGIBLE**, and that clause is the deadlock escape the Issue asked for by name:
 `(loop AND ready AND active-iteration)` ahead of `(product AND ready AND active-iteration)`. An item
 without `ready`, or carrying `blocked`, is not in the pool and cannot stall it. **`ready` on a `loop`
-item is the owner's transition alone** (record 0015's Corollary 4), so ranking `loop`-ness rather than
+item is ~~the owner's transition alone~~ the owner's decision, applied by the main session once aligned
+with him** (record 0015's Corollary 4; struck 2026-09-25, #512), so ranking `loop`-ness rather than
 *eligible* `loop`-ness would have stalled a whole repo behind Issues only he could release — measured
 2026-08-28: `-skills` carried two unlabelled `loop` Issues while `-io` carried five `ready` `product`
 items and zero `loop` items of any kind.
@@ -3083,7 +3088,8 @@ restates it in the durable form in the carrier as well.
 - **The measured benefit is available and the false clause is not shipped.** The saving that survives
   scrutiny is permitted; the claim that could not hold is refused with its refutation recorded.
 - **Admission needs no new mechanism.** The specification's *"only by explicit owner decision"* is
-  already spelled `ready` — the owner's transition alone on this lane, and required by the pool
+  already spelled `ready` — ~~the owner's transition alone on this lane~~ the owner's decision on this
+  lane, applied by the main session once aligned with him (struck 2026-09-25, #512), and required by the pool
   predicate. Building a second control would have duplicated an existing one.
 - **A permission has the least to lose from being unenforced.** An unenforced prohibition can be
   violated; an unenforced permission can only be declined.
@@ -3886,7 +3892,8 @@ The rule held by luck.
 The Issue frames this as *which of two rules wins*. It is not a contest: **#338's own failure mode cannot
 occur.** Its argument was that a `loop` Issue born outside the pool is invisible to `/autonomy on` and
 silently never worked. The pool is `(product OR loop) AND ready AND active-iteration`, and a `loop` Issue
-is filed **without `ready`** — the owner's transition alone (Corollary 4). **The item falls out of the
+is filed **without `ready`** — ~~the owner's transition alone~~ the owner's decision, applied by the main
+session once aligned with him (Corollary 4; struck 2026-09-25, #512). **The item falls out of the
 pool on the `ready` predicate before the milestone predicate is consulted.**
 
 So the milestone set at filing was inert until he acted, and when he acted he was present. **It changed
@@ -5404,6 +5411,29 @@ it are struck in place. It does **not** change **whose decision** it is — his,
 may move a `loop` Issue to `ready`. The main session is not a dispatch, so the proposal/build separation
 the corollary exists for is intact; the check is now *"did he say so, on the item"* rather than *"did
 his hand apply the label"*.
+
+**"The surfaces … are struck in place" is a claim about a SET, so here is its criterion.** Every tracked
+file except the generated `powers/` mirror and the dated artifacts under `docs/planning/` and
+`docs/retrospective/`, which record what was true on their day and are left as written. The selector
+collapses whitespace first, because several sites wrap mid-phrase and a line-oriented grep misses them:
+
+```
+git ls-files -z -- . ':!powers' ':!docs/planning' ':!docs/retrospective' | xargs -0 python3 -c '
+import re, sys
+p = re.compile(r"owner.?s? transition alone|hi[s] transition alone|transition is the owner.?s alone|only (the owner|he) (applies|can apply)|label only h[e]|owner-only (label )?transition|the owner applies .?ready|transition he already perfor[m]s", re.I)
+for f in sys.argv[1:]:
+    try: b = re.sub(r"\s+", " ", open(f, encoding="utf-8").read())
+    except Exception: continue
+    for m in p.finditer(b): print(f + ": " + b[max(0, m.start()-12):m.end()])
+'
+```
+
+**At this amendment's head every hit sits inside a struck `~~…~~` span (twelve characters of left context show the opening
+marker for most; `README.md`'s and `docs/blueprint-registry.md`'s spans open earlier in the sentence) or
+is past tense** — the
+two narrative sites of the 2026-08-24 iteration amendment say he *applied* the label himself then, which
+remains true, and now read *"was then his transition alone"*. A hit that is neither is this claim going
+false. (Three alternatives carry a bracketed letter so the command does not match its own text here.)
 
 **The artifact that records it moves too, and this is the part to keep.** Before, the label's author was
 the evidence of his decision. Now the label is applied by the main session, so the evidence is **his

@@ -640,9 +640,11 @@ a retrospective's output lands. **Here the premise does not hold**: `/autonomy o
 `(product OR loop) AND ready`, so an iteration-scoped pool with loop items unassignable does not orphan a
 ceremony's output — **it takes half the queue dark**. One list, one axis, one predicate.
 
-Cost, carried knowingly: planning must slot loop items, and `loop`-typed `ready` is the owner's
-transition alone — so he is already the critical path for exactly these items, and this adds one
-milestone assignment to a transition he already performs. It adds no new gate and no new actor.
+Cost, carried knowingly: planning must slot loop items, and `loop`-typed `ready` is ~~the owner's
+transition alone~~ **the owner's decision, applied by the main session once aligned with him** (struck
+2026-09-25, owner ruling on #512) — so he is already the critical path for exactly these items, and this
+adds one milestone assignment to a ~~transition he already performs~~ **decision he already takes**. It
+adds no new gate and no new actor.
 
 #### NOTHING is admitted into a running iteration automatically — an Issue is filed with NO milestone (#365)
 
@@ -714,7 +716,8 @@ is filed in.**~~
 **Struck 2026-08-30 (#365), and it is struck rather than narrowed because #338's own failure mode cannot
 occur.** Its argument was that a `loop` Issue born outside the pool is invisible to `/autonomy on` and
 silently never worked. The pool is `(product OR loop) AND ready AND active-iteration`, and **a `loop`
-Issue is filed WITHOUT `ready`** — the owner's transition alone (record 0015's Corollary 4). The item is out
+Issue is filed WITHOUT `ready`** — ~~the owner's transition alone~~ the owner's decision, applied by the
+main session once aligned with him (record 0015's Corollary 4; struck 2026-09-25, #512). The item is out
 of the pool on the `ready` predicate **before the milestone predicate is consulted**, so the milestone
 set at filing is inert until he acts, and when he acts he is present.
 
@@ -820,7 +823,8 @@ that field but could not show it **false**: the field is mutable and unversioned
 here distinguishes a misremembered position from one edited afterwards. **The weak home below is not an
 abstract concern — this slice hit it inside itself.**
 
-**`ready` on a `loop` item is the owner's transition alone** (record 0015's Corollary 4), so a `loop` item
+**`ready` on a `loop` item is ~~the owner's transition alone~~ the owner's decision, applied by the main
+session once aligned with him** (record 0015's Corollary 4; struck 2026-09-25, #512), so a `loop` item
 awaiting `ready` is by construction awaiting him — which is exactly why the pool is scoped to `ready`
 and not to `loop`-ness. Measured 2026-08-28: `-skills` carried two `loop` Issues with no `ready`
 (#335, #336) while `-io` carried five `ready` `product` items and **zero** `loop` items of any kind. A
@@ -1142,7 +1146,8 @@ loop-first `Stop` hook, and it is named here rather than filed.
   a defect. Sweep for the claim's substance, never for the sentence that was struck.
 - **Admission needs no new mechanism, and it is already spelled `ready`.** The specification asks that a
   newly-discovered `loop` item enter the active batch only by explicit owner decision. `ready` on the
-  `loop` lane is the owner's transition alone, and the pool predicate requires it. **That control exists;
+  `loop` lane is ~~the owner's transition alone~~ the owner's decision, applied by the main session once
+  aligned with him (struck 2026-09-25, #512), and the pool predicate requires it. **That control exists;
   do not build a second one.**
 - **#339's loop-first ordering is untouched.** The `loop` block is still composed ahead of every
   `product` item. This section only says the block *may* travel as one branch.

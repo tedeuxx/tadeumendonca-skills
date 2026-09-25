@@ -333,8 +333,8 @@ stated here — read them from `docs/loop-mode.md`.
 29. **On the `loop` lane, the owner decides whether an item is ready, and the orchestrator applies the
     `ready` label once it has aligned with him.** The agents lead closing the description does not earn
     the label, and no dispatched profile applies it. Aligned means he has said the item is ready, and
-    his words are recorded on the item (rule 12). On the other lanes, `ready` follows the intake that
-    closes the description (rule 18).
+    his words are recorded on the item (standing rule 12, not floor item 12). On the other lanes,
+    `ready` follows the intake that closes the description (standing rule 18).
 30. **On any public surface, a client or other third-party organisation is described by its sector or
     industry, never by its name.** The owner's own employer may be named. Public means everything
     published — prose, commit and merge-request text, issues, decision records, examples.

@@ -1197,7 +1197,7 @@ effect of the phase actually happening.
 
 | phase | what records it | where |
 |---|---|---|
-| **intake** | the `ready` label | the issue — its description closed by whoever closes it **on that lane**, per the states table's `filed → description closed` rows; on `loop`, only the owner applies the label |
+| **intake** | the `ready` label | the issue — its description closed by whoever closes it **on that lane**, per the states table's `filed → description closed` rows; on `loop`, ~~only the owner applies the label~~ the owner decides and the main session applies the label once aligned with him (struck 2026-09-25, owner ruling on #512) |
 | **decomposition** | the **task list** in the body | the issue, with the progress GitHub renders from it |
 | **build** | a linked branch, and `closes #N` | `gh issue develop` on one side, the PR on the other |
 | **gate** | the verdict, under its own marker | a comment on the PR, one hop from the issue |
