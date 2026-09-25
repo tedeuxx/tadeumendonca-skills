@@ -256,6 +256,11 @@ Evidence: <each `figure:` line it rests on, quoted verbatim from collected/<peri
   a candidate.
 - **It is a candidate inside a finding, not a third finding.** The cap is unchanged.
 - **The not-collected branch carries none**, because it carries no findings section at all.
+- **`Candidate rule:` and `Evidence:` are written at COLUMN 0**, exactly as above. The position is
+  what `/sprint-planning` reads the queue by (step 4), and it is also what keeps the shape that
+  `scripts/funnel-review.sh` prints as guidance from counting as a candidate. The script indents that
+  template by four spaces, so a report that keeps the template as written contains no phantom open
+  candidate.
 
 **The honest bound on a candidate, stated with it rather than discovered later:** the samples are
 small — #473's own body reports one read event reaching a single-digit number of users over four
@@ -270,10 +275,43 @@ metric does not get to change how he writes, and the loop's job is to put a defe
 front of him, not to adopt one. So nothing in this rite edits the ruler, and a candidate he has not
 ruled on stays in its report.
 
-**How a ruled candidate then lands is NOT decided** — one at a time, each on its own ruling, or as a
+~~**How a ruled candidate then lands is NOT decided** — one at a time, each on its own ruling, or as a
 queue ruled at `/sprint-planning`. #473's body leaves it open and the build asked him rather than
 choosing: the question is on #473. Until he answers, a candidate reaches him inside the period's
-report and nothing moves it further.
+report and nothing moves it further.~~ **Struck 2026-09-25: he answered.** The question was put to him
+on #473 as a picker (*"Uma por vez"* · *"Fila no planning"*), and he chose **Fila no planning**.
+Candidates accumulate as a queue, and he rules on them together at `/sprint-planning`. A candidate may
+wait up to one sprint, and that cost was stated in the option he picked.
+
+**The queue is the reports themselves. No new store exists.** A candidate waits where the rite
+wrote it, in `docs/funnel-review/<period>.md`. A candidate is **open** until a `Ruled:` line follows
+its `Evidence:` line(s), at column 0:
+
+```
+Ruled: adopted <YYYY-MM-DD> at /sprint-planning <iteration>
+Ruled: not adopted <YYYY-MM-DD> at /sprint-planning <iteration>
+Ruled: held <YYYY-MM-DD> at /sprint-planning <iteration>
+```
+
+**Why the ruling goes in the report and not somewhere new.** The candidate, its evidence and its
+ruling then sit in one versioned file, so the queue is readable with one `grep`:
+
+```
+grep -nE '^(Candidate rule|Evidence|Ruled):' docs/funnel-review/*.md
+```
+
+A separate queue file would be a second copy of each candidate. Nothing would keep the copy
+aligned with the report, which is the drift this repository keeps paying for. **At the time of
+writing that command prints nothing.** Both reports in the store are `FUNNEL-REVIEW-NOT-COLLECTED`,
+so no candidate has ever been proposed. The zero is real, not a dead pattern:
+`scripts/funnel-review.test.sh` arm 14 appends a column-0 candidate to a report the script wrote and
+asserts the selector finds it.
+
+**`held` keeps the candidate open.** It is his explicit *"ask me again next planning"*, and the next
+planning's count includes it. **`adopted` does not edit the ruler either.** An adopted candidate is
+filed as an Issue, with no milestone, in the same way `/sprint-planning` files a retrospective finding
+he names. The `published-voice` edit then goes through the normal lane like any other change to the
+ruler.
 
 Nothing here files an Issue and nothing here changes anything. **Only the owner opens work** — and
 this is already mechanical rather than promised: `hooks/scripts/permission-guard.sh`, registered on
@@ -324,6 +362,10 @@ refuses to print a figure that arrived without one.
 - **Nothing checks a candidate's evidence against the collection file.** A candidate quoting a
   `figure:` line that is not in `collected/<period>.tsv` passes every check here; the owner reading
   the two side by side is the only comparison.
+- **Nothing makes `/sprint-planning` read the queue, or write the `Ruled:` lines.** Both are
+  instructions in that rite's step 1. A planning that skips them leaves the candidates open, and they
+  stay visible to the next planning's `grep`. That is the one property the shape buys. Nothing reads a
+  `Ruled:` line mechanically.
 - **Nothing observes whether a piece improved after a candidate became a rule.** No layer reads a
   draft against a prior one, and at these sample sizes a movement in the next period is not evidence
   of a cause. A later period's funnel is what there is, and this rite already says it cannot attribute.

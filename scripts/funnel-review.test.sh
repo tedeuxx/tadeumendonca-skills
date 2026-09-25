@@ -396,5 +396,25 @@ else
   fi
 fi
 
+# ── 14 · the planning queue reads COLUMN-0 candidates, and a generated report holds none (#473) ────
+# The owner ruled that candidates queue in their reports and are ruled at /sprint-planning, which reads
+# them with the selector below. A report this script wrote must contain NO match (the printed template
+# is indented, so it is guidance and not an open candidate), and the same report with one real
+# column-0 candidate appended must contain exactly one. That makes the "prints nothing" zero published
+# in commands/funnel-review.md a real zero rather than a dead pattern, and it fails in both directions.
+q_sel='^(Candidate rule|Evidence|Ruled):'
+q_report="$work/queue-2000-02.md"
+printf '%s\n' "$ran_out" > "$q_report"
+q_before="$(grep -cE "$q_sel" "$q_report" || true)"
+printf 'Candidate rule: probe\nEvidence: figure: ga4 sessions 10 10\n' >> "$q_report"
+q_after="$(grep -cE '^Candidate rule:' "$q_report" || true)"
+if printf '%s' "$ran_out" | grep -q 'until /sprint-planning' \
+   && [ "$q_before" = "0" ] && [ "$q_after" = "1" ]; then
+  ok "candidate queue — a generated report holds no column-0 candidate, an appended one is found, and the report names /sprint-planning"
+else
+  bad "candidate queue — the template reads as an open candidate, the selector is dead, or the queue is unnamed" \
+      "before=$q_before after=$q_after (expected 0 and 1)"
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

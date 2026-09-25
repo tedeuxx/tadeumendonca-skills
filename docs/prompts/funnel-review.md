@@ -202,8 +202,19 @@ evidence quoted **verbatim** from the stored collection — sample size included
 - **No citable figure, no candidate.** An observation without one is still a finding; it is not a
   proposal to change the ruler.
 - **A candidate is not a ruling.** The human who owns the voice rules on it; nothing in the rite edits
-  the ruler. How ruled candidates then land — one at a time, or batched at a planning moment — is a
-  decision about interruptions, and it is the human's.
+  the ruler. ~~How ruled candidates then land — one at a time, or batched at a planning moment — is a
+  decision about interruptions, and it is the human's.~~ It is still the human's decision, and in the
+  harness this prompt came from he made it: **a queue, ruled at the planning moment.** A candidate may
+  wait up to one iteration. In exchange there is no interruption per candidate.
+- **The queue is the reports. Do not build a second store.** A candidate waits in the report that
+  proposed it, written at a fixed position (column 0) so that one search reads the whole queue. A
+  candidate is open until a ruling line follows it: *adopted*, *not adopted* or *held*. A separate
+  queue file would copy each candidate, and nothing would keep the copy aligned with its source.
+- **Rule the queue the way the planning moment rules everything else it cannot compose.** It enters
+  the one confirmation as a count, the default is *none adopted*, and the human names the ones he
+  adopts or holds. Write a ruling line under every candidate, including the default ones. An
+  unwritten default leaves the queue unable to tell *declined* from *never seen*. Keep indented any
+  template the analysis prints, so that guidance text is never read as an open candidate.
 - **Carry the bound with it.** At small audiences a candidate is a story about its n, and nothing
   will ever tell you whether a piece got better *because* a rule landed.
 

@@ -247,7 +247,12 @@ printf 'A finding MAY carry a candidate rule for published-voice, in this shape,
 printf 'evidence line is a figure: line quoted verbatim from a committed collection file:\n\n'
 printf '    Candidate rule: <one sentence, in the ruler'"'"'s own register>\n'
 printf '    Evidence: <figure: line(s), verbatim, n included>\n\n'
-printf 'A candidate is not a ruling. It reaches published-voice only if the owner rules on it.\n\n'
+printf 'A candidate is not a ruling. It reaches published-voice only if the owner rules on it.\n'
+# The owner's ruling on #473 (2026-09-25, «Fila no planning»): candidates queue in their reports and
+# are ruled together at /sprint-planning. The shape above is indented on purpose — the queue is read
+# by COLUMN-0 lines, so this template can never be counted as an open candidate.
+printf 'Write both lines at column 0. The candidate then waits here, open, until /sprint-planning\n'
+printf 'writes a Ruled: line under it (commands/funnel-review.md step 4).\n\n'
 
 printf '## What I would leave alone\n\n'
 
