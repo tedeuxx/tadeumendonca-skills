@@ -274,8 +274,9 @@ not the product the loop builds, so it takes no part in closing a **story's** de
 persona that closes a **`loop`** Issue's. It is dispatched on a **proposal about the loop itself**, before anything is
 built, and per ADR-0002 that proposal now enters the tracker as a `loop`-typed Issue — filed by the
 orchestrator on its naming (`agents-lead` itself remains denied `gh issue create`). `loop`-typed
-`ready` is an **owner-only** label transition (ADR-0002, record 0015's Corollary 4), never applied by any
-dispatch — see that record's section in full for the six corollaries (durable verdict marker, the
+`ready` is ~~an **owner-only** label transition~~ **the owner's DECISION, and the main session applies the
+label once aligned with him** (struck 2026-09-25, owner ruling 2026-09-25 on #512: *«Eu, após alinhar»*; ADR-0002, record
+0015's Corollary 4 and its 2026-09-25 amendment), never applied by any dispatch — see that record's section in full for the six corollaries (durable verdict marker, the
 harness-diff criterion, the
 proposal/build dispatch separation).
 
@@ -293,7 +294,7 @@ owner works that decision out with; it does not make it.
 | filed → **description closed** | `loop` | `agents-lead`, **alone — `tech-lead` never co-signs this lane, with no exception** (owner ruling 2026-08-25, #329: *"nunca"*) | the closed description in the Issue body, plus the intake stamp |
 | filed → **ready** | `product` | both leads, closing the description together | **`ready` label** |
 | filed → **ready** | `content` | `product-lead`, alone — **intake only**; it takes no part in the drafting rounds (ADR-0002, seventeenth amendment) | **`ready` label** |
-| filed → **ready** | `loop` | the owner, alone — not the leads (ADR-0002, record 0015's Corollary 4) | **`ready` label** |
+| filed → **ready** | `loop` | ~~the owner, alone~~ **the owner decides; the main session applies the label once aligned with him** (struck 2026-09-25, owner ruling 2026-09-25 on #512) — not the leads, and never a dispatch (ADR-0002, record 0015's Corollary 4) | **`ready` label** |
 | ready → **in progress** | `product` | `developer` | an open PR |
 | ready → **in progress** | `content` | `content-writer` — **not `developer`**, which has never been dispatched at a draft (ADR-0002, thirteenth amendment; this row said `developer` until #317 and was wrong for nine days) | an open PR |
 | ready → **in progress** | `loop` | `agents-lead` (ADR-0002, record 0015's Corollary 1) | an open PR |
@@ -319,8 +320,9 @@ where nobody looks is how #329 happened.**
 **The three rows were ADDED, not edited.** The `filed → **ready**` rows below them were already right and
 are untouched — they record *who applies the label*, which is a different question from *who closes the
 description*, and conflating the two is why nothing in this file could answer the lane question before.
-On `loop` the two answers differ on purpose: `agents-lead` closes the description, **the owner alone
-applies `ready`** (ADR-0002, record 0015's Corollary 4).
+On `loop` the two answers differ on purpose: `agents-lead` closes the description, ~~**the owner alone
+applies `ready`**~~ **the owner decides `ready` and the main session applies it once aligned with him**
+(struck 2026-09-25, owner ruling 2026-09-25 on #512; ADR-0002, record 0015's Corollary 4).
 
 **Why the `loop` row carries no exception clause, and must not grow one.** The owner's ruling was one
 word — *"nunca"*. His argument, which is the load-bearing part: almost every machinery change can be
@@ -400,7 +402,7 @@ label is auditable and attributable, not proven.
 |---|---|---|---|
 | `product` | the repo's own deliverable | the owner, at filing | `/autonomy on`'s queue · merge class **safe** |
 | `content` | published in the owner's voice | the owner, at filing | merge class **boundary** |
-| `ready` | the description is closed on that lane, per the `filed → **description closed**` rows above | the leads (`product`) · `product-lead` (`content`) · **the owner** (`loop`) | `/autonomy on` · `developer` refuses an Issue without it |
+| `ready` | the description is closed on that lane, per the `filed → **description closed**` rows above | the leads (`product`) · `product-lead` (`content`) · ~~**the owner**~~ **the main session, once aligned with the owner** (`loop`) | `/autonomy on` · `developer` refuses an Issue without it |
 | `blocked` | waiting on the owner, or on something outside the loop | anyone | the "what needs the owner" report |
 | `reader-facing` | the diff will change words or images a reader sees | the owner or the leads | which lens the gate dispatches — **a signal, never a gate** |
 | `sp:N` | the item's estimated weight, one Fibonacci value from a closed set (#326) | the estimating personas for that type, median of an isolated dispatch each | `/autonomy on`'s **preflight** (an item without one blocks entry) · the points-per-week aggregation |

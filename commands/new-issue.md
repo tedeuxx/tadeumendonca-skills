@@ -222,9 +222,12 @@ states table are canonical**:
 - **`content`** — `product-lead` closed it and does not say stop → apply `ready`. **`ready` on a
   `content` Issue is not a queue**: the owner selects content one piece at a time, and `/autonomy on`
   excludes the lane deliberately.
-- **`loop`** — **`ready` is the owner's transition and nobody else's** (ADR-0002, record 0015's
-  Corollary 4). `agents-lead` closing the description does **not** earn the label; report to the owner
-  and let him apply it.
+- **`loop`** — ~~**`ready` is the owner's transition and nobody else's**~~ **`ready` is the owner's
+  decision, and you apply the label once aligned with him** (struck 2026-09-25, owner ruling 2026-09-25 on #512: *«Eu, após
+  alinhar»*; ADR-0002, record 0015's Corollary 4 and its 2026-09-25 amendment). `agents-lead` closing
+  the description does **not** earn the label; ~~report to the owner and let him apply it~~ report to
+  the owner, and apply it once he has said the item is ready — with his words recorded on the Issue.
+  Handing him the labelling act is the deviation, not caution.
 
 And on every lane:
 
@@ -306,7 +309,8 @@ objects to, which is why it is struck here rather than deleted.**
 than on a preference: its own failure mode cannot occur.** #338's argument was that a `loop` Issue born
 outside the pool is invisible to `/autonomy on` and silently never worked. The drain's queue is
 `(product OR loop) AND ready AND active-iteration`, and **a `loop` Issue is filed WITHOUT `ready`** —
-that transition is the owner's alone (record 0015's Corollary 4), stated in step 4 above. **The item falls
+that transition is the owner's decision (record 0015's Corollary 4, applied by the main session once
+aligned with him since the 2026-09-25 ruling on #512), stated in step 4 above. **The item falls
 out of the pool on the `ready` predicate before the milestone predicate is consulted.** So the milestone
 set at filing is inert until he acts, and when he acts he is present.
 

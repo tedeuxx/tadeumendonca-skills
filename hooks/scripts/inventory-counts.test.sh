@@ -6107,7 +6107,7 @@ if [ -n "$lane_gen_missing" ]; then
 else
   # One needle per file, checked against THAT file only — a needle satisfied by the wrong surface is
   # exactly the drift this arm exists to catch.
-  grep -qF -- '| `ready` | the description is closed on that lane, per the `filed → **description closed**` rows above | the leads (`product`) · `product-lead` (`content`) · **the owner** (`loop`) |' "$LANE_SKILL" \
+  grep -qF -- '| `ready` | the description is closed on that lane, per the `filed → **description closed**` rows above | the leads (`product`) · `product-lead` (`content`) · ~~**the owner**~~ **the main session, once aligned with the owner** (`loop`) |' "$LANE_SKILL" \
     || lane_gen_missing="$lane_gen_missing
     missing: the label table's \`ready\` row in skills/agents-configuration/SKILL.md is no longer lane-scoped"
   grep -qF -- '**`ready` means the description is closed by whoever closes it on that lane — and on `loop` it is the' "$AUTON" \

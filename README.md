@@ -374,7 +374,8 @@ irreversible act) the earlier diagram showed.
 gate-free at intake — a `loop`-typed Issue still needs `ready` before anything builds against it, and
 `/autonomy on`'s own queue predicate is `(product OR loop) AND ready` ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md)),
 so it can be drained the same mechanical way a `product` story can. What is actually different: `ready`
-on a `loop` Issue is an **owner-only** transition ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md),
+on a `loop` Issue is ~~an **owner-only** transition~~ **the owner's decision, applied by the main
+session once aligned with him** (struck 2026-09-25, owner ruling 2026-09-25 on #512; [ADR-0002](./docs/adr/0002-roster-and-dev-loop.md),
 record 0015's Corollary 4) rather than the two leads reconciling between themselves, and its own tier 2 is
 `agents-lead`, building what it just stress-tested. **Tier 3 is not skipped, and neither is its lens.**
 Every lane, `loop` included, still merges through `MR --> QA --> M`: rule 7b denies `gh pr merge` to

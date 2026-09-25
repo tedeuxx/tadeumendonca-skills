@@ -3733,8 +3733,9 @@ What has never been drawn is the **other** direction — what it should not be a
 proposed, because no private-material class in its domain is known to exist and inventing one to close a
 hypothetical gap is the shape this persona is itself instructed to distrust.
 
-**Corollary 4 (record 0015) — `loop`-typed `ready` is an OWNER-ONLY transition**, never applied by any
-dispatch including `agents-lead`'s own. This is what converts *"separate Issue for proposal versus
+**Corollary 4 (record 0015) — `loop`-typed `ready` is ~~an OWNER-ONLY transition~~ the OWNER's
+DECISION, applied by the main session once aligned with him** (struck 2026-09-25 — see the amendment of
+that date below), never applied by any dispatch including `agents-lead`'s own. This is what converts *"separate Issue for proposal versus
 build"* from a convention into an actual gate: a proposal dispatch may file findings, but nothing lets
 the same or a later dispatch move that Issue to `ready` and start building without the owner having read
 the artifact. `product`-typed `ready` is unchanged — the two leads, per the routing record above.
@@ -3771,7 +3772,8 @@ state in which the bug exists and the grant does not.
   that signs the merge"* shape `quality-assurance` accepted when `security` merged into it (amendment #10,
   Decision 2). Mitigated the same way — it cannot merge — not by a second internal reviewer. A real
   reduction in independence, traded against the advisory-only model's own failure.
-- **`loop`-ready is owner-only BY INSTRUCTION, not by floor enforcement.** Corollary 4's gate is exactly
+- **`loop`-ready is ~~owner-only~~ owner-decided BY INSTRUCTION, not by floor enforcement** (struck
+  2026-09-25, #512). Corollary 4's gate is exactly
   as strong as the owner's habit of reading the artifact first — the same caveat this document already
   carries for relabeling generally. Left open rather than pretended closed.
 - **A second persona now holds an unscoped `Write, Edit` grant mitigated purely by "cannot merge."** The
@@ -5388,6 +5390,30 @@ hashes, cutoff and reproduction command make reports auditable and deterministic
 editable/deletable, capture is an instruction, historical attribution stays unknown without evidence,
 and incomplete exports can only produce partial reports. Existing dispatch metrics and Kiro's
 knowledge-only export remain unchanged.
+
+## 2026-09-25 amendment — `loop`-typed `ready` is the owner's decision; the main session applies the label (#512)
+
+**Owner ruling, 2026-09-25, recorded on #512** — a picker offering *"Eu, após alinhar"* · *"Só você"*;
+answer: **«Eu, após alinhar»**. On the `loop` lane the owner decides readiness, and the main session
+(the orchestrator) applies the `ready` label once it has aligned with him.
+
+**What this changes in Corollary 4, and what it does not.** It changes **who performs the labelling
+act**: the owner no longer has to apply the label by hand, and the surfaces that said he alone applies
+it are struck in place. It does **not** change **whose decision** it is — his, still — and it does
+**not** change the half of Corollary 4 that made it a gate: no **dispatch**, `agents-lead`'s included,
+may move a `loop` Issue to `ready`. The main session is not a dispatch, so the proposal/build separation
+the corollary exists for is intact; the check is now *"did he say so, on the item"* rather than *"did
+his hand apply the label"*.
+
+**The artifact that records it moves too, and this is the part to keep.** Before, the label's author was
+the evidence of his decision. Now the label is applied by the main session, so the evidence is **his
+words on the Issue** — the rule that an owner answer lands on the item it decides, the moment he gives
+it. A `loop` Issue carrying `ready` with no recorded alignment is the defect this amendment makes
+possible, and nothing observes it: `gh issue edit` is allowlisted and no hook reads a label's author.
+By this loop's own test it is an instruction, exactly as the original corollary already said of itself.
+
+**Rejected: keep it his act alone ("Só você").** Offered and declined. It kept a labelling click on the
+critical path of every `loop` item for no control a recorded alignment does not also provide.
 
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now
