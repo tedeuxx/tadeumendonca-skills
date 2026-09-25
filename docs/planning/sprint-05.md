@@ -131,3 +131,37 @@ The owner composed this iteration himself, across two turns on 2026-09-24 and 20
 2. Asked which items enter sprint-05, in a picker whose options were three partial sets. He answered in free text: «pode por tudo».
 
 That answer is the confirmation of this composition. No separate composition activation was put to him, because the composition he confirmed is the whole eligible pool with nothing left to compose. The bound of two was not reached.
+
+## The composition as confirmed
+
+Milestone `sprint-05` was created as #7 in `tedeuxx/tadeumendonca-skills` by `scripts/milestone-create.sh`. Its description:
+
+```
+Order of record (owner-confirmed 2026-09-25 «pode por tudo»; docs/planning/sprint-05.md), filing-order tiebreak, not a ranking:
+#473 sp:8 · #510 sp:2 · #511 sp:8 · #512 sp:5 · #513 sp:8 · #514 sp:3 · #515 sp:8 · #521 sp:5 · #522 sp:5 · #523 sp:2 · #524 sp:2 · #525 sp:5 — 61 pts.
+Execution constraints: #512 before #511; #521 before #522; #510 and #512 never in one wip set.
+```
+
+All twelve were admitted, then read back one Issue at a time: `gh issue view <n> --json milestone` returns milestone `7` for each.
+
+**A measurement trap met on the way.** Run immediately after the admissions, `gh issue list --milestone sprint-05` returned **8** of the 12. That query goes through the search index, which lags behind writes. Read back per Issue, the milestone was set on all twelve. Do not use the milestone-filtered list to verify an admission made seconds earlier.
+
+## Worklog snapshot
+
+`docs/planning/sprint-05.worklog.json` holds:
+
+- milestone number 7;
+- twelve counting units, 61 points;
+- per unit, the isolated estimates, the true median and the recorded value where they differ;
+- the timezone.
+
+`starts_at` and `ends_at` are `null`, because the owner set no boundary.
+
+## Estimation pendency this leaves
+
+None. All twelve carry `ready` and exactly one `sp:N`.
+
+## What could not be assembled
+
+- The sprint-04 sweep observed nothing rendered, and the funnel collected nothing. The retrospective's inputs from those two rites were therefore empty. See #525 and #473, which are in this iteration.
+- The repository list was supplied, not derived.
