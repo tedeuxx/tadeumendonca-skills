@@ -46,9 +46,9 @@ print('child, replayed total:', max(o['payload']['info']['total_token_usage']['t
 | # | component | tokens | share of spent | the change chosen | owner | status |
 |---|---|---|---|---|---|---|
 | 1 | **embedded preload** — the persona profile, brief plus every preload, sent in full on every request | 115,919,635 | **34.2%** | trim what a Codex profile embeds, starting with `agents-configuration` | agents-lead, in `scripts/codex-agent-build.py` | **deferred** — see §1 |
-| 2 | **re-read** — tool output repeating text the profile or `AGENTS.md` already carries, re-sent on every later request until a compaction | 15,689,329 | **4.6%** | never ask a profile to re-read what it carries, and never re-read it unprompted | the orchestrator and every profile | **implemented in this repository only** — `AGENTS.md` rule 23; the `-io` copy is owed, see below |
+| 2 | **re-read** — tool output repeating text the profile or `AGENTS.md` already carries, re-sent on every later request until a compaction | 15,689,329 | **4.6%** | never ask a profile to re-read what it carries, and never re-read it unprompted | the orchestrator and every profile | **implemented in this repository only** — `AGENTS.md` standing rule 23; the `-io` copy is owed, see below |
 | 3 | **per-turn re-send** — the rest of each request: the conversation so far plus the harness's own prefix | 168,382,786 | **49.7%** | short-lived instances: one task per instance, and a new task gets a new instance | agents-lead, for the dispatch protocol | **deferred** — see §3 |
-| 4 | **polling** — every request made only to read the result of a `wait_agent`, `sleep` or `wait` | 38,043,267 | **11.2%** | one blocking wait per dispatch, with the longest timeout the tool accepts, and no sleep loops | the orchestrator | **implemented in this repository only** — `AGENTS.md` rule 7; the `-io` copy is owed, see below |
+| 4 | **polling** — every request made only to read the result of a `wait_agent`, `sleep` or `wait` | 38,043,267 | **11.2%** | one blocking wait per dispatch, with the longest timeout the tool accepts, and no sleep loops | the orchestrator | **implemented in this repository only** — `AGENTS.md` standing rule 7; the `-io` copy is owed, see below |
 | — | output tokens outside polling | 515,423 | 0.2% | none — not a lever | — | — |
 | — | five small rollouts that record a total only | 84,240 | 0.0% | none | — | — |
 
@@ -56,7 +56,7 @@ print('child, replayed total:', max(o['payload']['info']['total_token_usage']['t
 than assumed.** Every one of the 45 rollouts that recorded a workspace state loaded the `AGENTS.md`
 of **`tadeumendonca-io`**, because the sessions were rooted there. This page's edit is to this
 repository's `AGENTS.md`, which such a session does not load. `tadeumendonca-io`'s `AGENTS.md` carries
-no polling or re-read rule, not even the pipeline half of rule 7. **Until the same two obligations
+no polling or re-read rule, not even the pipeline half of standing rule 7. **Until the same two obligations
 land there, in that repository's own merge request, a Codex sprint rooted in `-io` runs exactly as
 this one did.** That is a follow-up for the orchestrator to route; it is not done here.
 
@@ -193,8 +193,10 @@ file paths: it matches output lines, 40 characters or longer, that appear verbat
 
 ## §1 · Embedded preload — 34.2%, and the one row that grows with every request
 
-**What was measured.** Each profile embeds its brief and every declared preload verbatim: 272,676 to
-433,133 characters, about 64k to 102k tokens. It is sent on every model request the instance makes.
+**What was measured.** Each profile embeds its brief and every declared preload verbatim: ~~272,676~~
+**271,347** to 433,133 characters, about 64k to 102k tokens. *(Struck on review: 272,676 is the forked
+scrum_master's profile. The non-forked scrum_master, the tenth line the command below prints, is
+1,329 characters smaller.)* It is sent on every model request the instance makes.
 Every profile in the sprint declares **`Source version: 2.0.44`**, and **`agents-configuration` alone is
 154,571 characters in all four** — about 36k tokens per request, whichever persona is running.
 
@@ -254,7 +256,7 @@ payloads are recorded as ciphertext. What the log does show is the instance anno
 message of the quality-assurance instance that started at 19:55 local time on 09-23 says it will read
 the local brief, its profile and all of its preloads before starting the review.
 
-**The change chosen, and IMPLEMENTED here: rule 23 in `AGENTS.md`.** The dispatch brief never asks a
+**The change chosen, and IMPLEMENTED here: standing rule 23 in `AGENTS.md`.** The dispatch brief never asks a
 profile to re-read a file its instructions already carry, and the profile does not re-read one on its
 own. **The rule leaves one exit on purpose, because of the staleness above:** where the carried copy
 may be stale, read only the section needed and say why. Without that exit, the rule would turn a
@@ -336,7 +338,7 @@ PY
 #     wait_agent timed out: 167 of 235
 ```
 
-**The change chosen, and IMPLEMENTED here: rule 7 in `AGENTS.md`**, which already forbade
+**The change chosen, and IMPLEMENTED here: standing rule 7 in `AGENTS.md`**, which already forbade
 sleep-and-poll on a pipeline. It now covers a dispatched agent too: wait once, blocking, with the
 longest timeout the tool accepts, and never sleep, list or re-wait in between. **One limit of that
 instruction is unmeasured.** The logs show that the tool clamps a timeout below 10,000 ms up to 10,000
@@ -385,12 +387,23 @@ for w in (2, 3, 4, 5, 6, 8, 10):
 PY
 # meter 23% -> 100% of the weekly window; points 77; uncached 10563150 cached 325618816 output 561345
 # window  2 steps: points per million  uncached   2.18  cached  0.096  output   14.18
+# window  3 steps: points per million  uncached   2.34  cached  0.081  output   21.51
+# window  4 steps: points per million  uncached   2.16  cached  0.066  output   34.44
+# window  5 steps: points per million  uncached   1.53  cached  0.139  output    6.31
+# window  6 steps: points per million  uncached   2.78  cached  0.018  output   51.10
 # window  8 steps: points per million  uncached   0.70  cached  0.228  output  -28.24
 # window 10 steps: points per million  uncached  -1.21  cached  0.230  output    5.43
 ```
 
-**The small windows suggest cached input weighs roughly a tenth of uncached. Treat that as a
-hypothesis:** the same fit gives negative weights at larger windows. **What would settle it** is a
+~~**The small windows suggest cached input weighs roughly a tenth of uncached.**~~ **Struck on review:
+false, and the output published under it omitted windows 3 to 6 without saying so.** The sentence read
+window 2's cached coefficient (0.096) without dividing it by the uncached one (2.18). Divided, the
+cached/uncached ratio is about **1/23, 1/29, 1/33, 1/11 and 1/152** at windows of 2, 3, 4, 5 and 6
+steps; only window 5 is near a tenth.
+
+**At windows of 2 to 6 steps the fit puts a cached token at between about 1/11 and 1/150 of an
+uncached one, and near 1/23 to 1/33 at most of them. Treat that as a hypothesis:** the same fit gives
+a ratio near 1/3 at 8 steps and negative weights at 10. **What would settle it** is a
 controlled run with nothing else running. One session sends many requests over a large, stable prefix
 and records the meter before and after. A second sends a similar number of fresh tokens. Vendor
 documentation that states the weighting would also settle it. Neither exists here.
@@ -408,8 +421,13 @@ the split that shows it:
   tokens in 7 of 9 quality-assurance instances (see §3). Under a near-zero cached weight, replacing
   follow-ups with fresh instances adds meter cost rather than removing it, unless the prefix cache
   happens to hit, as it did twice.
-- **Under a cached weight around a tenth**, the small-window reading, cached input is still the largest
-  class on the meter and the ranking by spent tokens is roughly the ranking on the meter.
+- ~~**Under a cached weight around a tenth**, the small-window reading, cached input is still the largest
+  class on the meter and the ranking by spent tokens is roughly the ranking on the meter.~~ **Struck on
+  review: false for part of the range the fit gives.** Cached input stays the largest class on the
+  meter only while its weight is above about **1/31** of uncached: 10,563,150 uncached against
+  325,618,816 cached is 0.0324. That holds for three of the five small windows (2, 3 and 5 steps) and
+  fails for two (4 and 6 steps). Below the break-even, uncached input is the larger class and the
+  ranking by spent tokens is not the ranking on the meter.
 
 ~~**What holds under any weighting**: the two rules this page implements cost nothing to follow.~~
 ~~in this sprint the request after every wait of up to 180 seconds stayed almost entirely cached.~~
@@ -420,8 +438,8 @@ after a 60-second `wait_agent` was **80.9%** cached (22,872 uncached). Every oth
 **93.2%** cached. So a cold prefix cache after a wait was observed, and it was observed well inside
 180 seconds, not only past it.
 
-**What holds under any weighting, stated at its real size.** Rule 23 (no re-read of carried files)
-only removes repeated text, so it costs nothing. Rule 7 (one blocking wait) removes requests, and the
+**What holds under any weighting, stated at its real size.** Standing rule 23 (no re-read of carried files)
+only removes repeated text, so it costs nothing. Standing rule 7 (one blocking wait) removes requests, and the
 one request it keeps can land on a cold cache: here that happened after 2 of 282 waits, costing about
 20,000 uncached tokens each time. **That is a small cost, not no cost**, and nothing measured here
 says whether a longer blocking wait makes it more likely. The longest wait observed was 180 seconds,
