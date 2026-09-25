@@ -411,12 +411,23 @@ the split that shows it:
 - **Under a cached weight around a tenth**, the small-window reading, cached input is still the largest
   class on the meter and the ranking by spent tokens is roughly the ranking on the meter.
 
-**What holds under any weighting**: the two rules this page implements cost nothing to follow. Rule 23
-(no re-read of carried files) only removes repeated text. Rule 7 (one blocking wait) only removes
-requests, **with one condition, stated because it is not measured past 180 seconds**: in this sprint
-the request after every wait of up to 180 seconds stayed almost entirely cached. Past the longest wait
-observed, whether the prefix cache survives is unknown, and a cold one would make that single request
-uncached:
+~~**What holds under any weighting**: the two rules this page implements cost nothing to follow.~~
+~~in this sprint the request after every wait of up to 180 seconds stayed almost entirely cached.~~
+**Struck on review: false, and the output published under it was an excerpt that hid the row
+disproving it.** Two of the 282 requests that followed a wait or a sleep were not almost entirely
+cached: one after a 120-second `wait_agent` was **39.7%** cached (19,794 uncached tokens), and one
+after a 60-second `wait_agent` was **80.9%** cached (22,872 uncached). Every other one was at least
+**93.2%** cached. So a cold prefix cache after a wait was observed, and it was observed well inside
+180 seconds, not only past it.
+
+**What holds under any weighting, stated at its real size.** Rule 23 (no re-read of carried files)
+only removes repeated text, so it costs nothing. Rule 7 (one blocking wait) removes requests, and the
+one request it keeps can land on a cold cache: here that happened after 2 of 282 waits, costing about
+20,000 uncached tokens each time. **That is a small cost, not no cost**, and nothing measured here
+says whether a longer blocking wait makes it more likely. The longest wait observed was 180 seconds,
+and all six requests after one were at least 99.4% cached. Past that, whether the cache survives is
+unknown. Median uncached input after a wait was under 1,000 tokens at every timeout except two small
+rows: 1,280 ms (n 2, median 4,194) and 10,000 ms (n 3, median 3,711). The command prints every row:
 
 ```
 python3 -c "
@@ -434,13 +445,28 @@ for f in sorted(glob.glob(os.path.expanduser('~/.codex/sessions/2026/09/2[34]/*.
             u = p['info']['total_token_usage']; now = [u['input_tokens'], u['cached_input_tokens']]
             d = [now[0] - last[0], now[1] - last[1]]; last = now
             if fk and o['timestamp'][:19] == t0: pend = None; continue
-            if d[0] and pend: out[pend].append(d[0] - d[1]); pend = None
+            if d[0] and pend: out[pend].append((d[0] - d[1], d[1] / d[0])); pend = None
 for k, v in sorted(out.items(), key=lambda x: (x[0][0], x[0][1] or 0)):
-    print(k, 'n', len(v), 'median uncached', sorted(v)[len(v) // 2], 'max', max(v))
+    un = sorted(u for u, c in v)
+    print(k, 'n', len(v), 'median uncached', un[len(v) // 2], 'max', un[-1], 'min cached %.1f%%' % (100 * min(c for u, c in v)))
+low = [(k, u, c) for k, v in out.items() for u, c in v if c < 0.93]
+print('requests', sum(len(v) for v in out.values()), 'below 93% cached', len(low), [(k, u, '%.1f%%' % (100 * c)) for k, u, c in low])
 "
-# -> ('wait_agent', 60000) n 178 median uncached 333 max 22872
-#    ('wait_agent', 180000) n 6 median uncached 847 max 1235      <- the longest timeout; 5 of the 6 ran out (§4)
+# -> ('sleep', 30000) n 8 median uncached 583 max 812 min cached 99.6%
+#    ('sleep', 45000) n 39 median uncached 419 max 2581 min cached 98.9%
+#    ('wait_agent', 1000) n 1 median uncached 669 max 669 min cached 99.5%
+#    ('wait_agent', 1280) n 2 median uncached 4194 max 4194 min cached 96.5%
+#    ('wait_agent', 2560) n 1 median uncached 373 max 373 min cached 99.8%
+#    ('wait_agent', 10000) n 3 median uncached 3711 max 6216 min cached 95.0%
+#    ('wait_agent', 20000) n 5 median uncached 844 max 1571 min cached 99.3%
+#    ('wait_agent', 30000) n 23 median uncached 505 max 10164 min cached 93.2%
+#    ('wait_agent', 60000) n 178 median uncached 333 max 22872 min cached 80.9%
+#    ('wait_agent', 120000) n 16 median uncached 462 max 19794 min cached 39.7%
+#    ('wait_agent', 180000) n 6 median uncached 847 max 1235 min cached 99.4%   <- the longest timeout; 5 of the 6 ran out (§4)
+#    requests 282 below 93% cached 2 [(('wait_agent', 60000), 22872, '80.9%'), (('wait_agent', 120000), 19794, '39.7%')]
 ```
+
+All twelve printed lines are shown; none is omitted.
 
 **How much the two rules save on the meter, and whether the two deferred changes save anything at
 all, is what stays unknown** until the premise is measured.
