@@ -323,6 +323,22 @@ stated here — read them from `docs/loop-mode.md`.
 27. **A secret's scope and name follow the single standard in `skills/devops/SKILL.md`.** Never decide
     either per repository.
 
+### Who acts, and what is written in public
+
+28. **The main session — the context the owner talks to, called the orchestrator here — only
+    dispatches. It never edits a repository file itself.** Every real change flows through a profile
+    and that profile's gates, on any harness. **No layer enforces this**: the check that once refused
+    such an edit was removed, so nothing stops the orchestrator from making one. It is an obligation
+    held by the orchestrator and by review.
+29. **On the `loop` lane, the owner decides whether an item is ready, and the orchestrator applies the
+    `ready` label once it has aligned with him.** The agents lead closing the description does not earn
+    the label, and no dispatched profile applies it. Aligned means he has said the item is ready, and
+    his words are recorded on the item (rule 12). On the other lanes, `ready` follows the intake that
+    closes the description (rule 18).
+30. **On any public surface, a client or other third-party organisation is described by its sector or
+    industry, never by its name.** The owner's own employer may be named. Public means everything
+    published — prose, commit and merge-request text, issues, decision records, examples.
+
 ## Versioning and distribution
 
 Numeric SemVer, `MAJOR.MINOR.PATCH`, no pre-release suffix. `VERSION` at the repository root is the
