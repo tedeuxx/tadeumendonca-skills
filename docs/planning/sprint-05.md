@@ -14,7 +14,7 @@ eligible: 12 · awaiting the owner: 9 · content (not drained): 41
 
 Proposals from `docs/retrospective/sprint-04/`: 6 findings across 3 persona files. **All six had already become Issues before this planning ran.** The owner ruled «pode incorpora-los e estima-los» on 2026-09-24: #521–#525 were filed, and the funnel proposal went onto #473 as a comment. So they arrive here as eligible items, not as candidates. The sprint-04 sweep (-io `docs/iteration-sweep/sprint-04.md`) is FAILED, and its judgement findings were not filed.
 
-Reproduce (live tracker; after step 4, `eligible` drops out because the items carry milestone `sprint-05`):
+Reproduce (live tracker). After step 4 the skills line prints **nothing** and exits 0: no open skills Issue is left without a milestone, and `gh` prints nothing when `jq` returns null. That silence is the expected result, not a broken query.
 
 ```sh
 for repo in tadeumendonca-skills tadeumendonca-io; do
@@ -121,7 +121,12 @@ Composition: 12 `loop`, 0 `product`, 61 points, all in `tedeuxx/tadeumendonca-sk
 
 The order of record below is still the tiebreak. The drain honours these constraints when it selects, and says so when it does.
 
-**Size.** 61 points is roughly five times any earlier iteration (8, 13). Nothing in the loop bounds an iteration's size, and the owner admitted all twelve knowingly. The ranking's own finding is that an all-`loop` pool is the worst case for `wip: 2`.
+~~**Size.** 61 points is roughly five times any earlier iteration (8, 13).~~ **Struck at the lens: false.** Summing today's `sp:` labels per milestone gives:
+
+- `-skills`: sprint-01 = 72 (13 items), sprint-02 = 29, sprint-03 = 8, sprint-04 = 13;
+- `-io`: sprint-01 = 20, sprint-02 = 11.
+
+So 61 is the second-largest iteration, not a fivefold outlier. The labels are read today, not as they stood at each planning. Nothing in the loop bounds an iteration's size. The ranking's own finding is that an all-`loop` pool is the worst case for `wip: 2`.
 
 ## The activation log
 
@@ -130,7 +135,17 @@ The owner composed this iteration himself, across two turns on 2026-09-24 and 20
 1. «aplica ready em tudo» — `ready` on all twelve.
 2. Asked which items enter sprint-05, in a picker whose options were three partial sets. He answered in free text: «pode por tudo».
 
-That answer is the confirmation of this composition. No separate composition activation was put to him, because the composition he confirmed is the whole eligible pool with nothing left to compose. The bound of two was not reached.
+~~That answer is the confirmation of this composition. No separate composition activation was put to him, because the composition he confirmed is the whole eligible pool with nothing left to compose.~~ **Struck at the lens: false.** «pode por tudo» (12:37:08Z) answered an **admission** question, and it was asked **before** the ranking (dispatched 12:37:23Z, returned 12:38:11Z). He ruled on membership. The order and the execution constraints did not exist yet, so he could not have confirmed them.
+
+**Activation 2** — the confirmation over the finished composition, put after the lens found the gap. It was a structured picker:
+
+- **Question:** "sprint-05 composto: 12 loop, 61 pts, ordem por nº da Issue; restrições: #512 antes de #511, #521 antes de #522, #510 e #512 nunca em paralelo. Confirma?"
+- **Options:** Confirmar · Parar.
+- **Answer:** **Confirmar**.
+
+Two activations: the admission, then the confirmation. That is the rite's bound of two, reached and not exceeded. The placement (step 4) ran **between** them, before the composition was confirmed. That ordering is a defect in how this rite was run, and it is recorded here rather than repaired, because a confirmation cannot be backdated.
+
+**The milestone description on the tracker still reads "Order of record (owner-confirmed 2026-09-25 «pode por tudo» …)".** That attribution is wrong: the owner admitted the items with «pode por tudo» and confirmed the order afterwards. It is not corrected there, because no milestone-update route is built (`commands/sprint-planning.md`, step 4) and `gh api` is denied. The owner can fix it in the browser; this file is the correct record.
 
 ## The composition as confirmed
 
