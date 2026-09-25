@@ -244,7 +244,10 @@ stated here — read them from `docs/loop-mode.md`.
    choosing either of those.
 7. **Never wait on a pipeline with a sleep-and-poll loop.** Push, report that checks are running, and
    check once, when it matters. When you read a result, read it for the exact commit you mean, by its
-   full identifier.
+   full identifier. **The same holds for an agent you dispatched:** wait for it once, blocking, with
+   the longest timeout your tool accepts — the wait returns as soon as the agent finishes — and never
+   sleep, list or re-wait on a short timeout in between. Every check is a model request that re-sends
+   your whole context.
 
 ### Reporting to the owner
 
@@ -312,7 +315,10 @@ stated here — read them from `docs/loop-mode.md`.
     command, or write it as a premise the dispatch must verify. A brief is the specification the
     dispatch builds against, so a false premise there becomes the design. State facts in a brief, and
     mark any argument written to justify one as briefing-only — reasoning placed in a brief tends to
-    come back as published text.
+    come back as published text. **Never ask a dispatched profile to re-read a file its instructions
+    already carry, and as that profile do not re-read one on your own:** the read adds a second copy
+    that every later request re-sends. If you have reason to think the carried copy is stale, read only
+    the section you need and say why.
 24. **A change to the machinery is evaluated against every harness that consumes this repository**, not
     only the one you are running on.
 25. **A mechanism that lands here ships with a portable prompt under `docs/prompts/`** — the behaviour,
