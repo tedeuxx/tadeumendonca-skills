@@ -353,5 +353,48 @@ else
   fi
 fi
 
+# ── 12 · the candidate-rule shape rides only on the branch that has findings (#473) ──────────────
+if printf '%s' "$ran_out" | grep -q '^    Candidate rule: ' \
+   && printf '%s' "$ran_out" | grep -q '^    Evidence: ' \
+   && ! printf '%s' "$nc_out" | grep -q 'Candidate rule' \
+   && ! printf '%s' "$absent_out" | grep -q 'Candidate rule'; then
+  ok "candidate rule — its shape is printed under Findings when the surfaces were read, and nowhere when they were not"
+else
+  bad "candidate rule — the shape is missing from RAN, or leaks into a not-collected report" \
+      "a not-collected report carries no findings, so it cannot carry a candidate either"
+fi
+
+# ── 13 · the carrier's ran-marker IS the literal this script prints — fired end to end (#473) ────
+# The record declares a marker; this script produces the literal. Nothing else ties the two, so a
+# rename on either side would leave the carrier dating nothing, forever, with both suites green. This
+# arm lands a report THIS SCRIPT wrote into a throwaway repository beside the REAL record, fires the
+# carrier, and reads what it says — once for a collected period and once for a not-collected one,
+# so the arm can fail in both directions.
+cad_marker_run() {   # $1 fixture period · $2 repo dir
+  mkdir -p "$2/docs/funnel-review"
+  git -C "$2" init -q 2>/dev/null
+  git -C "$2" config user.email t@example.invalid
+  git -C "$2" config user.name Tester
+  cp "$RECORD" "$2/docs/loop-cadence.md"
+  run "$1" > "$2/docs/funnel-review/$1.md"
+  git -C "$2" add -A >/dev/null 2>&1
+  git -C "$2" commit -q -m report >/dev/null 2>&1
+  printf '{"hook_event_name":"SessionStart","cwd":"%s","session_id":"t"}' "$2" \
+    | bash "$cad" 2>/dev/null || true
+}
+if [ ! -r "$cad" ] || [ ! -r "$RECORD" ]; then
+  bad "cadence marker — the carrier or the record is unreadable" "this assertion did NOT run"
+else
+  ran_cad="$(cad_marker_run 2000-02 "$work/cadran")"
+  nc_cad="$(cad_marker_run 2000-03 "$work/cadnc")"
+  if printf '%s' "$ran_cad" | grep -q 'last landed a file carrying FUNNEL-REVIEW-RAN' \
+     && printf '%s' "$nc_cad" | grep -q 'has NEVER landed a file carrying FUNNEL-REVIEW-RAN'; then
+    ok "cadence marker — a report this script wrote on RAN is dated by the carrier; one it wrote on NOT-COLLECTED is not"
+  else
+    bad "cadence marker — the record's ran-marker and this script's RAN literal no longer meet" \
+        "ran: ${ran_cad:0:160} | not-collected: ${nc_cad:0:160}"
+  fi
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

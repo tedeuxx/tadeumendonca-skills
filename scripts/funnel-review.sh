@@ -240,6 +240,14 @@ printf '## Findings\n\n'
 printf 'At most %s, the driver choosing which. Each: what the numbers show · the figure that shows it ·\n' "$MAX_FINDINGS"
 printf 'what it costs · the change proposed, or the price of leaving it. An empty section that says it\n'
 printf 'is empty is a result; write "None this period" rather than deleting the heading.\n\n'
+# The candidate-rule shape (#473) is printed here, in the only branch that has findings, so the path
+# from a finding to the ruler is in front of the driver at the moment it writes one. It is a shape,
+# not a check: nothing below reads it back.
+printf 'A finding MAY carry a candidate rule for published-voice, in this shape, and only when every\n'
+printf 'evidence line is a figure: line quoted verbatim from a committed collection file:\n\n'
+printf '    Candidate rule: <one sentence, in the ruler'"'"'s own register>\n'
+printf '    Evidence: <figure: line(s), verbatim, n included>\n\n'
+printf 'A candidate is not a ruling. It reaches published-voice only if the owner rules on it.\n\n'
 
 printf '## What I would leave alone\n\n'
 

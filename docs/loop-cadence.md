@@ -44,7 +44,7 @@ way to make it quiet is to declare a value, in one line, in a commit.
 
 ---
 
-## `cadence-rite` — three tokens, and the third is the one with a limit in it
+## `cadence-rite` — three tokens and an optional fourth, and the third is the one with a limit in it
 
 `cadence-rite: <artifact root> <typed command> here|sibling`
 
@@ -55,6 +55,41 @@ way to make it quiet is to declare a value, in one line, in a commit.
   consuming repo"*. A hook receives one `cwd`, so this tree cannot see it. It is reported as **NOT
   OBSERVED**, never as never-run — the two are different claims and collapsing them would make the
   carrier lie in the direction of alarm.
+
+### The optional FOURTH token — a ran-marker, because an artifact root holds more than artifacts (#473)
+
+`cadence-rite: <artifact root> <typed command> here <ran-marker>`
+
+**Without it, the clock is the newest commit touching ANYTHING under the root.** For
+`docs/funnel-review` that was a README and two reports that each say, at column 0,
+`FUNNEL-REVIEW-NOT-COLLECTED` — so the carrier reported the rite *"last written"* like any other while
+the rite had never read the funnel once. **A notice dating its own scaffolding is a falsifier failing
+open, in the hook whose job is to notice absence.** #473 named it; this line is the repair.
+
+**With it, only a tracked file carrying the marker as a WHOLE LINE counts** — fixed-string, so a
+marker quoted inside a sentence, or a longer literal containing it, does not. The notice then says
+either *"last landed a file carrying `<marker>` Nd ago"* or *"has NEVER landed a file carrying
+`<marker>`"* and **counts the files that did not qualify** rather than hiding them. Fired against this
+tree at the commit that added it, in a fresh local clone so the day's debounce marker was not touched:
+
+```
+printf '{"hook_event_name":"SessionStart","cwd":"%s","session_id":"live"}' "<fresh clone>" \
+  | bash hooks/scripts/cadence-notice.sh | jq -r .hookSpecificOutput.additionalContext
+# /funnel-review — artifact root docs/funnel-review has NEVER landed a file carrying
+#   FUNNEL-REVIEW-RAN. 5 other tracked file(s) under it do not count: scaffolding, or a run that
+#   declared it read nothing.
+```
+
+**Why `FUNNEL-REVIEW-RAN` and not a date or a filename pattern.** It is the literal the analysis half
+already prints at column 0 on the branch where the surfaces were read, and **only** on that branch —
+`scripts/funnel-review.test.sh` asserts each branch prints its own literal and not the other's. So
+*ran and found nothing* still counts (its report carries the literal and a findings section saying
+none), and *never read anything* does not. That is the distinction #473's first shape item asks for.
+
+**What it does NOT change.** A file carrying the marker is still an assertion by whoever wrote it —
+nothing here can tell a report computed from a real collection from one that was not. And the other
+three lines declare no marker and behave exactly as before; whether `docs/retrospective` or
+`docs/planning` hold scaffolding of their own is not examined here.
 
 **Why the set is declared here rather than written into the hook.** The rite set moves — the product
 sweep was added at #379, the funnel review at #401 — and a carrier that needs editing when a rite is
@@ -101,6 +136,8 @@ to be discovered by whoever declares one.
 **The repair is a per-rite comparison inside the hook, and it is not this slice.** That hook's
 mode-blindness is load-bearing for the mode contract's central measurement, so touching it is a review
 that has to happen before it is written. **Named here as a known bound rather than a discovery.**
+**#473's ran-marker does not touch it** — the marker decides which files inside ONE root count; the
+masking above is between roots, and `newest` is still one maximum over all of them.
 
 **Measured at the time this file landed**, and it is the argument for the carrier rather than a detail:
 
