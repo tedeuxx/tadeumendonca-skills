@@ -226,8 +226,9 @@ stated here — read them from `docs/loop-mode.md`.
    # -> 1 line: "No closing keyword: merging this does not close #455, …"
    ```
 3. **Undo a recent change by reversing that change, never by checking out or restoring the whole
-   file.** Resetting a file to the index discards every uncommitted edit in it, not only the last one,
-   and nothing keeps a copy. Before deliberately breaking something to test it, commit the good state;
+   file.** Resetting a file to the index discards every edit in it that is not yet staged, not only
+   the last one, and nothing keeps a copy; restoring it from the last commit discards the staged ones
+   too. Before deliberately breaking something to test it, commit the good state;
    then a restore is correct instead of destructive.
 4. **Address a repository explicitly rather than through the shell's current directory** — `git -C
    <path>`, and a repository flag placed after the subcommand — and never change directory inside a
@@ -243,7 +244,7 @@ stated here — read them from `docs/loop-mode.md`.
    choosing either of those.
 7. **Never wait on a pipeline with a sleep-and-poll loop.** Push, report that checks are running, and
    check once, when it matters. When you read a result, read it for the exact commit you mean, by its
-   full identifier — a summary view of a merge request can report a commit it no longer points at.
+   full identifier.
 
 ### Reporting to the owner
 
@@ -273,8 +274,10 @@ stated here — read them from `docs/loop-mode.md`.
     built.** Folding them straight into slices invents groupings and silently drops whatever did not
     fit one.
 15. **In every mode, every eligible `loop` item is worked before any eligible `product` item.**
-    Ordering inside each block follows the mode of record. Eligible means `ready` and not `blocked`, so
-    an item waiting on the owner cannot stall the queue.
+    Ordering inside each block follows the mode of record. Eligible means in the pool that
+    `docs/loop-mode.md` defines for the mode in force — read the predicate there, not a paraphrase of
+    it; under `scrum` that pool holds only items in the active iteration's milestone. Every mode's pool
+    requires `ready`, so an item waiting on the owner is never in it and cannot stall the queue.
 16. **`content` is selected by the owner one piece at a time and is never drained autonomously.** When a
     `content` item is opened, its intake starts by interviewing him about what it must communicate,
     recorded in his words, one question at a time and without options (the escalation section's
