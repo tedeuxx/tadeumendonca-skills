@@ -41,6 +41,20 @@ authenticated session there is nothing to read, and nothing in this harness can 
 that could not read writes `collected: no <reason>`, and the report prints
 `FUNNEL-REVIEW-NOT-COLLECTED` with no findings section at all.
 
+**Two spellings added at #473, and neither changes the parser** — both are ordinary values of the
+lines above:
+
+- **a skipped period** is `collected: no skipped by the owner on <date>: <reason>` — one line, so a
+  skip leaves a record with a reason instead of an absent file;
+- **a file the owner filled in himself** declares `collected: yes <date> owner` and carries `figure:`
+  lines as usual. It is the route that needs no browser in the loop; nothing here can tell it from a
+  driver's file, and nothing needs to, because both are assertions by whoever wrote them.
+
+**Which reports the cadence carrier counts.** Since #473 it dates only a tracked file under this
+directory carrying `FUNNEL-REVIEW-RAN` as a whole line — so this README and every not-collected report
+are invisible to its clock, which they were not before. See `docs/loop-cadence.md`'s *optional FOURTH
+token*.
+
 **A `figure:` line with no numeric sample size is printed as UNUSABLE and never as a figure.** This
 repository's rule is that a number ships with what bounds it or not at all; dropping the malformed
 line instead would hide that a collection run came back wrong.
