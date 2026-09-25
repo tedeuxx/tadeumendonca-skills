@@ -97,7 +97,7 @@ import json, glob, os, re, collections
 CPT = 4.26  # chars per token; the calibration line printed last is where it comes from
 PFX = re.compile(r'^\s*(?:[^\s:]+:)?\d+[:\t-]\s?')  # strip "N:" / "path:N:" / "N<tab>" read prefixes
 POLL = {'wait_agent', 'sleep', 'wait'}
-R = collections.defaultdict(collections.Counter); cal = []
+R = collections.defaultdict(collections.Counter); cal = []; fresh = collections.defaultdict(list)
 
 def body(p):
     x = p.get('content') or p.get('output') or []
@@ -137,10 +137,13 @@ for f in sorted(glob.glob(os.path.expanduser('~/.codex/sessions/2026/09/2[34]/*.
                 c['0 replay (counted twice)'] += di + do; prev, cur = [], []; continue
             if first and prof and not forked:
                 cal.append(round(pre / di, 2))
+            if first and prof:
+                fresh[role.replace('tadeumendonca_', '')].append((di, di - dc))
             first = False
             c['requests'] += 1; c['input cached'] += dc; c['input uncached'] += di - dc
             if any(x in POLL for x in prev):
                 c['4 polling'] += di + do; c['polling requests'] += 1
+                c['4 polling, input cached'] += dc; c['4 polling, input uncached'] += di - dc
             else:
                 e = min(round(prof / CPT), di); r = min(round(rr / CPT), di - e)
                 c['1 embedded preload'] += e; c['2 re-read'] += r
@@ -150,12 +153,25 @@ T = collections.Counter()
 for k, v in sorted(R.items()):
     T.update(v); print(k, dict(sorted(v.items())))
 print('TOTAL', dict(sorted(T.items())))
+print('polling: %.2f%% of its input cached; %.2f%% of all uncached input' % (
+    100 * T['4 polling, input cached'] / (T['4 polling, input cached'] + T['4 polling, input uncached']),
+    100 * T['4 polling, input uncached'] / T['input uncached']))
+for k, v in sorted(fresh.items()):
+    print('first request of each %s instance, (input, uncached):' % k, sorted(v, key=lambda x: x[1]))
 print('chars/token at the first request of each non-forked, profile-bearing rollout:', sorted(cal))
 PY
 # TOTAL {'0 replay (counted twice)': 14186577, '1 embedded preload': 115919635, '2 re-read': 15689329,
-#        '3 per-turn re-send': 168382786, '4 polling': 38043267, '5 output': 515423,
+#        '3 per-turn re-send': 168382786, '4 polling': 38043267, '4 polling, input cached': 37831808,
+#        '4 polling, input uncached': 161969, '5 output': 515423,
 #        '6 total only, no split': 84240, 'input cached': 327372672, 'input uncached': 10612855,
 #        'polling requests': 282, 're-read, chars read (once)': 3491588, 'requests': 2226}
+# polling: 99.57% of its input cached; 1.53% of all uncached input
+# first request of each agents_lead instance, (input, uncached): [(110589, 97533), (110897, 97841), (111180, 98124)]
+# first request of each product_lead instance, (input, uncached): [(99538, 86482), (102687, 89503)]
+# first request of each quality_assurance instance, (input, uncached): [(122879, 511), (122910, 542),
+#        (123014, 109958), (123082, 110026), (125876, 112692), (126391, 113207), (125762, 118978),
+#        (125893, 119109), (126162, 119378)]
+# first request of each scrum_master instance, (input, uncached): [(83994, 70938), (84264, 71208)]
 # chars/token …: [4.24, 4.24, 4.24, 4.24, 4.25, 4.26, 4.27, 4.27, 4.27, 4.29, 4.3]
 ```
 
@@ -207,7 +223,10 @@ for f in sorted(glob.glob(os.path.expanduser('~/.codex/sessions/2026/09/2[34]/*.
 PY
 # 16 lines; the fourth is: agents_lead forked profile 380883 chars (source 2.0.44)  tasks 12  inbound 61  own tokens 118636430
 
-git show v2.0.44:skills/agents-configuration/SKILL.md | wc -c      # -> 154571
+git show v2.0.44:skills/agents-configuration/SKILL.md \
+  | python3 -c "import sys; print(len(sys.stdin.buffer.read().decode('utf-8')))"   # -> 154571 characters
+
+# not `wc -c`: that counts BYTES and prints 155749, because the file carries multi-byte characters
 ```
 
 **The change chosen: trim what a Codex profile embeds, starting with `agents-configuration`.** Cutting
@@ -230,9 +249,10 @@ generator change.
 **What was measured.** Tool output repeating profile or `AGENTS.md` text totals 3,491,588 characters,
 about 0.82M tokens as read. **Because it stays in context, the carried cost is 15,689,329 tokens.**
 That is less than one sixth of the embedded preload, so #511's warning holds: *"the re-read is not the
-main cost."* The dispatches did ask for it. The opening message of the quality-assurance instance that
-started at 19:55 local time on 09-23 announces reading the local brief, its profile and all of its
-preloads before starting the review.
+main cost."* **Whether a dispatch asked for the re-read cannot be seen in the logs**: the dispatch
+payloads are recorded as ciphertext. What the log does show is the instance announcing it. The opening
+message of the quality-assurance instance that started at 19:55 local time on 09-23 says it will read
+the local brief, its profile and all of its preloads before starting the review.
 
 **The change chosen, and IMPLEMENTED here: rule 23 in `AGENTS.md`.** The dispatch brief never asks a
 profile to re-read a file its instructions already carry, and the profile does not re-read one on its
@@ -272,13 +292,19 @@ rest on a character-to-token ratio for escaped JSON, which this page did not cal
 fresh instance for the next task instead of a follow-up message to an old one. **Why it is deferred.**
 It changes the dispatch protocol, in particular a gate's re-review after changes. In this sprint the
 re-review went back to the same instance: one quality-assurance instance took 7 tasks. Its saving also has to be weighed against a new instance paying its first request
-again, about 120k tokens for quality-assurance. Only a Codex re-run can price that trade, so it is
-recorded here as the choice and left to agents-lead as its own change.
+again: 122,879 to 126,391 input tokens for quality-assurance, and in 7 of its 9 instances 109,958 to
+119,378 of those were **uncached**. The other two hit the cache, at 511 and 542 uncached; by their
+file names they started about 16 and 18 minutes after the quality-assurance instance before each. The instrument above prints
+these pairs. **Whether the trade pays depends on the cached-token weighting**, which is the unmeasured
+premise below. Only a Codex re-run can price it, so it is recorded here as the choice and left to
+agents-lead as its own change.
 
 ## §4 · Polling — 11.2%, and 71% of the waits returned nothing
 
 **What was measured.** 282 requests existed only to read a wait's result, and they cost 38,043,267
-tokens, 30.1M of them in root sessions. **167 of 235 `wait_agent` calls timed out**, and 178 of the
+tokens, 30.1M of them in root sessions. **That is 11.2% of spent tokens, not of the meter**: 99.57% of
+polling input was cached, so its weight on the meter rests on the unmeasured premise below. **167 of
+235 `wait_agent` calls timed out**, and 178 of the
 235 used a 60-second timeout. On top of those came 47 `sleep` calls of 30 to 45 seconds.
 
 ```
@@ -369,12 +395,55 @@ controlled run with nothing else running. One session sends many requests over a
 and records the meter before and after. A second sends a similar number of fresh tokens. Vendor
 documentation that states the weighting would also settle it. Neither exists here.
 
-**Why the choices do not depend on it.** Polling and short-lived instances reduce the *number of
-requests*, and that cuts cached and uncached input together. Trimming the preload cuts cached input
-mostly. That one pays off in full only if cached tokens weigh something, and at 96.9% cached even a
-tenth weight makes cached input the largest single class on the meter. So the changes still rank the
-same way under either reading of the premise. The size of the saving on the meter is what stays
-unknown.
+~~**Why the choices do not depend on it.** … So the changes still rank the same way under either
+reading of the premise.~~ **Struck on review: false.** The ranking above is a ranking of *spent tokens*,
+and how it maps onto the meter depends on the weighting in both size and order. The instrument prints
+the split that shows it:
+
+- **Polling is 99.57% cached input** (37,831,808 cached, 161,969 uncached). It is 11.2% of spent tokens
+  but only **1.53% of all uncached input**. If cached input weighs near zero, polling falls from the
+  third-largest row to one of the smallest.
+- **Short-lived instances can turn net-negative under the same reading.** A follow-up task sent to a
+  running instance is mostly cached. A fresh instance's first request was 109,958 to 119,378 uncached
+  tokens in 7 of 9 quality-assurance instances (see §3). Under a near-zero cached weight, replacing
+  follow-ups with fresh instances adds meter cost rather than removing it, unless the prefix cache
+  happens to hit, as it did twice.
+- **Under a cached weight around a tenth**, the small-window reading, cached input is still the largest
+  class on the meter and the ranking by spent tokens is roughly the ranking on the meter.
+
+**What holds under any weighting**: the two rules this page implements cost nothing to follow. Rule 23
+(no re-read of carried files) only removes repeated text. Rule 7 (one blocking wait) only removes
+requests, **with one condition, stated because it is not measured past 180 seconds**: in this sprint
+the request after every wait of up to 180 seconds stayed almost entirely cached. Past the longest wait
+observed, whether the prefix cache survives is unknown, and a cold one would make that single request
+uncached:
+
+```
+python3 -c "
+import json, glob, os, collections
+out = collections.defaultdict(list)
+for f in sorted(glob.glob(os.path.expanduser('~/.codex/sessions/2026/09/2[34]/*.jsonl'))):
+    it = [json.loads(l) for l in open(f)]; t0 = it[0]['timestamp'][:19]; fk = bool(it[0]['payload'].get('forked_from_id'))
+    last = [0, 0]; pend = None
+    for o in it:
+        p = o.get('payload')
+        if not isinstance(p, dict): continue
+        if p.get('type') == 'function_call' and p['name'] in ('wait_agent', 'sleep'):
+            a = json.loads(p.get('arguments') or '{}'); pend = (p['name'], a.get('timeout_ms', a.get('duration_ms')))
+        elif p.get('type') == 'token_count' and p.get('info'):
+            u = p['info']['total_token_usage']; now = [u['input_tokens'], u['cached_input_tokens']]
+            d = [now[0] - last[0], now[1] - last[1]]; last = now
+            if fk and o['timestamp'][:19] == t0: pend = None; continue
+            if d[0] and pend: out[pend].append(d[0] - d[1]); pend = None
+for k, v in sorted(out.items(), key=lambda x: (x[0][0], x[0][1] or 0)):
+    print(k, 'n', len(v), 'median uncached', sorted(v)[len(v) // 2], 'max', max(v))
+"
+# -> ('wait_agent', 60000) n 178 median uncached 333 max 22872
+#    ('wait_agent', 180000) n 6 median uncached 847 max 1235      <- the longest timeout; 5 of the 6 ran out (§4)
+```
+
+**How much the two rules save on the meter, and whether the two deferred changes save anything at
+all, is what stays unknown** until the premise is measured.
 
 ## What this method cannot see
 
