@@ -191,6 +191,138 @@ carried across several issues, or whose earlier history has been summarised or t
 no longer hold the diff it signs, and its verdict reads the same either way. Nothing observes which
 instance ran a dispatch; this is held by whoever dispatches and by review.
 
+## Standing rules for working this loop
+
+**These are the owner's standing rules for any agent working this loop, restated as obligations.**
+Until this section existed they were recorded only in one harness's private memory store, which no
+other harness reads, so they never reached a session running anywhere else. Each is true on a harness
+with no hooks. They add to the floor above rather than restate it; where one sits next to a floor item,
+it names that item. Mode-dependent values, and the bound on work in progress, are deliberately not
+stated here — read them from `docs/loop-mode.md`.
+
+### Git and the forge
+
+1. **Merge with a real merge commit. Never squash, and do not rebase-merge unless the owner asks.** The
+   branch's individual commits are the changelog: release notes are built from their conventional
+   commit subjects, and a squash collapses them into one. If a repository permits only squash, report
+   that rather than squashing.
+2. **In a commit message, reference an issue as `Refs #N`. Never put a closing verb — close, fix,
+   resolve, in any tense — in the same clause as an issue number, not even to deny it.** The forge's
+   parser is lexical: it closes the issue on merge and never reads the negation. A merge request's
+   resolved closing set is derived from its body alone, so inspecting the body cannot see a commit
+   message. Check the commit range instead:
+
+   ```
+   git log <merge-base>..<head> --format='%B' \
+     | grep -inE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\b[^.]{0,20}#[0-9]+'
+   ```
+
+   Calibrated rather than trusted: the same selector finds the negated sentence that once closed an
+   issue on merge, so it can return a hit.
+
+   ```
+   git log --all --format='%B' --grep='does not close #455' \
+     | grep -inE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\b[^.]{0,20}#[0-9]+'
+   # -> 1 line: "No closing keyword: merging this does not close #455, …"
+   ```
+3. **Undo a recent change by reversing that change, never by checking out or restoring the whole
+   file.** Resetting a file to the index discards every edit in it that is not yet staged, not only
+   the last one, and nothing keeps a copy; restoring it from the last commit discards the staged ones
+   too. Before deliberately breaking something to test it, commit the good state;
+   then a restore is correct instead of destructive.
+4. **Address a repository explicitly rather than through the shell's current directory** — `git -C
+   <path>`, and a repository flag placed after the subcommand — and never change directory inside a
+   compound command. Several checkouts of one repository can be live at once, so the current
+   directory does not identify which one an act lands in, and an act that defaults to the current
+   branch can land on a different slice's work.
+5. **Commit messages longer than one line go through a file as well** — for the reason floor item 7
+   gives: the shell silently deletes backtick and dollar spans from an inline message, and the commit
+   is created anyway, carrying the mutilated text.
+6. **Scratch never goes to a shared system temporary directory, and never inside a repository's `.git`
+   directory.** Floor item 7 says where scratch goes; these are the two places it has actually gone
+   instead. If your harness gives you no session scratchpad, ask where scratch belongs rather than
+   choosing either of those.
+7. **Never wait on a pipeline with a sleep-and-poll loop.** Push, report that checks are running, and
+   check once, when it matters. When you read a result, read it for the exact commit you mean, by its
+   full identifier.
+
+### Reporting to the owner
+
+8. **A merge-request link reaches the owner only when that merge request is ready to merge**: every
+   check has finished and passed, and the gate's verdict at the current head leaves only his act.
+   Before that, report state in prose and name the item by number. A merge-request link in his hands
+   reads as *something is waiting for me*, whatever sentence sits beside it. An issue link carries no
+   such signal and is unaffected.
+9. **When you do hand him a link, it is the browser address, not a command line for him to run.**
+10. **A failed check is yours to fix, not his to hear about.** Send it back to whoever built the change,
+    with the failing job and its cause, and keep going until the pipeline is green — unless the failure
+    needs a decision only he holds, in which case it is an escalation and the section above governs its
+    form.
+11. **Anything you need from him goes first in the message, labelled as a request.** An ask buried
+    under a status report is not read. The escalation section's rule 4 says this for an act he must
+    perform; this extends it to every message.
+12. **His decision lands on the item it decides, at the moment he makes it** — a comment on the issue
+    or merge request, carrying his words. Relaying his answer into a dispatch is a separate act and does
+    not record it: a fresh context, such as a gate or a later session, reads the tracker, never your
+    conversation.
+
+### The queue
+
+13. **An item the owner opened is never closed on an agent's advice.** A lead recommending that it be
+    dropped withholds `ready`; the item stays, and closing it is his act.
+14. **When he gives several asks at once, each becomes its own tracked item before anything is
+    built.** Folding them straight into slices invents groupings and silently drops whatever did not
+    fit one.
+15. **In every mode, every eligible `loop` item is worked before any eligible `product` item.**
+    Ordering inside each block follows the mode of record. Eligible means in the pool that
+    `docs/loop-mode.md` defines for the mode in force — read the predicate there, not a paraphrase of
+    it; under `scrum` that pool holds only items in the active iteration's milestone. Every mode's pool
+    requires `ready`, so an item still awaiting `ready` is never in it. Neither predicate filters
+    `blocked`, so a `ready` item carrying `blocked` is still in the pool.
+16. **`content` is selected by the owner one piece at a time and is never drained autonomously.** When a
+    `content` item is opened, its intake starts by interviewing him about what it must communicate,
+    recorded in his words, one question at a time and without options (the escalation section's
+    rule 5).
+17. **The eligible pool spans both repositories of this platform** — read both queues. Read the mode of
+    record, `docs/loop-mode.md`, before any pool query, and never infer the mode from what a query
+    returns: an empty result means different things in different modes.
+18. **Review is routed by type.** `loop`: one agents-lead lens pass, plus the gate. `product`: the
+    leads' lenses as the slice warrants, plus the gate. `content`: the content writer drafts and the
+    content reviewer repairs in place for at most two rounds, plus the gate. The gate runs on every
+    merge request whatever the type, and nothing in this routing narrows it. Intake is routed the same
+    way: a `loop` item's description is closed by the agents lead alone, a `content` item's by the
+    product lead alone, and a `product` item's by the product and tech leads together.
+19. **A dispatch that only reads a checkout still gets its own worktree whenever a build may be
+    running.** Producing no diff is not the same as not colliding: a concurrent build switches branches
+    under a reader sharing its checkout, and the reader measures the wrong tree.
+
+### Building and investigating
+
+20. **Before changing the loop, re-derive its state model**: the item types, the states each passes
+    through, which role acts at each transition, and what observable artifact records that it happened.
+    A rule whose application no artifact records is applied inconsistently and silently.
+21. **Before relying on a check you wrote or changed, break its subject on purpose, watch it go red,
+    restore, and watch it go green.** Mutate the thing checked, never the checker. A check that has
+    only ever passed has been observed passing, not shown to work. See *Before you trust a green, break
+    it on purpose* in `skills/engineering-standards/SKILL.md`.
+22. **A true answer that closes the inquiry is the failure to guard against.** When a symptom repeats,
+    *the actor should have been more careful* is a reason to keep going, not a conclusion: find what
+    made the rule unreachable at the moment of the act. That is principle 12 in the same skill.
+23. **Do not assert in a dispatch brief a premise you have not measured.** Measure it and carry the
+    command, or write it as a premise the dispatch must verify. A brief is the specification the
+    dispatch builds against, so a false premise there becomes the design. State facts in a brief, and
+    mark any argument written to justify one as briefing-only — reasoning placed in a brief tends to
+    come back as published text.
+24. **A change to the machinery is evaluated against every harness that consumes this repository**, not
+    only the one you are running on.
+25. **A mechanism that lands here ships with a portable prompt under `docs/prompts/`** — the behaviour,
+    the reasoning and the limit — so a harness without the mechanism can adopt the pattern.
+26. **A skill is atomic and consumer-free**: one whole concept across its full lifecycle, no reference
+    to one consumer's setup, and every choice it states carries its trade-off and an explicit list of
+    pros and cons.
+27. **A secret's scope and name follow the single standard in `skills/devops/SKILL.md`.** Never decide
+    either per repository.
+
 ## Versioning and distribution
 
 Numeric SemVer, `MAJOR.MINOR.PATCH`, no pre-release suffix. `VERSION` at the repository root is the
