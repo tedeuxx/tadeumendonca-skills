@@ -1773,7 +1773,12 @@ echo "--- perl / ruby / eval: the hook is silent, but the floor now ASKS ---"
 # inverts; that is the limit of this suite, stated where the cases are.
 check ALLOW "perl -e: hook silent, floor asks"  "perl -e 'system(\"git push origin main\")'"
 check ALLOW "ruby -e: hook silent, floor asks"  "ruby -e 'system(\"git push origin main\")'"
-check ALLOW "eval: hook silent, floor asks"     "eval 'git push origin main'"
+# ~~check ALLOW "eval: hook silent, floor asks" "eval 'git push origin main'"~~ — INVERTED AT #531
+# round 2, deliberately and for the reason this block said would need looking at: rule 3b now unquotes
+# the one span after an `eval` and reads it, and any push found inside one is refused as "cannot
+# classify" (a force spelling answers first with the force reason). The hook is no longer silent on
+# eval; perl and ruby are unchanged, because nothing parses their languages.
+check_reason DENY "eval: 3b now reads the eval'd span (was hook-silent)" "cannot classify" "eval 'git push origin main'"
 
 echo "--- running a FILE is not a wrapper, and that is now load-bearing for the floor ---"
 # `bash script.sh` has no `-c`, so the unwrap does not fire and the hook stays silent — by design, and
@@ -2073,6 +2078,62 @@ gh pr view 1 --json title"
 # because a newline is a separator, not a hiding place.
 check_agent DENY  "" "531/ctl: a force on the next line still denies" "git -C $TFEAT status
 git -C $TFEAT push -fu origin feat/x"
+
+echo "--- #531 round 2: a QUOTED or ESCAPED command name / subcommand no longer hides the push ---"
+# THE LENS'S CORPUS (PR #534 marker 5840666078). Every one of these drew NO DECISION at 162916b6 AND
+# at 4b66b789 — the view collapsed a quoted span to "" before tokenising, and the entry gate needed the
+# literal `push`. Asserted by REASON: the force spellings must be answered by the force reason, the
+# ones with nothing to read by "cannot classify".
+#
+# CALIBRATION (reproduce it; do not trust these numbers). Measured on a whole-tree copy, suite
+# untouched, control 976 passed / 0 failed:
+#   guard reverted to 4b66b789              -> 960 / 16: all of this block's DENY arms EXCEPT the
+#     `\git push --force` one (the kept 162916b6 raw regex already denied it — stated, not hidden),
+#     plus the two `531r2/trunk` arms that were ALLOW there and the inverted eval arm in the perl/ruby/eval block;
+#     `git push "--force"` reddens on REASON (it denied as "cannot classify", not as a force)
+#   `pv_obf_end` made a no-op (the mark)    -> 968 / 8: the seven `531r2/trunk` arms and the eval arm
+#     — i.e. the unquoting WITHOUT the mark is the nine-trunk-push hole, and these arms are its pin
+#   restored                                -> 976 / 0
+check_from_reason DENY "$TFEAT" "531r2: git \"push\" --force"                   "force-push rewrites" "git \"push\" --force origin feat/x"
+check_from_reason DENY "$TFEAT" "531r2: git 'push' -f"                          "force-push rewrites" "git 'push' -f origin feat/x"
+check_from_reason DENY "$TFEAT" "531r2: git p\\ush --force (escaped subcommand)" "cannot classify"    "git p\\ush --force origin feat/x"
+check_from_reason DENY "$TFEAT" "531r2: -C . \"push\" --force-with-lease=x"     "force-push rewrites" "git -C . \"push\" --force-with-lease=x origin feat/x"
+check_from_reason DENY "$TFEAT" "531r2: -C . pu''sh origin +feat/x"            "force-push rewrites" "git -C . pu''sh origin +feat/x"
+check_from_reason DENY "$TFEAT" "531r2: \\git push --force"                     "force-push rewrites" "\\git push --force origin feat/x"
+check_from_reason DENY "$TFEAT" "531r2: \"git\" push -fu"                       "force-push rewrites" "\"git\" push -fu origin feat/x"
+check_from_reason DENY "$TFEAT" "531r2: 'git' -C . push origin +feat/x"        "force-push rewrites" "'git' -C . push origin +feat/x"
+check_from_reason DENY "$TFEAT" "531r2: eval '… --force-with-lease=x …'"       "force-push rewrites" "eval 'git push --force-with-lease=x origin feat/x'"
+check_from_reason DENY "$TFEAT" "531r2: g\"\"it push -f (split name)"           "force-push rewrites" "g\"\"it push -f origin feat/x"
+check_from_reason DENY "$TFEAT" "531r2: git push \"--force\""                   "force-push rewrites" "git push \"--force\" origin feat/x"
+check_from_reason DENY "$TFEAT" "531r2: git \"\$SUB\" (expanded subcommand)"    "cannot classify"    "git \"\$SUB\" --force origin feat/x"
+check_agent       DENY "tadeumendonca-skills:developer" "531r2: subagent, git \"push\" --force" "git -C /some/d \"push\" --force origin feat/x"
+check_agent       DENY ""                               "531r2: orchestrator, \"git\" push -fu" "\"git\" -C /some/d push -fu origin feat/x"
+
+echo "--- #531 round 2: unquoting must NOT open a trunk push the collapsed view used to refuse ---"
+# THE FIRST FORM OF THIS REPAIR DELETED THE QUOTES AND TURNED EVERY ONE OF THESE FROM DENY TO ALLOW:
+# rule 7 reads its own collapsed view and never sees a quoted `main`, so the classifier was the only
+# layer refusing them. Measured against 4b66b789 before it shipped. A push the view had to unquote is
+# refused as "cannot classify" unless a force reason answers first — these arms pin that.
+check_from_reason DENY "$TFEAT" "531r2/trunk: origin \"main\""        "cannot classify" "git push origin \"main\""
+check_from_reason DENY "$TFEAT" "531r2/trunk: origin 'main'"          "cannot classify" "git push origin 'main'"
+check_from_reason DENY "$TFEAT" "531r2/trunk: origin \"HEAD:main\""   "cannot classify" "git push origin \"HEAD:main\""
+check_from_reason DENY "$TFEAT" "531r2/trunk: origin \":main\""       "cannot classify" "git push origin \":main\""
+check_from_reason DENY "$TFEAT" "531r2/trunk: origin ma''in"          "cannot classify" "git push origin ma''in"
+check_from_reason DENY "$TFEAT" "531r2/trunk: git \"push\" origin main (was ALLOW)" "cannot classify" "git \"push\" origin main"
+check_from_reason DENY "$TFEAT" "531r2/trunk: sudo \"git\" push origin main (was ALLOW)" "cannot classify" "sudo \"git\" push origin main"
+
+echo "--- #531 round 2: controls — message text, reads, and the loop's own pushes stay silent ---"
+check_from ALLOW "$TFEAT" "531r2/ctl: commit message quoting push --force"  "git commit -m \"docs: git 'push' --force-with-lease=x is a force\""
+check_from ALLOW "$TFEAT" "531r2/ctl: commit message with \"git\" push -fu"  "git -C /some/d commit -m '3b: git \"push\" -fu now denies'"
+check_from ALLOW "$TFEAT" "531r2/ctl: commit message with eval '…--force'"  "git commit -m \"eval 'git push --force'\""
+check_from ALLOW "$TFEAT" "531r2/ctl: git log --grep=push"                  "git log --grep=push"
+check_from ALLOW "$TFEAT" "531r2/ctl: git log --grep='push --force'"        "git -C . log --grep='push --force' --oneline"
+check_from ALLOW "$TFEAT" "531r2/ctl: grep git \"\$f\" is not an invocation" "grep -rn git \"\$DIR\""
+check_from ALLOW "$TFEAT" "531r2/ctl: echo \"git\" push prints a word"       "echo \"git\" push"
+check_from ALLOW "$TFEAT" "531r2/ctl: -C \"<dir>\" before a plain push"      "git -C \"$TFEAT\" push -u origin feat/x"
+check_from ALLOW "$TFEAT" "531r2/ctl: stash push -m \"wip\""                 "git -C . stash push -m \"wip\""
+check_from ALLOW "$TFEAT" "531r2/ctl: quoted -c on a non-push"              "git -c \"user.name=A B\" commit -m x"
+check_from ALLOW "$TFEAT" "531r2/ctl: add, commit \"…push…\", push"          "git add -A && git commit -m \"fix: 'push' quoting\" && git push -u origin feat/x"
 
 # ── #453: the collision those nine arms were standing on, asserted instead of inherited ───────────
 #

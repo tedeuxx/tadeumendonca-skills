@@ -2386,8 +2386,10 @@ fi
 #     "these flags"; it is "anything that makes a push non-fast-forward", and git's argv has more ways
 #     to say that than anyone listed — a `+` on any refspec, a force letter in any short cluster, a
 #     config key set inline, a glob. So this rule inverts the question: it RECOGNISES the pushes this
-#     loop actually makes and refuses everything else as "cannot classify". A seventh spelling nobody
-#     has thought of lands on DENY by construction rather than on ALLOW by omission, and the error
+#     loop actually makes and refuses everything else as "cannot classify". ~~A seventh spelling nobody
+#     has thought of lands on DENY by construction rather than on ALLOW by omission~~ — STRUCK at #531
+#     round 2: true of a push's ARGUMENTS only; a quoted or escaped command name or subcommand never
+#     reached the grammar at all (see the round-2 block below, and the residual it lists). The error
 #     runs toward a visible over-block — the direction this floor's own standing rule prefers, because
 #     a refused push costs one re-typed command and a forced one can cost someone else's commits.
 #
@@ -2419,7 +2421,10 @@ fi
 #     nostalgia. It reads raw `$cmd`, so it still denies what the classifier's quote-collapsed view
 #     cannot see (`ssh <host> 'git push --force …'`, and the pinned KNOWN-DEFECT commit-message arm).
 #     Keeping it means this slice adds no path from DENY to ALLOW: every payload the old rule denied,
-#     the old rule still denies. Removing it is its own decision, with its own probe battery.
+#     the old rule still denies. Removing it is its own decision, with its own probe battery. (Round 2
+#     is the one place this slice UNQUOTES, which is a path from DENY to ALLOW if left unmarked — the
+#     first form opened nine trunk pushes; the mark below is what closes it, and the `531r2/trunk`
+#     arms are what pin it.)
 #
 #     ── WHAT THIS STILL DOES NOT SEE — THE PERSISTENT-CONFIG RESIDUAL (#531, named, not closed) ──────
 #     A push is only as readable as its command string, and three routes make a forcing push
@@ -2437,17 +2442,85 @@ fi
 push_class=""
 push_token=""
 push_view=""
+#
+#     ── #531 round 2: "BY CONSTRUCTION" WAS FALSE FOR THE TWO WORDS THAT DECIDE WHETHER THIS RUNS ──
+#     ~~A seventh spelling nobody has thought of lands on DENY by construction~~ held for a push's
+#     ARGUMENTS and not for the command name and the subcommand. The view collapsed every quoted span
+#     to `""`/`''` BEFORE tokenising, and the entry gate required the literal `push`, so each of these
+#     drew NO DECISION at 162916b6 and at 4b66b789 alike (found by the `agents-lead` lens on PR #534,
+#     not by this rule's own suite):
+#       git "push" --force …  ·  git 'push' -f …  ·  git p\ush --force …  ·  git -C . pu''sh origin +x
+#       git -C . "push" --force-with-lease=x …  ·  "git" push -fu …  ·  'git' -C . push origin +x
+#       eval 'git push --force-with-lease=x …'
+#     The repair is three moves:
+#       1. the ENTRY GATE widens to any command naming `git` or `push`, or carrying a quote or a
+#          backslash — every obfuscation of either word needs one of those;
+#       2. BEFORE the collapse, QUOTING THAT HIDES ONLY A WORD IS REMOVED: a `$'…'`, `$"…"`, `'…'` or
+#          `"…"` span whose content is word characters only (no blank, quote, backslash or `$`) is
+#          replaced by its content, and the one quoted span after an `eval` is unquoted. Deleting a
+#          quote pair around word-only text is shell-equivalent even where the regex pairs a CLOSING
+#          quote with the next OPENING one (the spans merely merge), and it un-hides nothing a commit
+#          message carries: a message has a blank in it, so its span still collapses whole;
+#       3. what is STILL quoted, escaped or expanded where the subcommand stands — `git "$SUB" …`,
+#          `git p\ush …`, `git "pu sh" …` — denies as "cannot classify" when that `git` stood in
+#          COMMAND POSITION; a backslash-escaped name (`\git`, `g\it`) reads as `git` anywhere, and an
+#          unquoted one (`"git"`, `'git'`, `g""it`) in command position. Command position is kept
+#          narrow on purpose: a `git` that is an ARGUMENT (`grep -rn git "$f"`, `echo "git" push`)
+#          is not an invocation, and treating its next word as a subcommand would deny a read;
+#       4. EVERY UNQUOTED WORD CARRIES A MARK, and a push whose name, subcommand or arguments needed
+#          one — or that sits inside an eval — is refused as "cannot classify" at its end unless a
+#          force reason answered first. Without this, move 2 OPENED nine trunk pushes (see the mark's
+#          comment in the block below); with it, the corpus measured against 4b66b789 has no payload
+#          that moved from DENY to ALLOW.
+#     THE PRICE, stated rather than discovered: `git "push" origin feat/x`, `"git" push origin feat/x`
+#     and `eval 'git push -u origin feat/x'` are now refused although none forces — a re-typed command.
+#
+#     ROUND-2 RESIDUAL — what a command string still hides from this rule, on top of the three routes
+#     above (named, not closed):
+#       · a command name or subcommand reached through a VARIABLE or an expansion in a NON-command
+#         position or as the command itself — `$G push --force …`, `"$GIT" push …`, `${g}it push …`,
+#         `find . -exec git "$s" --force \;`: the word is not `git` until the shell expands it;
+#       · an `eval` whose argument is an EXPANSION — `eval "$CMD"`: the push does not exist in the
+#         string at all. (`eval git\ push\ -f`, `eval 'git push' "--force"` and `eval 'git push' "$F"`
+#         are caught — measured, not assumed — the first on its escaped words, the last two because
+#         the eval mark refuses any push after it that no force reason answered);
+#       · an ANSI-C span whose content is not word-only — `$'\x67it' push -f`: nothing here decodes
+#         escapes (`$'git' push -f` and `"g"i't' push -f` ARE caught);
+#       · `command -p`/`exec -a <n>`/`env -S` and other prefixes whose own arguments this position
+#         tracker does not model, where the name that follows is quoted.
+#     The unconditional claim is withdrawn; these are what replaced it.
 case "$command $unwrap_all" in
-  *push*)
+  *git*|*push*|*\\*|*\"*|*\'*)
     pv_rs="$(printf '\036')"
-    # Original command, tabs to blanks, newlines to RS, backslash-newline joined, quoted spans
-    # collapsed exactly as `$bare` collapses them, then RS to a `;` separator.
+    # W = the characters a refname, flag or command word is made of; `#` is the sed delimiter on the
+    # four word-unquoting expressions because W contains `/`.
+    pv_w='[A-Za-z0-9._/@:+=~^%,*-]'
+    # Original command, tabs to blanks, newlines to RS, backslash-newline joined, word-only quoting
+    # removed (ANSI-C and locale spans first, so `$'x'` cannot leave a `$x` behind), an eval's quoted
+    # argument unquoted, the remaining quoted spans collapsed exactly as `$bare` collapses them, then
+    # RS to a `;` separator. The unwrapped `bash -c` payloads get the same treatment.
+    #
+    # EVERY UNQUOTING LEAVES A MARK (US, \037) where the quote was, and the mark is load-bearing. The
+    # first form of this repair deleted the quotes outright, and that opened NINE trunk pushes that
+    # denied before it — `git push origin "main"`, `'main'`, `"HEAD:main"`, `":main"`, `ma''in`, … —
+    # because rule 7 reads its OWN collapsed view and never sees a quoted `main`, while this view now
+    # read the push as a plain feature push and let it through. Measured against 4b66b789 before it
+    # shipped. So an unquoted word is read for CLASSIFICATION (is it `git`, is it `push`, is it a
+    # force) and the push it belongs to is still refused as "cannot classify" unless a force reason
+    # answers first: nothing downstream of this view can read the word the way it is read here, so
+    # no push this view had to unquote may reach ALLOW. The mark is what makes that checkable.
+    pv_mk="$(printf '\037')"
+    pv_unq() {
+      sed -E -e "s#\\\$'(${pv_w}*)'#${pv_mk}\\1#g" -e "s#\\\$\"(${pv_w}*)\"#${pv_mk}\\1#g" \
+             -e "s#'(${pv_w}*)'#${pv_mk}\\1#g" -e "s#\"(${pv_w}*)\"#${pv_mk}\\1#g" \
+             -e "s/(^|[^A-Za-z0-9_])eval[[:space:]]+'([^']*)'/\\1eval ${pv_mk} \\2/g" \
+             -e "s/(^|[^A-Za-z0-9_])eval[[:space:]]+\"(([^\"\\\\]|\\\\.)*)\"/\\1eval ${pv_mk} \\2/g" \
+             -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g'
+    }
     push_view="$(printf '%s' "$command" | tr '\t' ' ' | tr '\n' '\036' \
-      | sed -E -e "s/\\\\${pv_rs}/ /g" \
-               -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g' \
-      | tr '\036' ';')"
+      | sed -E -e "s/\\\\${pv_rs}/ /g" | pv_unq | tr '\036' ';')"
     if [ -n "$unwrap_all" ]; then
-      push_view="$push_view ; $(printf '%s' "$unwrap_all" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g')"
+      push_view="$push_view ; $(printf '%s' "$unwrap_all" | pv_unq)"
     fi
     # Separators become a spaced `;`. `&&`, `||` and `|&` first, then a lone `|`, then `;` and the
     # grouping characters `(` `)` `{` `}` (so `{ git push --force; }` and a stray `--force}` still end
@@ -2460,14 +2533,71 @@ case "$command $unwrap_all" in
 esac
 if [ -n "$push_view" ]; then
   pv_state="scan"; pv_gunknown=0; pv_gcfg=0; pv_remote=0; pv_endopts=0
+  # Command position (move 3): true at the start and after every separator, and carried through a
+  # prefix word (`sudo`, `env`, `eval`, `xargs`, `then`, an assignment, …) and that prefix's own
+  # flags. `pv_gcmd` records whether the `git` that opened the current invocation stood there.
+  pv_cmdpos=1; pv_pfx=0; pv_gcmd=0
+  # `pv_obf`: this invocation's name, subcommand or push words needed unquoting (or sit inside an
+  # eval'd span, `pv_ev`, which stays set for the rest of the view). An obfuscated push that no
+  # force reason answered is refused at its END — see the mark's comment above for why.
+  pv_obf=0; pv_ev=0
+  pv_obf_end() {
+    if [ "$pv_state" = "pargs" ] || [ "$pv_state" = "poarg" ] || [ "$pv_state" = "predir" ]; then
+      if [ -z "$push_class" ] && [ "$pv_obf" = 1 ]; then
+        push_class="unknown"
+        push_token="a push whose command name, subcommand or arguments were quoted or escaped, or sit inside an eval — this rule can read that spelling but the trunk rule cannot, so it is not let through"
+      fi
+    fi
+  }
   case "$-" in *f*) pv_noglob=1 ;; *) pv_noglob=0 ;; esac
   set -f
   for pv_tok in $push_view; do
     [ -n "$push_class" ] && break
+    pv_tm=0
+    case "$pv_tok" in
+      *"$pv_mk"*) pv_tm=1; pv_tok="${pv_tok//$pv_mk/}" ;;
+    esac
+    if [ -z "$pv_tok" ]; then
+      # A bare mark: an eval's unquoted span begins here, or an empty quoted word (`''`) stood alone.
+      pv_ev=1; pv_obf=1; continue
+    fi
+    [ "$pv_tok" = ";" ] && pv_obf_end
+    # A marked word read as the subcommand or as a push word obfuscates the invocation. A marked
+    # `-C` directory (`garg`) does not — the trunk rule resolves that one on its own.
+    # A marked OPTION before the subcommand (`--git-dir="/x/.git"`) does not either: only the
+    # subcommand word itself is what the unquoting could have turned into `push`.
+    if [ "$pv_tm" = 1 ]; then
+      case "$pv_state" in
+        pargs|poarg) pv_obf=1 ;;
+        gopt) case "$pv_tok" in -*) ;; *) pv_obf=1 ;; esac ;;
+      esac
+    fi
+    pv_atcmd="$pv_cmdpos"
+    case "$pv_tok" in
+      ";") pv_cmdpos=1; pv_pfx=0 ;;
+      sudo|env|command|builtin|exec|eval|time|timeout|nice|nohup|stdbuf|xargs|then|do|else|elif|if|while|until|!)
+        pv_cmdpos="$pv_atcmd"; pv_pfx="$pv_atcmd" ;;
+      -*|[0-9]*) [ "$pv_pfx" = 1 ] || pv_cmdpos=0 ;;
+      [A-Za-z_]*=*) [ "$pv_atcmd" = 1 ] || pv_cmdpos=0 ;;
+      *) pv_cmdpos=0; pv_pfx=0 ;;
+    esac
     case "$pv_state" in
       scan)
         case "$pv_tok" in
-          git|*/git) pv_state="gopt"; pv_gunknown=0; pv_gcfg=0 ;;
+          git|*/git)
+            # A literal `git` is read in ANY position (the 162916b6 reach, unchanged); an UNQUOTED
+            # one only in command position, so `echo "git" push` is a word printed, not a push.
+            if [ "$pv_tm" = 0 ] || [ "$pv_atcmd" = 1 ]; then
+              pv_state="gopt"; pv_gunknown=0; pv_gcfg=0; pv_gcmd="$pv_atcmd"; pv_obf="$pv_ev"
+              [ "$pv_tm" = 1 ] && pv_obf=1
+            fi ;;
+          *\\*)
+            # `\git`, `g\it`: outside quotes a backslash before an ordinary character is removed by
+            # the shell, so the word IS `git`. Read it as one, in any position — the same reach the
+            # literal spelling above already has — and mark the invocation obfuscated.
+            case "${pv_tok//\\/}" in
+              git|*/git) pv_state="gopt"; pv_gunknown=0; pv_gcfg=0; pv_gcmd="$pv_atcmd"; pv_obf=1 ;;
+            esac ;;
         esac ;;
       garg)
         if [ "$pv_tok" = ";" ]; then pv_state="scan"; else pv_state="gopt"; fi ;;
@@ -2481,6 +2611,17 @@ if [ -n "$push_view" ]; then
           --config-env=*) pv_gcfg=1 ;;
           --git-dir=*|--work-tree=*|--namespace=*|--super-prefix=*|--exec-path=*) ;;
           -p|-P|--paginate|--no-pager|--bare|--no-replace-objects|--literal-pathspecs|--glob-pathspecs|--noglob-pathspecs|--icase-pathspecs|--no-optional-locks|--no-advice|--no-lazy-fetch) ;;
+          *[\'\"\\\$\`]*)
+            # Move 3: the word-only unquoting above already turned `"push"`/`pu''sh` into `push`, so
+            # a quote, backslash, `$` or backtick still here hides a word this rule cannot read —
+            # and it may be `push`. Refused when this `git` stood in command position; a `git`
+            # that is an argument (`grep git "$f"`) is not an invocation, so its next word is left.
+            if [ "$pv_gcmd" = 1 ]; then
+              push_class="unknown"
+              push_token="the word after 'git', $pv_tok, is quoted, escaped or expanded, so it may be 'push'"
+            else
+              pv_state="skip"
+            fi ;;
           -*) pv_gunknown=1 ;;
           push)
             if [ "$pv_gunknown" = 1 ]; then
@@ -2534,6 +2675,7 @@ if [ -n "$push_view" ]; then
         fi ;;
     esac
   done
+  pv_obf_end
   [ "$pv_noglob" = 1 ] || set +f
 fi
 case "$push_class" in
@@ -2542,7 +2684,7 @@ case "$push_class" in
   config)
     deny "Blocked: a '-c'/'--config-env' on a 'git push' can change what the push does without showing it in the refspec — remote.<r>.push=+… forces, and push.default=matching or a glob push refspec pushes every branch, the trunk included. Rule 3b refuses any inline config on a push rather than parse config keys. Use instead: drop the -c and name the branch on the push itself, e.g. 'git -C <dir> push -u origin <branch>'. If the config is genuinely needed, the push is the human's act." ;;
   unknown)
-    deny "Blocked: this 'git push' carries something rule 3b cannot classify ($push_token), and a push it cannot classify is refused rather than guessed — a force can hide in a spelling nobody enumerated (#531). Accepted: 'git [-C <dir>] push' with -u/--set-upstream, -q, -v, -n/--dry-run, -d/--delete, -o/--push-option <v>; then one remote and plain refspecs (<branch>, <src>:<dst>, or :<branch> to delete a feature branch) written as unquoted tokens with no '+', '*', quote, '\$' or backslash. Use instead: rewrite the push with only those tokens, e.g. 'git -C <dir> push -u origin <branch>'. If you need a flag outside that set, it is the human's act." ;;
+    deny "Blocked: this 'git push' (or a git invocation that may be one) carries something rule 3b cannot classify ($push_token), and a push it cannot classify is refused rather than guessed — a force can hide in a spelling nobody enumerated (#531). Accepted: 'git [-C <dir>] push' with -u/--set-upstream, -q, -v, -n/--dry-run, -d/--delete, -o/--push-option <v>; then one remote and plain refspecs (<branch>, <src>:<dst>, or :<branch> to delete a feature branch) with the command name, the subcommand and every refspec written as unquoted, unescaped tokens outside any eval, and no '+', '*', quote, '\$' or backslash. Use instead: rewrite the push with only those tokens, e.g. 'git -C <dir> push -u origin <branch>'. If you need a flag outside that set, it is the human's act." ;;
 esac
 # THE 162916b6 REGEX, KEPT VERBATIM as the raw-`$cmd` backstop described above.
 if printf '%s' "$cmd" | grep -Eq 'git[[:space:]].*push([[:space:]].*)?([[:space:]](--force|--force-with-lease|-f)([[:space:];&|)}]|$))'; then
