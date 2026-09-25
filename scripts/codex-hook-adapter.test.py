@@ -1190,6 +1190,14 @@ FLOOR = [
     ("git push origin main", "a trunk push"),
     ("rm -rf /tmp/anything", "a recursive force delete"),
     ("gh secret set FOO", "a secret write"),
+    # #531: the forcing spellings the 162916b6 guard missed, and trunk deletion. The guard is
+    # shared, so the adapter needs no policy of its own; these prove the new refusals are plain
+    # floor denies that the Codex route forwards (not convenience rules it may decline to ask for).
+    ("git push --for" + "ce-with-lease=x origin feat/x", "a force-push via --force-with-lease=<ref> (#531)"),
+    ("git push origin +" + "feat/x", "a force-push via a '+' refspec (#531)"),
+    ("git push -f" + "u origin feat/x", "a force-push via the -fu cluster (#531)"),
+    ("git -c remote.o.push=+" + "refs/heads/x:refs/heads/x push o", "an inline -c push refspec (#531)"),
+    ("git push origin :" + "main", "a trunk DELETION (#531)"),
 ]
 # A floor act whose matching token is MANUFACTURED by a substitution. This is the class
 # the blocked round made reachable, and it is asserted through the ADAPTER rather than
