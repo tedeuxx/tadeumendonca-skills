@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "sprint": "sprint-05",
+  "timezone": "America/Sao_Paulo",
+  "starts_at": null,
+  "ends_at": null,
+  "repositories": [
+    {
+      "repository": "tedeuxx/tadeumendonca-skills",
+      "milestone_number": 7
+    }
+  ],
+  "counting_units": [
+    {
+      "issue": "tedeuxx/tadeumendonca-skills#473",
+      "planned_points": 8,
+      "work_type": "loop",
+      "parent": null,
+      "estimate_provenance": {
+        "agents-lead": 8,
+        "quality-assurance": 8,
+        "median": 8,
+        "owner_commitment": "the owner admitted all eligible items («pode por tudo»)"
+      },
+      "source_revision": "7bc43b4307683d0a2443f69b489c2980353e8bae"
+    },
+    {
+      "issue": "tedeuxx/tadeumendonca-skills#510",
+      "planned_points": 2,
+      "work_type": "loop",
+      "parent": null,
+      "estimate_provenance": {
+        "agents-lead": 2,
+        "quality-assurance": 2,
+        "median": 2,
+        "owner_commitment": "the owner admitted all eligible items («pode por tudo»)"
+      },
+      "source_revision": "7bc43b4307683d0a2443f69b489c2980353e8bae"
+    },
+    {
+      "issue": "tedeuxx/tadeumendonca-skills#511",
+      "planned_points": 8,
+      "work_type": "loop",
+      "parent": null,
+      "estimate_provenance": {
+        "agents-lead": 5,
+        "quality-assurance": 8,
+        "median": 6.5,
+        "recorded": 8,
+        "owner_commitment": "the owner admitted all eligible items («pode por tudo»); rounding the median up to the next Fibonacci value was the orchestrator's call and no ratified rule decides it"
+      },
+      "source_revision": "7bc43b4307683d0a2443f69b489c2980353e8bae"
+    },
+    {
+      "issue": "tedeuxx/tadeumendonca-skills#512",
+      "planned_points": 5,
+      "work_type": "loop",
+      "parent": null,
+      "estimate_provenance": {
+        "agents-lead": 5,
+        "quality-assurance": 5,
+        "median": 5,
+        "owner_commitment": "the owner admitted all eligible items («pode por tudo»)"
+      },
+      "source_revision": "7bc43b4307683d0a2443f69b489c2980353e8bae"
+    },
+    {
+      "issue": "tedeuxx/tadeumendonca-skills#513",
+      "planned_points": 8,
+      "work_type": "loop",
+      "parent": null,
+      "estimate_provenance": {
+        "agents-lead": 5,
+        "quality-assurance": 8,
+        "median": 6.5,
+        "recorded": 8,
+        "owner_commitment": "the owner admitted all eligible items («pode por tudo»); rounding the median up to the next Fibonacci value was the orchestrator's call and no ratified rule decides it"
+      },
+      "source_revision": "7bc43b4307683d0a2443f69b489c2980353e8bae"
+    },
+    {
+      "issue": "tedeuxx/tadeumendonca-skills#514",
+      "planned_points": 3,
+      "work_type": "loop",
+      "parent": null,
+      "estimate_provenance": {
+        "agents-lead": 3,
+        "quality-assurance": 3,
+        "median": 3,
+        "owner_commitment": "the owner admitted all eligible items («pode por tudo»)"
+      },
+      "source_revision": "7bc43b4307683d0a2443f69b489c2980353e8bae"
+    },
+    {
+      "issue": "tedeuxx/tadeumendonca-skills#515",
+      "planned_points": 8,
+      "work_type": "loop",
+      "parent": null,
+      "estimate_provenance": {
+        "agents-lead": 8,
+        "quality-assurance": 8,
+        "median": 8,
+        "owner_commitment": "the owner admitted all eligible items («pode por tudo»)"
+      },
+      "source_revision": "7bc43b4307683d0a2443f69b489c2980353e8bae"
+    },
+    {
+      "issue": "tedeuxx/tadeumendonca-skills#521",
+      "planned_points": 5,
+      "work_type": "loop",
+      "parent": null,
+      "estimate_provenance": {
+        "agents-lead": 5,
+        "quality-assurance": 3,
+        "median": 4,
+        "recorded": 5,
+        "owner_commitment": "the owner admitted all eligible items («pode por tudo»); rounding the median up to the next Fibonacci value was the orchestrator's call and no ratified rule decides it"
+      },
+      "source_revision": "7bc43b4307683d0a2443f69b489c2980353e8bae"
+    },
+    {
+      "issue": "tedeuxx/tadeumendonca-skills#522",
+      "planned_points": 5,
+      "work_type": "loop",
+      "parent": null,
+      "estimate_provenance": {
+        "agents-lead": 5,
+        "quality-assurance": 5,
+        "median": 5,
+        "owner_commitment": "the owner admitted all eligible items («pode por tudo»)"
+      },
+      "source_revision": "7bc43b4307683d0a2443f69b489c2980353e8bae"
+    },
+    {
+      "issue": "tedeuxx/tadeumendonca-skills#523",
+      "planned_points": 2,
+      "work_type": "loop",
+      "parent": null,
+      "estimate_provenance": {
+        "agents-lead": 2,
+        "quality-assurance": 2,
+        "median": 2,
+        "owner_commitment": "the owner admitted all eligible items («pode por tudo»)"
+      },
+      "source_revision": "7bc43b4307683d0a2443f69b489c2980353e8bae"
+    },
+    {
+      "issue": "tedeuxx/tadeumendonca-skills#524",
+      "planned_points": 2,
+      "work_type": "loop",
+      "parent": null,
+      "estimate_provenance": {
+        "agents-lead": 2,
+        "quality-assurance": 2,
+        "median": 2,
+        "owner_commitment": "the owner admitted all eligible items («pode por tudo»)"
+      },
+      "source_revision": "7bc43b4307683d0a2443f69b489c2980353e8bae"
+    },
+    {
+      "issue": "tedeuxx/tadeumendonca-skills#525",
+      "planned_points": 5,
+      "work_type": "loop",
+      "parent": null,
+      "estimate_provenance": {
+        "agents-lead": 5,
+        "quality-assurance": 5,
+        "median": 5,
+        "owner_commitment": "the owner admitted all eligible items («pode por tudo»)"
+      },
+      "source_revision": "7bc43b4307683d0a2443f69b489c2980353e8bae"
+    }
+  ]
+}
