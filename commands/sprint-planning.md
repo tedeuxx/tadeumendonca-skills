@@ -277,14 +277,16 @@ this step expects as a finding about the handoff, not as a defect in the ruling.
 **`/funnel-review` may attach a candidate rule for `published-voice` to a finding. The owner ruled on
 2026-09-25 that those candidates wait for THIS rite**: *«Fila no planning»*, recorded on #473. So this
 step reads them. The queue is the reports themselves, with no separate store, and
-`commands/funnel-review.md` step 4 defines the shape:
+`commands/funnel-review.md` defines the shape. Its step 3 defines the column-0 `Candidate rule:` and
+`Evidence:` lines, and its step 4 defines the `Ruled:` lines:
 
 ```
 grep -nE '^(Candidate rule|Evidence|Ruled):' docs/funnel-review/*.md
 ```
 
-**A candidate is OPEN when no `Ruled:` line follows its `Evidence:` line(s).** Every open candidate
-counts, including one an earlier planning marked `held`, whichever period it came from.
+**A candidate is OPEN when no `Ruled:` line other than `held` follows its `Evidence:` line(s).**
+Every open candidate counts, including one an earlier planning marked `held`, whichever period it
+came from.
 
 **They take the retrospective findings' shape, and for the same reason.** Open candidates enter step
 3's ONE activation as a COUNT, and the default is that **none is adopted**. He names any he adopts, or

@@ -213,11 +213,15 @@ evidence quoted **verbatim** from the stored collection — sample size included
   the ruler. ~~How ruled candidates then land — one at a time, or batched at a planning moment — is a
   decision about interruptions, and it is the human's.~~ It is still the human's decision, and in the
   harness this prompt came from he made it: **a queue, ruled at the planning moment.** A candidate may
-  wait up to one iteration. In exchange there is no interruption per candidate.
+  wait up to one iteration. In exchange there is no interruption per candidate. **One addition came
+  from that harness's build, not from the human's choice: a *held* ruling.** It keeps a candidate open
+  for the next planning moment, so a candidate held more than once waits longer than one iteration.
+  Each extra wait is the human's explicit act.
 - **The queue is the reports. Do not build a second store.** A candidate waits in the report that
   proposed it, written at a fixed position (column 0) so that one search reads the whole queue. A
-  candidate is open until a ruling line follows it: *adopted*, *not adopted* or *held*. A separate
-  queue file would copy each candidate, and nothing would keep the copy aligned with its source.
+  candidate is open until an *adopted* or *not adopted* ruling line follows it. A *held* line records
+  the deferral and leaves it open. A separate queue file would copy each candidate, and nothing would
+  keep the copy aligned with its source.
 - **Rule the queue the way the planning moment rules everything else it cannot compose.** It enters
   the one confirmation as a count, the default is *none adopted*, and the human names the ones he
   adopts or holds. Write a ruling line under every candidate, including the default ones. An

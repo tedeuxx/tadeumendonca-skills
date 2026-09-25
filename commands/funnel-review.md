@@ -306,9 +306,17 @@ on #473 as a picker (*"Uma por vez"* · *"Fila no planning"*), and he chose **Fi
 Candidates accumulate as a queue, and he rules on them together at `/sprint-planning`. A candidate may
 wait up to one sprint, and that cost was stated in the option he picked.
 
+**Decided by the build, not by his ruling: the `held` carry-over, and it lengthens that wait.** A
+candidate he marks `held` stays open and is counted again at the next planning, and he can hold it
+again there. So a held candidate can wait **more than one sprint**, with no upper limit. The option he
+picked quoted one sprint. `held` exists so that a candidate he wants to see again does not have to be
+closed as `not adopted`. Each extra sprint of waiting is his explicit act at a planning, never a
+default. It is reversible: dropping `held` from the three rulings below restores the one-sprint bound.
+
 **The queue is the reports themselves. No new store exists.** A candidate waits where the rite
-wrote it, in `docs/funnel-review/<period>.md`. A candidate is **open** until a `Ruled:` line follows
-its `Evidence:` line(s), at column 0:
+wrote it, in `docs/funnel-review/<period>.md`. A candidate is **open** until a `Ruled:` line other
+than `held` follows its `Evidence:` line(s), at column 0. A `held` line records the planning that
+deferred it, and the candidate stays open under it:
 
 ```
 Ruled: adopted <YYYY-MM-DD> at /sprint-planning <iteration>
