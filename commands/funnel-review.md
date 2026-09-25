@@ -335,8 +335,8 @@ A separate queue file would be a second copy of each candidate. Nothing would ke
 aligned with the report, which is the drift this repository keeps paying for. **At the time of
 writing that command prints nothing.** Both reports in the store are `FUNNEL-REVIEW-NOT-COLLECTED`,
 so no candidate has ever been proposed. The zero is real, not a dead pattern:
-`scripts/funnel-review.test.sh` arm 14 appends a column-0 candidate to a report the script wrote and
-asserts the selector finds it.
+the `candidate queue` arms of `scripts/funnel-review.test.sh` append a column-0 candidate to a report
+the script wrote and assert the selector finds it.
 
 **`held` keeps the candidate open.** It is his explicit *"ask me again next planning"*, and the next
 planning's count includes it. **`adopted` does not edit the ruler either.** An adopted candidate is
