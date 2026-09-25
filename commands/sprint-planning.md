@@ -272,6 +272,39 @@ The per-finding detail lives in `docs/planning/<iteration>.md`, where he pulls i
 files and none of them has ever been ruled on. Read a mismatch between what those files carry and what
 this step expects as a finding about the handoff, not as a defect in the ruling.
 
+### The third input — open candidate rules from the funnel reports (#473)
+
+**`/funnel-review` may attach a candidate rule for `published-voice` to a finding. The owner ruled on
+2026-09-25 that those candidates wait for THIS rite**: *«Fila no planning»*, recorded on #473. So this
+step reads them. The queue is the reports themselves, with no separate store, and
+`commands/funnel-review.md` defines the shape. Its step 3 defines the column-0 `Candidate rule:` and
+`Evidence:` lines, and its step 4 defines the `Ruled:` lines:
+
+```
+grep -nE '^(Candidate rule|Evidence|Ruled):' docs/funnel-review/*.md
+```
+
+**A candidate is OPEN when no `Ruled:` line other than `held` follows its `Evidence:` line(s).**
+Every open candidate counts, including one an earlier planning marked `held`, whichever period it
+came from.
+
+**They take the retrospective findings' shape, and for the same reason.** Open candidates enter step
+3's ONE activation as a COUNT, and the default is that **none is adopted**. He names any he adopts, or
+any he wants `held`, under the *change* option. The evidence stays in the report, where he pulls it if
+he wants it. The activation itself does not quote it. After his answer the rite writes one `Ruled:`
+line under each open candidate, in the same PR as `docs/planning/<iteration>.md`:
+
+| his answer | the line | what follows |
+|---|---|---|
+| names it adopted | `Ruled: adopted <date> at /sprint-planning <iteration>` | filed as an Issue with **no milestone**, like a retrospective finding he names. The `published-voice` edit is that Issue's work, and nothing here edits the ruler |
+| names it held | `Ruled: held <date> at /sprint-planning <iteration>` | stays open and is counted again next planning |
+| does not name it | `Ruled: not adopted <date> at /sprint-planning <iteration>` | closed. His confirmation of the default is the ruling |
+
+**A zero is reported as a zero with its reason, not skipped.** At the time of writing the command
+above prints nothing, because both reports in the store are `FUNNEL-REVIEW-NOT-COLLECTED`. Write
+*"funnel candidates: 0 — no report in docs/funnel-review/ carries one"*, naming the directory read, so
+that an empty queue and an unread one do not look alike.
+
 ## Step 2 — the ranking is DISPATCHED to `scrum-master`, and here is why
 
 **This rite dispatches `scrum-master` exactly once, to rank the assembled pool. It is the only dispatch
@@ -627,6 +660,7 @@ assembled: <YYYY-MM-DD>  ·  repositories: <both, named>
 ## The pool as assembled
 eligible: <n> · awaiting the owner: <n> · content (not drained): <n>
 proposals read from docs/retrospective/<previous>/: <n findings across <n> files>
+funnel candidates open in docs/funnel-review/: <n> — each ruled in the activation log below
 
 ## The ranking as returned
 <scrum-master's ranked list, verbatim, and its process findings>

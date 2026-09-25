@@ -64,9 +64,18 @@ something that does not currently happen. That is a decision about the mode, not
 nothing here resolves it.
 
 **The clock carrier NOTICES this rite and cannot fire it.** `docs/loop-cadence.md` carries
-`cadence-rite: docs/funnel-review /funnel-review here`, so `hooks/scripts/cadence-notice.sh` — a
-`SessionStart` hook — reports how long since a report last landed in the store. **Noticing is not
-firing: a hook cannot dispatch.** And no interval is decided anywhere — the record ships with
+~~`cadence-rite: docs/funnel-review /funnel-review here`, so `hooks/scripts/cadence-notice.sh` — a
+`SessionStart` hook — reports how long since a report last landed in the store.~~
+`cadence-rite: docs/funnel-review /funnel-review here FUNNEL-REVIEW-RAN`, so
+`hooks/scripts/cadence-notice.sh` — a `SessionStart` hook — reports how long since a report carrying
+`FUNNEL-REVIEW-RAN` last landed in the store. **Struck and narrowed at #473, because the struck form
+was false in the direction that hides absence:** the carrier dated the newest commit under the root,
+so a README and two reports that each say `FUNNEL-REVIEW-NOT-COLLECTED` were reported as this rite's
+freshness while it had never read the funnel once. It now dates **only a tracked file carrying the
+marker as a whole line** — *ran and found nothing* counts, *never read anything* does not — and until
+one lands the notice says *"has NEVER landed a file carrying FUNNEL-REVIEW-RAN"*. The mechanism is
+`docs/loop-cadence.md`'s *optional FOURTH token*. **Noticing is not firing: a hook cannot dispatch.**
+And no interval is decided anywhere — the record ships with
 `cadence-interval-days` undeclared and the carrier refuses to conclude rather than defaulting, which
 stays true until the owner declares one.
 
@@ -142,6 +151,72 @@ shape, only the `agent_type` varying: `product-lead` + `navigate_page` draws no 
 
 ## The steps
 
+### 0 · Before anything is dispatched — is the owner's authenticated browser reachable on THIS host? (#473)
+
+**Every record this store holds is `FUNNEL-REVIEW-NOT-COLLECTED`, and both times the rite learned the
+browser was missing only after its driver had been dispatched** (`docs/funnel-review/sprint-02.md`,
+`docs/funnel-review/sprint-04.md`; the sprint-03+04 retrospective's `product-lead` finding 2, carried
+onto #473 and incorporated by the owner — *«pode incorpora-los e estima-los»*, 2026-09-24). So the
+context that is about to run this rite checks the route **first**, and a dispatch that can only write
+the not-collected literal is not made.
+
+**Stated per host, because the route is a property of the host and not of this rite.** *"Claude in
+Chrome"* is one host's name for it; it does not exist on the other.
+
+| host | the route | the check, and how settled it is |
+|---|---|---|
+| **Claude Code** | the Claude in Chrome extension, driven by the session that holds it | one read-only call to the extension. **Measured failure form:** *"Browser extension is not connected"* — the exact text `docs/funnel-review/collected/sprint-04.tsv` records |
+| **Codex** | **not established.** Its extension browser drove the production site for the sprint-03 sweep (`-io` `docs/iteration-sweep/sprint-03.md`), unauthenticated; whether that browser carries the owner's analytics login is **unmeasured** | none that can pass today — treat the route as **not reachable** until one attempt reads an analytics surface and says so |
+| **any other host** | unmeasured | treat as not reachable |
+
+**The shipped `chrome-devtools` server is NOT this route on any host**, and must not be tried as a
+fallback: it holds no authenticated session to any analytics or post-metrics surface (the sprint-04
+record says so in its own reason), and it has not completed a sweep of any kind (#525).
+
+~~**If the route is not reachable, send the owner ONE line — an ACTION, not a menu:**~~
+
+~~`Connect <the route above> on <host> for /funnel-review <period> — or reply "skip", or fill docs/funnel-review/collected/<period>.tsv yourself.`~~
+
+**Struck 2026-09-25: this is a DECISION, and the struck line called it an action.** It offers three
+different acts, and a second one is clearly defensible: `skip` trades a period's reading for no wait.
+By `CLAUDE.md`'s HITL escalation format, rule 4, that makes it a decision. Rule 3 then requires a
+picker, not options numbered or listed in prose. The struck wording came from the retrospective
+proposal the owner incorporated (*"one ACTION line: connect, or skip"*). The agents-lead lens on
+PR #528 found that it contradicts his own escalation rules. `CLAUDE.md` is where those rules bind the
+context that asks, so it wins. The struck line stays visible, even though it never reached `main`.
+The lens marker on PR #528 quotes it, and the retrospective proposal still carries the wording, so a
+reader coming from either should find it here and see why it changed.
+
+**If the route is not reachable, ask the owner ONE question, as a picker with these three options.
+Each option states its consequence, and that consequence is the whole preamble:**
+
+| option | its consequence, stated in the option |
+|---|---|
+| **Connect** `<the route above>` on `<host>` | the check runs again once he says it is connected, and the rite continues to step 1 on this host |
+| **Skip** `<period>` | one `collected: no skipped by the owner` line is written, step 2 prints the not-collected report, and that period has no reading and no baseline |
+| **I fill** `collected/<period>.tsv` | no browser is involved. His file runs step 2 unchanged, and he types the figures himself |
+
+- **One question, three options: rule 1 and a ceiling of four.** The question is the whole
+  activation. The host and the route go into the option labels, not into a paragraph before them.
+- **Bounded exactly as rule 3 is.** A picker is absent from a headless session, and there the model
+  falls back silently to the prose numbering this forbids. This step addresses the context that holds
+  the browser route, which today is an interactive session. A headless run of this rite would break
+  the rule, and nothing would say so.
+- **`Skip`** — record it in **one line**: the collection file is
+  `collected: no skipped by the owner on <date>: <route> not reachable on <host>`, and step 2 turns it
+  into the not-collected report. **A skip is a result with a reason; an absent file is not.**
+- **He fills the collection file himself** — the owner's alternative, and it needs no browser in the
+  loop at all. His file declares `collected: yes <date> owner` and carries `figure:` lines in the
+  store's contract; step 2 runs on it unchanged. **Nothing here can tell his file from a driver's, and
+  nothing needs to**: both are assertions by whoever wrote them, which is the bound the store already
+  carries.
+
+**What this check does NOT establish, said so it is not over-read.** It proves reachability for the
+context that ran it — the one holding the extension. **Whether a dispatched subagent can drive that
+extension is still unmeasured**, which is why step 1 below says collection happens wherever the
+browser is reachable rather than *"in the driver"*. One attempt with the extension connected would
+settle it; this slice did not have one.
+
 ### 1 · Collect — where the authenticated browser is, and nowhere else
 
 **The output of this step is a file, not a paragraph:**
@@ -188,7 +263,86 @@ somebody else's summary of it.
 proposed, or the price of leaving it. **At most two, the driver choosing which** — and *"None this
 period"* under the heading is a result, where a deleted heading is a step that silently did not run.
 
+**A finding MAY carry a candidate rule for `published-voice` (#473)** — the one path from what the
+audience did to the ruler that governs the next draft. Before this, the ruler was recalibrated from
+one source only: the owner's own rejections, relayed by hand (#471, #472). **The shape, and each part
+is what #471 and #472 already did by hand:**
+
+```
+Candidate rule: <the rule, one sentence, in the ruler's own register>
+Evidence: <each `figure:` line it rests on, quoted verbatim from collected/<period>.tsv, n included>
+```
+
+- **Evidence is quoted, never paraphrased, and only from a committed collection file.** A candidate
+  whose evidence is not a `figure:` line in this period's collection — or the prior period's, for a
+  movement — **is not proposed.** An observation with no citable figure is still a finding; it is not
+  a candidate.
+- **It is a candidate inside a finding, not a third finding.** The cap is unchanged.
+- **The not-collected branch carries none**, because it carries no findings section at all.
+- **`Candidate rule:` and `Evidence:` are written at COLUMN 0**, exactly as above. The position is
+  what `/sprint-planning` reads the queue by (step 4), and it is also what keeps the shape that
+  `scripts/funnel-review.sh` prints as guidance from counting as a candidate. The script indents that
+  template by four spaces, so a report that keeps the template as written contains no phantom open
+  candidate.
+
+**The honest bound on a candidate, stated with it rather than discovered later:** the samples are
+small — #473's own body reports one read event reaching a single-digit number of users over four
+weeks, a figure it publishes without a command, so nothing in this tree can re-derive it — so **a
+candidate is a story
+about that n**, and its evidence line shows the n precisely so the owner can weigh it.
+
 ### 4 · The output is a PROPOSAL, and the owner opens whatever becomes work
+
+**A candidate rule reaches `published-voice` only by the owner's ruling.** He holds the voice; a
+metric does not get to change how he writes, and the loop's job is to put a defensible candidate in
+front of him, not to adopt one. So nothing in this rite edits the ruler, and a candidate he has not
+ruled on stays in its report.
+
+~~**How a ruled candidate then lands is NOT decided** — one at a time, each on its own ruling, or as a
+queue ruled at `/sprint-planning`. #473's body leaves it open and the build asked him rather than
+choosing: the question is on #473. Until he answers, a candidate reaches him inside the period's
+report and nothing moves it further.~~ **Struck 2026-09-25: he answered.** The question was put to him
+on #473 as a picker (*"Uma por vez"* · *"Fila no planning"*), and he chose **Fila no planning**.
+Candidates accumulate as a queue, and he rules on them together at `/sprint-planning`. A candidate may
+wait up to one sprint, and that cost was stated in the option he picked.
+
+**Decided by the build, not by his ruling: the `held` carry-over, and it lengthens that wait.** A
+candidate he marks `held` stays open and is counted again at the next planning, and he can hold it
+again there. So a held candidate can wait **more than one sprint**, with no upper limit. The option he
+picked quoted one sprint. `held` exists so that a candidate he wants to see again does not have to be
+closed as `not adopted`. Each extra sprint of waiting is his explicit act at a planning, never a
+default. It is reversible: dropping `held` from the three rulings below restores the one-sprint bound.
+
+**The queue is the reports themselves. No new store exists.** A candidate waits where the rite
+wrote it, in `docs/funnel-review/<period>.md`. A candidate is **open** until a `Ruled:` line other
+than `held` follows its `Evidence:` line(s), at column 0. A `held` line records the planning that
+deferred it, and the candidate stays open under it:
+
+```
+Ruled: adopted <YYYY-MM-DD> at /sprint-planning <iteration>
+Ruled: not adopted <YYYY-MM-DD> at /sprint-planning <iteration>
+Ruled: held <YYYY-MM-DD> at /sprint-planning <iteration>
+```
+
+**Why the ruling goes in the report and not somewhere new.** The candidate, its evidence and its
+ruling then sit in one versioned file, so the queue is readable with one `grep`:
+
+```
+grep -nE '^(Candidate rule|Evidence|Ruled):' docs/funnel-review/*.md
+```
+
+A separate queue file would be a second copy of each candidate. Nothing would keep the copy
+aligned with the report, which is the drift this repository keeps paying for. **At the time of
+writing that command prints nothing.** Both reports in the store are `FUNNEL-REVIEW-NOT-COLLECTED`,
+so no candidate has ever been proposed. The zero is real, not a dead pattern:
+the `candidate queue` arms of `scripts/funnel-review.test.sh` append a column-0 candidate to a report
+the script wrote and assert the selector finds it.
+
+**`held` keeps the candidate open.** It is his explicit *"ask me again next planning"*, and the next
+planning's count includes it. **`adopted` does not edit the ruler either.** An adopted candidate is
+filed as an Issue, with no milestone, in the same way `/sprint-planning` files a retrospective finding
+he names. The `published-voice` edit then goes through the normal lane like any other change to the
+ruler.
 
 Nothing here files an Issue and nothing here changes anything. **Only the owner opens work** — and
 this is already mechanical rather than promised: `hooks/scripts/permission-guard.sh`, registered on
@@ -206,6 +360,11 @@ period, against that corpus:
 2. **Click** — did reach become a visit?
 3. **Read** — did a visit become a read? *(The prototype found this unmeasured; whether the site's
    declared read events actually fire is a question about the consuming repository, not this rite.)*
+   **And did the read reach the DEPTH?** The owner's ruling recorded on #473 is that a piece is layered — accessible
+   on the surface, with the detail and references underneath for whoever descends. The depth sits
+   later in a piece than the opening, so whether readers reach it is a question the read-depth
+   percentages already answer per piece, with no new measurement. *(A question to read, not a
+   threshold: no number here says what depth is enough.)*
 4. **Share and contact** — did a read become anything at all?
 5. **Against the prior period** — which step moved, and is the movement bigger than the sample?
 
@@ -228,12 +387,27 @@ refuses to print a figure that arrived without one.
 - **The cap is held over LANDED artifacts only.** `scripts/funnel-review.test.sh` counts
   `## Finding` headings in the reports that exist under the store root. A period that was never
   reported is invisible to it, and no shell anywhere can count findings inside a model's prose.
+- **Nothing makes the step-0 check run before a dispatch.** It is an instruction to the context about
+  to dispatch; no layer observes a dispatch, so a driver sent without the check is caught only by the
+  not-collected report it then writes.
+- **Nothing checks a candidate's evidence against the collection file.** A candidate quoting a
+  `figure:` line that is not in `collected/<period>.tsv` passes every check here; the owner reading
+  the two side by side is the only comparison.
+- **Nothing makes `/sprint-planning` read the queue, or write the `Ruled:` lines.** Both are
+  instructions in that rite's step 1. A planning that skips them leaves the candidates open, and they
+  stay visible to the next planning's `grep`. That is the one property the shape buys. Nothing reads a
+  `Ruled:` line mechanically.
+- **Nothing observes whether a piece improved after a candidate became a rule.** No layer reads a
+  draft against a prior one, and at these sample sizes a movement in the next period is not evidence
+  of a cause. A later period's funnel is what there is, and this rite already says it cannot attribute.
 - **`hooks/scripts/inventory-counts.test.sh` asserts this file's rules are WRITTEN.** It cannot
   assert that a session obeyed any of them, and no arm anywhere claims otherwise.
 
 **By this loop's own test — *would something stop me, or only my memory?* — this rite is an
 instruction.** What it changes is that the analysis is repeatable, the baseline has a home, and the
-two states that used to look identical now print different strings.
+two states that used to look identical now print different strings — and, since #473, that the clock
+counts only the second of them, and that a finding has a written shape by which it can reach the
+owner as a candidate rule.
 
 ## What this rite cannot see
 

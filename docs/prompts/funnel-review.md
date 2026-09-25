@@ -150,7 +150,89 @@ named in the report; somebody else decides which become tracked.
 
 ---
 
-## 8 · The limit — say all of this out loud, in the artifact
+## 8 · Check the route BEFORE you dispatch, and say which host you checked on
+
+**A rite behind a login fails the same way every time until you move the check forward:** the
+collector is dispatched, discovers there is no authenticated session, and writes *could not collect*.
+The artifact is honest; the dispatch was wasted, and the human learns about it only afterwards.
+
+- **The context about to run the rite checks reachability first**, with one read-only call on the
+  route it intends to use. If the check fails, nothing is dispatched.
+- **State the check per host.** The route to an already-authenticated browser has a different name —
+  and a different existence — on each agent harness. A check written in one harness's vocabulary is
+  a check that silently does not exist on the next one. Where a host's route is unmeasured, say
+  *unmeasured* and treat it as unreachable.
+- ~~**When it is unreachable, ask for an action, not a decision:** one line — connect the route, or
+  reply *skip*, or hand over the numbers yourself.~~ **Struck: three different acts, and a second one
+  you would defend, make this a decision and not an action.** *Skip* trades a period's reading for no
+  wait. A line that offers alternatives while calling itself an order makes the human rebuild a choice
+  he was told was already made. **When it is unreachable, ask one question with a picker, not prose.**
+  Offer three options: *connect* (the rite continues), *skip* (no reading and no baseline for that
+  period), *I fill the numbers* (no browser in the loop at all). Each option states its own
+  consequence, and nothing precedes them. Where the host has no picker (a headless run, for
+  instance), say that the rule cannot be obeyed there rather than falling back to numbered prose.
+  A skip is **recorded in one line with its reason**,
+  never left as an absent file. And *"the human fills the collection file"* is a first-class route:
+  it needs no browser in the loop at all, and the analysis half runs on it unchanged.
+- **The check proves reachability for the context that ran it, not for anything it dispatches.**
+  Whether a dispatched agent can drive the same browser is a separate measurement.
+
+---
+
+## 9 · A clock that notices the rite must date the rite's OWN marker, not its directory
+
+If anything watches how long it has been since the rite last produced an artifact, **point it at the
+did-it-run literal from section 3, never at the folder.** A folder holds a README, a template, and
+every *could not collect* report — so a clock on the folder reports freshness while the rite has
+never read anything. That is a check failing open inside the one component whose job is to notice
+absence.
+
+- **Match the literal as a whole line, fixed-string.** A literal quoted in prose, or a longer literal
+  containing it, must not count.
+- **Count what did not qualify, out loud.** *"Never landed a file carrying the marker — five other
+  files do not count"* tells the reader the directory is not empty and still not evidence.
+- **Tie the producer's literal to the watcher's declaration with one end-to-end check** — have the
+  analysis write a real report, put it where the watcher looks, fire the watcher, and read what it
+  says, for both branches. Nothing else ties a string in one component to a string in another.
+- **Calibrate the matcher, not only the answer.** A matcher that errors out behind *ignore errors*
+  answers *nothing matched*, which is exactly the right answer for the negative case — so a fixture
+  containing only non-matching files cannot tell "correctly rejected" from "never ran". Put a real
+  match and a near-miss in the same fixture, at different ages, and assert the real one's age.
+
+---
+
+## 10 · A finding may propose a rule to the human who owns the voice — it never adopts one
+
+**Without a path, the loop learns only from what the human rejects, never from what the audience
+did.** So give a finding one optional, written shape: a **candidate rule**, one sentence, with its
+evidence quoted **verbatim** from the stored collection — sample size included.
+
+- **No citable figure, no candidate.** An observation without one is still a finding; it is not a
+  proposal to change the ruler.
+- **A candidate is not a ruling.** The human who owns the voice rules on it; nothing in the rite edits
+  the ruler. ~~How ruled candidates then land — one at a time, or batched at a planning moment — is a
+  decision about interruptions, and it is the human's.~~ It is still the human's decision, and in the
+  harness this prompt came from he made it: **a queue, ruled at the planning moment.** A candidate may
+  wait up to one iteration. In exchange there is no interruption per candidate. **One addition came
+  from that harness's build, not from the human's choice: a *held* ruling.** It keeps a candidate open
+  for the next planning moment, so a candidate held more than once waits longer than one iteration.
+  Each extra wait is the human's explicit act.
+- **The queue is the reports. Do not build a second store.** A candidate waits in the report that
+  proposed it, written at a fixed position (column 0) so that one search reads the whole queue. A
+  candidate is open until an *adopted* or *not adopted* ruling line follows it. A *held* line records
+  the deferral and leaves it open. A separate queue file would copy each candidate, and nothing would
+  keep the copy aligned with its source.
+- **Rule the queue the way the planning moment rules everything else it cannot compose.** It enters
+  the one confirmation as a count, the default is *none adopted*, and the human names the ones he
+  adopts or holds. Write a ruling line under every candidate, including the default ones. An
+  unwritten default leaves the queue unable to tell *declined* from *never seen*. Keep indented any
+  template the analysis prints, so that guidance text is never read as an open candidate.
+- **Carry the bound with it.** At small audiences a candidate is a story about its n, and nothing
+  will ever tell you whether a piece got better *because* a rule landed.
+
+---
+
+## 11 · The limit — say all of this out loud, in the artifact
 
 - **Nothing fires it.** A clock can *notice* that the report is stale, and a notice is not a trigger:
   it cannot dispatch. **Keep NOTICING and FIRING as two words.** Collapsing them is how a loop comes

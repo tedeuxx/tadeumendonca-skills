@@ -353,5 +353,82 @@ else
   fi
 fi
 
+# ── 12 · the candidate-rule shape rides only on the branch that has findings (#473) ──────────────
+if printf '%s' "$ran_out" | grep -q '^    Candidate rule: ' \
+   && printf '%s' "$ran_out" | grep -q '^    Evidence: ' \
+   && ! printf '%s' "$nc_out" | grep -q 'Candidate rule' \
+   && ! printf '%s' "$absent_out" | grep -q 'Candidate rule'; then
+  ok "candidate rule — its shape is printed under Findings when the surfaces were read, and nowhere when they were not"
+else
+  bad "candidate rule — the shape is missing from RAN, or leaks into a not-collected report" \
+      "a not-collected report carries no findings, so it cannot carry a candidate either"
+fi
+
+# ── 13 · the carrier's ran-marker IS the literal this script prints — fired end to end (#473) ────
+# The record declares a marker; this script produces the literal. Nothing else ties the two, so a
+# rename on either side would leave the carrier dating nothing, forever, with both suites green. This
+# arm lands a report THIS SCRIPT wrote into a throwaway repository beside the REAL record, fires the
+# carrier, and reads what it says — once for a collected period and once for a not-collected one,
+# so the arm can fail in both directions.
+cad_marker_run() {   # $1 fixture period · $2 repo dir
+  mkdir -p "$2/docs/funnel-review"
+  git -C "$2" init -q 2>/dev/null
+  git -C "$2" config user.email t@example.invalid
+  git -C "$2" config user.name Tester
+  cp "$RECORD" "$2/docs/loop-cadence.md"
+  run "$1" > "$2/docs/funnel-review/$1.md"
+  git -C "$2" add -A >/dev/null 2>&1
+  git -C "$2" commit -q -m report >/dev/null 2>&1
+  printf '{"hook_event_name":"SessionStart","cwd":"%s","session_id":"t"}' "$2" \
+    | bash "$cad" 2>/dev/null || true
+}
+if [ ! -r "$cad" ] || [ ! -r "$RECORD" ]; then
+  bad "cadence marker — the carrier or the record is unreadable" "this assertion did NOT run"
+else
+  ran_cad="$(cad_marker_run 2000-02 "$work/cadran")"
+  nc_cad="$(cad_marker_run 2000-03 "$work/cadnc")"
+  if printf '%s' "$ran_cad" | grep -q 'last landed a file carrying FUNNEL-REVIEW-RAN' \
+     && printf '%s' "$nc_cad" | grep -q 'has NEVER landed a file carrying FUNNEL-REVIEW-RAN'; then
+    ok "cadence marker — a report this script wrote on RAN is dated by the carrier; one it wrote on NOT-COLLECTED is not"
+  else
+    bad "cadence marker — the record's ran-marker and this script's RAN literal no longer meet" \
+        "ran: ${ran_cad:0:160} | not-collected: ${nc_cad:0:160}"
+  fi
+fi
+
+# ── 14 · the planning queue reads COLUMN-0 candidates, and a generated report holds none (#473) ────
+# The owner ruled that candidates queue in their reports and are ruled at /sprint-planning, which reads
+# them with the selector below. A report this script wrote must contain NO match (the printed template
+# is indented, so it is guidance and not an open candidate), and the same report with one real
+# column-0 candidate appended must match exactly TWO lines under the SAME selector: its `Candidate
+# rule:` line and its `Evidence:` line. Both counts use "$q_sel" — the before-count alone cannot tell a
+# real zero from a dead pattern, so the after-count is what calibrates it. That makes the "prints
+# nothing" zero published in commands/funnel-review.md a real zero, and it fails in both directions.
+# The selector is also asserted VERBATIM in both rites that publish it, so the string this arm
+# calibrates is the string a reader runs, and the three copies cannot drift apart in silence.
+q_sel='^(Candidate rule|Evidence|Ruled):'
+q_report="$work/queue-2000-02.md"
+printf '%s\n' "$ran_out" > "$q_report"
+q_before="$(grep -cE "$q_sel" "$q_report" || true)"
+printf 'Candidate rule: probe\nEvidence: figure: ga4 sessions 10 10\n' >> "$q_report"
+q_after="$(grep -cE "$q_sel" "$q_report" || true)"
+if printf '%s' "$ran_out" | grep -q 'until /sprint-planning' \
+   && [ "$q_before" = "0" ] && [ "$q_after" = "2" ]; then
+  ok "candidate queue — a generated report holds no column-0 candidate, the published selector finds an appended one's two lines, and the report names /sprint-planning"
+else
+  bad "candidate queue — the template reads as an open candidate, the selector is dead, or the queue is unnamed" \
+      "before=$q_before after=$q_after (expected 0 and 2)"
+fi
+q_pub="grep -nE '$q_sel' docs/funnel-review/*.md"
+q_missing=""
+for q_doc in "$ROOT/commands/funnel-review.md" "$ROOT/commands/sprint-planning.md"; do
+  grep -qF -- "$q_pub" "$q_doc" 2>/dev/null || q_missing="$q_missing ${q_doc#"$ROOT"/}"
+done
+if [ -z "$q_missing" ]; then
+  ok "candidate queue — the selector this arm calibrates is published verbatim in both rites"
+else
+  bad "candidate queue — a rite no longer publishes the calibrated selector verbatim" "missing in:$q_missing"
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
