@@ -162,8 +162,16 @@ The artifact is honest; the dispatch was wasted, and the human learns about it o
   and a different existence — on each agent harness. A check written in one harness's vocabulary is
   a check that silently does not exist on the next one. Where a host's route is unmeasured, say
   *unmeasured* and treat it as unreachable.
-- **When it is unreachable, ask for an action, not a decision:** one line — connect the route, or
-  reply *skip*, or hand over the numbers yourself. A skip is **recorded in one line with its reason**,
+- ~~**When it is unreachable, ask for an action, not a decision:** one line — connect the route, or
+  reply *skip*, or hand over the numbers yourself.~~ **Struck: three different acts, and a second one
+  you would defend, make this a decision and not an action.** *Skip* trades a period's reading for no
+  wait. A line that offers alternatives while calling itself an order makes the human rebuild a choice
+  he was told was already made. **When it is unreachable, ask one question with a picker, not prose.**
+  Offer three options: *connect* (the rite continues), *skip* (no reading and no baseline for that
+  period), *I fill the numbers* (no browser in the loop at all). Each option states its own
+  consequence, and nothing precedes them. Where the host has no picker (a headless run, for
+  instance), say that the rule cannot be obeyed there rather than falling back to numbered prose.
+  A skip is **recorded in one line with its reason**,
   never left as an absent file. And *"the human fills the collection file"* is a first-class route:
   it needs no browser in the loop at all, and the analysis half runs on it unchanged.
 - **The check proves reachability for the context that ran it, not for anything it dispatches.**

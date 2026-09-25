@@ -173,13 +173,36 @@ Chrome"* is one host's name for it; it does not exist on the other.
 fallback: it holds no authenticated session to any analytics or post-metrics surface (the sprint-04
 record says so in its own reason), and it has not completed a sweep of any kind (#525).
 
-**If the route is not reachable, send the owner ONE line — an ACTION, not a menu:**
+~~**If the route is not reachable, send the owner ONE line — an ACTION, not a menu:**~~
 
-```
-Connect <the route above> on <host> for /funnel-review <period> — or reply "skip", or fill docs/funnel-review/collected/<period>.tsv yourself.
-```
+~~`Connect <the route above> on <host> for /funnel-review <period> — or reply "skip", or fill docs/funnel-review/collected/<period>.tsv yourself.`~~
 
-- **`skip`** — record it in **one line**: the collection file is
+**Struck 2026-09-25: this is a DECISION, and the struck line called it an action.** It offers three
+different acts, and a second one is clearly defensible: `skip` trades a period's reading for no wait.
+By `CLAUDE.md`'s HITL escalation format, rule 4, that makes it a decision. Rule 3 then requires a
+picker, not options numbered or listed in prose. The struck wording came from the retrospective
+proposal the owner incorporated (*"one ACTION line: connect, or skip"*). The agents-lead lens on
+PR #528 found that it contradicts his own escalation rules. `CLAUDE.md` is where those rules bind the
+context that asks, so it wins. The struck line stays visible, even though it never reached `main`.
+The lens marker on PR #528 quotes it, and the retrospective proposal still carries the wording, so a
+reader coming from either should find it here and see why it changed.
+
+**If the route is not reachable, ask the owner ONE question, as a picker with these three options.
+Each option states its consequence, and that consequence is the whole preamble:**
+
+| option | its consequence, stated in the option |
+|---|---|
+| **Connect** `<the route above>` on `<host>` | the check runs again once he says it is connected, and the rite continues to step 1 on this host |
+| **Skip** `<period>` | one `collected: no skipped by the owner` line is written, step 2 prints the not-collected report, and that period has no reading and no baseline |
+| **I fill** `collected/<period>.tsv` | no browser is involved. His file runs step 2 unchanged, and he types the figures himself |
+
+- **One question, three options: rule 1 and a ceiling of four.** The question is the whole
+  activation. The host and the route go into the option labels, not into a paragraph before them.
+- **Bounded exactly as rule 3 is.** A picker is absent from a headless session, and there the model
+  falls back silently to the prose numbering this forbids. This step addresses the context that holds
+  the browser route, which today is an interactive session. A headless run of this rite would break
+  the rule, and nothing would say so.
+- **`Skip`** — record it in **one line**: the collection file is
   `collected: no skipped by the owner on <date>: <route> not reachable on <host>`, and step 2 turns it
   into the not-collected report. **A skip is a result with a reason; an absent file is not.**
 - **He fills the collection file himself** — the owner's alternative, and it needs no browser in the
