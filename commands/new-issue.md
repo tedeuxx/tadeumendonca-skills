@@ -204,7 +204,9 @@ check it or labelled a hypothesis**, and a mitigation or the price of accepting 
 - **`agents-lead` may be the record's author.** A `loop` decision significant enough to record is its ADR
   to write (#223), and that file rides in the implementing MR, not here.
 - **It gates nothing and files nothing.** It holds no merge, opens no Issue, and its return is advice the
-  owner acts on — which is why the `ready` transition below is his alone on this lane.
+  owner acts on — ~~which is why the `ready` transition below is his alone on this lane~~ — **struck
+  2026-09-25 (#512, owner ruling *«Eu, após alinhar»*): which is why the decision is his on this lane;
+  the main session applies the `ready` label once aligned with him, and no dispatch applies it.**
 - **Filing a `loop` Issue does NOT reserve it a branch.** The iteration's `loop` block may be composed as
   one batch — one branch, one MR, commits separated per issue — per `/agents-configuration`'s *The `loop`
   block MAY be carried as one branch and one MR*. It is a **permission the owner exercises at planning**,

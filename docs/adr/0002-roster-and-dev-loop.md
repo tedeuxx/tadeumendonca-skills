@@ -3747,8 +3747,9 @@ the same or a later dispatch move that Issue to `ready` and start building witho
 the artifact. `product`-typed `ready` is unchanged — the two leads, per the routing record above.
 
 **Corollary 5 (record 0015) — harness proposals enter the tracker as real Issues**, `loop`-typed and
-carrying the verdict marker. This is forced by Corollary 4, not an independent decision: an owner-only
-`ready` gate has nothing to attach to without an Issue to hold the label. **Who files is unchanged** —
+carrying the verdict marker. This is forced by Corollary 4, not an independent decision: ~~an owner-only
+`ready` gate~~ a `ready` gate the owner decides (since 2026-09-25, #512, the main session applies the
+label once aligned with him; no dispatch does) has nothing to attach to without an Issue to hold the label. **Who files is unchanged** —
 `agents-lead` stays denied `gh issue create`, so the orchestrator files it, asked, per *Review does not
 open work*. Nothing about *only the owner opens work* is loosened.
 
@@ -5420,7 +5421,7 @@ collapses whitespace first, because several sites wrap mid-phrase and a line-ori
 ```
 git ls-files -z -- . ':!powers' ':!docs/planning' ':!docs/retrospective' | xargs -0 python3 -c '
 import re, sys
-p = re.compile(r"owner.?s? transition alone|hi[s] transition alone|transition is the owner.?s alone|only (the owner|he) (applies|can apply)|label only h[e]|owner-only (label )?transition|the owner applies .?ready|transition he already perfor[m]s", re.I)
+p = re.compile(r"owner.?s? transition alone|hi[s] transition alone|transition is the owner.?s alone|only (the owner|he) (applies|can apply)|label only h[e]|owner-only (label )?transition|the owner applies .?ready|transition he already perfor[m]s|transition[^.]{0,20}(is )?(hi[s]|the owner.?s) alone", re.I)
 for f in sys.argv[1:]:
     try: b = re.sub(r"\s+", " ", open(f, encoding="utf-8").read())
     except Exception: continue
@@ -5429,11 +5430,20 @@ for f in sys.argv[1:]:
 ```
 
 **At this amendment's head every hit sits inside a struck `~~…~~` span (twelve characters of left context show the opening
-marker for most; `README.md`'s and `docs/blueprint-registry.md`'s spans open earlier in the sentence) or
-is past tense** — the
+marker for most; `README.md`'s, `docs/blueprint-registry.md`'s and `commands/new-issue.md`'s spans open
+earlier in the sentence) or is past tense** — the
 two narrative sites of the 2026-08-24 iteration amendment say he *applied* the label himself then, which
 remains true, and now read *"was then his transition alone"*. A hit that is neither is this claim going
-false. (Three alternatives carry a bracketed letter so the command does not match its own text here.)
+false. (Four alternatives carry a bracketed letter so the command does not match its own text here.)
+
+**The selector was WIDENED after this amendment first landed, because it missed a live site.** Its
+alternatives were all word-order-fixed, so the *It gates nothing and files nothing* bullet of
+`commands/new-issue.md` — which still gave the owner sole hold of the `ready` step, unstruck and false —
+matched none of them and the published claim above read as satisfied while it was not; the lens found it by reading, not the command. The last alternative
+(`transition[^.]{0,20}(is )?(hi[s]|the owner.?s) alone`) catches that order and its neighbours; the site
+is now struck in place. **Read the widened selector as a better lower bound, not a complete one** — a
+paraphrase that avoids the word *transition* (*"only he may label it"*) still passes, and nothing but
+review catches that.
 
 **The artifact that records it moves too, and this is the part to keep.** Before, the label's author was
 the evidence of his decision. Now the label is applied by the main session, so the evidence is **his
