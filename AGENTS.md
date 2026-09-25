@@ -179,6 +179,18 @@ chain — is `skills/agents-configuration/SKILL.md`. The portable engineering ju
 judges it against the item's own requirements and against whether it can break production. Nothing
 auto-merges.
 
+**Every dispatch is a fresh instance, and no instance is reused.** When you hand work to a profile,
+start a new instance of it for that one dispatch. Never carry an instance from one issue to the next,
+and never carry the instance that built a change into reviewing it — the review is its own dispatch,
+started fresh. Proposing a change and building it are separate dispatches too. **This is about
+instances, not profiles:** the agents lead may still both build a `loop` item and review it, which is
+an accepted decision in `docs/adr/0002-roster-and-dev-loop.md` (record 0015, mitigated by that profile
+never merging), and this rule does not reverse it — it requires the two acts to run in two contexts.
+The reason is what a verdict attests: the diff the reviewing context actually holds. An instance
+carried across several issues, or whose earlier history has been summarised or truncated to fit, may
+no longer hold the diff it signs, and its verdict reads the same either way. Nothing observes which
+instance ran a dispatch; this is held by whoever dispatches and by review.
+
 ## Versioning and distribution
 
 Numeric SemVer, `MAJOR.MINOR.PATCH`, no pre-release suffix. `VERSION` at the repository root is the
