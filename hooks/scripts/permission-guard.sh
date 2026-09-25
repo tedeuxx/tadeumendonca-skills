@@ -563,6 +563,11 @@ cmd="$(printf '%s' "$command" | tr '\n\t' '  ')"
 # THREE PASSES, for `bash -c "bash -c '…'"`. Bounded rather than `while`, because a hook that can loop
 # on adversarial input is a wedged agent; three is past any real nesting and terminates unconditionally.
 unwrap_scan="$cmd"
+# #531: every payload is ALSO collected on its own, `;`-separated, for rule 3b's argv classifier. That
+# rule reads a NEWLINE-AWARE view cut from the original `$command` rather than `$bare` (see 3b), and
+# the original does not contain the unwrapped payloads — so without this list a `bash -c '<push>'`
+# would be invisible to the classifier. Collecting is additive: nothing here changes `$cmd`.
+unwrap_all=""
 # ~~#497: each unwrapped payload is ALSO kept on its own, for rule 8's substitution scanner.~~ ~~#497
 # round 2: the views are cut from a PARALLEL copy of the same text with every backslash-NEWLINE
 # removed first~~ — STRUCK (#497 round 3). Both forms cut the views out of the FLATTENED text, where
@@ -599,6 +604,7 @@ for _ in 1 2 3; do
   unwrap_payload="$(printf '%s' "$unwrap_payload" | sed -E -e 's/^\$//' -e "s/^'(.*)'\$/\\1/; s/^\"(.*)\"\$/\\1/")"
   [ -z "$unwrap_payload" ] && break
   cmd="$cmd $unwrap_payload"
+  unwrap_all="$unwrap_all ; $unwrap_payload"
   unwrap_scan="$unwrap_payload"
 done
 
@@ -1048,6 +1054,14 @@ fi
 #    than for an `ask`. A hook `deny` is also final — it is decided BEFORE the permission system and
 #    is never softened by an `allow` beneath it — so unlike an `ask`, this verdict does not depend on
 #    the session's mode.
+#
+#    **#531 WIDENED THE SAME PREMISE, AND IT IS WORSE THAN ONE SPELLING.** The static layers cannot
+#    express `--force-with-lease=<ref>` either (the `=` fuses the value into the flag's token, so
+#    `Bash(git push --force-with-lease:*)` never matches it), nor `+<branch>`, nor `-fu`, nor
+#    `git -c remote.<r>.push=+… push`. And this rule's own regex missed all four, so for those
+#    spellings NO layer spoke. 3b is now an argv allowlist that denies what it cannot classify; the
+#    grammar, the rejected regex-widening option and the persistent-config residual are at 3b's
+#    executable block, below rule 7.
 #
 #    ── WHERE 3b's EXECUTABLE BLOCK LIVES, AND WHY IT IS NOT HERE ────────────────────────────────────
 #    **3b's `if` is BELOW rule 7, not here, and that position is KEPT — but what it buys CHANGED with
@@ -2158,6 +2172,17 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
   if printf '%s' "$bare" | grep -Eq '[[:space:]]\+?([^[:space:]:]+:)?(refs/heads/)?(main|master)([[:space:];&|)}]|$)'; then
     deny "Blocked: pushing to the trunk. Merging to main is the deploy and the human's go/no-go — it is never an agent action. Push your feature branch and open a PR."
   fi
+  # DELETION OF THE TRUNK (#531). An empty-source refspec — `:main`, `:refs/heads/main` — DELETES the
+  # remote ref. The limb above cannot see it: its optional `<src>:` group needs at least one non-colon
+  # character before the colon, so a bare leading `:` fell through, and no settings entry is a prefix
+  # of `git push origin :main` either. Measured at 162916b6: `git push origin :main` and
+  # `git push origin :refs/heads/main` drew NO DECISION from any layer, as orchestrator and as a
+  # subagent alike. It is a separate `if` rather than a `:|` inside the limb above so that removing it
+  # is one well-defined mutation, and `permission-guard.test.sh` pins that removing it reddens.
+  # `--delete main` / `-d main` never needed this: the limb above already matches the bare `main`.
+  if printf '%s' "$bare" | grep -Eq '[[:space:]]:(refs/heads/)?(main|master)([[:space:];&|)}]|$)'; then
+    deny "Blocked: pushing to the trunk — an empty-source refspec (':main', ':refs/heads/main') DELETES the remote trunk, and merging to main is the deploy and the human's go/no-go. Never delete the trunk from an agent. If you meant to delete a feature branch, name that branch (':feat/x', or 'git push origin --delete feat/x'); otherwise push your feature branch and open a PR."
+  fi
   # --all / --mirror sweep every ref, trunk included.
   if printf '%s' "$bare" | grep -Eq '[[:space:]](--all|--mirror)([[:space:];&|)}]|$)'; then
     deny "Blocked: 'git push --all/--mirror' pushes every ref, the trunk included. Push one named branch instead."
@@ -2344,6 +2369,182 @@ fi
 #     ordering is kept, the verdict-only arms can no longer see it, and `check_reason` arms are what
 #     pin it now. Moving this block back above rule 7 no longer opens a hole; it silently swaps the
 #     advice the caller gets, which is why it is still asserted rather than left to habit.
+#
+#     ── #531: THE REGEX DID NOT IMPLEMENT THE DECISION, SO 3b IS NOW AN ARGV ALLOWLIST ────────────────
+#     #383's decision (force-push stays at deny) was intact; the regex below simply did not implement
+#     it. It matched `--force`, `--force-with-lease` and `-f` only as WHOLE tokens, so each of these
+#     drew NO DECISION at 162916b6, as orchestrator and as subagent — and a builder executed the first
+#     one on a feature branch on 2026-09-25 with no prompt:
+#
+#       git push --force-with-lease=<ref>[:<sha>] …   (before or after the refspec, and behind -C)
+#       git push origin +<branch> · +HEAD:<branch> · +refs/heads/<x>
+#       git push -fu … · git push -uf …
+#       git -c remote.<r>.push=+… push <r>
+#
+#     OPTION A (widen the regex) WAS REJECTED ON THE SAME GROUND #441 REJECTED IT FOR THE MERGE REF:
+#     it is a fifth spelling added to an enumeration that had four and missed four. The class is not
+#     "these flags"; it is "anything that makes a push non-fast-forward", and git's argv has more ways
+#     to say that than anyone listed — a `+` on any refspec, a force letter in any short cluster, a
+#     config key set inline, a glob. So this rule inverts the question: it RECOGNISES the pushes this
+#     loop actually makes and refuses everything else as "cannot classify". A seventh spelling nobody
+#     has thought of lands on DENY by construction rather than on ALLOW by omission, and the error
+#     runs toward a visible over-block — the direction this floor's own standing rule prefers, because
+#     a refused push costs one re-typed command and a forced one can cost someone else's commits.
+#
+#     THE ACCEPTED GRAMMAR, per `git … push` invocation (anything else on that invocation denies):
+#       before `push`: -C <dir> · --git-dir[=]<d> · --work-tree[=]<d> · --namespace[=]<n> and the
+#         no-argument globals (--no-pager, -p/-P, --bare, the *-pathspecs flags, …). `-c`/`--config-env`
+#         is DENIED on a push, with its own reason: an inline config can force (remote.<r>.push=+…) or
+#         widen the push to every branch, trunk included (push.default=matching, a glob push refspec),
+#         and none of that is visible in the refspec. An UNRECOGNISED global before `push` denies too.
+#       after `push`: -u/--set-upstream · -q/--quiet · -v/--verbose · -n/--dry-run · -d/--delete and
+#         short clusters of only those letters · -o/--push-option <v> · `--` · and `--atomic` and
+#         `--no-follow-tags`, admitted because rule 7's #487 arms already pin both as pushes that must
+#         pass (neither forces nor widens); then ONE remote (a name,
+#         path or URL) and plain refspecs `<ref>`, `<src>:<dst>` or `:<dst>` (a feature-branch delete —
+#         kept allowed by the orchestrator's scope call on #531; trunk deletion is rule 7's limb above).
+#         Refnames are `[A-Za-z0-9._/@~^-]`: no leading `+`, no `*`, no quote, no `$`, no backslash.
+#       and shell redirections that create no file (`2>&1`, `>/dev/null`, …) are skipped.
+#     A force letter or a `+` refspec denies with the FORCE reason below; everything else unrecognised
+#     denies with the "cannot classify" reason, which names the token and lists the grammar.
+#
+#     THE SURFACE IS NOT `$bare`, AND WHY. `$bare` is flattened, so a newline between a push and the
+#     next command is a blank, and the next line's tokens would read as push arguments — `git push
+#     origin x` on one line and `gh pr create --title "t"` on the next would deny on `--title`. The
+#     view below is cut from the ORIGINAL `$command` with its newlines kept as separators and quoted
+#     spans collapsed by the same expression `$bare` uses (a newline INSIDE a quoted span is not a
+#     separator and collapses with it); the `bash -c` payloads the unwrap step found are appended.
+#
+#     THE 162916b6 REGEX IS KEPT, UNCHANGED, BELOW THE CLASSIFIER — and that is a floor property, not
+#     nostalgia. It reads raw `$cmd`, so it still denies what the classifier's quote-collapsed view
+#     cannot see (`ssh <host> 'git push --force …'`, and the pinned KNOWN-DEFECT commit-message arm).
+#     Keeping it means this slice adds no path from DENY to ALLOW: every payload the old rule denied,
+#     the old rule still denies. Removing it is its own decision, with its own probe battery.
+#
+#     ── WHAT THIS STILL DOES NOT SEE — THE PERSISTENT-CONFIG RESIDUAL (#531, named, not closed) ──────
+#     A push is only as readable as its command string, and three routes make a forcing push
+#     CHARACTER-IDENTICAL to a safe one:
+#       · PERSISTENT PUSH CONFIG — `git config remote.<r>.push +refs/heads/*:refs/heads/*`, a
+#         `push.default=matching`, or a `remote.<r>.mirror=true` set once makes a later plain
+#         `git push <r>` force or sweep the trunk. The same config written into `.git/config` through
+#         the Edit/Write tools reaches no `Bash` hook at all.
+#       · ALIASES AND WRAPPERS — `git config alias.pf 'push --force'` then `git pf`, a shell function or
+#         alias, or a script invoked by path: this hook sees the name, not the act.
+#       · OTHER TOOLS THAT MOVE A REMOTE REF — `gh repo sync --force`, `git send-pack --force`, and any
+#         interpreter (`python3 -c`, `perl -e`) the unwrap step does not parse.
+#     No wording of a string-reading rule closes any of these; the classifier narrows the class to
+#     what a command string can show, and says so here rather than claiming the class.
+push_class=""
+push_token=""
+push_view=""
+case "$command $unwrap_all" in
+  *push*)
+    pv_rs="$(printf '\036')"
+    # Original command, tabs to blanks, newlines to RS, backslash-newline joined, quoted spans
+    # collapsed exactly as `$bare` collapses them, then RS to a `;` separator.
+    push_view="$(printf '%s' "$command" | tr '\t' ' ' | tr '\n' '\036' \
+      | sed -E -e "s/\\\\${pv_rs}/ /g" \
+               -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g' \
+      | tr '\036' ';')"
+    if [ -n "$unwrap_all" ]; then
+      push_view="$push_view ; $(printf '%s' "$unwrap_all" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g')"
+    fi
+    # Separators become a spaced `;`. `&&`, `||` and `|&` first, then a lone `|`, then `;` and the
+    # grouping characters `(` `)` `{` `}` (so `{ git push --force; }` and a stray `--force}` still end
+    # the flag at the brace, as the 162916b6 regex's trailing class did), then a BACKGROUND `&` — only a blank-delimited one, so `2>&1` and `&>/dev/null` survive intact.
+    push_view="$(printf '%s' "$push_view" \
+      | sed -E -e 's/&&/ ; /g' -e 's/\|\|/ ; /g' -e 's/\|&/ ; /g' -e 's/\|/ ; /g' \
+               -e 's/;/ ; /g' -e 's/[(){}]/ ; /g' \
+               -e 's/(^|[[:space:]])&([[:space:]]|$)/\1 ; \2/g')"
+    ;;
+esac
+if [ -n "$push_view" ]; then
+  pv_state="scan"; pv_gunknown=0; pv_gcfg=0; pv_remote=0; pv_endopts=0
+  case "$-" in *f*) pv_noglob=1 ;; *) pv_noglob=0 ;; esac
+  set -f
+  for pv_tok in $push_view; do
+    [ -n "$push_class" ] && break
+    case "$pv_state" in
+      scan)
+        case "$pv_tok" in
+          git|*/git) pv_state="gopt"; pv_gunknown=0; pv_gcfg=0 ;;
+        esac ;;
+      garg)
+        if [ "$pv_tok" = ";" ]; then pv_state="scan"; else pv_state="gopt"; fi ;;
+      skip)
+        [ "$pv_tok" = ";" ] && pv_state="scan" ;;
+      gopt)
+        case "$pv_tok" in
+          ";") pv_state="scan" ;;
+          -C|--git-dir|--work-tree|--namespace|--super-prefix) pv_state="garg" ;;
+          -c|--config-env) pv_gcfg=1; pv_state="garg" ;;
+          --config-env=*) pv_gcfg=1 ;;
+          --git-dir=*|--work-tree=*|--namespace=*|--super-prefix=*|--exec-path=*) ;;
+          -p|-P|--paginate|--no-pager|--bare|--no-replace-objects|--literal-pathspecs|--glob-pathspecs|--noglob-pathspecs|--icase-pathspecs|--no-optional-locks|--no-advice|--no-lazy-fetch) ;;
+          -*) pv_gunknown=1 ;;
+          push)
+            if [ "$pv_gunknown" = 1 ]; then
+              push_class="unknown"; push_token="an unrecognised git option before 'push'"
+            elif [ "$pv_gcfg" = 1 ]; then
+              push_class="config"
+            else
+              pv_state="pargs"; pv_remote=0; pv_endopts=0
+            fi ;;
+          *)
+            # A non-push subcommand ends this invocation's interest — unless an unrecognised global
+            # came first, in which case this word may be that option's ARGUMENT and the real
+            # subcommand is later. Keep reading: a later `push` then denies as unclassifiable.
+            [ "$pv_gunknown" = 1 ] || pv_state="skip" ;;
+        esac ;;
+      poarg|predir)
+        if [ "$pv_tok" = ";" ]; then pv_state="scan"; else pv_state="pargs"; fi ;;
+      pargs)
+        case "$pv_tok" in
+          ";") pv_state="scan"; continue ;;
+          [0-9]\>\&[0-9]|\>\&[0-9]|[0-9]\>\&-|\>\&-|\>/dev/null|\>\>/dev/null|[0-9]\>/dev/null|[0-9]\>\>/dev/null|\&\>/dev/null|\&\>\>/dev/null) continue ;;
+          \>|\>\>|[0-9]\>|[0-9]\>\>|\&\>|\&\>\>) pv_state="predir"; continue ;;
+          +*) push_class="force"; push_token="$pv_tok"; continue ;;
+        esac
+        if [ "$pv_endopts" = 0 ]; then
+          case "$pv_tok" in
+            --) pv_endopts=1; continue ;;
+            --force|--force=*|--force-with-lease|--force-with-lease=*) push_class="force"; push_token="$pv_tok"; continue ;;
+            -u|--set-upstream|-q|--quiet|-v|--verbose|-n|--dry-run|-d|--delete|--push-option=*|--atomic|--no-follow-tags) continue ;;
+            -o|--push-option) pv_state="poarg"; continue ;;
+            --*) push_class="unknown"; push_token="$pv_tok"; continue ;;
+            -*f*) push_class="force"; push_token="$pv_tok"; continue ;;
+            -o?*) continue ;;
+            -*)
+              case "$pv_tok" in
+                -*[!uqvnd]*) push_class="unknown"; push_token="$pv_tok" ;;
+              esac
+              continue ;;
+          esac
+        fi
+        if [ "$pv_remote" = 0 ]; then
+          case "$pv_tok" in
+            :*|-*|*[!A-Za-z0-9._/@:~%=-]*) push_class="unknown"; push_token="$pv_tok" ;;
+            *) pv_remote=1 ;;
+          esac
+        else
+          case "$pv_tok" in
+            :) push_class="unknown"; push_token="$pv_tok" ;;
+            *[!A-Za-z0-9._/@~^:-]*|*:*:*|-*|*:-*) push_class="unknown"; push_token="$pv_tok" ;;
+          esac
+        fi ;;
+    esac
+  done
+  [ "$pv_noglob" = 1 ] || set +f
+fi
+case "$push_class" in
+  force)
+    deny "Blocked: force-push rewrites a ref that others may already have pulled ('$push_token' makes this push non-fast-forward). Every forcing spelling is refused alike: --force, --force-with-lease with or without '=<ref>[:<sha>]', a short flag cluster containing f (-f, -fu, -uf), and a '+'-prefixed refspec (+branch, +HEAD:branch, +refs/heads/x). It was briefly an 'ask' (#383 S3) on the argument that it is REPARABLE — the pre-push tip survives in your reflog and in the remote's unreachable objects — and that argument is still true. What failed is the remedy: a hook 'ask' is answered automatically in this harness's auto mode, so the downgrade produced silent execution rather than a prompt. Use instead: push to a NEW branch name, or rebase onto the remote tip and push without force. If the remote branch genuinely must be replaced, that is the human's own act." ;;
+  config)
+    deny "Blocked: a '-c'/'--config-env' on a 'git push' can change what the push does without showing it in the refspec — remote.<r>.push=+… forces, and push.default=matching or a glob push refspec pushes every branch, the trunk included. Rule 3b refuses any inline config on a push rather than parse config keys. Use instead: drop the -c and name the branch on the push itself, e.g. 'git -C <dir> push -u origin <branch>'. If the config is genuinely needed, the push is the human's act." ;;
+  unknown)
+    deny "Blocked: this 'git push' carries something rule 3b cannot classify ($push_token), and a push it cannot classify is refused rather than guessed — a force can hide in a spelling nobody enumerated (#531). Accepted: 'git [-C <dir>] push' with -u/--set-upstream, -q, -v, -n/--dry-run, -d/--delete, -o/--push-option <v>; then one remote and plain refspecs (<branch>, <src>:<dst>, or :<branch> to delete a feature branch) written as unquoted tokens with no '+', '*', quote, '\$' or backslash. Use instead: rewrite the push with only those tokens, e.g. 'git -C <dir> push -u origin <branch>'. If you need a flag outside that set, it is the human's act." ;;
+esac
+# THE 162916b6 REGEX, KEPT VERBATIM as the raw-`$cmd` backstop described above.
 if printf '%s' "$cmd" | grep -Eq 'git[[:space:]].*push([[:space:]].*)?([[:space:]](--force|--force-with-lease|-f)([[:space:];&|)}]|$))'; then
   deny "Blocked: force-push rewrites a ref that others may already have pulled. It was briefly an 'ask' (#383 S3) on the argument that it is REPARABLE — the pre-push tip survives in your reflog and in the remote's unreachable objects — and that argument is still true. What failed is the remedy: a hook 'ask' is answered automatically in this harness's auto mode, measured in the owner's own session, so the downgrade produced silent execution rather than a prompt. Until an auto mode exists that excludes hook 'ask', a reparable-but-serious act has no rung between deny and nothing. Use a safe alternative: push a new branch, or rebase-then-push without --force. If the force-push is genuinely right, it is the human's own act."
 fi

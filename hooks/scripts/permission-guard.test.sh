@@ -1712,7 +1712,15 @@ echo "--- ANSI-C escape decoding is NOT covered, and these are the witnesses ---
 # never reads that file.
 check ALLOW "hex escape hides the MERGE GATE"  "bash -c \$'gh pr \\x6derge 145 --merge'"
 check ALLOW "hex escape hides rm -rf"          "bash -c \$'r\\x6d -rf /x'"
-check ALLOW "hex escape hides the trunk push"  "bash -c \$'git -C $FEAT push origin \\x6dain'"
+# ~~check ALLOW "hex escape hides the trunk push" …~~ — THE TRIPWIRE FIRED AT #531, AND IT FIRED FOR
+# THE REASON IT EXISTS: a widening of what reads a `git push` showed up as an arm someone had to look
+# at. It is FLIPPED, and what it now asserts is narrow on purpose. Rule 3b became an argv allowlist
+# and refuses any push token it cannot classify; `\x6dain` carries a backslash, so the push is denied
+# as UNCLASSIFIABLE. **Nothing decodes the escape** — the classifier never learns that `\x6dain` is
+# `main`, which is why the needle is 3b's "cannot classify" and NOT rule 7's trunk reason. The class
+# is still open one token over: an escape in the VERB (`pu\x73h`) is not a push to the classifier and
+# the other four witnesses below are untouched by #531.
+check_reason DENY "hex-escaped push token: 3b cannot classify it (not decoded)" "cannot classify" "bash -c \$'git -C $FEAT push origin \\x6dain'"
 # `\x6d` is not the last spelling, which is the whole reason the class came out of the floor rather
 # than out of the regex. Octal and plain concatenation need no escape decoding at all.
 check ALLOW "octal escape, same class"         "bash -c \$'gh pr \\155erge 145 --merge'"
@@ -1990,6 +1998,81 @@ check_from DENY "$TFEAT" "3b keeps: 'maintenance' is not 'main'" "git push origi
 # rewriting a pushed ref. Both are correct advice for their own act and wrong for the other's.
 check_reason DENY "7 answers the TRUNK force-push"     "pushing to the trunk" "git -C /some/repo push --force origin main"
 check_from_reason DENY "$TFEAT" "3b answers the NON-TRUNK force-push" "force-push" "git push origin feature-x --force"
+
+echo "--- #531: every forcing spelling the 162916b6 regex missed, one arm each ---"
+# EACH OF THESE DREW NO DECISION AT 162916b6, as orchestrator and as subagent (measured with PreToolUse
+# payloads before this slice's first edit), and the first one EXECUTED with no prompt on 2026-09-25.
+# Every arm asserts the REASON, from `$TFEAT` or behind an unresolvable `-C`, so rule 7's HEAD limb
+# cannot answer in 3b's place — the #453 lesson, applied from the start rather than after a red.
+#
+# CALIBRATION (reproduce it; do not trust these numbers):
+#   replant the 162916b6 3b block (delete the #531 classifier and its `case "$push_class"`, keep the
+#   legacy regex)            -> every arm in this block that asserts DENY via 3b reddens
+#   delete rule 7's `:main` limb                -> the two `:main`/`:refs/heads/main` arms redden
+#   restored                                    -> 0 failed
+# Measured at #531's build head, on a copy of the WHOLE worktree with the guard mutated and this
+# suite untouched: control 944 passed / 0 failed · replant 923 / 21 (all 21 are this slice's 3b DENY
+# arms, the hex witness above among them) · limb removed 940 / 4 (the four `:main` arms). The figures
+# move as the suite grows; the arm NAMES are the claim. COPY THE WHOLE TREE, NOT `hooks/scripts/`:
+# a directory-only copy fails 33 PARITY/CLAUDE-SHAPE arms in the unmutated control, because they
+# read `agents/` and `scripts/` relative to the root — the harness failing, not the guard.
+check_from_reason DENY "$TFEAT" "531/3b: --force-with-lease=x"                 "force-push rewrites" "git push --force-with-lease=x origin feat/x"
+check_from_reason DENY "$TFEAT" "531/3b: --force-with-lease=x:sha"             "force-push rewrites" "git push --force-with-lease=x:0123abc origin feat/x"
+check_from_reason DENY "$TFEAT" "531/3b: --force-with-lease=x AFTER the ref"   "force-push rewrites" "git push origin feat/x --force-with-lease=x"
+check_from_reason DENY "$TFEAT" "531/3b: --force-with-lease=x:sha AFTER the ref" "force-push rewrites" "git push origin feat/x --force-with-lease=x:0123abc"
+check_reason      DENY          "531/3b: -C <d> push --force-with-lease=x"      "force-push rewrites" "git -C /some/d push --force-with-lease=x origin feat/x"
+check_from_reason DENY "$TFEAT" "531/3b: +branch"                              "force-push rewrites" "git push origin +feat/x"
+check_from_reason DENY "$TFEAT" "531/3b: +HEAD:branch"                         "force-push rewrites" "git push origin +HEAD:feat/x"
+check_from_reason DENY "$TFEAT" "531/3b: +refs/heads/x"                        "force-push rewrites" "git push origin +refs/heads/x"
+check_from_reason DENY "$TFEAT" "531/3b: -fu"                                  "force-push rewrites" "git push -fu origin feat/x"
+check_from_reason DENY "$TFEAT" "531/3b: -uf"                                  "force-push rewrites" "git push -uf origin feat/x"
+check_from_reason DENY "$TFEAT" "531/3b: -c remote.o.push=+…"                  "'-c'/'--config-env'" "git -c remote.o.push=+refs/heads/feat/x:refs/heads/feat/x push o"
+# Caller-blind, like rule 7: the same spelling as the orchestrator (empty agent_type) and as a subagent.
+check_agent       DENY ""                                  "531/3b: orchestrator, --force-with-lease=x"   "git -C /some/d push --force-with-lease=x origin feat/x"
+check_agent       DENY "tadeumendonca-skills:developer"    "531/3b: subagent, --force-with-lease=x"       "git -C /some/d push --force-with-lease=x origin feat/x"
+check_agent       DENY "tadeumendonca-skills:agents-lead"  "531/3b: subagent, +branch behind -C"          "git -C /some/d push origin +feat/x"
+# Inside a wrapper: the classifier reads the unwrapped payload too.
+check_reason      DENY          "531/3b: bash -c wraps --force-with-lease=x"    "force-push rewrites" "bash -c 'git -C /some/d push --force-with-lease=x origin feat/x'"
+
+echo "--- #531: adjacent spellings the allowlist refuses as UNCLASSIFIABLE — two of them trunk holes ---"
+# Measured at 162916b6 alongside the Issue's list, and both drew no decision: a glob refspec that
+# includes the trunk, and an inline push.default=matching. Neither is a force; both can land on main.
+# Option B denies them by construction, which is the argument for B over widening the regex.
+check_from_reason DENY "$TFEAT" "531/3b: glob refspec (can sweep the trunk)"   "cannot classify"     "git push origin refs/heads/*:refs/heads/*"
+check_from_reason DENY "$TFEAT" "531/3b: -c push.default=matching"            "'-c'/'--config-env'" "git -c push.default=matching push"
+check_from_reason DENY "$TFEAT" "531/3b: --prune is not in the grammar"       "cannot classify"     "git push --prune origin feat/x"
+check_from_reason DENY "$TFEAT" "531/3b: a bare ':' pushes every matching ref" "cannot classify"     "git push origin :"
+
+echo "--- #531: rule 7 denies DELETING the trunk, with the trunk reason ---"
+check_from_reason DENY "$TFEAT" "531/r7: :main deletes the trunk"             "pushing to the trunk" "git push origin :main"
+check_from_reason DENY "$TFEAT" "531/r7: :refs/heads/main deletes the trunk"  "pushing to the trunk" "git push origin :refs/heads/main"
+check_agent       DENY "tadeumendonca-skills:developer" "531/r7: subagent, :main"                   "git -C /some/d push origin :main"
+check_agent       DENY ""                               "531/r7: orchestrator, :main"               "git -C /some/d push origin :main"
+
+echo "--- #531: the controls — ordinary pushes and a FEATURE-branch delete stay silent ---"
+# The ALLOW half is what keeps an allowlist honest: one that refuses the loop's own pushes is not a
+# fix. Feature-branch deletion stays allowed by the orchestrator's scope call on #531 (routine after
+# merge, and reparable); the owner may overrule it.
+check_from ALLOW "$TFEAT" "531/ctl: plain feature push"          "git push origin feat/x"
+check_from ALLOW "$TFEAT" "531/ctl: -u feature push"             "git push -u origin feat/x"
+check_from ALLOW "$TFEAT" "531/ctl: --dry-run"                   "git push --dry-run origin feat/x"
+check_from ALLOW "$TFEAT" "531/ctl: --delete a feature branch"   "git push origin --delete feat/x"
+check_from ALLOW "$TFEAT" "531/ctl: -d a feature branch"         "git push -d origin feat/x"
+check_from ALLOW "$TFEAT" "531/ctl: :feat/x deletes a feature"   "git push origin :feat/x"
+check_from ALLOW "$TFEAT" "531/ctl: the loop's own shape"        "git -C $TFEAT push -u origin loop/531-x"
+check_from ALLOW "$TFEAT" "531/ctl: add, commit, push"           "git add -A && git commit -m x && git push -u origin feat/x"
+check_from ALLOW "$TFEAT" "531/ctl: 2>&1 piped to tail"          "git push origin feat/x 2>&1 | tail -3"
+check_from ALLOW "$TFEAT" "531/ctl: -o push option"             "git push -o ci.skip origin feat/x"
+# A push followed on the NEXT LINE by another command: the classifier reads newlines as separators,
+# so the next line's flags are not push arguments. On a flattened view this arm would deny on --json.
+# Built through `check_agent` because `check_from`'s `jq -R` splits a multi-line command into two
+# payloads; `-C $TFEAT` keeps it hermetic instead of inheriting the runner's branch.
+check_agent ALLOW "" "531/ctl: next line is not a push arg" "git -C $TFEAT push origin feat/x
+gh pr view 1 --json title"
+# …and the calibration for it: the SAME two lines with a force flag on the second is still a deny,
+# because a newline is a separator, not a hiding place.
+check_agent DENY  "" "531/ctl: a force on the next line still denies" "git -C $TFEAT status
+git -C $TFEAT push -fu origin feat/x"
 
 # ── #453: the collision those nine arms were standing on, asserted instead of inherited ───────────
 #
