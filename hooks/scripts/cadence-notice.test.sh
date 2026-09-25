@@ -195,6 +195,13 @@ capture
 has   "marker — scaffolding and a not-collected report are not the rite's artifact" 'has NEVER landed a file carrying FUNNEL-REVIEW-RAN'
 has   "marker — the files that did not count are counted, not hidden"              '2 other tracked file(s)'
 hasnt "marker — the root is not reported as freshly written"                          'docs/funnel-review last written'
+# The NEVER branch must END the root's handling. Without its `continue`, the arm falls through to the
+# dating code with an empty file list. On bash >= 4.4, `git log --` with no pathspec dates the whole
+# repository, which adds a fresh "last landed … 0d ago". On bash 3.2 the empty array aborts the
+# substitution, and a second, spurious "NEVER been written" line appears. Each hasnt below catches one
+# of the two.
+hasnt "marker — a never-ran marked root is not ALSO dated"                            'last landed'
+hasnt "marker — a never-ran marked root does not ALSO report the no-marker NEVER line" 'NEVER been written'
 
 setup "cadence-interval-days:
 $MARKED" ''
@@ -222,6 +229,20 @@ commit_at docs/funnel-review/p1.md 'FUNNEL-REVIEW-RAN' 30
 commit_at docs/funnel-review/README.md 'the store' 1
 capture
 has   "marker — a fresh README no longer masks a 30d-stale rite against a 7d interval" 'CLOSING RITE IS OWED ON THE CLOCK — 30d'
+
+# THE FALL-THROUGH, MEASURED WHERE IT COSTS SOMETHING: a never-ran marked root beside a 30d-stale
+# unmarked root, 7d interval. The notice must still be OWED at 30d. A marked root that fell through
+# would date the repository's newest commit (the record, committed today). That date would feed
+# `newest` and silence the stale rite, which is the masking #473 exists to remove.
+setup "cadence-interval-days: 7
+cadence-rite: docs/retrospective /sprint-retrospective here
+$MARKED" 30
+commit_at docs/funnel-review/README.md 'the store' 1
+capture
+has   "marker — a never-ran marked root does not mask a 30d-stale unmarked one"      'CLOSING RITE IS OWED ON THE CLOCK — 30d'
+has   "marker — the never-ran marked root is still reported as never-ran"            'has NEVER landed a file carrying FUNNEL-REVIEW-RAN'
+hasnt "marker — beside a stale root, the never-ran one is not dated too"             'last landed'
+hasnt "marker — beside a stale root, no spurious no-marker NEVER line"              'docs/funnel-review has NEVER been written'
 
 setup "cadence-interval-days:
 $RITES" 3
