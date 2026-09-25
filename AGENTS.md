@@ -277,7 +277,8 @@ stated here — read them from `docs/loop-mode.md`.
     Ordering inside each block follows the mode of record. Eligible means in the pool that
     `docs/loop-mode.md` defines for the mode in force — read the predicate there, not a paraphrase of
     it; under `scrum` that pool holds only items in the active iteration's milestone. Every mode's pool
-    requires `ready`, so an item waiting on the owner is never in it and cannot stall the queue.
+    requires `ready`, so an item still awaiting `ready` is never in it. Neither predicate filters
+    `blocked`, so a `ready` item carrying `blocked` is still in the pool.
 16. **`content` is selected by the owner one piece at a time and is never drained autonomously.** When a
     `content` item is opened, its intake starts by interviewing him about what it must communicate,
     recorded in his words, one question at a time and without options (the escalation section's
