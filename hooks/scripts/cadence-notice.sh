@@ -156,8 +156,16 @@ lines_sibling=""
 
 while IFS= read -r rite; do
   [ -z "$rite" ] && continue
+  # The split is deliberately unquoted: it is how the line becomes positional tokens. Globbing is
+  # turned OFF around it. Otherwise a `*`, `?` or bracket class in a token (a ran-marker is the likely
+  # one) is replaced by filenames in whatever directory the hook happens to start in. Measured by the
+  # agents-lead lens on #473: a marker `RAN*`, with `RANDOM_FILE` in cwd, became the marker
+  # `RANDOM_FILE`. `set +f` afterwards is a restore, not a guess, because this script never enables
+  # `-f` anywhere else.
+  set -f
   # shellcheck disable=SC2086
   set -- $rite
+  set +f
   [ "$#" -ge 3 ] || continue
   r_path="$1"; r_cmd="$2"; r_where="$3"
 

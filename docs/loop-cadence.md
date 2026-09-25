@@ -86,6 +86,11 @@ already prints at column 0 on the branch where the surfaces were read, and **onl
 *ran and found nothing* still counts (its report carries the literal and a findings section saying
 none), and *never read anything* does not. That is the distinction #473's first shape item asks for.
 
+**A `*`, `?` or bracket class in any token is a plain character.** The hook splits each line unquoted
+and turns globbing off around the split. Before that, a marker `RAN*` became whatever filename in the
+hook's working directory matched it. `hooks/scripts/cadence-notice.test.sh` asserts the literal
+reading from a directory seeded with a matching file, and a control split proves the trap is live.
+
 **What it does NOT change.** A file carrying the marker is still an assertion by whoever wrote it —
 nothing here can tell a report computed from a real collection from one that was not. And the other
 three lines declare no marker and behave exactly as before; whether `docs/retrospective` or

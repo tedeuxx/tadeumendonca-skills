@@ -244,6 +244,26 @@ has   "marker — the never-ran marked root is still reported as never-ran"     
 hasnt "marker — beside a stale root, the never-ran one is not dated too"             'last landed'
 hasnt "marker — beside a stale root, no spurious no-marker NEVER line"              'docs/funnel-review has NEVER been written'
 
+# A GLOB IN A RECORD TOKEN IS A PLAIN CHARACTER. The record line is split unquoted, so without
+# `set -f` a marker like `RAN*` would expand against the hook's working directory. The hook is run
+# from a directory seeded with a file that DOES match. A control split in that same directory proves
+# the trap is live before the hook's answer is read, so a green here cannot be a trap that never
+# fired.
+setup "cadence-interval-days:
+cadence-rite: docs/funnel-review /funnel-review here RAN*" ''
+commit_at docs/funnel-review/p0.md 'RAN*' 4
+glob_trap="$root/globtrap"
+mkdir -p "$glob_trap"
+: > "$glob_trap/RANDOM_FILE"
+glob_ctl="$( cd "$glob_trap" && bash -c 'set -- RAN*; printf %s "$1"' )"
+OUT="$( cd "$glob_trap" && run_hook )"
+if [ "$glob_ctl" != "RANDOM_FILE" ]; then
+  bad "glob — the control split did not expand, so the trap is not live" "control got: $glob_ctl"
+else
+  has   "glob — a '*' in the ran-marker is matched literally, not expanded against cwd" 'last landed a file carrying RAN* 4d ago'
+  hasnt "glob — the marker was not replaced by a filename in the hook's cwd"            'RANDOM_FILE'
+fi
+
 setup "cadence-interval-days:
 $RITES" 3
 capture
