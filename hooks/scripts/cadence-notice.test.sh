@@ -171,6 +171,63 @@ has   "sibling — reported as not observable"        'Not observable from this 
 hasnt "sibling — never reported as never-written"   'docs/iteration-sweep has NEVER'
 has   "sibling — the consuming repository is named" 'CONSUMING repository'
 
+# ── A DECLARED RAN-MARKER: SCAFFOLDING AND A DID-NOT-READ REPORT DO NOT COUNT (#473) ─────────────
+# Before the optional fourth token, the clock was the newest commit under the root — so a README, or
+# a report declaring that nothing was read, was reported as the rite's freshness. Each case below
+# commits real files at real committer dates and fires the hook; the discriminating one is the
+# masking case, where a fresh README would have silenced a stale rite.
+commit_at() {   # $1 path under the fixture repo · $2 body · $3 age in days
+  mkdir -p "$(dirname "$repo/$1")"
+  printf '%s\n' "$2" > "$repo/$1"
+  git -C "$repo" add -A >/dev/null 2>&1
+  when="$(date -u -v-"$3"d +'%Y-%m-%dT%H:%M:%S+0000' 2>/dev/null \
+          || date -u -d "$3 days ago" +'%Y-%m-%dT%H:%M:%S+0000' 2>/dev/null)"
+  GIT_AUTHOR_DATE="$when" GIT_COMMITTER_DATE="$when" \
+    git -C "$repo" commit -q -m "fixture $1" >/dev/null 2>&1
+}
+MARKED='cadence-rite: docs/funnel-review /funnel-review here FUNNEL-REVIEW-RAN'
+
+setup "cadence-interval-days:
+$MARKED" ''
+commit_at docs/funnel-review/README.md 'the store' 2
+commit_at docs/funnel-review/p1.md 'FUNNEL-REVIEW-NOT-COLLECTED' 1
+capture
+has   "marker — scaffolding and a not-collected report are not the rite's artifact" 'has NEVER landed a file carrying FUNNEL-REVIEW-RAN'
+has   "marker — the files that did not count are counted, not hidden"              '2 other tracked file(s)'
+hasnt "marker — the root is not reported as freshly written"                          'docs/funnel-review last written'
+
+setup "cadence-interval-days:
+$MARKED" ''
+commit_at docs/funnel-review/p1.md 'FUNNEL-REVIEW-RAN' 5
+commit_at docs/funnel-review/README.md 'the store' 1
+capture
+has   "marker — the clock is the newest file CARRYING the marker, not the newest file" 'last landed a file carrying FUNNEL-REVIEW-RAN 5d ago'
+
+setup "cadence-interval-days:
+$MARKED" ''
+# A real marker at 9d beside a quoted one and an extended one at 1d. The expected answer is 9d, and
+# that is what makes this case able to fail BOTH ways: a matcher that counts the quote answers 1d,
+# and a matcher that errors out and matches nothing answers NEVER. A fixture holding only the quoted
+# files could not tell "correctly rejected" from "the matcher never ran" — which is the exact state a
+# first draft of the hook shipped in (`git grep -x` is not an option) with this case green.
+commit_at docs/funnel-review/p0.md 'FUNNEL-REVIEW-RAN' 9
+commit_at docs/funnel-review/p1.md 'prose that quotes FUNNEL-REVIEW-RAN inside a sentence' 1
+commit_at docs/funnel-review/p2.md 'FUNNEL-REVIEW-RAN-SOMETHING' 1
+capture
+has   "marker — a quoted or extended literal is not a whole-line match" 'last landed a file carrying FUNNEL-REVIEW-RAN 9d ago'
+
+setup "cadence-interval-days: 7
+$MARKED" ''
+commit_at docs/funnel-review/p1.md 'FUNNEL-REVIEW-RAN' 30
+commit_at docs/funnel-review/README.md 'the store' 1
+capture
+has   "marker — a fresh README no longer masks a 30d-stale rite against a 7d interval" 'CLOSING RITE IS OWED ON THE CLOCK — 30d'
+
+setup "cadence-interval-days:
+$RITES" 3
+capture
+has   "marker — a line with no fourth token keeps the old wording and the old clock" 'docs/retrospective last written 3d ago'
+
 # ── IT IS A NOTICE, AND SAYS SO IN EVERY ARM THAT SPEAKS ─────────────────────────────────────────
 setup "cadence-interval-days: 7
 $RITES" 30

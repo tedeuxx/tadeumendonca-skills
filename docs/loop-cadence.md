@@ -21,7 +21,7 @@ cadence-interval-days:
 cadence-rite: docs/retrospective /sprint-retrospective here
 cadence-rite: docs/planning /sprint-planning here
 cadence-rite: docs/iteration-sweep /sprint-review sibling
-cadence-rite: docs/funnel-review /funnel-review here
+cadence-rite: docs/funnel-review /funnel-review here FUNNEL-REVIEW-RAN
 
 **`cadence-interval-days` is UNDECLARED, and that is the state this file ships in.** The owner
 authorised the carrier — *«Constrói o gatilho por relógio»*, 2026-09-09, #406 — and **was not asked for

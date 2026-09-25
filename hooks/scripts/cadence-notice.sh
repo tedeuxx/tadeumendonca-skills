@@ -74,6 +74,9 @@
 #     that ran and wrote nothing is invisible; a commit touching that path for an unrelated reason
 #     resets the clock. It answers "when did an artifact of this rite last land", never "did the rite
 #     run well" — which is the same bound `docs/retrospective/<…>/` already carries in its own words.
+#     A rite whose record line declares a ran-marker narrows that bound and does not remove it: only
+#     files carrying the marker are dated, so scaffolding and a declared did-not-read report stop
+#     counting — but a file carrying the marker is still an assertion by whoever wrote it.
 #
 # ── THE INTERVAL IS NOT DECIDED HERE ─────────────────────────────────────────────────────────────
 #
@@ -115,7 +118,9 @@ declared="$(sed -nE 's/^cadence-interval-days:[[:space:]]*([^[:space:]]+).*$/\1/
 # absent line on purpose: absent means nobody has decided, `none` means somebody did.
 [ "$declared" = "none" ] && exit 0
 
-# One record line per rite: `cadence-rite: <artifact-path> <typed-command> here|sibling`.
+# One record line per rite: `cadence-rite: <artifact-path> <typed-command> here|sibling [<ran-marker>]`.
+# The optional fourth token (#473) is a literal a file must carry as a WHOLE LINE to count as an
+# artifact of that rite; absent, every tracked file under the root counts, as before.
 rites="$(sed -nE 's/^cadence-rite:[[:space:]]+(.+)$/\1/p' "$RECORD")"
 [ -n "$rites" ] || exit 0
 
@@ -163,7 +168,42 @@ while IFS= read -r rite; do
   fi
 
   observed=$((observed + 1))
-  ts="$(git -C "$ROOT" log -1 --format=%ct -- "$r_path" 2>/dev/null || true)"
+  r_mark="${4:-}"
+
+  if [ -n "$r_mark" ]; then
+    # ── A DECLARED RAN-MARKER: only a file carrying it, as a whole line, counts as the rite's artifact
+    # (#473). Without one, the clock was the newest commit touching ANYTHING under the root, so it
+    # dated a README, and a report that says in its own words that nothing was read, as freshness —
+    # a notice on its own scaffolding, which is a falsifier failing open in the hook whose job is to
+    # notice absence. Measured before this arm: `docs/funnel-review` held one README and two reports
+    # declaring the not-collected state, and the carrier reported it "last written" like any rite.
+    #
+    # Fixed-string and whole-line (`grep -F -x`), so a marker quoted inside prose, or a longer literal
+    # that merely contains it, is not a match. Tracked files only, read from the working tree.
+    #
+    # NOT `git grep`, and the reason is a measurement: `git grep` has no `-x` (it exits 129 with
+    # "unknown switch"), and behind `2>/dev/null || true` that error reads as "no file carries the
+    # marker" — a first draft of this arm failed open exactly that way and only the suite's POSITIVE
+    # cases caught it. The plain `grep` below is POSIX and carries `-x`.
+    marked=()
+    while IFS= read -r -d '' f; do
+      [ -f "$ROOT/$f" ] || continue
+      grep -q -F -x -e "$r_mark" "$ROOT/$f" 2>/dev/null && marked+=("$f")
+    done < <(git -C "$ROOT" ls-files -z -- "$r_path" 2>/dev/null || true)
+
+    if [ "${#marked[@]}" -eq 0 ]; then
+      total="$(git -C "$ROOT" ls-files -- "$r_path" 2>/dev/null | wc -l | tr -d ' ')"
+      lines_here="$lines_here
+  $r_cmd — artifact root $r_path has NEVER landed a file carrying $r_mark. ${total:-0} other tracked file(s) under it do not count: scaffolding, or a run that declared it read nothing."
+      continue
+    fi
+    ts="$(git -C "$ROOT" log -1 --format=%ct -- "${marked[@]}" 2>/dev/null || true)"
+    label="last landed a file carrying $r_mark"
+  else
+    ts="$(git -C "$ROOT" log -1 --format=%ct -- "$r_path" 2>/dev/null || true)"
+    label="last written"
+  fi
+
   case "$ts" in
     ''|*[!0-9]*)
       lines_here="$lines_here
@@ -172,7 +212,7 @@ while IFS= read -r rite; do
     *)
       days=$(( (now - ts) / 86400 ))
       lines_here="$lines_here
-  $r_cmd — artifact root $r_path last written ${days}d ago."
+  $r_cmd — artifact root $r_path $label ${days}d ago."
       [ -z "$newest" ] && newest="$ts"
       [ "$ts" -gt "$newest" ] && newest="$ts"
       ;;
