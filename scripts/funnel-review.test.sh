@@ -400,20 +400,34 @@ fi
 # The owner ruled that candidates queue in their reports and are ruled at /sprint-planning, which reads
 # them with the selector below. A report this script wrote must contain NO match (the printed template
 # is indented, so it is guidance and not an open candidate), and the same report with one real
-# column-0 candidate appended must contain exactly one. That makes the "prints nothing" zero published
-# in commands/funnel-review.md a real zero rather than a dead pattern, and it fails in both directions.
+# column-0 candidate appended must match exactly TWO lines under the SAME selector: its `Candidate
+# rule:` line and its `Evidence:` line. Both counts use "$q_sel" — the before-count alone cannot tell a
+# real zero from a dead pattern, so the after-count is what calibrates it. That makes the "prints
+# nothing" zero published in commands/funnel-review.md a real zero, and it fails in both directions.
+# The selector is also asserted VERBATIM in both rites that publish it, so the string this arm
+# calibrates is the string a reader runs, and the three copies cannot drift apart in silence.
 q_sel='^(Candidate rule|Evidence|Ruled):'
 q_report="$work/queue-2000-02.md"
 printf '%s\n' "$ran_out" > "$q_report"
 q_before="$(grep -cE "$q_sel" "$q_report" || true)"
 printf 'Candidate rule: probe\nEvidence: figure: ga4 sessions 10 10\n' >> "$q_report"
-q_after="$(grep -cE '^Candidate rule:' "$q_report" || true)"
+q_after="$(grep -cE "$q_sel" "$q_report" || true)"
 if printf '%s' "$ran_out" | grep -q 'until /sprint-planning' \
-   && [ "$q_before" = "0" ] && [ "$q_after" = "1" ]; then
-  ok "candidate queue — a generated report holds no column-0 candidate, an appended one is found, and the report names /sprint-planning"
+   && [ "$q_before" = "0" ] && [ "$q_after" = "2" ]; then
+  ok "candidate queue — a generated report holds no column-0 candidate, the published selector finds an appended one's two lines, and the report names /sprint-planning"
 else
   bad "candidate queue — the template reads as an open candidate, the selector is dead, or the queue is unnamed" \
-      "before=$q_before after=$q_after (expected 0 and 1)"
+      "before=$q_before after=$q_after (expected 0 and 2)"
+fi
+q_pub="grep -nE '$q_sel' docs/funnel-review/*.md"
+q_missing=""
+for q_doc in "$ROOT/commands/funnel-review.md" "$ROOT/commands/sprint-planning.md"; do
+  grep -qF -- "$q_pub" "$q_doc" 2>/dev/null || q_missing="$q_missing ${q_doc#"$ROOT"/}"
+done
+if [ -z "$q_missing" ]; then
+  ok "candidate queue — the selector this arm calibrates is published verbatim in both rites"
+else
+  bad "candidate queue — a rite no longer publishes the calibrated selector verbatim" "missing in:$q_missing"
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
