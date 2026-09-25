@@ -130,10 +130,10 @@ So 61 is the second-largest iteration, not a fivefold outlier. The labels are re
 
 ## The activation log
 
-The owner composed this iteration himself, across two turns on 2026-09-24 and 2026-09-25:
+~~The owner composed this iteration himself, across two turns on 2026-09-24 and 2026-09-25:~~ **Struck at the lens.** "Two turns" and "composed" were both false. The owner admitted the items and then confirmed the composition, across three turns:
 
-1. «aplica ready em tudo» — `ready` on all twelve.
-2. Asked which items enter sprint-05, in a picker whose options were three partial sets. He answered in free text: «pode por tudo».
+- **Typed (2026-09-24), not an activation:** «aplica ready em tudo» put `ready` on all twelve.
+- **Activation 1 (2026-09-25 12:36:41Z):** a picker asked which items enter sprint-05, with three partial sets as options. He answered in free text: «pode por tudo».
 
 ~~That answer is the confirmation of this composition. No separate composition activation was put to him, because the composition he confirmed is the whole eligible pool with nothing left to compose.~~ **Struck at the lens: false.** «pode por tudo» (12:37:08Z) answered an **admission** question, and it was asked **before** the ranking (dispatched 12:37:23Z, returned 12:38:11Z). He ruled on membership. The order and the execution constraints did not exist yet, so he could not have confirmed them.
 
