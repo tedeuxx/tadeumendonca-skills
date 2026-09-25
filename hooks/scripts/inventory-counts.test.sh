@@ -6107,7 +6107,7 @@ if [ -n "$lane_gen_missing" ]; then
 else
   # One needle per file, checked against THAT file only — a needle satisfied by the wrong surface is
   # exactly the drift this arm exists to catch.
-  grep -qF -- '| `ready` | the description is closed on that lane, per the `filed → **description closed**` rows above | the leads (`product`) · `product-lead` (`content`) · **the owner** (`loop`) |' "$LANE_SKILL" \
+  grep -qF -- '| `ready` | the description is closed on that lane, per the `filed → **description closed**` rows above | the leads (`product`) · `product-lead` (`content`) · ~~**the owner**~~ **the main session, once aligned with the owner** (`loop`) |' "$LANE_SKILL" \
     || lane_gen_missing="$lane_gen_missing
     missing: the label table's \`ready\` row in skills/agents-configuration/SKILL.md is no longer lane-scoped"
   grep -qF -- '**`ready` means the description is closed by whoever closes it on that lane — and on `loop` it is the' "$AUTON" \
@@ -6501,7 +6501,7 @@ else
   if [ -n "$loopfirst_skill_missing" ]; then
     bad "loop-first — the canonical composition rule lost a load-bearing part:$loopfirst_skill_missing
       The ELIGIBILITY needle is the deadlock escape: the rule ranks what is ALREADY ready, so an item
-      awaiting the owner's \`ready\` (his transition alone on the \`loop\` lane) is not in the pool and
+      awaiting the owner's \`ready\` (his decision on the \`loop\` lane, applied by the main session once aligned with him — #512) is not in the pool and
       cannot stall it. The WEAK HOME needle is the admission that the order lives in a milestone
       description no gate reads, standing in for an iteration Issue that was specified and never built.
       The NOT-A-GATE needle and the ZERO-TRUE-POSITIVES measurement are what stop this rule being read

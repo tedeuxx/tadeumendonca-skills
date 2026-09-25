@@ -226,7 +226,7 @@ silently truncates composes an iteration out of a subset while reading as comple
 | class | predicate | what it is |
 |---|---|---|
 | **eligible** | `(product OR loop) AND ready` | composable now |
-| **awaiting the owner** | `(product OR loop) AND NOT ready` | his transition alone on the `loop` lane (record 0015's Corollary 4); surface it, do not rank it |
+| **awaiting the owner** | `(product OR loop) AND NOT ready` | his decision on the `loop` lane, applied by the main session once aligned with him (record 0015's Corollary 4; #512, 2026-09-25); surface it, do not rank it |
 | **not drained at all** | `content` | selected by him one piece at a time and never batch-drained; present only if he asks |
 
 **`blocked` is orthogonal and removes an item from the pool wherever it sits.**

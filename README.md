@@ -374,7 +374,8 @@ irreversible act) the earlier diagram showed.
 gate-free at intake — a `loop`-typed Issue still needs `ready` before anything builds against it, and
 `/autonomy on`'s own queue predicate is `(product OR loop) AND ready` ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md)),
 so it can be drained the same mechanical way a `product` story can. What is actually different: `ready`
-on a `loop` Issue is an **owner-only** transition ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md),
+on a `loop` Issue is ~~an **owner-only** transition~~ **the owner's decision, applied by the main
+session once aligned with him** (struck 2026-09-25, owner ruling 2026-09-25 on #512; [ADR-0002](./docs/adr/0002-roster-and-dev-loop.md),
 record 0015's Corollary 4) rather than the two leads reconciling between themselves, and its own tier 2 is
 `agents-lead`, building what it just stress-tested. **Tier 3 is not skipped, and neither is its lens.**
 Every lane, `loop` included, still merges through `MR --> QA --> M`: rule 7b denies `gh pr merge` to
@@ -1196,7 +1197,7 @@ effect of the phase actually happening.
 
 | phase | what records it | where |
 |---|---|---|
-| **intake** | the `ready` label | the issue — its description closed by whoever closes it **on that lane**, per the states table's `filed → description closed` rows; on `loop`, only the owner applies the label |
+| **intake** | the `ready` label | the issue — its description closed by whoever closes it **on that lane**, per the states table's `filed → description closed` rows; on `loop`, ~~only the owner applies the label~~ the owner decides and the main session applies the label once aligned with him (struck 2026-09-25, owner ruling on #512) |
 | **decomposition** | the **task list** in the body | the issue, with the progress GitHub renders from it |
 | **build** | a linked branch, and `closes #N` | `gh issue develop` on one side, the PR on the other |
 | **gate** | the verdict, under its own marker | a comment on the PR, one hop from the issue |

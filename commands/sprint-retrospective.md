@@ -60,9 +60,10 @@ a rejected option kept alive by a struck sentence is how a design decision gets 
 **It is still rejected, on two grounds that never depended on #338:**
 
 - **Emptiness of an iteration is not observable as a terminal condition.** The pool predicate requires
-  `ready`, and `ready` on the `loop` lane is the owner's transition alone. An iteration holding an open
-  item he has not marked `ready` never empties by working — so the rite would sit un-fired behind a
-  label only he can apply, which is the same wedge under a different name.
+  `ready`, and `ready` on the `loop` lane is the owner's decision (applied by the main session once
+  aligned with him, #512). An iteration holding an open item he has not decided `ready` never empties
+  by working — so the rite would sit un-fired behind ~~a label only he can apply~~ a label only his
+  decision releases, which is the same wedge under a different name.
 - **The trigger must be an event the running thing produces.** The drain is what runs; its snapshot going
   empty is a fact it observes about itself, at the moment it observes it. Iteration-emptiness is a fact
   about the tracker that nothing in the loop is watching. ~~`grep` any hook for a queue read and every
