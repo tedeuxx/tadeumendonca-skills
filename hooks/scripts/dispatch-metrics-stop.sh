@@ -165,6 +165,56 @@
 # case has no Issue to attach a comment to and nothing here can invent one. It is named in the
 # silent-exit list below rather than left to be rediscovered.
 #
+# ── WHICH WORKING TREE — the payload's `cwd` is the SESSION's, not the dispatch's (#513) ─────────
+#
+# ~~Derived from the checked-out branch in `cwd`~~ was true of one checkout and stopped being true the
+# day per-slice worktrees arrived (#385). MEASURED FROM A CAPTURED LIVE PAYLOAD, build 2.1.283: a
+# throwaway plugin loaded with `--plugin-dir` recorded `SubagentStop` for a dispatch whose only
+# command was `git -C <worktree> branch --show-current` (it returned the worktree's branch), and the
+# payload's `cwd` — and the hook process's own `$PWD` — was the session's PRIMARY checkout, on `main`.
+# A second dispatch told to `cd` into the worktree was REFUSED by the host (a worktree outside the
+# session's directories is not a place a subagent may `cd`), so the cwd cannot follow the work even
+# when asked to. `agent_type` was present and `SubagentStop` fired: hypothesis 2 of #513 is
+# eliminated on that build.
+#
+# WHAT IT COST, read off the records rather than inferred. Every subagent transcript line carries a
+# `cwd` and a `gitBranch`; across the sessions behind sprints 02–05 not one line names a worktree as
+# `cwd`. So the hook posted against whatever branch the PRIMARY checkout happened to hold at stop:
+#   * primary on `main` -> `no-issue-resolved`, silently — the gap #513 was filed for;
+#   * primary on ANOTHER slice's branch -> the record lands on the WRONG Issue. Live: `-wt-510` and
+#     `-wt-512` work posted onto #473, and `-wt-531` work onto #511, because those were the branches
+#     the primary checkout held while the worktree slices were dispatched;
+#   * a gate that merged and left the primary on `main` before its last stop -> the gate's own record
+#     vanished (#508: four `agents-lead` records, no `quality-assurance` one, although it gated #517).
+#
+# THE REPAIR, and it is a READ of the dispatch's own actions, never of its prompt. The transcript's
+# `tool_use` inputs (command text, file paths) are scanned for every known working-tree root — the
+# payload cwd's own `git worktree list`, plus the worktree lists of every `git -C <dir>` target the
+# dispatch used, which is what reaches a sibling repository's worktree. The root referenced MOST, on
+# a path boundary (so `<repo>` is never counted as a prefix of `<repo>-wt-512`), becomes the working
+# tree: its origin names the repository and its branch feeds the two sources above. No reference at
+# all -> the payload `cwd`, exactly as before. The prompt is deliberately NOT read: a brief names every
+# Issue it cites, and this very hook's brief cited nine.
+#
+# AND A THIRD SOURCE, for the gate: THE PULL REQUESTS THIS DISPATCH WROTE TO. `gh pr comment <n>`,
+# `gh pr merge <n>` and `gh pr review <n>` in its own Bash calls — acts, never reads, because a
+# reviewer VIEWS many PRs and WRITES to the one it reviews — resolve through that PR's head branch
+# (tokenised by the same rule) and its `closingIssuesReferences`. Only a PR on the resolved repository
+# is read, and at most four. This is what survives a merge that left every checkout on `main`.
+#
+# WHAT THIS STILL DOES NOT COVER, stated so it is not rediscovered: a dispatch that only READ — an
+# intake review on `main` that touched no worktree and wrote to no PR — is still `no-issue-resolved`;
+# a PR number placed after a flag (`gh pr merge --merge 517`) is not recognised, since the loop's own
+# rule names it positionally first; and a branch token names an Issue in the checkout's OWN repository,
+# so a branch in one repository carrying another repository's Issue number posts onto the wrong
+# Issue there — measured live, 17 records on an unrelated `-io` Issue from a `-io` branch named for a
+# `-skills` one. That last one is a naming convention the hook cannot see through.
+#
+# CODEX EMITS NO RECORDS AT ALL. `codex-hooks.json` registers `PreToolUse` and `UserPromptSubmit`
+# only, with no `SubagentStop` equivalent and no reference to this file, so a dispatch run there
+# leaves nothing here. `/sprint-retrospective` step 2 says so where it reads these records, and reads
+# the PR verdict markers as a second source for exactly that reason.
+#
 # ── EVERY SILENT EXIT IS NAMED, AND THE NAMES ARE GATED — #382 ────────────────────────────────────
 # The hook must not fail a dispatch because it could not post a metric, so every exit path is
 # `exit 0`. That is a design choice and it is kept. What was wrong is that the paths were
@@ -205,8 +255,48 @@ last_message="$(printf '%s' "$input" | jq -r '.last_assistant_message // empty' 
 # silent-exit: cwd-not-a-directory
 [ -d "$cwd" ] || exit 0
 
+# ── which working tree — the one the dispatch's own tool calls referenced most (#513) ────────────
+# See the header: the payload `cwd` is the session's primary checkout, never the slice's worktree.
+workdir="$cwd"
+resolution="payload-cwd"
+if [ -n "$transcript" ] && [ -r "$transcript" ]; then
+  # Candidate roots: the payload cwd's own worktree list, plus the worktree list of every distinct
+  # `git -C <dir>` target (bounded), which is what reaches a sibling repository's worktree.
+  gitc_targets="$(jq -r 'select(.type=="assistant") | .message.content[]?
+      | select(.type=="tool_use" and .name=="Bash") | .input.command // empty' "$transcript" 2>/dev/null \
+    | grep -oE "git -C (\"[^\"]+\"|'[^']+'|[^ 	;&|)]+)" \
+    | sed -E "s/^git -C //; s/^[\"']//; s/[\"']\$//" \
+    | sort -u | head -n 12 || true)"
+  roots="$(
+    { printf '%s\n' "$cwd"; printf '%s\n' "$gitc_targets"; } | while IFS= read -r d; do
+      [ -n "$d" ] && [ -d "$d" ] || continue
+      git -C "$d" worktree list --porcelain 2>/dev/null | sed -n 's/^worktree //p'
+    done | awk 'NF && !seen[$0]++'
+  )"
+  if [ -n "$roots" ]; then
+    roots_json="$(printf '%s\n' "$roots" | jq -R -s -c 'split("\n") | map(select(length > 0))' 2>/dev/null || true)"
+    # Count references on a PATH BOUNDARY: the character after the root must be `/`, a quote, blank,
+    # a shell separator, or the end of the string — so `<repo>` is never a prefix hit of `<repo>-wt-N`.
+    # `split` rather than `indices`, because `indices` on a string is byte-offset in some jq builds
+    # and the commands here carry non-ASCII text.
+    picked="$(jq -r -s --argjson roots "${roots_json:-[]}" '
+      [ .[] | select(.type=="assistant") | .message.content[]?
+        | select(.type=="tool_use") | .input | .. | strings ] as $s
+      | [ $roots[] as $r
+          | { root: $r,
+              n: ([ $s[] | split($r) | .[1:][] | .[0:1]
+                    | select(. == "" or test("^[/\\s\"'"'"';&|)]")) ] | length) } ]
+      | map(select(.n > 0)) | sort_by(-.n) | .[0].root // empty
+    ' "$transcript" 2>/dev/null || true)"
+    if [ -n "$picked" ] && [ -d "$picked" ]; then
+      workdir="$picked"
+      [ "$picked" != "$cwd" ] && resolution="transcript-worktree"
+    fi
+  fi
+fi
+
 # ── which repo ───────────────────────────────────────────────────────────────────────────────────
-origin_url="$(git -C "$cwd" remote get-url origin 2>/dev/null || true)"
+origin_url="$(git -C "$workdir" remote get-url origin 2>/dev/null || true)"
 # silent-exit: no-origin-remote — cwd is not a git checkout with an origin
 [ -z "$origin_url" ] && exit 0
 repo="$(printf '%s' "$origin_url" \
@@ -215,7 +305,7 @@ repo="$(printf '%s' "$origin_url" \
 case "$repo" in */*) : ;; *) exit 0 ;; esac
 
 # ── which issues — the SET, unioned from the forge and from the branch (see the header) ──────────
-branch="$(git -C "$cwd" branch --show-current 2>/dev/null || true)"
+branch="$(git -C "$workdir" branch --show-current 2>/dev/null || true)"
 
 # Source 1: the forge's own resolved set. One call, and it is allowed to return nothing — a branch
 # with no PR yet is the normal case for the first dispatches of a slice.
@@ -235,12 +325,38 @@ if [ -n "$branch" ]; then
     | grep -E '^[1-9][0-9]{0,4}$' || true)"
 fi
 
-issues="$(printf '%s\n%s\n' "$pr_issues" "$branch_issues" \
+# Source 3 (#513): the pull requests this dispatch WROTE to — `gh pr comment|merge|review <n>` in its
+# own Bash calls, the number positionally first. Resolved through the PR's head branch (same tokeniser)
+# and its closingIssuesReferences. Only a PR on THIS repository is read, and at most four.
+touched_issues=""
+if [ -n "$transcript" ] && [ -r "$transcript" ]; then
+  touched_prs="$(jq -r 'select(.type=="assistant") | .message.content[]?
+      | select(.type=="tool_use" and .name=="Bash") | .input.command // empty' "$transcript" 2>/dev/null \
+    | grep -oE 'gh pr (comment|merge|review) [1-9][0-9]{0,5}[^;&|]*' \
+    | while IFS= read -r m; do
+        n="$(printf '%s\n' "$m" | awk '{print $4}')"
+        r="$(printf '%s\n' "$m" | grep -oE '(--repo[= ]|-R[= ]?)[^ ]+' | head -n 1 \
+          | sed -E 's/^(--repo[= ]|-R[= ]?)//' || true)"
+        if [ -z "$r" ] || [ "$(printf '%s' "$r" | tr 'A-Z' 'a-z')" = "$(printf '%s' "$repo" | tr 'A-Z' 'a-z')" ]; then
+          printf '%s\n' "$n"
+        fi
+      done | awk 'NF && !seen[$0]++' | head -n 4 || true)"
+  for pr in $touched_prs; do
+    touched_issues="$touched_issues
+$(gh pr view "$pr" --repo "$repo" --json headRefName,closingIssuesReferences \
+      --jq '(.closingIssuesReferences[]?.number | tostring), (.headRefName // "")' 2>/dev/null \
+      | tr -c 'A-Za-z0-9\n' '\n' \
+      | grep -E '^[1-9][0-9]{0,4}$' || true)"
+  done
+fi
+
+issues="$(printf '%s\n%s\n%s\n' "$pr_issues" "$branch_issues" "$touched_issues" \
   | grep -E '^[0-9]+$' \
   | sort -n -u || true)"
 
-# silent-exit: no-issue-resolved — no PR and no qualifying token in the branch name (chiefly intake
-# work still on `main`). Named rather than left to be rediscovered; see the header.
+# silent-exit: no-issue-resolved — no PR, no qualifying token in the branch name of the working tree
+# the dispatch used, and no PR it wrote to (chiefly intake work still on `main`). Named rather than
+# left to be rediscovered; see the header.
 [ -z "$issues" ] && exit 0
 
 # The post fans out over the set, so a runaway branch name must not fan out without bound. The cap is
@@ -357,6 +473,13 @@ for issue in $issues; do
       printf 'issues_truncated: yes — %s resolved, capped at %s\n' "$issue_total" "$issue_cap"
     fi
     printf 'branch: %s\n' "${branch:-unavailable}"
+    # #513: which tree the branch was read from, and why — so a reader can audit an attribution
+    # instead of trusting it. `payload-cwd` is the pre-#513 behaviour; `transcript-worktree` means
+    # the dispatch's own tool calls pointed somewhere other than the session's checkout.
+    printf 'worktree: %s\n' "$workdir"
+    printf 'worktree_resolution: %s\n' "$resolution"
+    printf 'payload_cwd: %s\n' "$cwd"
+    printf 'prs_written: %s\n' "$(printf '%s' "${touched_prs:-}" | tr '\n' ' ' | sed 's/ $//')"
     printf 'session_id: %s\n' "$session_id"
     printf 'agent_id: %s\n' "$agent_id"
     printf 'record: cumulative-at-stop\n'
