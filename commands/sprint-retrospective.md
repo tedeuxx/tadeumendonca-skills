@@ -201,8 +201,14 @@ here adjusted their reading of `sprint-01`'s numbers by it:**
    a `-skills` Issue put 17 records on an unrelated `-io` Issue. **So *"no records"* for an Issue in
    that window means nothing, and records on the Issue the primary checkout held are a superset.**
    Since #513 the hook reads the working tree the dispatch's own tool calls used, plus the PRs it
-   wrote to; each record carries `worktree:`, `worktree_resolution:`, `payload_cwd:` and
-   `prs_written:` so an attribution can be audited instead of trusted.
+   wrote to; each record carries `worktree:`, `worktree_resolution:`, `payload_cwd:`,
+   `prs_written:`, `worktrees_rejected:` and `attribution:` so an attribution can be audited
+   instead of trusted. **The misattribution is NARROWED, not closed.** When the dispatch wrote to a
+   PR and named no worktree, the primary's branch is dropped (`attribution: prs-written-only`). **A
+   dispatch that names no worktree AND writes to no PR still gets the primary checkout's branch**, so
+   while the primary holds another slice's branch, its record still lands on that slice's Issue.
+   **Read `worktree_resolution: payload-cwd` with `attribution: union` on a record as *unverified*:**
+   it is exactly the shape the residual produces.
 6. **Codex emits NO records, on any Issue.** `codex-hooks.json` registers `PreToolUse` and
    `UserPromptSubmit` only — there is no `SubagentStop` equivalent and no reference to this hook:
 
