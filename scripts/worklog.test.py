@@ -503,6 +503,70 @@ class WorklogTest(unittest.TestCase):
             self.assertEqual(2, failed.returncode)
             self.assertNotIn("Traceback", failed.stderr)
 
+    def test_continuity_record_is_bounded_public_and_producer_strict(self):
+        # #514: the home for state that must survive a session is a handoff/checkpoint event on the
+        # Issue being worked, and its one free-text field — next_act — is bounded.
+        handoff = copy.deepcopy(next(e for e in FIXTURE["events"] if e["event_type"] == "handoff"))
+        self.assertNotIn("next_act", handoff)
+        # Retained history without next_act still reads, and still reports, exactly as before.
+        worklog.validate_event(copy.deepcopy(handoff))
+        with_act = dict(handoff, next_act="open the merge request for the branch at the named commit")
+        worklog.validate_event(copy.deepcopy(with_act))
+        worklog.validate_prepared(worklog.validate_event(copy.deepcopy(with_act)))
+        checkpoint = dict(handoff, event_type="checkpoint", event_id="skills-7-checkpoint")
+        worklog.validate_prepared(worklog.validate_event(copy.deepcopy(checkpoint)))  # optional there
+        rejected = [
+            ("start-carries-next-act", dict(FIXTURE["events"][0], next_act="x"), "only valid on checkpoint"),
+            ("outcome-carries-next-act", dict(FIXTURE["events"][2], next_act="x"), "only valid on checkpoint"),
+            ("multi-line", dict(handoff, next_act="first\nsecond"), "single line"),
+            ("carriage-return", dict(handoff, next_act="first\rsecond"), "single line"),
+            ("over-limit", dict(handoff, next_act="a" * (worklog.FREE_TEXT_LIMIT + 1)), "at most 280"),
+            ("machine-local", dict(handoff, next_act="resume from /private/tmp/x/continuation-5.md"), "private"),
+            ("private-source", dict(handoff, next_act="read .brand/positioning first"), "private"),
+            ("blank", dict(handoff, next_act="   "), "non-empty"),
+            ("not-a-string", dict(handoff, next_act=["open the PR"]), "non-empty"),
+        ]
+        for label, event, needle in rejected:
+            with self.subTest(label=label), self.assertRaisesRegex(worklog.ContractError, needle):
+                worklog.validate_event(copy.deepcopy(event))
+        # Exactly at the limit is accepted, so the bound is the documented one and not one lower.
+        worklog.validate_event(dict(handoff, next_act="a" * worklog.FREE_TEXT_LIMIT))
+        # Producer strictness: a NEW handoff must name its next act, and new evidence is bounded.
+        with self.assertRaisesRegex(worklog.ContractError, "missing next_act"):
+            worklog.validate_prepared(worklog.validate_event(copy.deepcopy(handoff)))
+        for label, evidence, needle in [
+            ("evidence-over-limit", ["b" * (worklog.FREE_TEXT_LIMIT + 1)], "at most 280"),
+            ("evidence-multi-line", ["a notes\ndump"], "single line"),
+        ]:
+            with self.subTest(label=label), self.assertRaisesRegex(worklog.ContractError, needle):
+                worklog.validate_prepared(worklog.validate_event(dict(with_act, evidence=evidence)))
+        # ...while the READER tolerates the same long evidence on retained history.
+        worklog.validate_event(dict(with_act, evidence=["b" * (worklog.FREE_TEXT_LIMIT + 1)]))
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "handoff.json"
+            path.write_text(json.dumps(handoff))
+            script = str(ROOT / "scripts/worklog.py")
+            refused = subprocess.run(["python3", "-B", script, "prepare-event", str(path)],
+                                     check=False, capture_output=True, text=True)
+            self.assertEqual(2, refused.returncode)
+            self.assertEqual("", refused.stdout)
+            self.assertIn("missing next_act", refused.stderr)
+            validated = subprocess.run(["python3", "-B", script, "validate-event", str(path)],
+                                       check=False, capture_output=True, text=True)
+            self.assertEqual(0, validated.returncode)
+            path.write_text(json.dumps(with_act))
+            prepared = subprocess.run(["python3", "-B", script, "prepare-event", str(path)],
+                                      check=True, capture_output=True, text=True).stdout
+            self.assertIn('"next_act": "open the merge request', prepared)
+
+    def test_schema_documents_the_continuity_field(self):
+        schema = json.loads((ROOT / "docs/worklog/event.schema.json").read_text())
+        field = schema["properties"]["next_act"]
+        self.assertIn({"maxLength": worklog.FREE_TEXT_LIMIT, "not": {"pattern": "[\\r\\n]"}}, field["allOf"])
+        self.assertIn({"if": {"required": ["next_act"]},
+                       "then": {"properties": {"event_type": {"enum": sorted(worklog.CONTINUITY_TYPES)}}}},
+                      schema["allOf"])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

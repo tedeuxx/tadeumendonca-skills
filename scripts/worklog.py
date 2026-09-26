@@ -24,6 +24,11 @@ EVENT_TYPES = {"implementation_start", "checkpoint", "handoff", "outcome", "corr
 OUTCOMES = {"accepted", "reopened", "cancelled", "superseded", "no_longer_relevant"}
 PROVENANCE = {"observed", "declared", "unknown"}
 PRIVATE_EVIDENCE = re.compile(r"(?:^|[\s`])(?:/Users/|/private/tmp/|file://|\.brand/)")
+# Continuity between sessions (#514). `next_act` is the one free-text field a resuming session acts on,
+# so it is bounded: one line, public, at most FREE_TEXT_LIMIT characters. The same bound applies to each
+# evidence entry, but only when an event is PREPARED — retained history is read as it was written.
+CONTINUITY_TYPES = {"checkpoint", "handoff"}
+FREE_TEXT_LIMIT = 280
 
 
 class ContractError(ValueError):
@@ -67,6 +72,26 @@ def public_strings(value: Any, where: str, *, nonempty: bool = False) -> list[st
     if any(PRIVATE_EVIDENCE.search(item) for item in value):
         raise ContractError(f"{where}: contains private or machine-local material")
     return value
+
+
+def bounded_line(value: Any, where: str) -> str:
+    nonempty_string(value, where)
+    if "\n" in value or "\r" in value:
+        raise ContractError(f"{where}: must be a single line")
+    if len(value) > FREE_TEXT_LIMIT:
+        raise ContractError(f"{where}: must be at most {FREE_TEXT_LIMIT} characters")
+    if PRIVATE_EVIDENCE.search(value):
+        raise ContractError(f"{where}: contains private or machine-local material")
+    return value
+
+
+def validate_prepared(event: dict[str, Any]) -> dict[str, Any]:
+    """Producer-side bounds for a NEW event. Readers of retained history do not apply them."""
+    if event["event_type"] == "handoff":
+        require(event, ["next_act"], "event")
+    for index, item in enumerate(event["evidence"]):
+        bounded_line(item, f"event.evidence[{index}]")
+    return event
 
 
 def timestamp(value: Any, where: str) -> datetime:
@@ -132,6 +157,10 @@ def validate_event(event: Any, where: str = "event") -> dict[str, Any]:
     nonempty_string(event["handoff"]["state"], f"{where}.handoff.state")
     if event["handoff"]["to"] is not None:
         nonempty_string(event["handoff"]["to"], f"{where}.handoff.to")
+    if "next_act" in event:
+        if event["event_type"] not in CONTINUITY_TYPES:
+            raise ContractError(f"{where}: next_act is only valid on checkpoint and handoff events")
+        bounded_line(event["next_act"], f"{where}.next_act")
     if event["event_type"] == "implementation_start":
         require(event, ["frozen_estimate"], where)
         estimate = event["frozen_estimate"]
@@ -570,6 +599,7 @@ def main() -> int:
             if args.command == "validate-event":
                 print(canonical(event))
             else:
+                validate_prepared(event)
                 print(EVENT_MARKER)
                 print("```json")
                 print(json.dumps(event, sort_keys=True, indent=2, ensure_ascii=False))
