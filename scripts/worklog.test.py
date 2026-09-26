@@ -39,6 +39,39 @@ def tracker_export(events, complete=True, cutoff="2026-10-01T00:00:00Z"):
             "comments": comments}
 
 
+# #515: a scenario whose report is COMPLETE, so a defect that only flips `partial` is observable. The full
+# fixture is partial from the start (acme/site#8 carries unknown attribution), which is how a silent
+# zero-credit could hide behind an unrelated warning.
+CLEAN_SNAPSHOT = dict(copy.deepcopy(FIXTURE["snapshot"]), counting_units=copy.deepcopy(
+    [unit for unit in FIXTURE["snapshot"]["counting_units"] if unit["issue"] != "acme/site#8"]))
+CLEAN_EVENTS = [copy.deepcopy(event) for event in FIXTURE["events"] if event["issue"] != "acme/site#8"]
+
+
+def with_comment(export, issue, comment_id, body):
+    result = copy.deepcopy(export)
+    result["comments"].append({"repository": issue.split("#")[0], "issue": issue, "comment_id": comment_id,
+                               "created_at": "2026-09-02T00:00:00Z", "updated_at": "2026-09-02T00:00:00Z",
+                               "body": body, "body_sha256": hashlib.sha256(body.encode()).hexdigest()})
+    result["prior_inventory"]["comment_ids"].append(comment_id)
+    return result
+
+
+def gh_captures(events):
+    """The shape `gh issue view <n> --repo <r> --json url,comments` prints, one capture per Issue."""
+    captures, ids = {}, []
+    for index, event in enumerate(events):
+        repo, number = event["issue"].split("#")
+        url = f"https://github.com/{repo}/issues/{number}"
+        capture = captures.setdefault(event["issue"], {"url": url, "comments": []})
+        comment_id = 5000 + index
+        ids.append(comment_id)
+        capture["comments"].append({
+            "url": f"{url}#issuecomment-{comment_id}", "id": f"IC_{comment_id}", "createdAt": event["timestamp"],
+            "includesCreatedEdit": False, "author": {"login": "someone"},
+            "body": f"{worklog.EVENT_MARKER}\n```json\n{json.dumps(event, sort_keys=True)}\n```"})
+    return list(captures.values()), sorted(ids)
+
+
 def changed(source, path, value):
     result = copy.deepcopy(source)
     target = result
@@ -122,29 +155,183 @@ class WorklogTest(unittest.TestCase):
         with self.assertRaisesRegex(worklog.ContractError, "conflicting content"):
             worklog.report(FIXTURE["snapshot"], tracker_export(events), "reproduce")
 
-    def test_mutation_current_label_cannot_replace_frozen_estimate(self):
-        result = self.baseline()
+    # #515: the three tests that stood here compared numbers the TEST computed (`sum(999 …)`, `8 + 8 + 5 + 3`,
+    # a copy of the result with an item deleted), so no source mutation could turn them red. Every test below
+    # mutates the INPUT and asserts what the SOURCE derives from it; each was confirmed red under the source
+    # mutation named in its docstring and green again after restoring the source.
+
+    def test_credit_is_the_frozen_estimate_not_the_current_label(self):
+        """Source mutation: credit `unit["planned_points"]` instead of the frozen estimate."""
+        relabelled = copy.deepcopy(FIXTURE["snapshot"])
+        relabelled["counting_units"][0]["planned_points"] = 13  # the label moved after implementation start
+        result = worklog.report(relabelled, tracker_export(FIXTURE["events"]), "reproduce")
         self.assertEqual(8, next(item["points"] for item in result["items"] if item["issue"] == "acme/skills#7"))
-        mutated_total = sum(999 for item in result["items"] if item["credited"])
-        self.assertNotEqual(result["totals"]["completed_points"], mutated_total,
-                            "MUTATION SURVIVED: current labels replaced frozen estimates")
+        self.assertEqual(13, result["totals"]["completed_points"])  # 8 frozen + 5, never 13 + 5
+        self.assertEqual(1, result["totals"]["scope_changes"])
 
-    def test_mutation_duplicate_and_reopen_cannot_inflate_credit(self):
-        result = self.baseline()
-        naive_duplicate_total = 8 + 8 + 5 + 3
-        self.assertNotEqual(result["totals"]["completed_points"], naive_duplicate_total,
-                            "MUTATION SURVIVED: duplicates or reopened work received credit")
+    def test_duplicates_and_reopen_do_not_inflate_credit(self):
+        """Source mutation: read the FIRST outcome instead of the latest (reopened work is then credited)."""
+        result = self.baseline()  # carries one event delivered twice
+        self.assertEqual(13, result["totals"]["completed_points"])
+        self.assertEqual(3, result["totals"]["carryover_points"])
         site8 = next(item for item in result["items"] if item["issue"] == "acme/site#8")
-        self.assertFalse(site8["credited"])
+        self.assertEqual(("reopened", False), (site8["outcome"], site8["credited"]))
 
-    def test_mutation_lost_participant_or_repository_breaks_reconciliation(self):
-        result = self.baseline()
-        mutated = copy.deepcopy(result)
-        mutated["items"] = [item for item in mutated["items"] if item["issue"] != "acme/skills#7"]
-        self.assertNotEqual(result["totals"]["completed_points"],
-                            sum(item["points"] for item in mutated["items"] if item["credited"]),
-                            "MUTATION SURVIVED: repository loss still reconciled")
-        self.assertEqual("mixed", next(item["cohort"] for item in result["items"] if item["issue"] == "acme/skills#7"))
+    def test_sprint_mismatch_is_named_and_makes_the_report_partial(self):
+        """#515 defect 1. Source mutations: drop the completion-sprint check (credit returns); drop the warning."""
+        clean = worklog.report(CLEAN_SNAPSHOT, tracker_export(CLEAN_EVENTS), "reproduce")
+        self.assertFalse(clean["partial"], clean["warnings"])  # calibration: nothing else makes this partial
+        self.assertEqual(13, clean["totals"]["completed_points"])
+        self.assertEqual([], clean["totals"]["completion_sprint_mismatches"])
+        renamed = dict(copy.deepcopy(CLEAN_SNAPSHOT), sprint="sprint-other")
+        result = worklog.report(renamed, tracker_export(CLEAN_EVENTS), "reproduce")
+        self.assertEqual(0, result["totals"]["completed_points"])
+        self.assertTrue(result["partial"], "a zero produced by a sprint-name mismatch read as a complete zero")
+        self.assertEqual([{"issue": "acme/site#7", "completion_sprint": "sprint-fixture"},
+                          {"issue": "acme/skills#7", "completion_sprint": "sprint-fixture"}],
+                         result["totals"]["completion_sprint_mismatches"])
+        self.assertIn("completion sprint mismatch: acme/skills#7 was accepted in sprint-fixture, "
+                      "not sprint-other; no credit here", result["warnings"])
+        self.assertEqual(13, result["totals"]["carryover_points"])
+        self.assertIn("completion sprint mismatches: `[{", worklog.markdown(result))
+
+    def test_non_delivery_outcomes_are_excluded_not_carried_over(self):
+        """#515 defect 2. Source mutation: drop the cancelled/superseded/no-longer-relevant exclusion branch."""
+        for reason in ("cancelled", "superseded", "no_longer_relevant"):
+            with self.subTest(reason=reason):
+                events = copy.deepcopy(CLEAN_EVENTS)
+                late = copy.deepcopy(next(e for e in events if e["event_id"] == "site-7-accepted"))
+                late.update({"event_id": f"site-7-{reason}", "timestamp": "2026-09-06T11:00:00Z",
+                             "outcome": reason})
+                late.pop("completion_sprint")
+                late.pop("acceptance_evidence")
+                events.append(late)
+                result = worklog.report(CLEAN_SNAPSHOT, tracker_export(events), "reproduce")
+                self.assertEqual([{"issue": "acme/site#7", "reason": reason}], result["excluded"])
+                self.assertEqual(0, result["totals"]["carryover_points"])
+                self.assertEqual(8, result["totals"]["completed_points"])
+
+    def test_accepted_work_without_a_frozen_estimate_is_listed(self):
+        """#515 defect 2. Source mutation: stop appending accepted-but-unestimated items."""
+        events = [e for e in CLEAN_EVENTS if e["event_id"] != "site-7-start"]
+        result = worklog.report(CLEAN_SNAPSHOT, tracker_export(events), "reproduce")
+        self.assertEqual(["acme/site#7"], result["totals"]["unestimated_completions"])
+        self.assertEqual(8, result["totals"]["completed_points"])
+        self.assertEqual(0, result["totals"]["carryover_points"])
+        self.assertTrue(result["partial"])
+
+    def test_points_per_week_is_completed_points_over_measured_weeks(self):
+        """#515 defect 2. Source mutation: any change to `completed * 7 / duration_days`."""
+        for ends_at, days, expected in (("2026-09-08T00:00:00Z", 7.0, 13.0),
+                                        ("2026-09-15T00:00:00Z", 14.0, 6.5),
+                                        ("2026-09-11T00:00:00Z", 10.0, 9.1)):
+            with self.subTest(ends_at=ends_at):
+                snapshot = dict(copy.deepcopy(CLEAN_SNAPSHOT), ends_at=ends_at)
+                totals = worklog.report(snapshot, tracker_export(CLEAN_EVENTS), "reproduce")["totals"]
+                self.assertEqual((13, days, expected),
+                                 (totals["completed_points"], totals["duration_days"], totals["points_per_week"]))
+
+    def test_harness_spellings_are_one_cohort(self):
+        """#515 defect 3. Source mutation: compare `harness` as written instead of through harness_key."""
+        def with_site7_checkpoint(harness):
+            events = copy.deepcopy(CLEAN_EVENTS)
+            checkpoint = copy.deepcopy(next(e for e in events if e["event_id"] == "site-7-start"))
+            checkpoint.update({"event_id": "site-7-checkpoint", "event_type": "checkpoint",
+                               "timestamp": "2026-09-02T11:00:00Z"})
+            checkpoint.pop("frozen_estimate")
+            checkpoint["attribution"]["harness"] = harness
+            events.append(checkpoint)
+            result = worklog.report(CLEAN_SNAPSHOT, tracker_export(events), "reproduce")
+            return next(i["cohort"] for i in result["items"] if i["issue"] == "acme/site#7"), result["partial"]
+
+        self.assertEqual("Kiro", next(e for e in CLEAN_EVENTS if e["event_id"] == "site-7-start")
+                         ["attribution"]["harness"])
+        for spelling in ("kiro", "KIRO", " Kiro ", "ki-ro"):
+            with self.subTest(spelling=spelling):
+                self.assertEqual(("sole", False), with_site7_checkpoint(spelling))
+        self.assertEqual(("mixed", False), with_site7_checkpoint("Codex"))  # control: a real second harness
+        self.assertEqual("unknown", with_site7_checkpoint("---")[0])
+        self.assertEqual(worklog.harness_key("Claude Code"), worklog.harness_key("claude-code"))
+        result = worklog.report(CLEAN_SNAPSHOT, tracker_export(CLEAN_EVENTS), "reproduce")
+        self.assertIn('"harness": "Kiro"', json.dumps(result["items"]))  # segments keep the value as written
+
+    def test_a_marker_quoted_in_prose_is_not_an_event(self):
+        """#515 defect 6. Source mutation: un-anchor EVENT_MARKER_RE / EVENT_RE from the start of a line."""
+        prose = [f"the `{worklog.EVENT_MARKER}` marker opens an event",
+                 "a later `<!-- worklog-event:v2 -->` would be refused",
+                 f"quoted twice: {worklog.EVENT_MARKER} and {worklog.EVENT_MARKER}"]
+        expected = worklog.report(CLEAN_SNAPSHOT, tracker_export(CLEAN_EVENTS), "reproduce")["totals"]
+        for body in prose:
+            with self.subTest(body=body):
+                export = with_comment(tracker_export(CLEAN_EVENTS), "acme/skills#7", 900, body)
+                self.assertEqual(expected, worklog.report(CLEAN_SNAPSHOT, export, "reproduce")["totals"])
+        # An envelope marker on its own line with no event fence is still malformed, and still fails.
+        broken = with_comment(tracker_export(CLEAN_EVENTS), "acme/skills#7", 901,
+                              f"{worklog.EVENT_MARKER}\nthe fence is missing")
+        with self.assertRaisesRegex(worklog.ContractError, "malformed worklog event body"):
+            worklog.report(CLEAN_SNAPSHOT, broken, "reproduce")
+
+    def test_export_producer_composes_what_the_report_reads(self):
+        """#515 defect 4. Source mutations: edited comments keep created_at as updated_at; the prior inventory
+        keeps IDs of Issues not captured now; pagination defaults to complete; the comment ID is not parsed."""
+        captures, ids = gh_captures(FIXTURE["events"])
+        export = worklog.build_export(captures, "2026-10-01T00:00:00Z")
+        self.assertEqual(ids, sorted(comment["comment_id"] for comment in export["comments"]))
+        result = worklog.report(FIXTURE["snapshot"], export, "reproduce")
+        expected = worklog.report(FIXTURE["snapshot"], tracker_export(FIXTURE["events"]), "reproduce")
+        self.assertEqual(expected["totals"], result["totals"])
+        self.assertIn("incomplete pagination: acme/skills", result["warnings"])
+        self.assertIn("historical integrity unknown: prior inventory is absent or incomplete", result["warnings"])
+
+        # Declared complete, with a prior export that also held an Issue this capture leaves out.
+        prior = worklog.build_export(captures + [{"url": "https://github.com/acme/site/issues/99", "comments": [
+            {"url": "https://github.com/acme/site/issues/99#issuecomment-777", "createdAt": "2026-09-01T00:00:00Z",
+             "includesCreatedEdit": False, "body": "not an event"}]}], "2026-10-01T00:00:00Z")
+        declared = worklog.build_export(captures, "2026-10-01T00:00:00Z", prior, pagination_complete=True)
+        self.assertEqual({"complete": True, "comment_ids": sorted(ids, key=str)}, declared["prior_inventory"])
+        clean = worklog.report(CLEAN_SNAPSHOT, worklog.build_export(
+            gh_captures(CLEAN_EVENTS)[0], "2026-10-01T00:00:00Z",
+            worklog.build_export(gh_captures(CLEAN_EVENTS)[0], "2026-10-01T00:00:00Z"), True), "reproduce")
+        self.assertFalse(clean["partial"], clean["warnings"])  # a producer-made export CAN be complete
+
+        edited, _ = gh_captures(CLEAN_EVENTS)
+        edited[0]["comments"][0]["includesCreatedEdit"] = True
+        result = worklog.report(CLEAN_SNAPSHOT, worklog.build_export(edited, "2026-10-01T00:00:00Z"), "reproduce")
+        self.assertTrue(any(w.startswith("comment edit timestamp unavailable: ") for w in result["warnings"]))
+
+        for label, mutate, needle in (
+                ("duplicate capture", lambda c: c.append(copy.deepcopy(c[0])), "captured twice"),
+                ("not an issue url", lambda c: c[0].update(url="https://github.com/acme/site/pull/7"),
+                 "must be a GitHub issue URL"),
+                ("comment from another issue", lambda c: c[0]["comments"][0].update(
+                    url="https://github.com/acme/site/issues/8#issuecomment-5"), "must be a comment URL on")):
+            with self.subTest(label=label):
+                bad, _ = gh_captures(FIXTURE["events"])
+                mutate(bad)
+                with self.assertRaisesRegex(worklog.ContractError, needle):
+                    worklog.build_export(bad, "2026-10-01T00:00:00Z")
+
+    def test_export_cli_feeds_the_report_cli(self):
+        with tempfile.TemporaryDirectory() as directory:
+            temp = Path(directory)
+            script = str(ROOT / "scripts/worklog.py")
+            paths = []
+            for index, capture in enumerate(gh_captures(CLEAN_EVENTS)[0]):
+                paths += ["--capture", str(temp / f"capture-{index}.json")]
+                (temp / f"capture-{index}.json").write_text(json.dumps(capture))
+            produced = subprocess.run(["python3", "-B", script, "export", "--cutoff", "2026-10-01T00:00:00Z"]
+                                      + paths, check=True, capture_output=True, text=True).stdout
+            (temp / "export.json").write_text(produced)
+            (temp / "snapshot.json").write_text(json.dumps(CLEAN_SNAPSHOT))
+            reported = json.loads(subprocess.run(
+                ["python3", "-B", script, "report", "--snapshot", str(temp / "snapshot.json"),
+                 "--export", str(temp / "export.json"), "--format", "json", "--reproduction-command", "r"],
+                check=True, capture_output=True, text=True).stdout)
+            self.assertEqual(13, reported["totals"]["completed_points"])
+            failed = subprocess.run(["python3", "-B", script, "export", "--cutoff", "not-a-time"] + paths,
+                                    check=False, capture_output=True, text=True)
+            self.assertEqual(2, failed.returncode)
+            self.assertNotIn("Traceback", failed.stderr)
 
     def test_incomplete_and_edited_inputs_are_partial_or_invalid(self):
         incomplete = worklog.report(FIXTURE["snapshot"], tracker_export(FIXTURE["events"], False), "reproduce")

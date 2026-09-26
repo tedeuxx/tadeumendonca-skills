@@ -8,7 +8,7 @@
       "type": "object", "additionalProperties": false,
       "required": ["harness", "runtime_version", "plugin", "persona", "provenance"],
       "properties": {
-        "harness": {"type": "string", "minLength": 1}, "runtime_version": {"type": "string", "minLength": 1},
+        "harness": {"type": "string", "minLength": 1, "$comment": "Free text. Reports compare it case-folded with every non-ASCII-alphanumeric character dropped, so Kiro, kiro and ki-ro are one harness; a value that folds to nothing counts as unknown (#515)."}, "runtime_version": {"type": "string", "minLength": 1},
         "persona": {"type": "string", "minLength": 1}, "provenance": {"type": "string", "enum": ["observed", "declared", "unknown"]},
         "plugin": {"type": "object", "additionalProperties": false, "required": ["version", "source_revision"],
           "properties": {"version": {"type": "string", "minLength": 1}, "source_revision": {"type": "string", "minLength": 1}}}

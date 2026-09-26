@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offline worklog event validator and deterministic sprint reporter."""
+"""Offline worklog event validator, export composer and deterministic sprint reporter."""
 
 from __future__ import annotations
 
@@ -13,8 +13,14 @@ from pathlib import Path
 from typing import Any
 
 EVENT_MARKER = "<!-- worklog-event:v1 -->"
-EVENT_RE = re.compile(r"<!-- worklog-event:v1 -->\s*```json\s*(\{.*?\})\s*```", re.S)
-EVENT_MARKER_RE = re.compile(r"<!-- worklog-event:v([^\s]+) -->")
+# An envelope is the marker ALONE ON ITS OWN LINE, which is how prepare-event emits it (#515). A marker quoted
+# inside a sentence — `the <!-- worklog-event:v1 --> marker opens an event` — is prose, not an envelope, and
+# used to abort the whole report as a "malformed worklog event body". A marker on its own line with no event
+# fence after it is still malformed and still fails: only the prose form is released.
+EVENT_RE = re.compile(r"^<!-- worklog-event:v1 -->[ \t]*\r?\n\s*```json\s*(\{.*?\})\s*```", re.S | re.M)
+EVENT_MARKER_RE = re.compile(r"^<!-- worklog-event:v([^\s]+) -->[ \t]*\r?$", re.M)
+EXPORT_URL_RE = re.compile(r"^https://github\.com/([^/\s]+/[^/\s]+)/issues/([1-9][0-9]*)$")
+COMMENT_URL_RE = re.compile(r"^(https://github\.com/[^/\s]+/[^/\s]+/issues/[1-9][0-9]*)#issuecomment-([1-9][0-9]*)$")
 ISSUE_RE = re.compile(r"^[^/\s]+/[^#\s]+#[1-9][0-9]*$")
 REPO_RE = re.compile(r"^[^/\s]+/[^/#\s]+$")
 SHA_RE = re.compile(r"^[0-9a-f]{7,40}$")
@@ -107,6 +113,18 @@ def validate_prepared(event: dict[str, Any], where: str = "event") -> dict[str, 
     if event["event_type"] == "correction":
         validate_prepared(event["corrected_event"], f"{where}.corrected_event")
     return event
+
+
+def harness_key(value: str) -> str:
+    """The cohort identity of a declared harness (#515).
+
+    `harness` is free text, so `Kiro` and `kiro` on one Issue used to make a `mixed` cohort. The key folds case
+    and drops everything but ASCII letters and digits, so `Claude Code`, `claude-code` and `ClaudeCode` are one
+    harness. A value that folds to nothing is treated as `unknown`. The report keeps the value as written in
+    every segment; only the cohort comparison uses the key.
+    """
+    key = re.sub(r"[^0-9a-z]", "", value.casefold())
+    return key or "unknown"
 
 
 def timestamp(value: Any, where: str) -> datetime:
@@ -477,6 +495,7 @@ def report(snapshot: dict[str, Any], export: dict[str, Any], reproduction: str) 
         warnings.append(f"missing repository: {repository}")
     completed = planned = carryover = scope_changes = 0
     unestimated: list[str] = []
+    mismatched: list[dict[str, str]] = []
     excluded: list[dict[str, str]] = []
     cohorts = {"sole": 0, "mixed": 0, "unknown": 0}
     cohort_items = {"sole": 0, "mixed": 0, "unknown": 0}
@@ -500,11 +519,11 @@ def report(snapshot: dict[str, Any], export: dict[str, Any], reproduction: str) 
             frozen = next(iter(frozen_values))
             if frozen != unit["planned_points"]:
                 scope_changes += 1
-        harnesses = {event["attribution"]["harness"] for event in issue_events
+        harnesses = {harness_key(event["attribution"]["harness"]) for event in issue_events
                      if event["attribution"]["provenance"] != "unknown"
-                     and event["attribution"]["harness"] != "unknown"}
+                     and harness_key(event["attribution"]["harness"]) != "unknown"}
         unknown = any(event["attribution"]["provenance"] == "unknown"
-                      or event["attribution"]["harness"] == "unknown" for event in issue_events)
+                      or harness_key(event["attribution"]["harness"]) == "unknown" for event in issue_events)
         if unknown:
             warnings.append(f"incomplete attribution coverage: {issue}")
         if not issue_events or (unknown and len(harnesses) <= 1):
@@ -517,13 +536,22 @@ def report(snapshot: dict[str, Any], export: dict[str, Any], reproduction: str) 
             cohort = "unknown"
         cohort_items[cohort] += 1
         outcome = latest_outcome(issue_events)
-        credited = bool(outcome and outcome["outcome"] == "accepted"
-                        and outcome.get("completion_sprint") == snapshot["sprint"] and frozen is not None)
+        accepted = bool(outcome and outcome["outcome"] == "accepted")
+        credited = bool(accepted and outcome.get("completion_sprint") == snapshot["sprint"] and frozen is not None)
         if credited:
             completed += frozen
             cohorts[cohort] += frozen
             work_types[unit["work_type"]] = work_types.get(unit["work_type"], 0) + frozen
-        elif outcome and outcome["outcome"] == "accepted" and frozen is None:
+        elif accepted and outcome.get("completion_sprint") != snapshot["sprint"]:
+            # #515: an acceptance naming ANOTHER sprint earns nothing here, and it used to fall silently into
+            # carryover with the report still COMPLETE — a mistyped sprint name read as zero delivery. It still
+            # carries over (a later sprint's acceptance is genuine carryover from this one), but it is named,
+            # and the report is PARTIAL, so a zero produced by a name mismatch can never read as a real zero.
+            mismatched.append({"issue": issue, "completion_sprint": outcome["completion_sprint"]})
+            warnings.append(f"completion sprint mismatch: {issue} was accepted in "
+                            f"{outcome['completion_sprint']}, not {snapshot['sprint']}; no credit here")
+            carryover += frozen or 0
+        elif accepted and frozen is None:
             unestimated.append(issue)
         elif outcome and outcome["outcome"] in {"cancelled", "superseded", "no_longer_relevant"}:
             excluded.append({"issue": issue, "reason": outcome["outcome"]})
@@ -558,13 +586,81 @@ def report(snapshot: dict[str, Any], export: dict[str, Any], reproduction: str) 
         "reproduction_command": reproduction,
         "totals": {"planned_points": planned, "completed_points": completed,
                    "carryover_points": carryover, "scope_changes": scope_changes,
-                   "unestimated_completions": sorted(unestimated), "cohort_points": cohorts,
+                   "unestimated_completions": sorted(unestimated),
+                   "completion_sprint_mismatches": sorted(mismatched, key=lambda item: item["issue"]),
+                   "cohort_points": cohorts,
                    "cohort_items": cohort_items,
                    "work_type_points": dict(sorted(work_types.items())),
                    "duration_days": duration_days,
                    "points_per_week": points_per_week},
         "excluded": excluded, "items": items,
     }
+
+
+def build_export(captures: list[Any], cutoff: str, prior: Any = None,
+                 pagination_complete: bool = False) -> dict[str, Any]:
+    """Compose the `--export` input from saved tracker captures (#515). Offline: it reads, never fetches.
+
+    Each capture is the stdout of `gh issue view <n> --repo <owner/repo> --json url,comments`, saved to a file.
+    Three things a capture cannot say are carried as the reader's own partial-evidence states, never guessed:
+
+    - edit time: the capture has no `updatedAt`. `includesCreatedEdit: false` (unedited, per GitHub's schema
+      documentation — read, not measured) becomes `updated_at = created_at`; anything else becomes null, which
+      the report already treats as unknown edit time and PARTIAL.
+    - pagination: whether the capture held every comment is not observable from it, so `pagination_complete`
+      is the operator's declaration, false unless `--pagination-complete` is given.
+    - prior inventory: absent unless `--prior` names an earlier export; its comment IDs are kept only for the
+      Issues captured now, so an Issue left out of this capture does not read as deleted history.
+    """
+    timestamp(cutoff, "export.cutoff")
+    comments: list[dict[str, Any]] = []
+    repositories: set[str] = set()
+    issues: set[str] = set()
+    for index, capture in enumerate(captures):
+        where = f"capture[{index}]"
+        if not isinstance(capture, dict):
+            raise ContractError(f"{where}: must be an object")
+        require(capture, ["url", "comments"], where)
+        match = EXPORT_URL_RE.fullmatch(capture["url"]) if isinstance(capture["url"], str) else None
+        if not match:
+            raise ContractError(f"{where}.url: must be a GitHub issue URL; capture with --json url,comments")
+        repository, issue = match.group(1), f"{match.group(1)}#{match.group(2)}"
+        if issue in issues:
+            raise ContractError(f"{where}: {issue} is captured twice")
+        issues.add(issue)
+        repositories.add(repository)
+        if not isinstance(capture["comments"], list):
+            raise ContractError(f"{where}.comments: must be an array")
+        for position, comment in enumerate(capture["comments"]):
+            at = f"{where}.comments[{position}]"
+            if not isinstance(comment, dict):
+                raise ContractError(f"{at}: must be an object")
+            require(comment, ["url", "createdAt", "body"], at)
+            found = COMMENT_URL_RE.fullmatch(comment["url"]) if isinstance(comment["url"], str) else None
+            if not found or found.group(1) != capture["url"]:
+                raise ContractError(f"{at}.url: must be a comment URL on {capture['url']}")
+            timestamp(comment["createdAt"], f"{at}.createdAt")
+            if not isinstance(comment["body"], str):
+                raise ContractError(f"{at}.body: must be a string")
+            unedited = comment.get("includesCreatedEdit") is False
+            comments.append({"repository": repository, "issue": issue, "comment_id": int(found.group(2)),
+                             "created_at": comment["createdAt"],
+                             "updated_at": comment["createdAt"] if unedited else None,
+                             "body": comment["body"],
+                             "body_sha256": hashlib.sha256(comment["body"].encode()).hexdigest()})
+    if prior is None:
+        inventory = {"complete": False, "comment_ids": []}
+    else:
+        extract_events(prior)
+        inventory = {"complete": True, "comment_ids": sorted(
+            {comment["comment_id"] for comment in prior["comments"] if comment["issue"] in issues}, key=str)}
+    comments.sort(key=lambda item: (item["issue"], item["created_at"], str(item["comment_id"])))
+    export = {"schema_version": 1, "cutoff": cutoff,
+              "repositories": [{"repository": repository, "pagination_complete": pagination_complete}
+                               for repository in sorted(repositories)],
+              "prior_inventory": inventory, "comments": comments}
+    extract_events(export)  # what this produces, the report must accept
+    return export
 
 
 def markdown(data: dict[str, Any]) -> str:
@@ -582,6 +678,7 @@ def markdown(data: dict[str, Any]) -> str:
              f"- cohort items: `{canonical(totals['cohort_items'])}`",
              f"- work-type points: `{canonical(totals['work_type_points'])}`",
              f"- unestimated completions: `{canonical(totals['unestimated_completions'])}`",
+             f"- completion sprint mismatches: `{canonical(totals['completion_sprint_mismatches'])}`",
              f"- duration days: {totals['duration_days']}",
              f"- points per week: {totals['points_per_week']}", "", "## Sources", "",
              f"- repositories: `{canonical(data['source']['repositories'])}`",
@@ -607,9 +704,20 @@ def main() -> int:
     build.add_argument("--export", required=True)
     build.add_argument("--format", choices=("json", "markdown"), default="json")
     build.add_argument("--reproduction-command", required=True)
+    produce = sub.add_parser("export")
+    produce.add_argument("--cutoff", required=True)
+    produce.add_argument("--capture", action="append", required=True,
+                         help="saved stdout of: gh issue view <n> --repo <owner/repo> --json url,comments")
+    produce.add_argument("--prior", help="an earlier export, whose comment IDs become the prior inventory")
+    produce.add_argument("--pagination-complete", action="store_true",
+                         help="declare that every capture holds every comment; not observable from the capture")
     args = parser.parse_args()
     try:
-        if args.command in {"validate-event", "prepare-event"}:
+        if args.command == "export":
+            data = build_export([load(path) for path in args.capture], args.cutoff,
+                                load(args.prior) if args.prior else None, args.pagination_complete)
+            print(json.dumps(data, sort_keys=True, indent=2, ensure_ascii=False))
+        elif args.command in {"validate-event", "prepare-event"}:
             event = validate_event(load(args.event))
             if args.command == "validate-event":
                 print(canonical(event))
