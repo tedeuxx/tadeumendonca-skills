@@ -2205,6 +2205,64 @@ check_from ALLOW "$TFEAT" "531r3/A3ctl: lone * before push in a heredoc"   "pyth
 * push origin main
 PY"
 
+echo "--- #531 round 4 (B2): a ZSH glob group names git too — the Bash tool runs zsh ---"
+# The lens's round-3 B2 (PR #534 marker 5847119887): the Bash tool runs zsh 5.9, whose core globbing
+# has grouping and alternation — `/usr/bin/(git|zzq) --version` and `/usr/bin/g(i)t --version` print
+# git's version under the tool's own wrapper, measured. 3b turned `(`, `|`, `)` into separators, so
+# each of these drew NO DECISION at 9470fb6f. A glob group becomes a DELIMITED span: as a command
+# name it is rebuilt as the extglob it is (`g(i)t` -> `g@(i)t`) and matched against `git`; as a
+# subcommand or refspec it is a character the grammar refuses. Not decoded past that.
+check_from_reason DENY "$TFEAT" "531r4/B2: /usr/bin/(git|zzq) push --force"    "force-push rewrites" "/usr/bin/(git|zzq) push --force origin feat/x"
+check_from_reason DENY "$TFEAT" "531r4/B2: /usr/bin/g(i)t push origin main"    "cannot classify" "/usr/bin/g(i)t push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: /usr/bin/(git) push origin :main"   "cannot classify" "/usr/bin/(git) push origin :main"
+check_from_reason DENY "$TFEAT" "531r4/B2: right-glued (g)it"                  "cannot classify" "/usr/bin/(g)it push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: nested ((g)i)t"                     "cannot classify" "/usr/bin/((g)i)t push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: adjacent (g)(i)t"                   "cannot classify" "/usr/bin/(g)(i)t push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: pure nesting ((git))"               "cannot classify" "/usr/bin/((git)) push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: pure nesting g((i))t"               "cannot classify" "/usr/bin/g((i))t push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: case variant (G|x)(I)T"             "cannot classify" "/usr/bin/(G|x)(I)T push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: three alternations (g|h)(i|j)(t|u)" "cannot classify" "/usr/bin/(g|h)(i|j)(t|u) push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: twelve alternatives, git last"      "cannot classify" "/usr/bin/(a|b|c|d|e|f|g|h|i|j|k|git) push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: a / inside the group, refused"       "cannot classify" "env (/usr/bin/git) push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: subcommand pu(s)h"                  "cannot classify" "git pu(s)h origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: g(i)t pu(s)h (no literal git/push)" "cannot classify" "g(i)t pu(s)h origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: argument-position env (git)"        "cannot classify" "env (git) push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: argument-position command (git|x)"  "cannot classify" "command (git|zzq) push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: sudo /usr/bin/(git) push -f"        "force-push rewrites" "sudo /usr/bin/(git) push -f origin feat/x"
+check_from_reason DENY "$TFEAT" "531r4/B2: inside bash -c"                     "cannot classify" "bash -c '/usr/bin/(git) push origin main'"
+check_agent       DENY "tadeumendonca-skills:developer" "531r4/B2: subagent, /usr/bin/(git|zzq) push --force" "/usr/bin/(git|zzq) -C $TFEAT push --force origin feat/x"
+check_agent       DENY ""                               "531r4/B2: orchestrator, /usr/bin/g(i)t push origin main" "/usr/bin/g(i)t -C $TFEAT push origin main"
+echo "--- #531 round 4 (B2): controls — a subshell, \$(…), <(…), () and prose are not glob groups ---"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: subshell (cd d && ls)"               "(cd /tmp && ls)"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: one-word subshell (true)"            "(true)"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: then (true) fi"                      "if true; then (true); fi"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: function f() { …; }"                 "f() { echo hi; }"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: process substitution <(…)"          "diff <(ls) <(ls -a)"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: arithmetic for ((…))"                "for ((i=0;i<3;i++)); do echo \$i; done"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: arithmetic ((i++)), then a push"     "((i++)); git -C . push -u origin feat/x"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: if ((x==1)); then …"                 "if ((x==1)); then echo y; fi"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: push, then a subshell"              "git -C . push -u origin feat/x && (cd /tmp && ls)"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: heredoc python calls"               "python3 - <<'PY'
+import os
+print(os.getcwd())
+x = len(y)
+PY"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: heredoc markdown link"              "cat <<'EOF'
+see [the PR](https://example.com/pr/1).
+EOF"
+# The corpus's own finding against the FIRST form of this mark, which replaced a group with A2's bare
+# GS: a GS in a command name reads as "maybe git" unconditionally, so a Python heredoc line OPENING
+# with a call — `samples[k].append(v)`, `for b in (d.get('m') or {}):` — became a git invocation and
+# 22 transcript commands went ALLOW -> DENY. The name is now matched, not assumed.
+check_from ALLOW "$TFEAT" "531r4/B2ctl: heredoc line opening with a call"    "python3 - <<'PY'
+samples[k].append(v)
+print(os.getcwd(), len(x))
+PY"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: heredoc for-loop over a call"       "python3 - <<'PY'
+for b in (d.get('m') or {}): print(b.get('x'), repr(c))
+PY"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: a group that cannot name git"       "/usr/bin/(zzq) push --force-with-lease origin feat/x"
+
 # ── #453: the collision those nine arms were standing on, asserted instead of inherited ───────────
 #
 # WHAT MAKES THE `$TFEAT` ABOVE LOAD-BEARING RATHER THAN DECORATIVE. Every converted arm asserts "3b
@@ -2960,6 +3018,54 @@ if (( t1 - t0 <= 1 )); then
 else
   fail=$((fail + 1)); printf 'FAIL  #500 B1: N=2500 took %ss — the heredoc queue pop is no longer O(1)\n' "$((t1 - t0))"
 fi
+# #531 ROUND 4, B1 — THE SAME CLASS, ONE RULE LATER. Rule 7's glob fold (#531 round 3, A3) built its
+# output with `r7_out="$r7_out $r7_w"`, O(n²) in the word count, and it runs over every word whenever
+# the command carries `[`, `?` or `*`. A 51 KB markdown-table heredoc before a force push took 7.9 s at
+# 9470fb6f against 0.68 s at 4bfbfe19: past the 5 s hook timeout and the adapter's 4.0 s, so the DENY
+# became no decision. With an array it answers in about 1.3 s here. 51,051 characters is inside
+# SUBST_BUDGET, so the budget cannot end it early — this row times the fold itself.
+glob_table="$(printf 'cat <<%sEOF%s\n' "'" "'"; printf '| a | b* | [x] |\n%.0s' $(seq 3000); printf 'EOF\ngit -C . push --force origin feat/x')"
+t0=$SECONDS
+check_from_reason DENY "$TFEAT" "#531 B1: a 51 KB glob-dense heredoc before a force push still DENIES" \
+                  "force-push rewrites" "$glob_table"
+t1=$SECONDS
+if (( t1 - t0 <= 3 )); then
+  pass=$((pass + 1)); printf 'ok    TIME   #531 B1: N=3000 answered in %ss, inside the adapter'"'"'s 4.0 s\n' "$((t1 - t0))"
+else
+  fail=$((fail + 1)); printf 'FAIL  #531 B1: N=3000 took %ss — rule 7'"'"'s glob fold is no longer linear, and past 4.0 s the adapter abstains\n' "$((t1 - t0))"
+fi
+# THE SAME CLASS IN 3b's MARKS. The A2 brace mark was a `:a … ta` loop, one substitution per pass and
+# every pass a re-scan: a 12,000-deep nested brace before a force push took 22 s at 9470fb6f, and the
+# first form of the B2 glob-group mark took 45 s on a 12,000-deep `a(b(…))`. Both are now unrolled to
+# PV_MARK_PASSES `g` passes, linear in the text, with a fail-closed fallback past that depth.
+deep_brace="echo $(printf '{a,%.0s' $(seq 12000))z$(printf '}%.0s' $(seq 12000)) && git -C . push --force origin feat/x"
+deep_paren="echo $(printf 'a(%.0s' $(seq 12000))z$(printf ')%.0s' $(seq 12000)) && git -C . push --force origin feat/x"
+for deep in brace paren; do
+  if [ "$deep" = brace ]; then deep_cmd="$deep_brace"; else deep_cmd="$deep_paren"; fi
+  t0=$SECONDS
+  check_from DENY "$TFEAT" "#531 B1: a 12,000-deep nested $deep before a force push still DENIES" "$deep_cmd"
+  t1=$SECONDS
+  if (( t1 - t0 <= 3 )); then
+    pass=$((pass + 1)); printf 'ok    TIME   #531 B1: 12,000-deep %s answered in %ss\n' "$deep" "$((t1 - t0))"
+  else
+    fail=$((fail + 1)); printf 'FAIL  #531 B1: 12,000-deep %s took %ss — a 3b mark is looping per span again\n' "$deep" "$((t1 - t0))"
+  fi
+done
+# The bound's three sides. Within the bound a glued group is marked exactly and a subshell push after
+# it is untouched (each pass can collapse more than one level of a glued chain, so the bound is at
+# least PV_MARK_PASSES levels — 40 is past it for every spelling, measured). Past it, EVERY bracket
+# becomes a mark: a 40-deep `/usr/bin/((…(git)…))` — a glob zsh
+# runs as git — still denies (without the fallback its outer brackets became separators and the name
+# came apart), and so does a PLAIN push in a subshell that merely shares the command with a deep
+# group, because its own `(`/`)` become marks glued to `git` and to the refspec. That last
+# row is the over-block the bound buys, pinned so it is a decision rather than a discovery.
+deep40="$(printf '(%.0s' $(seq 40))"; deep40c="$(printf ')%.0s' $(seq 40))"
+check_from        ALLOW "$TFEAT" "#531 B1: a 3-deep glued group, then a subshell push" \
+                  "echo a(b(c(d))) && (git -C . push -u origin feat/x)"
+check_from_reason DENY  "$TFEAT" "#531 B1: a 40-deep glob name falls back, closed"   "cannot classify" \
+                  "/usr/bin/${deep40}git${deep40c} push origin main"
+check_from_reason DENY  "$TFEAT" "#531 B1: the fallback's over-block, pinned"        "cannot classify" \
+                  "echo a${deep40}z${deep40c} && (git -C . push -u origin feat/x)"
 big_over="$(printf '%*s' 70000 '' | tr ' ' '$')"
 check_reason DENY "#500 F4: past the budget the answer is a DENY with its own reason, never silence" \
               "too large for this guard to verify" "printf %s $big_over '\$(date)'"

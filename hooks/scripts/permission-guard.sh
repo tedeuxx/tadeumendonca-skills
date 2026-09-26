@@ -727,6 +727,8 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 # ADR-0004's 2026-09-23 amendment. A shape nobody fuzzed can still be slower; the budget bounds what
 # it counts, and it counts characters and heredoc openers, not every bash operation.
 SUBST_BUDGET=60000
+# #531 round 4: rule 3b's brace and glob-group marks run this many unrolled passes (see there).
+PV_MARK_PASSES=8
 SUBST_HEREDOC_COST=16
 subst_work=0
 subst_active() {
@@ -2176,10 +2178,16 @@ fi
 #    `$bare7`, not `$bare`: every case variant of `git` standing as a word is folded to `git`, and —
 #    only when the command carries a glob character — every blank-delimited word whose last path
 #    component matches some case spelling of `git` AS A PATTERN (and does not match every word, as a
-#    lone `*` does) is replaced by `git`. Both only ADD `git` words,
-#    so this can only make the rule fire on more; it adds no path from DENY to ALLOW. (Rule 3b folds
-#    the same names in its own view.) Bound: a glob word glued to a separator (`g?t;`) is not folded
-#    here — 3b's view splits separators first and still reads it.
+#    lone `*` does) is replaced by `git`. Both only ADD `git` words, so LOGICALLY this can only make
+#    the rule fire on more. (Rule 3b folds the same names in its own view.) Bound: a glob word glued to
+#    a separator (`g?t;`) is not folded here — 3b's view splits separators first and still reads it.
+#    ~~it adds no path from DENY to ALLOW~~ — STRUCK at round 4 (B1): FALSE UNDER A TIME BUDGET. The
+#    hook runs inside a 5 s timeout (`hooks/hooks.json`) and the Codex adapter abstains at 4.0 s, so
+#    any added latency IS a path from DENY to no decision. At 9470fb6f the fold accumulated with
+#    `r7_out="$r7_out $r7_w"`, O(n²) in the word count, and a 51 KB glob-dense heredoc before a
+#    force push took 7.9 s (base 0.68 s). It now appends to an array, and a timed row in
+#    `permission-guard.test.sh` ("#531 B1") pins it inside the adapter's budget. The honest claim is
+#    narrower: the fold adds no LOGICAL path from DENY to ALLOW; its cost is bounded by that row.
 bare7="$(printf '%s' "$bare" | sed -E \
   -e 's/(^|[^[:alnum:]_])[Gg][Ii][Tt]([[:space:];&|)]|$)/\1git\2/g' \
   -e 's/(^|[^[:alnum:]_])[Gg][Ii][Tt]([[:space:];&|)]|$)/\1git\2/g')"
@@ -2187,7 +2195,8 @@ case "$bare7" in
   *[[?*]*)
     case "$-" in *f*) r7_noglob=1 ;; *) r7_noglob=0 ;; esac
     set -f
-    r7_out=""
+    # AN ARRAY, NOT A STRING ACCUMULATOR (#531 round 4, B1) — see the struck sentence above.
+    r7_arr=()
     for r7_w in $bare7; do
       case "$r7_w" in
         *[[?*]*)
@@ -2204,10 +2213,12 @@ case "$bare7" in
                done ;;
           esac ;;
       esac
-      r7_out="$r7_out $r7_w"
+      r7_arr+=("$r7_w")
     done
     [ "$r7_noglob" = 1 ] || set +f
-    bare7="$r7_out" ;;
+    # Never empty here (the arm needs a glob character, so at least one word), but bash 3.2 aborts
+    # under `set -u` on an empty `${a[*]}`, so the expansion is guarded rather than trusted.
+    bare7=" ${r7_arr[*]+${r7_arr[*]}}" ;;
 esac
 if printf '%s' "$bare7" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-c[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+))*[[:space:]]+push($|[^[:alnum:]_./-])'; then
   # Any refspec landing on the trunk: `main`, `refs/heads/main`, `HEAD:main`, `+main`.
@@ -2575,7 +2586,7 @@ push_view=""
 #            The first is not adversarial: a commit message with an apostrophe, chained to a push,
 #            followed by any later single-quoted span. The fix is a left-to-right QUOTE-STATE SCANNER
 #            in place of the two-regex collapse, in BOTH `$bare` and this view — and every rule in
-#            this file reads `$bare`, so it is its own slice, routed separately. Until then the floor
+#            this file reads `$bare`, so it is its own slice, routed separately — #536. Until then the floor
 #            believes it refuses a trunk push that it does not see.
 #       A2 · CLOSED AT ROUND 3 — BRACE EXPANSION. `git push origin {+,}feat/x` is `git push origin
 #            +feat/x feat/x` to bash (a force) and `HEAD:{m,}ain` / `feat/x:{main,}` are trunk pushes;
@@ -2594,8 +2605,18 @@ push_view=""
 #            folded to `git`. The SUBCOMMAND is not folded: `git PUSH` is 'fatal: cannot handle PUSH as
 #            a builtin', measured. Bound: a glob glued to a separator (`g?t;push`) is read by this view
 #            (it splits separators first) and not by rule 7's fold.
+#            ~~CLOSED AT ROUND 3~~ — it was closed for BASH glob syntax only, and the Bash tool runs
+#            ZSH (5.9, measured), whose core globbing adds GROUPING and ALTERNATION:
+#            `/usr/bin/(git|zzq) push --force origin feat/x`, `/usr/bin/g(i)t push origin main` and
+#            `/usr/bin/(git) push origin :main` execute git under the tool's own wrapper and drew NO
+#            DECISION at 9470fb6f. CLOSED AT ROUND 4 FOR THAT SYNTAX TOO: an unquoted, non-empty,
+#            blank-free `(…)` glued to a word on either side, or standing after a word, becomes A2's
+#            GS mark before the separator step (see there), so a name, subcommand or refspec carrying
+#            one denies as "cannot classify". NOT claimed: zsh EXTENDED_GLOB operators (`^`, `~`, `#`)
+#            — the tool's wrapper sets NO_EXTENDED_GLOB, measured, so they are literal there — and
+#            any shell other than bash and that wrapper's zsh.
 case "$command $unwrap_all" in
-  *[Gg][Ii][Tt]*|*push*|*\\*|*\"*|*\'*|*\{*|*[[?*]*)
+  *[Gg][Ii][Tt]*|*push*|*\\*|*\"*|*\'*|*\{*|*[[?*]*|*\(*)
     pv_rs="$(printf '\036')"
     # W = the characters a refname, flag or command word is made of; `#` is the sed delimiter on the
     # four word-unquoting expressions because W contains `/`.
@@ -2636,10 +2657,69 @@ case "$command $unwrap_all" in
     # `${…}` is a parameter expansion and is skipped. The span is NOT decoded (fail closed rather than
     # decode): it becomes a GS the grammar below cannot read, so a push argument carrying one denies
     # as "cannot classify", and a command word or subcommand carrying one is read as a possible
-    # `git`/`push`. Looped, so a nested `{a,{b,c}}` collapses too.
+    # `git`/`push`. ~~Looped, so a nested `{a,{b,c}}` collapses too.~~ — see "BOUNDED" below.
     pv_bx="$(printf '\035')"
-    push_view="$(printf '%s' "$push_view" \
-      | sed -E -e ':a' -e "s/(^|[^\$])\\{[^{}[:space:];]*(,|\\.\\.)[^{}[:space:];]*\\}/\\1${pv_bx}/" -e 'ta')"
+    # #531 round 4 (B2) — A ZSH GLOB GROUP BECOMES THE SAME MARK, BEFORE `(`/`)` BECOME SEPARATORS.
+    # The Bash tool runs ZSH (5.9, measured: `ZSH_VERSION`, and the wrapper `/bin/zsh -c … eval`), and
+    # core zsh globbing has grouping and alternation that no option in that wrapper disables:
+    # `/usr/bin/(git|zzq) --version` and `/usr/bin/g(i)t --version` both print git's version, measured.
+    # The next step turned `(`, `|` and `)` into separators, so the name was torn apart before any arm
+    # read it, and `/usr/bin/(git|zzq) push --force origin feat/x`, `/usr/bin/g(i)t push origin main`
+    # and `/usr/bin/(git) push origin :main` drew NO DECISION at 9470fb6f. Not decoded, exactly as A2
+    # is not: an unquoted, non-empty, blank-free `(…)` that is a GLOB rather than a subshell becomes a
+    # delimited span (see "THE GROUP KEEPS ITS CONTENT" below) that no grammar branch accepts as a
+    # subcommand or refspec. Three spellings, each measured as a glob in zsh:
+    #   · glued on the LEFT to a word character, `/`, `]`, a mark or another bracket —
+    #     `/usr/bin/(git)`, `g(i)t`, and the inner group of `/usr/bin/((git))`, which zsh globs too
+    #     (measured: it runs git) and which a class without `(` never marked at all;
+    #   · glued on the RIGHT to one — `(g)it`, `(m|x)ain`, `((x)y)`;
+    #   · standing alone AFTER A WORD — `env (git) push`, `git push origin (main)`: zsh globs an
+    #     argument-position group against the cwd (`cd /usr/bin; env (git) --version` runs git).
+    # NOT a glob, and excluded: `$(…)` (left `$`), `=(…)` and `a=(x)` (left `=`), `<(…)`/`>(…)`,
+    # an empty `()` (a function definition), and a group after a separator or at the start — that is
+    # a subshell, and a blank inside (`(cd x)`) ends the match in every spelling.
+    #
+    # BOUNDED, NOT LOOPED (#531 round 4, B1's class). Both marks were first written as `:a … ta`
+    # loops, one substitution per pass, re-scanning the whole view each time — O(n²) in the number of
+    # spans, and the passes are re-scans from the start. Measured under load: a 12,000-deep nested
+    # brace before a force push took 22 s at 9470fb6f (the A2 loop), and a 12,000-deep `a(b(…))`
+    # took 45 s on the first form of this mark — both past the 5 s hook timeout and the adapter's
+    # 4.0 s, where the DENY becomes no decision. Now: every expression carries `g`, so one pass
+    # marks every non-overlapping span, and the passes are UNROLLED to a fixed count
+    # (PV_MARK_PASSES), so the cost is linear in the text. Each pass removes at least one level of
+    # nesting, so any command nested no deeper than that is marked exactly as the loop marked it.
+    # Past it, FAIL CLOSED rather than decode: one more pass is tried and, if it would still change
+    # the view, EVERY `(`, `)`, `{` and `}` in the view becomes a mark. That over-blocks — a push
+    # anywhere in such a command denies as "cannot classify" — and only a command carrying a glued
+    # group or brace nested deeper than PV_MARK_PASSES can reach it.
+    #
+    # THE GROUP KEEPS ITS CONTENT, DELIMITED — NOT A BARE GS (round 4, from the corpus). The first
+    # form replaced a group with GS, and GS in a command name reads as "maybe git" unconditionally —
+    # so `print(x)` or `obj.append(y)` at the start of a heredoc body line opened a git invocation,
+    # and 22 transcript commands (Python heredocs) went ALLOW -> DENY. Now `(` / `)` become an OPEN
+    # (\034) and a CLOSE (\033) mark and a `|` inside the group becomes a BAR (\032), so the name
+    # arm below rebuilds the word as an extglob pattern — `g(i)t` is `g@(i)t` — and treats it as
+    # git only if it can match a case spelling of `git`. Anywhere else (a subcommand, a refspec)
+    # every one of the three is a character the grammar does not accept, so it denies exactly as
+    # GS does. The bar expression runs first and only on a group that CLOSES with no blank, `;`,
+    # `&`, `<` or `>` inside: `(true|git push -f)` is a pipeline, keeps its `|`, and still splits.
+    pv_go="$(printf '\034')"; pv_gc="$(printf '\033')"; pv_ga="$(printf '\032')"
+    pv_px='[]A-Za-z0-9._/@:+~^%,*?!-]'
+    pv_e_br="s/(^|[^\$])\\{[^{}[:space:];]*(,|\\.\\.)[^{}[:space:];]*\\}/\\1${pv_bx}/g"
+    pv_e_ba="s#(\\([^()[:space:];&<>|]*)\\|([^()[:space:];&<>]*\\))#\\1${pv_ga}\\2#g"
+    pv_e_pl="s#(${pv_px}|${pv_bx}|${pv_mk}|${pv_go}|${pv_gc}|\\)|\\()\\(([^()[:space:];&<>|]+)\\)#\\1${pv_go}\\2${pv_gc}#g"
+    pv_e_pr="s#(^|[^\$=<>])\\(([^()[:space:];&<>|]+)\\)(${pv_px}|${pv_bx}|${pv_mk}|${pv_go}|\\(|\\))#\\1${pv_go}\\2${pv_gc}\\3#g"
+    pv_e_pa="s#(${pv_px}|${pv_bx}|${pv_mk}|${pv_gc})([[:space:]]+)\\(([^()[:space:];&<>|]+)\\)#\\1\\2${pv_go}\\3${pv_gc}#g"
+    pv_sed=()
+    pv_i=0
+    while (( pv_i < PV_MARK_PASSES )); do
+      pv_sed+=(-e "$pv_e_br" -e "$pv_e_ba" -e "$pv_e_pl" -e "$pv_e_pr" -e "$pv_e_pa"); pv_i=$((pv_i + 1))
+    done
+    push_view="$(printf '%s' "$push_view" | sed -E "${pv_sed[@]}")"
+    pv_more="$(printf '%s' "$push_view" | sed -E -e "$pv_e_br" -e "$pv_e_ba" -e "$pv_e_pl" -e "$pv_e_pr" -e "$pv_e_pa")"
+    if [ "$pv_more" != "$push_view" ]; then
+      push_view="$(printf '%s' "$push_view" | sed -E "s/[(){}]/${pv_bx}/g")"
+    fi
     # Separators become a spaced `;`. `&&`, `||` and `|&` first, then a lone `|`, then `;` and the
     # grouping characters `(` `)` `{` `}` (so `{ git push --force; }` and a stray `--force}` still end
     # the flag at the brace, as the 162916b6 regex's trailing class did), then a BACKGROUND `&` — only a blank-delimited one, so `2>&1` and `&>/dev/null` survive intact.
@@ -2733,6 +2813,27 @@ if [ -n "$push_view" ]; then
               case "$pv_nm" in
                 [Gg][Ii][Tt]) pv_maybe=1 ;;
                 *"$pv_bx"*) pv_maybe=1 ;;
+                *"$pv_go"*|*"$pv_gc"*)
+                  # A ZSH GLOB GROUP (round 4, B2), rebuilt as the extglob it is — `g(i)t` is
+                  # `g@(i)t`, `(git|zzq)` is `@(git|zzq)` — and tested like any other glob name. A
+                  # group whose marks are unbalanced here (a `/` inside it, so the last-component
+                  # cut split it) cannot be rebuilt, and is refused rather than guessed.
+                  pv_o="${pv_nm//[!$pv_go]/}"; pv_c="${pv_nm//[!$pv_gc]/}"
+                  if [ "${#pv_o}" != "${#pv_c}" ]; then
+                    pv_maybe=1
+                  else
+                    pv_lp='@('; pv_rp=')'; pv_br='|'
+                    pv_pat="${pv_nm//$pv_go/$pv_lp}"; pv_pat="${pv_pat//$pv_gc/$pv_rp}"; pv_pat="${pv_pat//$pv_ga/$pv_br}"
+                    shopt -s extglob
+                    # shellcheck disable=SC2194,SC2254 # the word IS the pattern, and zzzz is a probe, on purpose
+                    case zzzz in
+                      $pv_pat) ;;
+                      *) for pv_v in git Git gIt giT GIt GiT gIT GIT; do
+                           case "$pv_v" in $pv_pat) pv_maybe=1; break ;; esac
+                         done ;;
+                    esac
+                    shopt -u extglob
+                  fi ;;
                 *[[?*]*)
                   # …unless it matches ANY word (`*`, `?*`) — measured: a lone `*` bullet at the start
                   # of a heredoc body line stands in command position here, and was the one
@@ -2762,7 +2863,7 @@ if [ -n "$push_view" ]; then
           --config-env=*) pv_gcfg=1 ;;
           --git-dir=*|--work-tree=*|--namespace=*|--super-prefix=*|--exec-path=*) ;;
           -p|-P|--paginate|--no-pager|--bare|--no-replace-objects|--literal-pathspecs|--glob-pathspecs|--noglob-pathspecs|--icase-pathspecs|--no-optional-locks|--no-advice|--no-lazy-fetch) ;;
-          *[\'\"\\\$\`]*|*"$pv_bx"*|*[[?*]*)
+          *[\'\"\\\$\`]*|*"$pv_bx"*|*"$pv_go"*|*"$pv_gc"*|*"$pv_ga"*|*[[?*]*)
             # Move 3: the word-only unquoting above already turned `"push"`/`pu''sh` into `push`, so
             # a quote, backslash, `$` or backtick still here hides a word this rule cannot read —
             # and it may be `push`. Round 3 adds a brace-expansion mark (`p{u,}sh`) and a glob
