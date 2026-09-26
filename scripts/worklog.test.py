@@ -8,6 +8,7 @@ import importlib.util
 import io
 import json
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -632,6 +633,71 @@ class WorklogTest(unittest.TestCase):
             self.assertEqual(2, result.returncode)
             self.assertEqual("", result.stdout)
             self.assertIn("corrected_event: missing next_act", result.stderr)
+
+    @unittest.skipUnless(shutil.which("jq"), "jq is not installed")
+    def test_readme_resume_command_agrees_with_the_report(self):
+        # #514 lens B3: the published resume command must return the next_act of the report's effective
+        # set — superseded events dropped, ordered by the effective event's timestamp, not comment position.
+        readme = (ROOT / "docs/worklog/README.md").read_text()
+        match = re.search(r"--json comments --jq '(.*?)'\n```", readme, re.S)
+        self.assertIsNotNone(match, "resume command not found in docs/worklog/README.md")
+        jq_filter = match.group(1)
+        base = copy.deepcopy(next(e for e in FIXTURE["events"] if e["event_type"] == "handoff"))
+
+        def at(minute):
+            return f"2026-09-02T10:{minute:02d}:00Z"
+
+        def handoff(event_id, minute, act=None):
+            event = dict(copy.deepcopy(base), event_id=event_id, timestamp=at(minute))
+            return dict(event, next_act=act) if act else event
+
+        def checkpoint(event_id, minute):
+            return dict(handoff(event_id, minute), event_type="checkpoint")
+
+        def correction(event_id, minute, target, replacement):
+            return dict(handoff(event_id, minute), event_type="correction", supersedes_event_id=target,
+                        corrected_event=replacement)
+
+        def block(event):
+            return f"{worklog.EVENT_MARKER}\n```json\n{json.dumps(event, indent=2)}\n```\n"
+
+        def oracle(events):
+            records = [{"event": e, "source": {}, "available_at": e["timestamp"]} for e in events]
+            effective, _, _ = worklog.retained_graph(records)
+            acts = [r["event"]["next_act"] for r in effective if r["event"].get("next_act")]
+            return acts[-1] if acts else ""
+
+        malformed = f"{worklog.EVENT_MARKER}\n```json\n{{\"event_id\": \"broken\",}}\n```\n"
+        scenarios = {
+            "handoff corrected into a checkpoint": [
+                handoff("x", 1, "act A"), correction("c", 2, "x", checkpoint("x2", 1))],
+            "old handoff corrected after a newer one": [
+                handoff("y", 1, "act OLD"), handoff("x", 2, "act NEW"),
+                correction("c", 3, "y", handoff("y2", 1, "act OLD-FIXED"))],
+            "handoff corrected into a handoff": [
+                handoff("x", 1, "act A"), correction("c", 2, "x", handoff("x2", 1, "act B"))],
+            "correction chain": [
+                handoff("x", 1, "act A"), correction("c", 2, "x", handoff("x2", 1, "act B")),
+                correction("d", 3, "x2", handoff("x3", 1, "act C"))],
+            "no next_act anywhere": [checkpoint("k", 1)],
+        }
+        expected = {"handoff corrected into a checkpoint": "",
+                    "old handoff corrected after a newer one": "act NEW",
+                    "handoff corrected into a handoff": "act B",
+                    "correction chain": "act C",
+                    "no next_act anywhere": ""}
+        for name, events in scenarios.items():
+            for event in events:
+                worklog.validate_event(copy.deepcopy(event))
+            bodies = [block(e) for e in events]
+            with self.subTest(scenario=name):
+                self.assertEqual(expected[name], oracle(events))
+                for extra in ([], [malformed]):
+                    payload = json.dumps({"comments": [{"body": b} for b in bodies + extra]})
+                    result = subprocess.run(["jq", "-r", jq_filter], input=payload, check=False,
+                                            capture_output=True, text=True)
+                    self.assertEqual(0, result.returncode, result.stderr)
+                    self.assertEqual(expected[name], result.stdout.strip())
 
     def test_schema_documents_the_continuity_field(self):
         schema = json.loads((ROOT / "docs/worklog/event.schema.json").read_text())

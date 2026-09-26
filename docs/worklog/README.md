@@ -31,16 +31,19 @@ Reasoning, drafts, conversation, private positioning and "notes for next time" h
 
 **Who checks what — the producer and the reader differ on purpose.** `prepare-event` refuses a `handoff` without `next_act`. It refuses any evidence entry that runs over the line or length bound, or that carries a refused string. It applies the same checks to the `corrected_event` inside a `correction`, because the report reads the corrected event as the effective one. `validate-event` and `report` accept retained history exactly as it was written. For evidence they apply only the older, narrower filter: `/Users/`, `/private/tmp/`, `file://` or `.brand/` at the start of a word. Handoff events posted before this contract have no `next_act`, and a reader that rejected them would turn a published record into a report failure. `next_act` has no retained history, so the full filter and the length bound apply to it everywhere it appears, readers included.
 
-**Resuming.** Read the Issue's worklog events, newest last, and start with the latest `next_act`, taking a correction's `corrected_event` as the effective event:
+**Resuming.** Read the Issue's effective worklog events, oldest to newest by `timestamp`, and start with the latest `next_act`. The effective events are the ones `report` derives: each correction is replaced by its `corrected_event`, and every event a correction supersedes is dropped:
 
 ```
 gh issue view <n> --repo <owner/repo> --json comments --jq '[.comments[].body
   | capture("<!-- worklog-event:v1 -->\\s*\\x60{3}json\\s*(?<j>\\{[\\s\\S]*?\\})\\s*\\x60{3}"; "g").j
-  | fromjson | if .event_type == "correction" then .corrected_event else . end
-  | .next_act // empty] | last'
+  | fromjson? | select(type == "object")] as $e
+  | [$e[] | select(.event_type == "correction") | .supersedes_event_id] as $s
+  | [$e[] | if .event_type == "correction" then .corrected_event else . end
+          | select(.event_id as $i | any($s[]; . == $i) | not)]
+  | sort_by(.timestamp, .event_id) | map(.next_act // empty) | last // empty'
 ```
 
-The command parses each fenced event rather than searching comment text. A comment that merely quotes this page, or mentions `next_act` in prose, is therefore not read as an event. A later checkpoint without a `next_act` does not hide an earlier one. It prints nothing when no event carries a `next_act`. `\x60` is a backtick, spelled that way so the command survives both Markdown and the shell.
+The command parses each fenced event rather than searching comment text. A comment that merely quotes this page, or mentions `next_act` in prose, is therefore not read as an event. A later checkpoint without a `next_act` does not hide an earlier one. It prints nothing when no effective event carries a `next_act`. Ordering is by the effective event's `timestamp`, never by comment position, so correcting an old handoff does not overtake a newer one. A fenced block that is not valid JSON is skipped rather than failing the command; `report` refuses that same block. **`report` is the authority on effective state**: this command is a convenience that mirrors it, and `scripts/worklog.test.py` checks that the two agree. `\x60` is a backtick, spelled that way so the command survives both Markdown and the shell.
 
 Then re-derive everything else from the tracker rather than trusting the record: whether the PR is still open, which head it points at, and whether a verdict names that head. **A continuity record says where the work was. The tracker says where it is.** Sprint-level state has no record of its own and needs none. The order of record is `docs/planning/sprint-<nn>.md`, and each item's position is its own Issue's latest event plus its PR. A sprint summary written somewhere else would be a second source of truth for facts the tracker already holds.
 
