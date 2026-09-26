@@ -5230,8 +5230,9 @@ the parallelism.**
 
 - **A `permission-guard.sh` rule 7c arm (a `PreToolUse` deny) — REJECTED.** 7c already fetches
   `headRefOid` and the comment list in one call, so the marker check itself would be free. **It is the
-  CLASSIFICATION that fails.** Hold 2's trigger is a path predicate (`hooks/**`, `agents/**`,
-  `skills/**`, `commands/**`, `.claude/**`), so the rule must read the PR's file list — and
+  CLASSIFICATION that fails.** Hold 2's trigger is a path predicate (~~`hooks/**`, `agents/**`,
+  `skills/**`, `commands/**`, `.claude/**`~~ — every path outside an exclusion list since the
+  2026-09-26 amendment below, which leaves this argument intact), so the rule must read the PR's file list — and
   `gh pr view --json files` pages at 100, so a large harness diff classifies as non-harness and the
   rule **fails open**, inert exactly where it is most needed. A control that reads as enforcement and
   abstains on the biggest diffs is this repository's own named failure shape. It would also have been
@@ -5454,6 +5455,39 @@ By this loop's own test it is an instruction, exactly as the original corollary 
 
 **Rejected: keep it his act alone ("Só você").** Offered and declined. It kept a labelling click on the
 critical path of every `loop` item for no control a recorded alignment does not also provide.
+
+## 2026-09-26 amendment — Corollary 2's path list becomes a class: every path except an exclusion list (#521)
+
+**Owner ruling, 2026-09-26, recorded on #521** — *«Tudo, menos docs»*. Corollary 2's text above is
+left as written, because it is the decision as it was taken. The five directories it lists are now
+read as five examples of a class, and the class is this: **a diff touching any path except `docs/**`, `powers/**`,
+`README.md`, `VERSION`, `.bumpversion.toml` or `LICENSE` requires an `agents-lead` verdict marker at
+the head being merged.** The canonical statement and its selector are in hold 2 of
+`agents/quality-assurance.md`. This amendment records the decision; it does not restate the selector.
+
+**Why the list had to become a class.** The sprint-04 `agents-lead` retrospective, Finding 1
+(`docs/retrospective/sprint-04/agents-lead.md`), measured `-skills` #517 and #518: both changed the
+Codex permission floor's registration and adapter, and neither touched any of the five paths. The
+marker on each was present only because the `loop` routing row happened to dispatch the lens.
+
+**Rejected options.** Both were offered to the owner with the one he chose.
+- **Add the Codex paths to the list** (`scripts/codex-*`, `codex-hooks.json`, `.codex/**`,
+  `.codex-plugin/**`). This is the smallest change, but it fails open: the next new machinery path
+  is uncovered until someone remembers to add it.
+- **List everything the harness loads or runs.** This is the same enumeration, only longer, so it
+  fails open in the same way.
+
+**Consequences.**
+- *Good:* the rule fails closed. A new top-level path is covered without an edit.
+- *Bad, accepted by the owner:* more markers are required. This includes diffs to `scripts/worklog*`,
+  the #506 repair case that #522's carry-forward was written for. #522 still applies to a delta that
+  touches only excluded paths.
+- *Bad, named:* `docs/loop-mode.md` is excluded, and it is the mode record `commands/autonomy.md`
+  reads. A diff to `wip:` needs no lens marker under this class.
+
+**What enforces it: the gate persona, as before.** No layer classifies a diff. The considered options
+of the 2026-09-11 amendment rejected a `PreToolUse` arm for hold 2 because it would read the PR's file
+list. That rejection stands unchanged under the wider class.
 
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now

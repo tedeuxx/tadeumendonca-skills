@@ -383,7 +383,9 @@ every `agent_type` but `quality-assurance`, unconditionally, so an agents-lead-b
 exception. **What differs is that this lane answers for MORE there rather than less** —
 `agents/quality-assurance.md`'s harness-diff criterion
 ([ADR-0002](./docs/adr/0002-roster-and-dev-loop.md), record 0015's Corollary 2) means a diff touching
-`hooks/**`, `agents/**`, `skills/**`, `commands/**` or `.claude/**` gets the same two-lens Definition of
+~~`hooks/**`, `agents/**`, `skills/**`, `commands/**` or `.claude/**`~~ **any path except `docs/**`,
+`powers/**`, `README.md`, the version files and `LICENSE`** (#521, owner ruling 2026-09-26; the
+selector is in hold 2's own text, which is canonical) gets the same two-lens Definition of
 Done as any other diff, **plus** a requirement no other lane carries: an `agents-lead` verdict marker
 must be present on the PR before the gate may classify the diff safe or merge it. **A reviewer that has
 to have been present, not a review that is skipped.**

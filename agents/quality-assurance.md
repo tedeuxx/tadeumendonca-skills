@@ -179,8 +179,8 @@ partly repaid:
   the marker STRING ITSELF, not a proxy: `grep -n "harness-lead-verdict" agents/agents-lead.md`
   — if that returns nothing, the posting instruction has not landed regardless of what `agents/
   agents-lead.md:4`'s `tools:` line says (that line tracks Corollary 1, a different, causally
-  unrelated grant). Until the instruction exists, no diff touching `hooks/**`, `agents/**`, `skills/**`,
-  `commands/**`, or `.claude/**` can carry the marker, and ~~the boundary-class criterion above makes every
+  unrelated grant). Until the instruction exists, no diff touching ~~`hooks/**`, `agents/**`, `skills/**`,
+  `commands/**`, or `.claude/**`~~ **a hold-2 path (the class hold 2 below states, since #521)** can carry the marker, and ~~the boundary-class criterion above makes every
   such diff boundary class, unconditionally~~ **hold 2 above makes every such diff unmergeable by you,
   unconditionally** — not merely "when the marker is absent." *(Restated 2026-08-23: "boundary class"
   stopped being a hold the moment the gate gained the boundary class, so the criterion is now its own
@@ -1001,13 +1001,48 @@ not.
      Unconditional, whatever else it does and however routine it looks. This is not about environments
      at all: it is the one case where merging it means you ratified your own mandate.
   2. **A harness diff with no `agents-lead` verdict marker AT THE HEAD YOU ARE MERGING**
-     (ADR-0002, record 0015's Corollary 2) — a diff touching `hooks/**`, `agents/**`, `skills/**`,
-     `commands/**` or `.claude/**` requires an `<!-- harness-lead-verdict: … -->` comment on the PR
+     (ADR-0002, record 0015's Corollary 2) — ~~a diff touching `hooks/**`, `agents/**`, `skills/**`,
+     `commands/**` or `.claude/**`~~ **a diff touching ANY path outside the exclusion list below
+     (#521)** requires an `<!-- harness-lead-verdict: … -->` comment on the PR
      **whose `commit:` line names the `headRefOid` you read for your own verdict**, before you may
      merge it. **This used to be
      phrased as "the diff is boundary class regardless"; that phrasing stopped being a hold the moment
      boundary became mergeable**, so it is restated here as its own blocker. It is a *missing reviewer*,
      not a class — the same shape as a missing gate, and you would not merge past one of those either.
+
+     **The class is EVERY PATH EXCEPT THE EXCLUSION LIST, and this paragraph is its canonical
+     statement (owner ruling 2026-09-26 on #521 — *«Tudo, menos docs»*).** The struck five-path list
+     above was five examples, not a class. Measured on sprint-04: `-skills` #517 and #518 changed the
+     Codex permission floor's registration and adapter (`codex-hooks.json`,
+     `scripts/codex-hook-adapter.py`) and matched none of the five, and `.codex/**`,
+     `.codex-plugin/**`, `.claude-plugin/**`, `.mcp.json`, `AGENTS.md`, `CLAUDE.md` and the rite
+     scripts under `scripts/` were all outside it. **The rule now fails closed:** a new top-level
+     path is covered without anyone editing this list, and the cost the owner accepted is more
+     markers.
+
+     **The exclusion list — nothing else is excluded:** `docs/**` · `powers/**` (generated from
+     `skills/`, gated by regeneration-and-diff) · `README.md` · `VERSION` and `.bumpversion.toml`
+     (the version files) · `LICENSE`. **Apply it with this selector. Any output means hold 2
+     applies; no output means it does not:**
+
+     ```
+     git -C <repo> fetch origin main "pull/<n>/head"
+     git -C <repo> diff --no-renames --name-only origin/main...<headRefOid> \
+       | grep -vE '^(docs/|powers/)|^(README\.md|VERSION|\.bumpversion\.toml|LICENSE)$'
+     ```
+
+     **`--no-renames` is part of the selector, not tidiness.** Without it, a file MOVED from `hooks/`
+     into `docs/` prints only its new name, which the filter excludes, so a machinery deletion reads
+     as a docs edit. With it, the deletion prints under the old path and the hold applies. **The
+     range is the caller's; the filter is the reusable half.** Three dots read from the merge base,
+     so a trunk that moved after the branch was cut does not leak other slices' paths into this
+     diff. **Use a tree diff, never `gh pr view --json files`**, which pages at 100 and would
+     classify a large harness diff as non-harness.
+
+     **What this class does NOT decide.** It decides only whether the marker is REQUIRED; it narrows
+     neither of your lenses. And because `docs/**` is excluded, a diff to `docs/loop-mode.md` — the
+     mode record `commands/autonomy.md` reads, including `wip:` — needs no lens marker. That follows
+     from the ruling as given; it is named here so it reads as a known consequence, not an oversight.
 
      **~~a comment on the PR before you may merge it~~ — the HEAD-SCOPING was added 2026-09-11
      (#385), and the struck phrase is kept because it is what this hold meant for four weeks.** It was

@@ -100,8 +100,9 @@
 # dispatched — which is where re-posting is still free.
 #
 # IT NEEDS NO DIFF CLASSIFICATION, and that is why it is buildable here when a `PreToolUse` deny
-# is not. Hold 2's trigger is a path predicate (`hooks/**`, `agents/**`, `skills/**`,
-# `commands/**`, `.claude/**`), so a preventive rule would have to read the PR's file list to know
+# is not. Hold 2's trigger is a path predicate — since #521, EVERY path except `docs/**`,
+# `powers/**`, `README.md`, the version files and `LICENSE` (canonical text and selector: hold 2 in
+# agents/quality-assurance.md) — so a preventive rule would have to read the PR's file list to know
 # whether the hold applies — and `gh pr view --json files` pages at 100, so a large harness diff
 # would classify as non-harness and FAIL OPEN, inert exactly where it is most needed. This arm
 # sidesteps the question entirely: it fires only when a marker is PRESENT and stale, so a diff

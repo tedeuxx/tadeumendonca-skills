@@ -9663,5 +9663,48 @@ else
       not a derivation: both documents could be wrong together and this arm would still pass"
 fi
 
+# --- hold 2's path CLASS: the selector is WRITTEN in the gate's brief, and it SELECTS what it claims ----
+#
+# #521, owner ruling 2026-09-26 («Tudo, menos docs»): hold 2 applies to a diff touching ANY path outside
+# an exclusion list. The canonical statement and selector live in agents/quality-assurance.md, hold 2.
+# #522 (carry-forward) will reuse the same filter with a different range, so a drifted copy there is
+# the failure this arm exists to make loud.
+#
+# TWO halves, and only the second is a property rather than a string:
+#   (a) the brief carries the filter literal and `--no-renames` — a drift check, nothing more;
+#   (b) the literal, RUN, excludes exactly the listed paths and keeps a machinery path, a lookalike
+#       and a never-seen top-level path. (b) is what stops a literal that is present and dead.
+# WHAT THIS CANNOT SEE: whether the gate applies the selector, or which range it runs it over. Held by
+# the gate persona and by nothing here.
+H2_BRIEF="$ROOT/agents/quality-assurance.md"
+H2_RE='^(docs/|powers/)|^(README\.md|VERSION|\.bumpversion\.toml|LICENSE)$'
+if ! grep -qF "grep -vE '$H2_RE'" "$H2_BRIEF"; then
+  bad "hold-2 class — agents/quality-assurance.md does not carry the selector literal
+      grep -vE '$H2_RE'. Either the brief drifted or this arm did; they must move together (#521)."
+elif ! grep -qF -- "diff --no-renames --name-only" "$H2_BRIEF"; then
+  bad "hold-2 class — the selector in agents/quality-assurance.md lost --no-renames. Without it a file
+      MOVED from hooks/ into docs/ prints only its docs/ name and the hold silently does not apply."
+else
+  ok "hold-2 class — agents/quality-assurance.md carries the exclusion selector and --no-renames (a STRING check)"
+fi
+# (b) runs the literal EXTRACTED FROM THE BRIEF, not this file's constant, so its subject is the
+# selector a gate would actually copy. An empty extraction is a failure, never a vacuous pass.
+h2_brief_re="$(grep -oE "grep -vE '\^\(docs/[^']+'" "$H2_BRIEF" | head -1 | sed "s/^grep -vE '//; s/'\$//")"
+h2_excluded="$(printf '%s\n' docs/adr/0002-roster-and-dev-loop.md powers/x/SKILL.md README.md VERSION \
+  .bumpversion.toml LICENSE | grep -vE "${h2_brief_re:-^$}" || true)"
+h2_kept="$(printf '%s\n' scripts/codex-hook-adapter.py codex-hooks.json .codex/config.toml AGENTS.md \
+  READMEx.md docs.md newtopdir/file | grep -vE "${h2_brief_re:-.}" | grep -c . || true)"
+if [ -z "$h2_brief_re" ]; then
+  bad "hold-2 class — no grep -vE '…' selector could be extracted from agents/quality-assurance.md, so the
+      behaviour half has nothing to run. Absent, not clean."
+elif [ -n "$h2_excluded" ]; then
+  bad "hold-2 class — the selector KEEPS a path it claims to exclude: $h2_excluded"
+elif [ "$h2_kept" -ne 7 ]; then
+  bad "hold-2 class — the selector kept $h2_kept of 7 machinery/lookalike/novel paths; a path it
+      drops is a diff that needs a marker and will not be asked for one. The class must fail CLOSED."
+else
+  ok "hold-2 class — the selector excludes the 6 listed paths and keeps 7 of 7 others, a never-seen top-level path included"
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
