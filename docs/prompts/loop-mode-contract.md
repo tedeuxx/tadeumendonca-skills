@@ -304,9 +304,16 @@ them.**
 
 **Which is the argument for the answer the loop this came from actually took: keep the estimate in
 BOTH modes, and let the readiness bar not vary at all.** The reasoning is worth more than the choice.
-The estimate was already a **size signal** rather than a velocity input there — no velocity is
-collected in either mode — so dropping it in the lighter mode would have saved two dispatches per item
+The estimate was already a **size signal** ~~rather than a velocity input there — no velocity is
+collected in either mode —~~ so dropping it in the lighter mode would have saved two dispatches per item
 and bought nothing back, while making the one label the whole intake chain depends on mean two things.
+
+**The struck clauses stopped being true when the loop this came from began recording prospective team
+velocity.** Each item's median estimate is now frozen when implementation starts and
+summed per iteration, **in both modes**. The estimate is a velocity input there as well as a size
+signal. That makes the answer below stronger, not weaker: dropping the estimate in the lighter mode now
+costs a consumer as well as an axis. What stays unmeasured is the rate. Its iterations record no start
+or end date, so points per week has no denominator yet.
 **Keeping it removes an axis**, and every axis a mode does not vary is a place the two modes cannot
 drift apart with nothing watching. **The cost, stated rather than absorbed:** the lighter mode carries
 a ceremony its own method does not ask for.
