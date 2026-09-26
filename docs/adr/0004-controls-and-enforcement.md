@@ -2654,8 +2654,9 @@ splits below, and it is the condition to check before reusing this shape.
 ### Why #338 loses, and it is a measurement rather than a preference
 
 #338's argument was that a `loop` Issue born outside the pool is invisible to `/autonomy on`. The pool is
-`(product OR loop) AND ready AND active-iteration`, and **a `loop` Issue is filed WITHOUT `ready`** — the
-owner's transition alone. **The item leaves the pool on the `ready` predicate before the milestone
+`(product OR loop) AND ready AND active-iteration`, and **a `loop` Issue is filed WITHOUT `ready`** — ~~the
+owner's transition alone~~ the owner's decision, applied by the main session once aligned with him
+(struck 2026-09-25, #512). **The item leaves the pool on the `ready` predicate before the milestone
 predicate is consulted.** So the milestone at filing was inert until he acted, and when he acted he was
 present. It changed exactly one thing: the running iteration's contents. **It bought nothing and cost the
 objection.**
@@ -4251,7 +4252,8 @@ surface a later reader executes from, and a silently shortened list and a delibe
 must not look alike. The rulings are in the section above.
 
 ~~**Each of the five**~~ **Each of the three remaining is a `loop` change to the loop's own floor**, so
-each is `ready` on the owner's transition alone.
+each is `ready` on ~~the owner's transition alone~~ the owner's decision, applied by the main session
+once aligned with him (struck 2026-09-25, #512).
 
 ### What could NOT be checked, so nobody re-walks it
 

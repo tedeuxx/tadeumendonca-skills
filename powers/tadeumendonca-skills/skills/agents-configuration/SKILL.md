@@ -274,8 +274,9 @@ not the product the loop builds, so it takes no part in closing a **story's** de
 persona that closes a **`loop`** Issue's. It is dispatched on a **proposal about the loop itself**, before anything is
 built, and per ADR-0002 that proposal now enters the tracker as a `loop`-typed Issue — filed by the
 orchestrator on its naming (`agents-lead` itself remains denied `gh issue create`). `loop`-typed
-`ready` is an **owner-only** label transition (ADR-0002, record 0015's Corollary 4), never applied by any
-dispatch — see that record's section in full for the six corollaries (durable verdict marker, the
+`ready` is ~~an **owner-only** label transition~~ **the owner's DECISION, and the main session applies the
+label once aligned with him** (struck 2026-09-25, owner ruling 2026-09-25 on #512: *«Eu, após alinhar»*; ADR-0002, record
+0015's Corollary 4 and its 2026-09-25 amendment), never applied by any dispatch — see that record's section in full for the six corollaries (durable verdict marker, the
 harness-diff criterion, the
 proposal/build dispatch separation).
 
@@ -293,7 +294,7 @@ owner works that decision out with; it does not make it.
 | filed → **description closed** | `loop` | `agents-lead`, **alone — `tech-lead` never co-signs this lane, with no exception** (owner ruling 2026-08-25, #329: *"nunca"*) | the closed description in the Issue body, plus the intake stamp |
 | filed → **ready** | `product` | both leads, closing the description together | **`ready` label** |
 | filed → **ready** | `content` | `product-lead`, alone — **intake only**; it takes no part in the drafting rounds (ADR-0002, seventeenth amendment) | **`ready` label** |
-| filed → **ready** | `loop` | the owner, alone — not the leads (ADR-0002, record 0015's Corollary 4) | **`ready` label** |
+| filed → **ready** | `loop` | ~~the owner, alone~~ **the owner decides; the main session applies the label once aligned with him** (struck 2026-09-25, owner ruling 2026-09-25 on #512) — not the leads, and never a dispatch (ADR-0002, record 0015's Corollary 4) | **`ready` label** |
 | ready → **in progress** | `product` | `developer` | an open PR |
 | ready → **in progress** | `content` | `content-writer` — **not `developer`**, which has never been dispatched at a draft (ADR-0002, thirteenth amendment; this row said `developer` until #317 and was wrong for nine days) | an open PR |
 | ready → **in progress** | `loop` | `agents-lead` (ADR-0002, record 0015's Corollary 1) | an open PR |
@@ -319,8 +320,9 @@ where nobody looks is how #329 happened.**
 **The three rows were ADDED, not edited.** The `filed → **ready**` rows below them were already right and
 are untouched — they record *who applies the label*, which is a different question from *who closes the
 description*, and conflating the two is why nothing in this file could answer the lane question before.
-On `loop` the two answers differ on purpose: `agents-lead` closes the description, **the owner alone
-applies `ready`** (ADR-0002, record 0015's Corollary 4).
+On `loop` the two answers differ on purpose: `agents-lead` closes the description, ~~**the owner alone
+applies `ready`**~~ **the owner decides `ready` and the main session applies it once aligned with him**
+(struck 2026-09-25, owner ruling 2026-09-25 on #512; ADR-0002, record 0015's Corollary 4).
 
 **Why the `loop` row carries no exception clause, and must not grow one.** The owner's ruling was one
 word — *"nunca"*. His argument, which is the load-bearing part: almost every machinery change can be
@@ -400,7 +402,7 @@ label is auditable and attributable, not proven.
 |---|---|---|---|
 | `product` | the repo's own deliverable | the owner, at filing | `/autonomy on`'s queue · merge class **safe** |
 | `content` | published in the owner's voice | the owner, at filing | merge class **boundary** |
-| `ready` | the description is closed on that lane, per the `filed → **description closed**` rows above | the leads (`product`) · `product-lead` (`content`) · **the owner** (`loop`) | `/autonomy on` · `developer` refuses an Issue without it |
+| `ready` | the description is closed on that lane, per the `filed → **description closed**` rows above | the leads (`product`) · `product-lead` (`content`) · ~~**the owner**~~ **the main session, once aligned with the owner** (`loop`) | `/autonomy on` · `developer` refuses an Issue without it |
 | `blocked` | waiting on the owner, or on something outside the loop | anyone | the "what needs the owner" report |
 | `reader-facing` | the diff will change words or images a reader sees | the owner or the leads | which lens the gate dispatches — **a signal, never a gate** |
 | `sp:N` | the item's estimated weight, one Fibonacci value from a closed set (#326) | the estimating personas for that type, median of an isolated dispatch each | `/autonomy on`'s **preflight** (an item without one blocks entry) · the points-per-week aggregation |
@@ -638,9 +640,11 @@ a retrospective's output lands. **Here the premise does not hold**: `/autonomy o
 `(product OR loop) AND ready`, so an iteration-scoped pool with loop items unassignable does not orphan a
 ceremony's output — **it takes half the queue dark**. One list, one axis, one predicate.
 
-Cost, carried knowingly: planning must slot loop items, and `loop`-typed `ready` is the owner's
-transition alone — so he is already the critical path for exactly these items, and this adds one
-milestone assignment to a transition he already performs. It adds no new gate and no new actor.
+Cost, carried knowingly: planning must slot loop items, and `loop`-typed `ready` is ~~the owner's
+transition alone~~ **the owner's decision, applied by the main session once aligned with him** (struck
+2026-09-25, owner ruling on #512) — so he is already the critical path for exactly these items, and this
+adds one milestone assignment to a ~~transition he already performs~~ **decision he already takes**. It
+adds no new gate and no new actor.
 
 #### NOTHING is admitted into a running iteration automatically — an Issue is filed with NO milestone (#365)
 
@@ -712,7 +716,8 @@ is filed in.**~~
 **Struck 2026-08-30 (#365), and it is struck rather than narrowed because #338's own failure mode cannot
 occur.** Its argument was that a `loop` Issue born outside the pool is invisible to `/autonomy on` and
 silently never worked. The pool is `(product OR loop) AND ready AND active-iteration`, and **a `loop`
-Issue is filed WITHOUT `ready`** — the owner's transition alone (record 0015's Corollary 4). The item is out
+Issue is filed WITHOUT `ready`** — ~~the owner's transition alone~~ the owner's decision, applied by the
+main session once aligned with him (record 0015's Corollary 4; struck 2026-09-25, #512). The item is out
 of the pool on the `ready` predicate **before the milestone predicate is consulted**, so the milestone
 set at filing is inert until he acts, and when he acts he is present.
 
@@ -818,7 +823,8 @@ that field but could not show it **false**: the field is mutable and unversioned
 here distinguishes a misremembered position from one edited afterwards. **The weak home below is not an
 abstract concern — this slice hit it inside itself.**
 
-**`ready` on a `loop` item is the owner's transition alone** (record 0015's Corollary 4), so a `loop` item
+**`ready` on a `loop` item is ~~the owner's transition alone~~ the owner's decision, applied by the main
+session once aligned with him** (record 0015's Corollary 4; struck 2026-09-25, #512), so a `loop` item
 awaiting `ready` is by construction awaiting him — which is exactly why the pool is scoped to `ready`
 and not to `loop`-ness. Measured 2026-08-28: `-skills` carried two `loop` Issues with no `ready`
 (#335, #336) while `-io` carried five `ready` `product` items and **zero** `loop` items of any kind. A
@@ -1140,7 +1146,8 @@ loop-first `Stop` hook, and it is named here rather than filed.
   a defect. Sweep for the claim's substance, never for the sentence that was struck.
 - **Admission needs no new mechanism, and it is already spelled `ready`.** The specification asks that a
   newly-discovered `loop` item enter the active batch only by explicit owner decision. `ready` on the
-  `loop` lane is the owner's transition alone, and the pool predicate requires it. **That control exists;
+  `loop` lane is ~~the owner's transition alone~~ the owner's decision, applied by the main session once
+  aligned with him (struck 2026-09-25, #512), and the pool predicate requires it. **That control exists;
   do not build a second one.**
 - **#339's loop-first ordering is untouched.** The `loop` block is still composed ahead of every
   `product` item. This section only says the block *may* travel as one branch.

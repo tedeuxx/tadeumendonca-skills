@@ -147,11 +147,12 @@ that and a queue going quietly dark is that somebody counted it. It is one extra
 session already runs, and it is a precondition of this scoping rather than a nicety.
 
 **`ready` means the description is closed by whoever closes it on that lane — and on `loop` it is the
-owner's transition alone** (~~"the leads closed the description"~~, struck 2026-08-25 (#329): that was
+owner's decision, applied by the main session once aligned with him** (~~"owner's transition alone"~~,
+struck 2026-09-25, owner ruling 2026-09-25 on #512; ~~"the leads closed the description"~~, struck 2026-08-25 (#329): that was
 true of `product` and of no other lane, in the file the loop executes). The canonical wording is
 `/agents-configuration`'s `filed → **description closed**` and `filed → **ready**` rows — `product`
 closes through both leads, `content` through `product-lead` alone, `loop` through `agents-lead` alone
-with the owner applying the label. The generic bar
+with ~~the owner applying the label~~ the owner deciding `ready` and the main session applying it. The generic bar
 a description must clear to earn that label is `/definition-of-ready`. An Issue
 without it is in the tracker but not executable, and the right move is to say so and run the intake pass
 — not to build it and discover the missing requirement at the gate.

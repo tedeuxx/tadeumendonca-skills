@@ -138,8 +138,9 @@ that closes the description.
 
 ### 2 · Description closed, `ready` applied · **AFK — and the label here is the LEAD's, not the owner's**
 
-**Do not carry the machinery lane's rule across.** On a loop-typed item `ready` is the owner's
-transition alone; on this lane the product lens closes the description **and** applies the label, so
+**Do not carry the machinery lane's rule across.** On a loop-typed item `ready` is ~~the owner's
+transition alone~~ the owner's decision, applied by the main session once aligned with him (struck
+2026-09-25, owner ruling on #512); on this lane the product lens closes the description **and** applies the label, so
 step 2 needs nobody but a dispatch. The owner's next appearance is step 3, and it is a different act
 from applying a label.
 

@@ -244,7 +244,10 @@ stated here — read them from `docs/loop-mode.md`.
    choosing either of those.
 7. **Never wait on a pipeline with a sleep-and-poll loop.** Push, report that checks are running, and
    check once, when it matters. When you read a result, read it for the exact commit you mean, by its
-   full identifier.
+   full identifier. **The same holds for an agent you dispatched:** wait for it once, blocking, with
+   the longest timeout your tool accepts — the wait returns as soon as the agent finishes — and never
+   sleep, list or re-wait on a short timeout in between. Every check is a model request that re-sends
+   your whole context.
 
 ### Reporting to the owner
 
@@ -312,7 +315,10 @@ stated here — read them from `docs/loop-mode.md`.
     command, or write it as a premise the dispatch must verify. A brief is the specification the
     dispatch builds against, so a false premise there becomes the design. State facts in a brief, and
     mark any argument written to justify one as briefing-only — reasoning placed in a brief tends to
-    come back as published text.
+    come back as published text. **Never ask a dispatched profile to re-read a file its instructions
+    already carry, and as that profile do not re-read one on your own:** the read adds a second copy
+    that every later request re-sends. If you have reason to think the carried copy is stale, read only
+    the section you need and say why.
 24. **A change to the machinery is evaluated against every harness that consumes this repository**, not
     only the one you are running on.
 25. **A mechanism that lands here ships with a portable prompt under `docs/prompts/`** — the behaviour,
@@ -322,6 +328,22 @@ stated here — read them from `docs/loop-mode.md`.
     pros and cons.
 27. **A secret's scope and name follow the single standard in `skills/devops/SKILL.md`.** Never decide
     either per repository.
+
+### Who acts, and what is written in public
+
+28. **The main session — the context the owner talks to, called the orchestrator here — only
+    dispatches. It never edits a repository file itself.** Every real change flows through a profile
+    and that profile's gates, on any harness. **No layer enforces this**: the check that once refused
+    such an edit was removed, so nothing stops the orchestrator from making one. It is an obligation
+    held by the orchestrator and by review.
+29. **On the `loop` lane, the owner decides whether an item is ready, and the orchestrator applies the
+    `ready` label once it has aligned with him.** The agents lead closing the description does not earn
+    the label, and no dispatched profile applies it. Aligned means he has said the item is ready, and
+    his words are recorded on the item (standing rule 12, not floor item 12). On the other lanes,
+    `ready` follows the intake that closes the description (standing rule 18).
+30. **On any public surface, a client or other third-party organisation is described by its sector or
+    industry, never by its name.** The owner's own employer may be named. Public means everything
+    published — prose, commit and merge-request text, issues, decision records, examples.
 
 ## Versioning and distribution
 

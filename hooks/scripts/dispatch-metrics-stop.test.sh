@@ -32,7 +32,11 @@ bad() { printf 'FAIL  %s\n     %s\n' "$1" "$2"; fail=$((fail + 1)); }
 # ── fixture plumbing ─────────────────────────────────────────────────────────────────────────────
 
 setup() {
+  # PHYSICAL path (#513): `git worktree list` prints the resolved path, and on macOS `mktemp -d`
+  # returns a `/var/…` path whose physical form is `/private/var/…`. A fixture whose transcript names
+  # one spelling while git reports the other matches nothing — a red about the fixture.
   root="$(mktemp -d)"
+  root="$(cd "$root" && pwd -P)"
   repo="$root/repo"
   mkdir -p "$repo" "$root/bin" "$root/fix" "$root/bodies"
   git -C "$repo" init -q -b main
@@ -79,7 +83,15 @@ case "$1 $2" in
       *closingIssuesReferences*) emit "__ROOT__/fix/closing.json" ;;
       *) emit "__ROOT__/fix/number.json" ;;
     esac ;;
-  "pr view") emit "__ROOT__/fix/prview.json" ;;
+  "pr view")
+    case "$*" in
+      # #513 source 3 — a PR the dispatch WROTE to, resolved per number so the arm can tell which
+      # numbers were followed. An unknown number serves an empty PR.
+      *headRefName*)
+        if [ -f "__ROOT__/fix/touched-$3.json" ]; then emit "__ROOT__/fix/touched-$3.json"
+        else printf '{"headRefName":"","closingIssuesReferences":[]}\n' > "__ROOT__/fix/empty.json"; emit "__ROOT__/fix/empty.json"; fi ;;
+      *) emit "__ROOT__/fix/prview.json" ;;
+    esac ;;
   "issue comment")
     # Persist the body so its CONTENT can be asserted, not just the call shape.
     n=""
@@ -102,14 +114,32 @@ STUB
 teardown() { rm -rf "$root"; }
 
 # Run the hook on a branch, with a given agent_type. Echoes nothing; state lands in $root.
-run_hook() { # branch · agent_type
-  local branch="$1" agent="$2"
+run_hook() { # branch · agent_type · [transcript]
+  local branch="$1" agent="$2" tx="${3:-}"
   git -C "$repo" checkout -q -B "$branch"
   : > "$root/calls.log"
   rm -f "$root/bodies/"*
-  jq -nc --arg a "$agent" --arg c "$repo" \
-    '{agent_type:$a, agent_id:"agent-abc", session_id:"sess-1", cwd:$c, last_assistant_message:"done"}' \
+  jq -nc --arg a "$agent" --arg c "$repo" --arg t "$tx" \
+    '{agent_type:$a, agent_id:"agent-abc", session_id:"sess-1", cwd:$c, last_assistant_message:"done"}
+     + (if $t == "" then {} else {agent_transcript_path:$t} end)' \
     | PATH="$root/bin:$PATH" bash "$HOOK" >/dev/null 2>&1
+}
+
+# A transcript whose assistant lines carry the given tool calls. Each argument is `Bash:<command>`
+# or `Edit:<file_path>`; one JSONL line per call, the shape the host writes (#513).
+make_transcript() { # out · call...
+  local out="$1"; shift
+  : > "$out"
+  local i=0 c
+  for c in "$@"; do
+    i=$((i + 1))
+    case "$c" in
+      Bash:*) jq -nc --arg id "m$i" --arg v "${c#Bash:}" \
+        '{type:"assistant",timestamp:"2026-09-25T10:00:0\($id|ltrimstr("m"))Z",message:{id:$id,content:[{type:"tool_use",name:"Bash",input:{command:$v}}],usage:{input_tokens:1,output_tokens:1}}}' >> "$out" ;;
+      Edit:*) jq -nc --arg id "m$i" --arg v "${c#Edit:}" \
+        '{type:"assistant",timestamp:"2026-09-25T10:00:0\($id|ltrimstr("m"))Z",message:{id:$id,content:[{type:"tool_use",name:"Edit",input:{file_path:$v,old_string:"a",new_string:"b"}}],usage:{input_tokens:1,output_tokens:1}}}' >> "$out" ;;
+    esac
+  done
 }
 
 # The set of Issue numbers this run posted to, space-separated and sorted.
@@ -303,6 +333,189 @@ else
   bad "cap — set visibility survives truncation" \
       "issues_resolved must carry all ten; got '$(grep '^issues_resolved' "$capbody" 2>/dev/null)'"
 fi
+
+# ── ARM 9 — the working tree is the one the dispatch USED, not the payload's cwd (#513) ──────────
+#
+# MEASURED FROM A LIVE PAYLOAD before this arm was written: `SubagentStop` carries the session's
+# PRIMARY checkout as `cwd` even when the dispatch worked only in a linked worktree. So the fixture is
+# a primary checkout plus a linked worktree NAMED as a prefix-extension of it (`repo` / `repo-wt-512`),
+# because that is the real naming here and it is exactly where a substring count goes wrong.
+
+wt="$repo-wt-512"
+git -C "$repo" worktree add -q -b loop/512-slice "$wt"
+tx="$root/tx.jsonl"
+
+make_transcript "$tx" "Bash:git -C $wt status" "Edit:$wt/f" "Bash:git -C $wt commit -m x"
+run_hook "main" "acme:agents-lead" "$tx"
+got="$(posted_issues)"
+if [ "$got" = "512" ]; then
+  ok "worktree — primary on 'main', work in a linked worktree: the record reaches the worktree's Issue (was: no-issue-resolved)"
+else
+  bad "worktree — silence on main" "expected '512', got '$got'"
+fi
+if grep -q '^worktree_resolution: transcript-worktree$' "$root/bodies/512" 2>/dev/null \
+   && grep -q "^payload_cwd: $repo\$" "$root/bodies/512" 2>/dev/null; then
+  ok "worktree — the record says WHICH tree it read and that it was not the payload cwd, so it can be audited"
+else
+  bad "worktree — audit fields" "expected worktree_resolution/payload_cwd lines in the #512 body"
+fi
+
+run_hook "loop/473-other-slice" "acme:agents-lead" "$tx"
+got="$(posted_issues)"
+if [ "$got" = "512" ]; then
+  ok "worktree — primary on ANOTHER slice's branch: posts to the worktree's Issue, not the primary's (the #473 misattribution)"
+else
+  bad "worktree — misattribution" "expected '512' only, got '$got'"
+fi
+
+# The prefix boundary. Three references to the worktree, ONE to the primary itself. Counted as raw
+# substrings the primary also matches the three worktree paths (it is their prefix) and wins 4 to 3.
+make_transcript "$tx" "Bash:git -C $wt status" "Edit:$wt/f" "Bash:git -C $wt log" "Bash:git -C $repo status"
+run_hook "loop/473-other-slice" "acme:agents-lead" "$tx"
+got="$(posted_issues)"
+if [ "$got" = "512" ]; then
+  ok "worktree — '<repo>' is not counted as a prefix hit of '<repo>-wt-512' (path-boundary rule)"
+else
+  bad "worktree — path boundary" "expected '512', got '$got'"
+fi
+
+# A transcript that names no known tree falls back to the payload cwd, exactly as before #513.
+make_transcript "$tx" "Bash:ls /nonexistent-513"
+run_hook "main" "acme:agents-lead" "$tx"
+got="$(posted_issues)"
+if [ -z "$got" ]; then
+  ok "worktree — no tree referenced: the payload cwd decides, and 'main' still invents no Issue"
+else
+  bad "worktree — fallback" "expected no post, got '$got'"
+fi
+
+# ── ARM 10 — the PRs the dispatch WROTE to are a third source; the ones it READ are not (#513) ────
+#
+# The gate case: a gate that merged left the primary on `main` before its last stop, so neither the
+# tree nor the branch named an Issue. #508 lost its gate record exactly this way.
+
+jq -n '{headRefName:"loop/508-codex-hook-path",closingIssuesReferences:[]}' > "$root/fix/touched-517.json"
+jq -n '{headRefName:"loop/999-read-only",closingIssuesReferences:[]}' > "$root/fix/touched-999.json"
+jq -n '{headRefName:"loop/600-elsewhere",closingIssuesReferences:[]}' > "$root/fix/touched-600.json"
+make_transcript "$tx" \
+  "Bash:gh pr view 999 --repo acme/widget --json files" \
+  "Bash:gh pr comment 517 --repo acme/widget --body-file /x/verdict.md" \
+  "Bash:gh pr merge 517 --merge --repo acme/widget" \
+  "Bash:gh pr comment 600 --repo other/repo --body-file /x/y.md"
+run_hook "main" "acme:quality-assurance" "$tx"
+got="$(posted_issues)"
+if [ "$got" = "508" ]; then
+  ok "written PRs — a gate on 'main' after its merge reaches the merged PR's Issue (the #508 gate record)"
+else
+  bad "written PRs — gate source" "expected '508', got '$got'"
+fi
+if grep -q '^pr view 999' "$root/calls.log"; then
+  bad "written PRs — reads" "a PR the dispatch only VIEWED was resolved"
+else
+  ok "written PRs — a PR the dispatch only READ is not a source"
+fi
+if grep -q '^pr view 600' "$root/calls.log"; then
+  bad "written PRs — foreign repository" "a PR on another repository was resolved against this one"
+else
+  ok "written PRs — a PR written on ANOTHER repository is not resolved against this one"
+fi
+
+# ── ARM 11 — a SCRATCH CLONE is a candidate root and must not win (#513 review) ─────────────────
+#
+# Measured by replaying the first #513 build over one session's 101 subagent transcripts: 9 records
+# LOST because a scratch clone reached through `git -C` — the gate's mutation copy, a fixture repo —
+# was the most-referenced root. With no origin it ended at `no-origin-remote`; with a LOCAL-PATH
+# origin (a clone of a worktree) it passed a `*/*` test and failed inside `gh`, swallowed. Both arms
+# mention the clone MORE than the real worktree, because that is the shape that lost them.
+
+mkdir -p "$root/scratch"
+git -C "$root/scratch" init -q -b main noorigin
+git clone -q "$wt" "$root/scratch/localclone" 2>/dev/null
+
+make_transcript "$tx" "Bash:git -C $root/scratch/noorigin status" "Bash:git -C $root/scratch/noorigin log" \
+  "Edit:$root/scratch/noorigin/f" "Bash:git -C $wt status"
+run_hook "main" "acme:quality-assurance" "$tx"
+got="$(posted_issues)"
+if [ "$got" = "512" ] && grep -q '^worktrees_rejected: 1$' "$root/bodies/512" 2>/dev/null; then
+  ok "scratch clone — a clone with NO origin, mentioned most, is skipped and the record reaches the real worktree's Issue"
+else
+  bad "scratch clone — no origin" "expected '512' with worktrees_rejected: 1, got '$got'"
+fi
+
+make_transcript "$tx" "Bash:git -C $root/scratch/localclone status" "Bash:git -C $root/scratch/localclone diff" \
+  "Edit:$root/scratch/localclone/f" "Bash:git -C $wt status"
+run_hook "main" "acme:quality-assurance" "$tx"
+got="$(posted_issues)"
+if [ "$got" = "512" ] && ! grep -q -- "--repo /" "$root/calls.log"; then
+  ok "scratch clone — a clone whose origin is a LOCAL worktree path is skipped; no path ever reaches gh as --repo"
+else
+  bad "scratch clone — local-path origin" "expected '512' and no path-shaped --repo, got '$got' / $(grep -c -- '--repo /' "$root/calls.log") path calls"
+fi
+
+# ── ARM 12 — the primary's branch is DROPPED when the dispatch wrote to a PR and named no tree ─────
+#
+# The #532 gates: primary checkout on another slice's branch, the gate wrote to its PR and named no
+# worktree, and the record landed on BOTH the primary's Issue and the right one.
+
+make_transcript "$tx" "Bash:gh pr comment 517 --repo acme/widget --body-file /x/verdict.md"
+run_hook "loop/473-other-slice" "acme:quality-assurance" "$tx"
+got="$(posted_issues)"
+if [ "$got" = "508" ] && grep -q '^attribution: prs-written-only' "$root/bodies/508" 2>/dev/null; then
+  ok "narrowing — a PR written and no tree named: the primary's branch (473) is dropped, only 508 is recorded"
+else
+  bad "narrowing — primary branch dropped" "expected '508' with attribution prs-written-only, got '$got'"
+fi
+
+# The residual, ASSERTED so it cannot be mistaken for closed: no PR written, no tree named, the
+# primary's branch still decides.
+make_transcript "$tx" "Bash:ls /nonexistent-513"
+run_hook "loop/473-other-slice" "acme:agents-lead" "$tx"
+got="$(posted_issues)"
+if [ "$got" = "473" ] && grep -q '^attribution: union$' "$root/bodies/473" 2>/dev/null; then
+  ok "narrowing — residual: with no PR written and no tree named, the primary's branch still decides (declared, not fixed)"
+else
+  bad "narrowing — residual" "expected '473' with attribution: union, got '$got'"
+fi
+
+# ── ARM 13 — the `-R` match is ANCHORED on a preceding blank (#513 review, advisory) ──────────────
+
+make_transcript "$tx" "Bash:gh pr comment 517 --body-file /x/-Rnotes.md"
+run_hook "main" "acme:quality-assurance" "$tx"
+got="$(posted_issues)"
+if [ "$got" = "508" ]; then
+  ok "-R anchor — a '-R' inside a body-file path is not read as a foreign repository"
+else
+  bad "-R anchor" "expected '508', got '$got'"
+fi
+
+git -C "$repo" worktree remove --force "$wt" 2>/dev/null || true
+
+# ── ARM 14 — the STRICT origin parse on the tree that decides (#513 review) ──────────────────────
+#
+# A path-shaped origin on the payload cwd itself exits at the named `origin-not-owner-slash-repo`
+# rather than reaching `gh issue comment --repo <path>`, which failed and was swallowed.
+
+git -C "$repo" remote set-url origin "$root/scratch/localclone"
+run_hook "loop/355-x" "acme:developer"
+if [ -z "$(posted_issues)" ] && [ ! -s "$root/calls.log" ]; then
+  ok "strict origin — a local-path origin exits before any gh call, named, instead of failing inside gh"
+else
+  bad "strict origin" "expected no gh call at all, got: $(tr '\n' '|' < "$root/calls.log")"
+fi
+
+# The two clauses of the parse are each other's backstop on an absolute path, so each gets a sample
+# only IT rejects: a RELATIVE path that happens to read `owner/repo` (only the GitHub-host clause
+# stops it), and a GitHub URL with a third segment (only the `owner/repo` regex stops it).
+for bad_origin in "acme/widget" "https://github.com/acme/widget/extra"; do
+  git -C "$repo" remote set-url origin "$bad_origin"
+  run_hook "loop/355-x" "acme:developer"
+  if [ ! -s "$root/calls.log" ]; then
+    ok "strict origin — '$bad_origin' is not an owner/repo GitHub origin and reaches no gh call"
+  else
+    bad "strict origin — '$bad_origin'" "expected no gh call, got: $(tr '\n' '|' < "$root/calls.log")"
+  fi
+done
+git -C "$repo" remote set-url origin git@github.com:acme/widget.git
 
 teardown
 
