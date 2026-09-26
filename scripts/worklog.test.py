@@ -7,6 +7,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -44,6 +45,29 @@ def changed(source, path, value):
         target = target[key]
     target[path[-1]] = value
     return result
+
+
+# #514 lens B1: each private spelling below passed the former word-start, four-token filter.
+PRIVATE_SPELLINGS = [
+    "resume from /tmp/x/continuation-6.md",
+    "resume from ~/notes/continuation-6.md",
+    "resume from /var/folders/ab/T/continuation-6.md",
+    "resume from (/Users/someone/x)",
+    "resume from /home/someone/continuation-6.md",
+    "resume from /private/var/x",
+    "open file:///x/y",
+    "read tadeumendonca-io/.brand/positioning.md first",
+    "read ../.brand/positioning.md first",
+    "read .BRAND/positioning.md",
+    "look in the .brand",
+    "resume from C:\\Users\\x\\notes.md",
+]
+PUBLIC_SPELLINGS = [
+    "open the merge request for the branch at the named commit",
+    "re-run hooks/scripts/inventory-counts.test.sh",
+    "read docs/worklog/README.md",
+    "the branding section of README.md, and the .branded-x fixture",
+]
 
 
 class WorklogTest(unittest.TestCase):
@@ -559,9 +583,69 @@ class WorklogTest(unittest.TestCase):
                                       check=True, capture_output=True, text=True).stdout
             self.assertIn('"next_act": "open the merge request', prepared)
 
+    def test_privacy_filter_is_strict_for_producers_and_for_next_act(self):
+        handoff = copy.deepcopy(next(e for e in FIXTURE["events"] if e["event_type"] == "handoff"))
+        for text in PRIVATE_SPELLINGS:
+            with self.subTest(next_act=text), self.assertRaisesRegex(worklog.ContractError, "private"):
+                # next_act has no retained history, so the READER is strict too.
+                worklog.validate_event(dict(handoff, next_act=text))
+            with self.subTest(evidence=text):
+                event = dict(handoff, next_act="open the pull request", evidence=[text])
+                if not worklog.PRIVATE_EVIDENCE.search(text):
+                    worklog.validate_event(copy.deepcopy(event))  # the reader filter did not widen
+                with self.assertRaisesRegex(worklog.ContractError, "private"):
+                    worklog.validate_prepared(worklog.validate_event(copy.deepcopy(event)))
+        for text in PUBLIC_SPELLINGS:
+            with self.subTest(allowed=text):
+                worklog.validate_prepared(worklog.validate_event(dict(handoff, next_act=text, evidence=[text])))
+        outcome = copy.deepcopy(FIXTURE["events"][2])
+        worklog.validate_prepared(worklog.validate_event(copy.deepcopy(outcome)))
+        with self.assertRaisesRegex(worklog.ContractError, "acceptance_evidence.*private"):
+            worklog.validate_prepared(worklog.validate_event(dict(outcome, acceptance_evidence=["/tmp/x"])))
+
+    def test_prepare_event_recurses_into_a_corrected_event(self):
+        # #514 lens B2: a correction carrying a handoff must meet the producer bounds of that handoff,
+        # because the report reads the corrected event as the effective one.
+        handoff = copy.deepcopy(next(e for e in FIXTURE["events"] if e["event_type"] == "handoff"))
+        wrapped = dict(handoff, event_id="skills-7-handoff-v2", evidence=["b" * (worklog.FREE_TEXT_LIMIT + 1)])
+        correction = dict(handoff, event_type="correction", event_id="skills-7-correction",
+                          supersedes_event_id=handoff["event_id"], corrected_event=wrapped)
+        worklog.validate_event(copy.deepcopy(correction))  # the reader still accepts it as history
+        with self.assertRaisesRegex(worklog.ContractError, "corrected_event: missing next_act"):
+            worklog.validate_prepared(worklog.validate_event(copy.deepcopy(correction)))
+        with_act = dict(correction, corrected_event=dict(wrapped, next_act="open the pull request"))
+        with self.assertRaisesRegex(worklog.ContractError, r"corrected_event\.evidence\[0\]: must be at most 280"):
+            worklog.validate_prepared(worklog.validate_event(copy.deepcopy(with_act)))
+        private = dict(correction, corrected_event=dict(handoff, event_id="skills-7-handoff-v2",
+                                                        next_act="resume from /tmp/x"))
+        with self.assertRaisesRegex(worklog.ContractError, "corrected_event.next_act: contains private"):
+            worklog.validate_event(copy.deepcopy(private))
+        clean = dict(correction, corrected_event=dict(handoff, event_id="skills-7-handoff-v2",
+                                                      next_act="open the pull request"))
+        worklog.validate_prepared(worklog.validate_event(copy.deepcopy(clean)))
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "correction.json"
+            path.write_text(json.dumps(correction))
+            script = str(ROOT / "scripts/worklog.py")
+            result = subprocess.run(["python3", "-B", script, "prepare-event", str(path)],
+                                    check=False, capture_output=True, text=True)
+            self.assertEqual(2, result.returncode)
+            self.assertEqual("", result.stdout)
+            self.assertIn("corrected_event: missing next_act", result.stderr)
+
     def test_schema_documents_the_continuity_field(self):
         schema = json.loads((ROOT / "docs/worklog/event.schema.json").read_text())
         field = schema["properties"]["next_act"]
+        # The schema carries the strict next_act filter too, spelled without flags. Checked by behaviour,
+        # against the same spellings the code is tested with, rather than by comparing strings.
+        strict = [re.compile(part["not"]["pattern"]) for part in field["allOf"] if set(part) == {"not"}]
+        self.assertEqual(1, len(strict))
+        for text in PRIVATE_SPELLINGS:
+            with self.subTest(schema_refuses=text):
+                self.assertTrue(strict[0].search(text))
+        for text in PUBLIC_SPELLINGS:
+            with self.subTest(schema_allows=text):
+                self.assertIsNone(strict[0].search(text))
         self.assertIn({"maxLength": worklog.FREE_TEXT_LIMIT, "not": {"pattern": "[\\r\\n]"}}, field["allOf"])
         self.assertIn({"if": {"required": ["next_act"]},
                        "then": {"properties": {"event_type": {"enum": sorted(worklog.CONTINUITY_TYPES)}}}},
