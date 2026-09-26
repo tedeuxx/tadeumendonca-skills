@@ -412,7 +412,7 @@ fi
 # sets `transcript-worktree` only for an accepted root OTHER than the payload cwd, so a dispatch whose
 # most-referenced root is the primary itself stays `payload-cwd` and is narrowed here. That is
 # deliberate. Reviewers read the primary constantly while it sits on an unrelated slice's branch, so
-# a reference to it is no evidence that its branch is the dispatch's work (replay: 16 of the 23
+# a reference to it is no evidence that its branch is the dispatch's work (replay: 17 of the 27
 # narrowed dispatches referenced the primary by absolute path). If the dispatch WROTE to a PR, that PR
 # is its own act and names its Issue; the primary's branch then adds only a possibly-wrong Issue on top
 # (measured: two gates on #532 resolved to the primary's #513 plus the correct #511). So the two
