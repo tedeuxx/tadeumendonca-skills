@@ -2135,6 +2135,76 @@ check_from ALLOW "$TFEAT" "531r2/ctl: stash push -m \"wip\""                 "gi
 check_from ALLOW "$TFEAT" "531r2/ctl: quoted -c on a non-push"              "git -c \"user.name=A B\" commit -m x"
 check_from ALLOW "$TFEAT" "531r2/ctl: add, commit \"…push…\", push"          "git add -A && git commit -m \"fix: 'push' quoting\" && git push -u origin feat/x"
 
+echo "--- #531 round 3 (A2): BRACE EXPANSION in a push is refused, not decoded ---"
+# The lens's A2 (PR #534 marker 5842274316): each drew NO DECISION at 4bfbfe19 — 3b turned `{`/`}`
+# into separators, cutting the `+` or the `main` out of the push, and rule 7 read the unexpanded text.
+# What bash runs: `{+,}feat/x` -> `+feat/x feat/x` (a FORCE); `HEAD:{m,}ain` -> `HEAD:main HEAD:ain`.
+# Rule 7 answers first (brace reason); 3b's GS mark is the second layer, and the only one for the
+# name/subcommand arms, which rule 7 cannot see. Calibration figures: see the PR body (#534), which
+# records the mutation runs; they are not restated here because they move with the suite.
+check_from_reason DENY "$TFEAT" "531r3/A2: origin {+,}feat/x (a force)"        "brace expansion" "git push origin {+,}feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A2: HEAD:{m,}ain (a trunk push)"        "brace expansion" "git push origin HEAD:{m,}ain"
+check_from_reason DENY "$TFEAT" "531r3/A2: feat/x:{main,} (a trunk push)"      "brace expansion" "git push origin feat/x:{main,}"
+check_from_reason DENY "$TFEAT" "531r3/A2: -C . HEAD:{m,}ain"                  "brace expansion" "git -C . push origin HEAD:{m,}ain"
+check_from_reason DENY "$TFEAT" "531r3/A2: -{f,u} (a force flag)"              "brace expansion" "git push -{f,u} origin feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A2: {\"+\",}feat/x (quoted member)"     "brace expansion" "git push origin {\"+\",}feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A2: nested feat/{a,{b,c}}"              "brace expansion" "git push origin feat/{a,{b,c}}"
+check_from_reason DENY "$TFEAT" "531r3/A2: sequence {a..c}"                    "brace expansion" "git push origin {a..c}"
+check_from_reason DENY "$TFEAT" "531r3/A2: subcommand p{u,}sh (3b only)"       "cannot classify" "git p{u,}sh origin feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A2: name {g,}it (3b only)"              "cannot classify" "{g,}it push origin feat/x"
+check_agent       DENY "tadeumendonca-skills:developer" "531r3/A2: subagent, {+,}feat/x" "git -C $TFEAT push origin {+,}feat/x"
+check_agent       DENY ""                               "531r3/A2: orchestrator, HEAD:{m,}ain" "git -C $TFEAT push origin HEAD:{m,}ain"
+echo "--- #531 round 3 (A2): controls — a brace that is not in a push stays silent ---"
+check_from ALLOW "$TFEAT" "531r3/A2ctl: echo {a,b}"                          "echo {a,b}"
+check_from ALLOW "$TFEAT" "531r3/A2ctl: echo {1..3}"                         "echo {1..3}"
+check_from ALLOW "$TFEAT" "531r3/A2ctl: mkdir -p d/{a,b}"                    "mkdir -p d/{a,b}"
+check_from ALLOW "$TFEAT" "531r3/A2ctl: \${x,y} is a parameter expansion"    "echo \${x,y} && git push -u origin feat/x"
+check_from ALLOW "$TFEAT" "531r3/A2ctl: brace AFTER the push's separator"    "git push -u origin feat/x && echo {a,b}"
+check_from ALLOW "$TFEAT" "531r3/A2ctl: group braces { …; }"                  "{ git push -u origin feat/x; }"
+check_from ALLOW "$TFEAT" "531r3/A2ctl: quoted brace in a commit message"    "git commit -m \"x {a,b}\" && git push -u origin feat/x"
+check_from ALLOW "$TFEAT" "531r3/A2ctl: quoted brace in a git format"        "git log --format='{a,b}'"
+
+echo "--- #531 round 3 (A3): a CASE-VARIANT or GLOB command name is git too ---"
+# The lens's A3: `GIT` resolves to /usr/bin/GIT on a case-insensitive filesystem (`GIT --version` ->
+# `git version 2.54.0`, measured) and the globs expand to /usr/bin/git. All drew NO DECISION at
+# 4bfbfe19. Rule 7 reads the folded `$bare7` (trunk-reason arms); 3b's scan state reads the same names
+# in command position and marks the invocation (the "cannot classify" arms).
+check_from_reason DENY "$TFEAT" "531r3/A3: GIT push --force"                   "force-push rewrites" "GIT push --force origin feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A3: GIT push origin main"               "pushing to the trunk" "GIT push origin main"
+check_from_reason DENY "$TFEAT" "531r3/A3: Git push origin main"               "pushing to the trunk" "Git push origin main"
+check_from_reason DENY "$TFEAT" "531r3/A3: /usr/bin/GIT push origin main"      "pushing to the trunk" "/usr/bin/GIT push origin main"
+check_from_reason DENY "$TFEAT" "531r3/A3: /usr/bin/gi[t] push origin main"    "pushing to the trunk" "/usr/bin/gi[t] push origin main"
+check_from_reason DENY "$TFEAT" "531r3/A3: /usr/bin/g?t push origin main"      "pushing to the trunk" "/usr/bin/g?t push origin main"
+check_from_reason DENY "$TFEAT" "531r3/A3: /usr/bin/gi[t] push --force"        "force-push rewrites" "/usr/bin/gi[t] push --force origin feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A3: /usr/bin/g?t push origin +feat/x"   "force-push rewrites" "/usr/bin/g?t push origin +feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A3: GIT push (no force, 3b mark)"       "cannot classify" "GIT push origin feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A3: g*t push (3b mark)"                 "cannot classify" "g*t push origin feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A3: \\GIT push"                         "cannot classify" "\\GIT push origin feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A3: GIT -C <main> push, HEAD on main"   "HEAD is 'main'" "GIT -C $TMAIN push"
+check_agent       DENY "tadeumendonca-skills:developer" "531r3/A3: subagent, GIT push origin main" "GIT -C $TFEAT push origin main"
+check_agent       DENY ""                               "531r3/A3: orchestrator, g?t push origin main" "/usr/bin/g?t -C $TFEAT push origin main"
+echo "--- #531 round 3 (A3): controls — a glob or an upper-case word that is not a git name ---"
+check_from ALLOW "$TFEAT" "531r3/A3ctl: ls *.md"                             "ls *.md"
+check_from ALLOW "$TFEAT" "531r3/A3ctl: git add *.md && commit"              "git add *.md && git commit -m x"
+check_from ALLOW "$TFEAT" "531r3/A3ctl: [ -f x ] && push"                    "[ -f x ] && git push -u origin feat/x"
+check_from ALLOW "$TFEAT" "531r3/A3ctl: [[ -n \"\$x\" ]] && push"            "[[ -n \"\$x\" ]] && git push -u origin feat/x"
+check_from ALLOW "$TFEAT" "531r3/A3ctl: grep -rn GIT . (an argument)"        "grep -rn GIT ."
+check_from ALLOW "$TFEAT" "531r3/A3ctl: GIT status is not a push"           "GIT status"
+check_from ALLOW "$TFEAT" "531r3/A3ctl: git PUSH is not a push (git refuses)" "git PUSH origin feat/x"
+# The one ALLOW->DENY the transcript corpus found on the first form of this arm: a lone `*` bullet
+# at the start of a heredoc body line stands in command position, and `*` matches `git` as a
+# pattern. A pattern that matches ANY word names no program, so it is left.
+check_from ALLOW "$TFEAT" "531r3/A3ctl: heredoc '* \"new\"' bullet is not a git" "python3 - <<'PY'
+x = 1
+* \"new\" item
+PY"
+check_from ALLOW "$TFEAT" "531r3/A3ctl: heredoc \"* 'new item'\" bullet"  "python3 - <<'PY'
+* 'new item' x
+PY"
+check_from ALLOW "$TFEAT" "531r3/A3ctl: lone * before push in a heredoc"   "python3 - <<'PY'
+* push origin main
+PY"
+
 # ── #453: the collision those nine arms were standing on, asserted instead of inherited ───────────
 #
 # WHAT MAKES THE `$TFEAT` ABOVE LOAD-BEARING RATHER THAN DECORATIVE. Every converted arm asserts "3b

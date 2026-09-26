@@ -2167,10 +2167,65 @@ fi
 #    branch limb misread the target but because rule 7 never ran. `push($|[^[:alnum:]_./-])` fires on
 #    `push)`, `push;`, `push|` and `push&` while still declining `git push-something`. It can only ever
 #    make this rule fire on MORE, never on less, so it adds no path from DENY to ALLOW.
-if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-c[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+))*[[:space:]]+push($|[^[:alnum:]_./-])'; then
+#
+#    ── #531 round 3 (A3): THE COMMAND NAME IS FOLDED BEFORE THIS RULE READS IT ──────────────────────
+#    The trigger needs the literal `git`, so `GIT push origin main`, `/usr/bin/GIT push origin main`,
+#    `/usr/bin/gi[t] push origin main` and `/usr/bin/g?t push origin main` drew NO DECISION from this
+#    rule at 4bfbfe19 — and they ARE git: this host's filesystem is case-insensitive (`GIT --version`
+#    prints `git version 2.54.0`, measured) and the globs expand to `/usr/bin/git`. So this rule reads
+#    `$bare7`, not `$bare`: every case variant of `git` standing as a word is folded to `git`, and —
+#    only when the command carries a glob character — every blank-delimited word whose last path
+#    component matches some case spelling of `git` AS A PATTERN (and does not match every word, as a
+#    lone `*` does) is replaced by `git`. Both only ADD `git` words,
+#    so this can only make the rule fire on more; it adds no path from DENY to ALLOW. (Rule 3b folds
+#    the same names in its own view.) Bound: a glob word glued to a separator (`g?t;`) is not folded
+#    here — 3b's view splits separators first and still reads it.
+bare7="$(printf '%s' "$bare" | sed -E \
+  -e 's/(^|[^[:alnum:]_])[Gg][Ii][Tt]([[:space:];&|)]|$)/\1git\2/g' \
+  -e 's/(^|[^[:alnum:]_])[Gg][Ii][Tt]([[:space:];&|)]|$)/\1git\2/g')"
+case "$bare7" in
+  *[[?*]*)
+    case "$-" in *f*) r7_noglob=1 ;; *) r7_noglob=0 ;; esac
+    set -f
+    r7_out=""
+    for r7_w in $bare7; do
+      case "$r7_w" in
+        *[[?*]*)
+          # The last path component IS the pattern, tested against the eight spellings of `git`
+          # (no `tr` fork per word — a heredoc body can carry hundreds of `*`) — unless it matches
+          # ANY word (`*`, `?*`): a lone `*` is a markdown bullet in a heredoc body far more often
+          # than a command, and it names no program in particular.
+          r7_pat="${r7_w##*/}"
+          # shellcheck disable=SC2194,SC2254 # the word IS the pattern, and zzzz is a probe, on purpose
+          case zzzz in
+            $r7_pat) ;;
+            *) for r7_v in git Git gIt giT GIt GiT gIT GIT; do
+                 case "$r7_v" in $r7_pat) r7_w="git"; break ;; esac
+               done ;;
+          esac ;;
+      esac
+      r7_out="$r7_out $r7_w"
+    done
+    [ "$r7_noglob" = 1 ] || set +f
+    bare7="$r7_out" ;;
+esac
+if printf '%s' "$bare7" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-c[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+))*[[:space:]]+push($|[^[:alnum:]_./-])'; then
   # Any refspec landing on the trunk: `main`, `refs/heads/main`, `HEAD:main`, `+main`.
-  if printf '%s' "$bare" | grep -Eq '[[:space:]]\+?([^[:space:]:]+:)?(refs/heads/)?(main|master)([[:space:];&|)}]|$)'; then
+  if printf '%s' "$bare7" | grep -Eq '[[:space:]]\+?([^[:space:]:]+:)?(refs/heads/)?(main|master)([[:space:];&|)}]|$)'; then
     deny "Blocked: pushing to the trunk. Merging to main is the deploy and the human's go/no-go — it is never an agent action. Push your feature branch and open a PR."
+  fi
+  # BRACE EXPANSION IN THE PUSH (#531 round 3, A2). `HEAD:{m,}ain` and `feat/x:{main,}` are trunk
+  # pushes to bash (`HEAD:main HEAD:ain`), and the limb above reads the unexpanded text, so both drew
+  # NO DECISION at 4bfbfe19. Not decoded: a push invocation — from its `git` to the next separator —
+  # carrying an unquoted `{…}` with a `,` or `..` in it is refused, because this rule cannot rule the
+  # trunk out. Scoped to the push's own segment so an `echo {a,b}` chained after a push stays silent;
+  # a quoted brace is collapsed in `$bare` and never matches; `${…}` is skipped.
+  # Captured, not piped into `grep -q`: under `pipefail` an early-exiting `-q` can SIGPIPE the writer
+  # and turn a match into a non-zero pipeline — a race that would read as "no brace".
+  r7_segs="$(printf '%s' "$bare7" \
+    | grep -oE '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-c[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+))*[[:space:]]+push($|[^[:alnum:]_./-])[^;&|()]*' || true)"
+  if printf '%s' "$r7_segs" | grep -Eq '(^|[^$])\{[^{}[:space:];]*(,|\.\.)[^{}[:space:];]*\}'; then
+    deny "Blocked: this 'git push' carries a brace expansion ({a,b} or {a..b}), which bash expands into more refspecs than the command shows — 'HEAD:{m,}ain' is a push to the trunk and '{+,}feat/x' is a force — and this rule does not decode it, so it cannot rule the trunk out. Write each refspec out literally, e.g. 'git -C <dir> push -u origin <branch>'."
   fi
   # DELETION OF THE TRUNK (#531). An empty-source refspec — `:main`, `:refs/heads/main` — DELETES the
   # remote ref. The limb above cannot see it: its optional `<src>:` group needs at least one non-colon
@@ -2180,11 +2235,11 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
   # subagent alike. It is a separate `if` rather than a `:|` inside the limb above so that removing it
   # is one well-defined mutation, and `permission-guard.test.sh` pins that removing it reddens.
   # `--delete main` / `-d main` never needed this: the limb above already matches the bare `main`.
-  if printf '%s' "$bare" | grep -Eq '[[:space:]]:(refs/heads/)?(main|master)([[:space:];&|)}]|$)'; then
+  if printf '%s' "$bare7" | grep -Eq '[[:space:]]:(refs/heads/)?(main|master)([[:space:];&|)}]|$)'; then
     deny "Blocked: pushing to the trunk — an empty-source refspec (':main', ':refs/heads/main') DELETES the remote trunk, and merging to main is the deploy and the human's go/no-go. Never delete the trunk from an agent. If you meant to delete a feature branch, name that branch (':feat/x', or 'git push origin --delete feat/x'); otherwise push your feature branch and open a PR."
   fi
   # --all / --mirror sweep every ref, trunk included.
-  if printf '%s' "$bare" | grep -Eq '[[:space:]](--all|--mirror)([[:space:];&|)}]|$)'; then
+  if printf '%s' "$bare7" | grep -Eq '[[:space:]](--all|--mirror)([[:space:];&|)}]|$)'; then
     deny "Blocked: 'git push --all/--mirror' pushes every ref, the trunk included. Push one named branch instead."
   fi
   # --tags / --follow-tags PUBLISH. Both are in the floor's `deny` and neither was matched here, so
@@ -2192,7 +2247,7 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
   # layer, the same bypass shape as the `gh -R` finding. A tag in this workspace is not a label: the
   # deploy's `release` job creates it, and pushing one by hand publishes a Release and desynchronises
   # it from VERSION.
-  if printf '%s' "$bare" | grep -Eq '[[:space:]](--tags|--follow-tags)([[:space:];&|)}]|$)'; then
+  if printf '%s' "$bare7" | grep -Eq '[[:space:]](--tags|--follow-tags)([[:space:];&|)}]|$)'; then
     deny "Blocked: pushing tags publishes a Release. The deploy workflow's 'release' job owns tagging — it bumps VERSION, tags and publishes in one pass, and a hand-pushed tag desynchronises the three. Push the branch alone."
   fi
   # ── TARGET RESOLUTION (#446). A bare `git push` inherits HEAD, so this limb has to name the
@@ -2279,7 +2334,7 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
   # first form of this block turned eight of rule 3b's force-push denials into silent allows —
   # measured, 471/8 against a 479/0 baseline. A guard that abstains by crashing is the worst member
   # of the fail-open family, because nothing anywhere says it happened.
-  push_matches="$(printf '%s' "$bare" | grep -oE '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-c[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+))*[[:space:]]+push($|[^[:alnum:]_./-])' || true)"
+  push_matches="$(printf '%s' "$bare7" | grep -oE '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:]]+[^[:space:]]+|-c[[:space:]]+[^[:space:]]+|--git-dir=[^[:space:]]+|--work-tree=[^[:space:]]+))*[[:space:]]+push($|[^[:alnum:]_./-])' || true)"
   push_hits="$(printf '%s\n' "$push_matches" | grep -c . || true)"
   push_inv="$(printf '%s\n' "$push_matches" | sed -n '1p')"
   # Only these three name a TARGET. `-c` sets a config key and is tolerated inside the invocation
@@ -2333,7 +2388,7 @@ if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_])git([[:space:]]+(-C[[:space:
     # command that moves no directory. That trade is worse than the residual. And note what a shared
     # target/subject resolver would NOT have bought: this is not an incomplete git-flag alternation,
     # it is that *which directory will this command run in* is unanswerable from a command string.
-    if printf '%s' "$bare" | grep -Eq '(^|[^[:alnum:]_.-])(cd|pushd|popd|chdir|env)([[:space:];&|)}]|$)|\(|GIT_DIR=|GIT_WORK_TREE=|GIT_CEILING_DIRECTORIES='; then
+    if printf '%s' "$bare7" | grep -Eq '(^|[^[:alnum:]_.-])(cd|pushd|popd|chdir|env)([[:space:];&|)}]|$)|\(|GIT_DIR=|GIT_WORK_TREE=|GIT_CEILING_DIRECTORIES='; then
       target_unresolvable="the command can move the working directory before the push runs (a 'cd'/'pushd'/'popd', an 'env' that chdirs, a subshell, or a GIT_DIR/GIT_WORK_TREE environment assignment), so which repository it lands in is not readable from the command string"
     else
       dir="."
@@ -2389,7 +2444,11 @@ fi
 #     loop actually makes and refuses everything else as "cannot classify". ~~A seventh spelling nobody
 #     has thought of lands on DENY by construction rather than on ALLOW by omission~~ — STRUCK at #531
 #     round 2: true of a push's ARGUMENTS only; a quoted or escaped command name or subcommand never
-#     reached the grammar at all (see the round-2 block below, and the residual it lists). The error
+#     reached the grammar at all (see the round-2 block below, and the residual it lists). And
+#     NARROWED AGAIN at round 3: not even of every argument spelling — only of arguments the view
+#     actually delivers to the grammar. A brace expansion was cut out of the push before the grammar
+#     ran (A2, closed at round 3), and a quote mis-pairing collapses the whole push away (A1, OPEN):
+#     both are spellings of a push's ARGUMENTS that never reached this grammar. The error
 #     runs toward a visible over-block — the direction this floor's own standing rule prefers, because
 #     a refused push costs one re-typed command and a forced one can cost someone else's commits.
 #
@@ -2445,7 +2504,8 @@ push_view=""
 #
 #     ── #531 round 2: "BY CONSTRUCTION" WAS FALSE FOR THE TWO WORDS THAT DECIDE WHETHER THIS RUNS ──
 #     ~~A seventh spelling nobody has thought of lands on DENY by construction~~ held for a push's
-#     ARGUMENTS and not for the command name and the subcommand. The view collapsed every quoted span
+#     ARGUMENTS — those the view delivers to the grammar; A1/A2 below are arguments it did not — and
+#     not for the command name and the subcommand. The view collapsed every quoted span
 #     to `""`/`''` BEFORE tokenising, and the entry gate required the literal `push`, so each of these
 #     drew NO DECISION at 162916b6 and at 4b66b789 alike (found by the `agents-lead` lens on PR #534,
 #     not by this rule's own suite):
@@ -2454,7 +2514,11 @@ push_view=""
 #       eval 'git push --force-with-lease=x …'
 #     The repair is three moves:
 #       1. the ENTRY GATE widens to any command naming `git` or `push`, or carrying a quote or a
-#          backslash — every obfuscation of either word needs one of those;
+#          backslash — ~~every obfuscation of either word needs one of those~~ STRUCK at round 3:
+#          every QUOTING or ESCAPING obfuscation needs one of those, and that is all it covered. A
+#          case variant (`GIT`), a glob (`gi[t]`, `g?t`) and a brace expansion (`{g,}it`) obfuscate
+#          the name with neither, and each drew NO DECISION at 4bfbfe19. Round 3 adds them to the gate
+#          (`[Gg][Ii][Tt]`, `{`, `[`/`?`/`*`) and to the scan below — see A2/A3 in the residual list;
 #       2. BEFORE the collapse, QUOTING THAT HIDES ONLY A WORD IS REMOVED: a `$'…'`, `$"…"`, `'…'` or
 #          `"…"` span whose content is word characters only (no blank, quote, backslash or `$`) is
 #          replaced by its content, and the one quoted span after an `eval` is unquoted. Deleting a
@@ -2486,11 +2550,52 @@ push_view=""
 #         the eval mark refuses any push after it that no force reason answered);
 #       · an ANSI-C span whose content is not word-only — `$'\x67it' push -f`: nothing here decodes
 #         escapes (`$'git' push -f` and `"g"i't' push -f` ARE caught);
-#       · `command -p`/`exec -a <n>`/`env -S` and other prefixes whose own arguments this position
-#         tracker does not model, where the name that follows is quoted.
+#       · `exec -a <n>`, `sudo -u <user>` and other prefixes whose own ARGUMENT this position tracker
+#         does not model (it takes `x`/`root` for the command word), where the name that follows is
+#         quoted — `exec -a x "git" push origin +feat/x` is ALLOW at 4bfbfe19 and at round 3.
+#         ~~`command -p`/`env -S`~~ — struck at round 3: both DENY at 4bfbfe19, measured
+#         (`command -p "git" push origin +feat/x` and `env -S "git" push origin +feat/x` -> force),
+#         because `-p`/`-S` are flags the prefix rule already carries command position through.
 #     The unconditional claim is withdrawn; these are what replaced it.
+#
+#     ── ROUND 3 — THE LIST ABOVE WAS PRESENTED AS COMPLETE AND WAS NOT (lens, PR #534 marker 5842274316)
+#     Three pre-existing classes, none a regression of this slice (each was ALLOW at 4b66b789 too):
+#
+#       A1 · OPEN, NOT CLOSED HERE, AND IT IS THE REALISTIC ONE — QUOTE MIS-PAIRING. `$bare` (rule 7)
+#            and this view both collapse quoted spans with two independent regexes, one for `'…'`
+#            and one for `"…"`. An apostrophe INSIDE a double-quoted span is taken as an OPENING
+#            single quote and paired with the next `'` in the command, so everything between —
+#            including a whole later push — collapses to `''` and neither rule sees it. Reproducers,
+#            each ALLOW from a feature checkout at 4bfbfe19 and at round 3, measured:
+#              git commit -m "it's" && git push origin main && echo 'ok go'     (a TRUNK push)
+#              echo "it's"; git push origin main; echo 'x'                      (a TRUNK push)
+#              echo "it's"; git push origin HEAD:main; echo 'a b'               (a TRUNK push)
+#              echo "it's"; git push origin +feat/x; echo 'a b'                 (a FORCE)
+#              printf "%s" "don't"; git push origin :main; echo 'x y'          (DELETES the trunk)
+#            The first is not adversarial: a commit message with an apostrophe, chained to a push,
+#            followed by any later single-quoted span. The fix is a left-to-right QUOTE-STATE SCANNER
+#            in place of the two-regex collapse, in BOTH `$bare` and this view — and every rule in
+#            this file reads `$bare`, so it is its own slice, routed separately. Until then the floor
+#            believes it refuses a trunk push that it does not see.
+#       A2 · CLOSED AT ROUND 3 — BRACE EXPANSION. `git push origin {+,}feat/x` is `git push origin
+#            +feat/x feat/x` to bash (a force) and `HEAD:{m,}ain` / `feat/x:{main,}` are trunk pushes;
+#            this view turned `{`/`}` into separators and cut the `+`/`main` out. HOW: an unquoted
+#            `{…}` holding `,` or `..` and no blank becomes a GS mark before the separator step (see
+#            there), which no grammar branch accepts — a push argument carrying one denies as "cannot
+#            classify", a name or subcommand carrying one is read as a possible `git`/`push` — and
+#            rule 7 refuses a push segment carrying one with its own brace reason, first. Not decoded.
+#       A3 · CLOSED AT ROUND 3 — CASE-VARIANT AND GLOB COMMAND NAMES. `GIT push --force …`, `GIT push
+#            origin main`, `/usr/bin/gi[t] push …`, `/usr/bin/g?t push …` — this host resolves `GIT`
+#            to git (case-insensitive filesystem; `GIT --version` -> `git version 2.54.0`) and the globs
+#            expand to /usr/bin/git. HOW: in command position, a case variant of `git`, a glob whose last
+#            path component matches a case spelling of `git` as a pattern (but not EVERY word — a lone
+#            `*` is left), or a brace mark, opens a git invocation marked obfuscated, so a push through
+#            it denies unless a force reason answered first; rule 7 reads `$bare7`, the same names
+#            folded to `git`. The SUBCOMMAND is not folded: `git PUSH` is 'fatal: cannot handle PUSH as
+#            a builtin', measured. Bound: a glob glued to a separator (`g?t;push`) is read by this view
+#            (it splits separators first) and not by rule 7's fold.
 case "$command $unwrap_all" in
-  *git*|*push*|*\\*|*\"*|*\'*)
+  *[Gg][Ii][Tt]*|*push*|*\\*|*\"*|*\'*|*\{*|*[[?*]*)
     pv_rs="$(printf '\036')"
     # W = the characters a refname, flag or command word is made of; `#` is the sed delimiter on the
     # four word-unquoting expressions because W contains `/`.
@@ -2522,6 +2627,19 @@ case "$command $unwrap_all" in
     if [ -n "$unwrap_all" ]; then
       push_view="$push_view ; $(printf '%s' "$unwrap_all" | pv_unq)"
     fi
+    # #531 round 3 (A2) — BRACE EXPANSION BECOMES A MARK (GS, \035) BEFORE THE BRACES BECOME
+    # SEPARATORS. `git push origin {+,}feat/x` is `git push origin +feat/x feat/x` to bash — a FORCE —
+    # and `HEAD:{m,}ain` is `HEAD:main HEAD:ain`, a TRUNK push; turning `{`/`}` into `;` (the next
+    # step) cut the `+` out of the push, and both drew NO DECISION at 4bfbfe19. A span is brace
+    # expansion when it is an unquoted `{…}` holding a `,` or a `..` and no blank or `;` — grouping
+    # braces need a blank, and quoted spans were collapsed above, so a quoted brace never matches;
+    # `${…}` is a parameter expansion and is skipped. The span is NOT decoded (fail closed rather than
+    # decode): it becomes a GS the grammar below cannot read, so a push argument carrying one denies
+    # as "cannot classify", and a command word or subcommand carrying one is read as a possible
+    # `git`/`push`. Looped, so a nested `{a,{b,c}}` collapses too.
+    pv_bx="$(printf '\035')"
+    push_view="$(printf '%s' "$push_view" \
+      | sed -E -e ':a' -e "s/(^|[^\$])\\{[^{}[:space:];]*(,|\\.\\.)[^{}[:space:];]*\\}/\\1${pv_bx}/" -e 'ta')"
     # Separators become a spaced `;`. `&&`, `||` and `|&` first, then a lone `|`, then `;` and the
     # grouping characters `(` `)` `{` `}` (so `{ git push --force; }` and a stray `--force}` still end
     # the flag at the brace, as the 162916b6 regex's trailing class did), then a BACKGROUND `&` — only a blank-delimited one, so `2>&1` and `&>/dev/null` survive intact.
@@ -2594,10 +2712,43 @@ if [ -n "$push_view" ]; then
           *\\*)
             # `\git`, `g\it`: outside quotes a backslash before an ordinary character is removed by
             # the shell, so the word IS `git`. Read it as one, in any position — the same reach the
-            # literal spelling above already has — and mark the invocation obfuscated.
+            # literal spelling above already has — and mark the invocation obfuscated. Case-folded
+            # since round 3 (`\GIT`), for the reason the next arm gives.
             case "${pv_tok//\\/}" in
-              git|*/git) pv_state="gopt"; pv_gunknown=0; pv_gcfg=0; pv_gcmd="$pv_atcmd"; pv_obf=1 ;;
+              [Gg][Ii][Tt]|*/[Gg][Ii][Tt]) pv_state="gopt"; pv_gunknown=0; pv_gcfg=0; pv_gcmd="$pv_atcmd"; pv_obf=1 ;;
             esac ;;
+          *)
+            # #531 round 3 (A3) — a command NAME this rule could not match literally. Read only in
+            # COMMAND POSITION (an argument is not an invocation), and every hit marks the invocation
+            # obfuscated, so a push through it denies as "cannot classify" unless a force answered:
+            #   · a CASE VARIANT — `GIT`, `Git`, `/usr/bin/GIT`. This host's filesystem is
+            #     case-insensitive: `GIT --version` prints `git version 2.54.0`, measured. (The
+            #     SUBCOMMAND is not folded: `git PUSH` is 'fatal: cannot handle PUSH as a builtin'.)
+            #   · a GLOB that can expand to `git` — `/usr/bin/gi[t]`, `/usr/bin/g?t`, `g*t`: tested by
+            #     matching the word's last path component, AS A PATTERN, against every case spelling of `git`,
+            #     so `[ -f x ]` and `*.sh` do not match and stay silent;
+            #   · a BRACE-EXPANSION mark (A2's GS) in the name — `{g,}it` — not decoded, just refused.
+            if [ "$pv_atcmd" = 1 ]; then
+              pv_nm="${pv_tok##*/}"; pv_maybe=0
+              case "$pv_nm" in
+                [Gg][Ii][Tt]) pv_maybe=1 ;;
+                *"$pv_bx"*) pv_maybe=1 ;;
+                *[[?*]*)
+                  # …unless it matches ANY word (`*`, `?*`) — measured: a lone `*` bullet at the start
+                  # of a heredoc body line stands in command position here, and was the one
+                  # over-block the transcript corpus found. It names no program in particular.
+                  # shellcheck disable=SC2194,SC2254 # the word IS the pattern, and zzzz is a probe, on purpose
+                  case zzzz in
+                    $pv_nm) ;;
+                    *) for pv_v in git Git gIt giT GIt GiT gIT GIT; do
+                         case "$pv_v" in $pv_nm) pv_maybe=1; break ;; esac
+                       done ;;
+                  esac ;;
+              esac
+              if [ "$pv_maybe" = 1 ]; then
+                pv_state="gopt"; pv_gunknown=0; pv_gcfg=0; pv_gcmd=1; pv_obf=1
+              fi
+            fi ;;
         esac ;;
       garg)
         if [ "$pv_tok" = ";" ]; then pv_state="scan"; else pv_state="gopt"; fi ;;
@@ -2611,10 +2762,11 @@ if [ -n "$push_view" ]; then
           --config-env=*) pv_gcfg=1 ;;
           --git-dir=*|--work-tree=*|--namespace=*|--super-prefix=*|--exec-path=*) ;;
           -p|-P|--paginate|--no-pager|--bare|--no-replace-objects|--literal-pathspecs|--glob-pathspecs|--noglob-pathspecs|--icase-pathspecs|--no-optional-locks|--no-advice|--no-lazy-fetch) ;;
-          *[\'\"\\\$\`]*)
+          *[\'\"\\\$\`]*|*"$pv_bx"*|*[[?*]*)
             # Move 3: the word-only unquoting above already turned `"push"`/`pu''sh` into `push`, so
             # a quote, backslash, `$` or backtick still here hides a word this rule cannot read —
-            # and it may be `push`. Refused when this `git` stood in command position; a `git`
+            # and it may be `push`. Round 3 adds a brace-expansion mark (`p{u,}sh`) and a glob
+            # (`p?sh`, which bash expands against the cwd) to the same class. Refused when this `git` stood in command position; a `git`
             # that is an argument (`grep git "$f"`) is not an invocation, so its next word is left.
             if [ "$pv_gcmd" = 1 ]; then
               push_class="unknown"
