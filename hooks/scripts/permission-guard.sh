@@ -146,9 +146,87 @@
 #
 # ADR-0004 holds the full decision and its supersessions; this is the short operative form.
 
+# ── THE GUARD'S OWN TIME BUDGET (#531 round 5) — A HANG BECOMES A DENY, NEVER SILENCE ────────────────
+# FOUR LATENCY FINDINGS IN FIVE ROUNDS on one slice (B1 the heredoc queue, A2 the brace loop, N1 the
+# extglob name match, then bash 3.2's roughly CUBIC `${var//pat/}` on one long token), and every one
+# had the same consequence rather than the same cause: the guard ran past the Codex adapter's 4.0 s
+# budget, which ABSTAINS, so a DENY turned into NO DECISION. Each was fixed where it was found. This
+# block is the backstop for the one nobody has found yet: the guard now holds its own budget, shorter
+# than both hosts' (`hooks/hooks.json` "timeout": 5; the adapter's 4.0 s), and when it runs out the
+# answer is a DENY that names the budget.
+#
+# HOW, AND WHY THIS SHAPE. The process the host started (this one) becomes a SUPERVISOR: it re-runs this
+# same file as a WORKER (`PERMISSION_GUARD_WORKER=1`), captures the worker's stdout, and starts a
+# killer that sleeps the budget and then stops and kills the worker and every descendant of it. The
+# supervisor prints either the worker's answer or the budget DENY, NEVER BOTH, and exits 0 itself.
+# Rejected, each on a stated reason:
+#   · a `trap … ALRM` in one process — bash runs a trap only BETWEEN commands, and the slow paths so
+#     far were a single builtin expansion, so the trap would fire after the damage;
+#   · a background watchdog that kills THIS process and prints — the host would see its own child die
+#     by SIGKILL with a JSON body on stdout, and what Claude Code does with a killed hook's stdout is
+#     unmeasured, so the decision would rest on a hypothesis;
+#   · `perl -e 'alarm N; exec @ARGV'` (the suite's own helper) — alarm KILLS, it prints nothing, so it
+#     turns a hang into a fast silence rather than a DENY. It is still used by the suite, as a harness.
+# NO NEW DEPENDENCY: `sleep` and `kill` (a builtin) do the work; `pgrep` finds the descendants. The
+# MISSING-DEPENDENCY PATHS, stated: no `sleep` -> the killer's `sleep … &&` fails, NOTHING is killed,
+# and the guard behaves exactly as it did before this block (no budget, never a spurious DENY); no
+# `pgrep` -> only the worker is killed, and an orphaned descendant may still hold stderr open, which
+# can delay the host reading the (already written) DENY. Both fall back to the previous behaviour,
+# never to anything more permissive than it.
+#
+# WHAT IT COSTS: one extra `bash` start per call, plus a subshell and a `sleep` (measured per call in
+# #534's body, with the command). A merge whose rule-7c `gh` read takes longer than the budget is now
+# DENIED where it used to be allowed within 5 s — fail closed, on the one rule whose own posture is
+# already "no readable verdict, no merge".
+#
+# WHAT IT DOES NOT DO: it bounds the GUARD, not the host. If the host kills the supervisor before the
+# budget (a host timeout set below it), nothing here runs. And the race at the budget's edge — the
+# worker writing its answer in the same instant the killer fires — is resolved on the worker's exit
+# status: an answer is relayed only from a worker that EXITED, and a killed worker's output is
+# discarded in favour of the DENY.
+#
+# THE TWO ENVIRONMENT KNOBS ARE FOR THE SUITE AND CAN ONLY MAKE THE ANSWER A DENY. The host's
+# environment is not reachable from a command string, and both knobs are one-directional:
+# `PERMISSION_GUARD_BUDGET` may only LOWER the budget (1 or 2; anything else is ignored), and
+# `PERMISSION_GUARD_TEST_STALL` makes the worker sleep, which the budget turns into a DENY.
+if [ "${PERMISSION_GUARD_WORKER:-}" != 1 ]; then
+  pg_budget=3
+  case "${PERMISSION_GUARD_BUDGET:-}" in 1|2) pg_budget="$PERMISSION_GUARD_BUDGET" ;; esac
+  pg_kill_tree() { # stop first so it cannot fork past us, then its descendants, then itself
+    kill -STOP "$1" 2>/dev/null
+    for pg_c in $(pgrep -P "$1" 2>/dev/null); do pg_kill_tree "$pg_c"; done
+    kill -KILL "$1" 2>/dev/null
+  }
+  # The killer kills its own `sleep` when it is itself killed, so a normal call leaves no process
+  # behind: `wait` is interrupted by a trapped signal, which a foreground `sleep` would not be. NO
+  # COMMENT GOES INSIDE THE `$( … )` BELOW: bash 3.2 mis-parses an apostrophe in a comment there as an
+  # opening quote, and a syntax error in this file is a guard that answers nothing — measured here.
+  pg_out="$(
+    PERMISSION_GUARD_WORKER=1 "$BASH" "$0" <&0 &
+    pg_w=$!
+    ( trap 'kill "$pg_sl" 2>/dev/null; exit 0' TERM
+      sleep "$pg_budget" & pg_sl=$!
+      wait "$pg_sl" && pg_kill_tree "$pg_w" ) </dev/null >/dev/null 2>&1 &
+    pg_k=$!
+    pg_s=0; wait "$pg_w" || pg_s=$?
+    kill "$pg_k" 2>/dev/null
+    printf '\n%s' "$pg_s"
+  )"
+  pg_s="${pg_out##*$'\n'}"; pg_body="${pg_out%$'\n'*}"
+  if [ "$pg_s" = 137 ]; then
+    printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Blocked: the permission guard ran past its own '"$pg_budget"'-second time budget, so this command was NOT judged, and a command the floor could not judge is refused rather than let through (#531). The budget exists because a guard that overruns its host timeout gives no decision at all. Use instead: split the command into smaller calls, or shorten any very long unbroken word in it, and retry."}}'
+    exit 0
+  fi
+  [ -n "$pg_body" ] && printf '%s\n' "$pg_body"
+  exit "$pg_s"
+fi
+
 set -euo pipefail
 
 input="$(cat 2>/dev/null || true)"
+
+# Suite-only: see "THE TWO ENVIRONMENT KNOBS" above. A stall is only ever turned into a DENY.
+case "${PERMISSION_GUARD_TEST_STALL:-}" in [1-9]) sleep "$PERMISSION_GUARD_TEST_STALL" ;; esac
 
 # Extract the bash command; allow normal flow if we can't read it.
 command="$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null || true)"
@@ -729,6 +807,8 @@ bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\
 SUBST_BUDGET=60000
 # #531 round 4: rule 3b's brace and glob-group marks run this many unrolled passes (see there).
 PV_MARK_PASSES=8
+# #531 round 5: rule 3b never runs a `${…//…}` on a token longer than this (see "A LONG TOKEN" there).
+PV_TOK_MAX=256
 SUBST_HEREDOC_COST=16
 subst_work=0
 subst_active() {
@@ -2190,9 +2270,14 @@ fi
 #    narrower: the fold adds no LOGICAL path from DENY to ALLOW; its cost is bounded by that row.
 #    THAT ROW COVERS THIS FOLD ONLY (round 5, N1). Rule 3b's grouped-name arm matched an attacker-
 #    shaped EXTGLOB and was exponential, not quadratic: at fea9caeb a 137-character command drew no
-#    answer in 15 s (the lens waited 60 s). It is bounded in the arm itself — a grouped name with more
-#    than four groups, or carrying `*` or `?`, is refused unmatched — and pinned by the "#531 N1" rows, each under a hard
-#    alarm. This fold's own patterns are plain globs (extglob is off here), and the shapes tried were fast:
+#    answer in 15 s (the lens waited 60 s). ~~It is bounded in the arm itself~~ — STRUCK at round 5:
+#    FALSE. What the four-group cap and the `*`/`?` refusal bound is the EXTGLOB MATCH, and that half
+#    stands; the arm itself was not bounded, because it ran bash 3.2's roughly cubic `${var//pat/}` on
+#    the whole token BEFORE either bound was consulted, so a ~4,000-character grouped name (the refused
+#    `(a…|*)q` included) cost 5-7 s. The arm is now bounded by two things together and by neither
+#    alone: 3b's length check (a token over PV_TOK_MAX never reaches a `${…//…}`), and the guard's own
+#    time budget at the top of this file (an overrun is a DENY, never silence). Pinned by the "#531 N1"
+#    and "#531 round 5" rows, each under a hard alarm. This fold's own patterns are plain globs (extglob is off here), and the shapes tried were fast:
 #    300 repetitions of `*?` or `*[gG]` in a name answer in about 0.1 s.
 bare7="$(printf '%s' "$bare" | sed -E \
   -e 's/(^|[^[:alnum:]_])[Gg][Ii][Tt]([[:space:];&|)]|$)/\1git\2/g' \
@@ -2757,9 +2842,40 @@ if [ -n "$push_view" ]; then
   set -f
   for pv_tok in $push_view; do
     [ -n "$push_class" ] && break
+    # A LONG TOKEN IS CLASSIFIED WITHOUT BEING REWRITTEN (#531 round 5). Bash 3.2's `${var//pat/}` costs
+    # roughly the CUBE of the string's length — measured on /bin/bash 3.2.57: the group-mark count
+    # takes 0.002 s at 256 characters, 0.010 s at 512, 0.058 s at 1,000 and 1.24 s at 3,000, and the
+    # backslash strip 10.9 s at 8,000. Three sites in this loop ran one on the token itself (the mark
+    # strip here, the backslash strip and the two group counts below), so ONE ~4,000-character
+    # space-free word before `git -C . push --force origin feat/x` took 5-7 s: past the 5 s hook
+    # timeout and the Codex adapter's 4.0 s, where the DENY became NO DECISION (lens round 5, six
+    # shapes: a heredoc `print(a…)`, a grouped name the N1 bound refuses, four literal groups, bracket
+    # groups, `echo a''…`, `\a\…`). `${#pv_tok}` is O(1), so it is read FIRST, and a token longer than
+    # PV_TOK_MAX never reaches a `${…//…}`: its classification below uses plain globs only, which are
+    # linear here, and it FAILS CLOSED wherever the rewrite would have been needed to read it —
+    #   · in command position it opens a git invocation marked obfuscated (maybe-git), so a push
+    #     through it denies as "cannot classify" unless a force answered first;
+    #   · in argument position it opens one only if it could be an escaped or marked `git`
+    #     (a backslash or a mark in it) or literally ends in `/git`, exactly the reach the short arms have;
+    #   · where `git` expects its subcommand, a long non-option word is refused outright when that
+    #     `git` stood in command position or the word carries a quote, backslash or mark;
+    #   · a long word made only of marks is a bare mark, as the short path reads it.
+    # The bound is 256 and not 512 because the cost is per token and additive: at 512 a command of
+    # ~150 such tokens re-reaches 3 s. The transcript corpus has no push-view token near it (the
+    # re-run is in #534's body). Whatever still gets past this — many tokens just under the bound, or
+    # a path nobody has found — is the job of the time budget at the top of this file, which turns
+    # an overrun into a DENY rather than silence. THIS BOUND IS NOT THE ARM'S ONLY PROTECTION, AND
+    # THE ARM IS NOT CLAIMED BOUNDED WITHOUT IT.
+    pv_long=0; [ "${#pv_tok}" -gt "$PV_TOK_MAX" ] && pv_long=1
     pv_tm=0
     case "$pv_tok" in
-      *"$pv_mk"*) pv_tm=1; pv_tok="${pv_tok//$pv_mk/}" ;;
+      *"$pv_mk"*)
+        pv_tm=1
+        if [ "$pv_long" = 0 ]; then
+          pv_tok="${pv_tok//$pv_mk/}"
+        else
+          case "$pv_tok" in *[!"$pv_mk"]*) ;; *) pv_ev=1; pv_obf=1; continue ;; esac
+        fi ;;
     esac
     if [ -z "$pv_tok" ]; then
       # A bare mark: an eval's unquoted span begins here, or an empty quoted word (`''`) stood alone.
@@ -2787,6 +2903,18 @@ if [ -n "$push_view" ]; then
     esac
     case "$pv_state" in
       scan)
+        if [ "$pv_long" = 1 ]; then
+          # A LONG TOKEN (see above): no rewrite, plain globs only, fail closed.
+          if [ "$pv_atcmd" = 1 ]; then
+            pv_state="gopt"; pv_gunknown=0; pv_gcfg=0; pv_gcmd=1; pv_obf=1
+          else
+            case "$pv_tok" in
+              *\\*|*"$pv_mk"*) pv_state="gopt"; pv_gunknown=0; pv_gcfg=0; pv_gcmd=0; pv_obf=1 ;;
+              */git) pv_state="gopt"; pv_gunknown=0; pv_gcfg=0; pv_gcmd=0; pv_obf="$pv_ev" ;;
+            esac
+          fi
+          continue
+        fi
         case "$pv_tok" in
           git|*/git)
             # A literal `git` is read in ANY position (the 162916b6 reach, unchanged); an UNQUOTED
@@ -2825,7 +2953,13 @@ if [ -n "$push_view" ]; then
                   # group whose marks are unbalanced here (a `/` inside it, so the last-component
                   # cut split it) cannot be rebuilt, and is refused rather than guessed.
                   #
-                  # BOUNDED BEFORE IT IS MATCHED (#531 round 5, N1). Bash's extglob matcher
+                  # ~~BOUNDED BEFORE IT IS MATCHED~~ — STRUCK (lens round 5): THE MATCH is bounded
+                  # before it runs; the ARM was not, because the two `${pv_nm//…}` counts just below
+                  # run first and cost roughly the cube of the token's length (5-7 s at ~4,000
+                  # characters). A token that long no longer reaches this line — see "A LONG TOKEN"
+                  # at the top of the loop — and the guard's time budget catches the rest. What
+                  # follows is true of the extglob match only.
+                  # THE MATCH (#531 round 5, N1). Bash's extglob matcher
                   # backtracks EXPONENTIALLY on `@(…)` groups holding `*` or `?`: at fea9caeb a
                   # 137-character `/usr/bin/(*|*)…×18q; git -C . push --force origin feat/x` drew no
                   # answer in 60 s, and through the Codex adapter a heredoc of the same shape went
@@ -2880,6 +3014,21 @@ if [ -n "$push_view" ]; then
       skip)
         [ "$pv_tok" = ";" ] && pv_state="scan" ;;
       gopt)
+        if [ "$pv_long" = 1 ]; then
+          case "$pv_tok" in
+            -*) ;;
+            *)
+              # A LONG TOKEN where `git` expects its subcommand (see above). Its marks were not
+              # stripped, so it cannot be compared with `push`; no real subcommand is this long.
+              if [ "$pv_gcmd" = 1 ] || case "$pv_tok" in *[\'\"\\\$\`"$pv_mk"]*) true ;; *) false ;; esac; then
+                push_class="unknown"
+                push_token="a word of ${#pv_tok} characters where 'git' expects its subcommand, too long to read (the bound is $PV_TOK_MAX), so it may be 'push'"
+              else
+                pv_state="skip"
+              fi
+              continue ;;
+          esac
+        fi
         case "$pv_tok" in
           ";") pv_state="scan" ;;
           -C|--git-dir|--work-tree|--namespace|--super-prefix) pv_state="garg" ;;

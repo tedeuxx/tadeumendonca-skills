@@ -3120,6 +3120,93 @@ check_from_reason DENY  "$TFEAT" "#531 N1 over-block: five literal groups in a n
                   "(a|b)(a|b)(a|b)(a|b)(a|b) push origin feat/x"
 check_from        ALLOW "$TFEAT" "#531 N1: four literal groups are still matched, not git" \
                   "(a|b)(a|b)(a|b)(a|b) push origin feat/x"
+# #531 ROUND 5 — THE ARM WAS NOT BOUNDED, ONLY ITS MATCH WAS. Bash 3.2's `${var//pat/}` costs roughly
+# the cube of the string's length, and 3b ran one on the whole token (the mark strip, the backslash
+# strip, the two group counts) before any bound was consulted, so one ~4,000-character space-free word
+# before a force push took 5-7 s at 2b2fb5d8 and the Codex adapter went SILENT. Two fixes, pinned
+# separately so removing either reddens a row:
+#   · THE LENGTH CHECK — each shape runs with the time budget BYPASSED (PERMISSION_GUARD_WORKER=1, the
+#     worker path), so only 3b's own bound can keep it inside 2 s; remove it and these go to 5-7 s.
+#   · THE SUPERVISED PATH — the same shape through the budget must DENY on its OWN reason (a force),
+#     never on the budget's: the budget is the backstop, not the fix.
+r5_row() { # r5_row <desc> <cmd>
+  r5_t0=$SECONDS
+  r5_out=$(printf '%s' "$2" | jq -Rs '{tool_input:{command:.}}' | (cd "$TFEAT" && PERMISSION_GUARD_WORKER=1 perl -e 'alarm shift; exec @ARGV' 8 bash "$GUARD"))
+  r5_t1=$SECONDS
+  r5_got=$(verdict "$r5_out"); [ -n "$r5_out" ] || r5_got="NO-DECISION"
+  if [ "$r5_got" = DENY ] && (( r5_t1 - r5_t0 <= 2 )); then
+    pass=$((pass + 1)); printf 'ok    DENY   #531 round 5 (length bound, no budget): %s (%ss)\n' "$1" "$((r5_t1 - r5_t0))"
+  else
+    fail=$((fail + 1)); printf 'FAIL  #531 round 5 (length bound, no budget): %s — got %s in %ss; a long token reaches a ${…//…} again\n' "$1" "$r5_got" "$((r5_t1 - r5_t0))"
+  fi
+  r5_out=$(printf '%s' "$2" | jq -Rs '{tool_input:{command:.}}' | (cd "$TFEAT" && perl -e 'alarm shift; exec @ARGV' 8 bash "$GUARD"))
+  r5_reason=$(printf '%s' "$r5_out" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""' 2>/dev/null)
+  case "$r5_reason" in
+    *"time budget"*|"") fail=$((fail + 1)); printf 'FAIL  #531 round 5 (supervised): %s — reason %.60s…; the budget answered, not the rule\n' "$1" "$r5_reason" ;;
+    *) pass=$((pass + 1)); printf 'ok    DENY   #531 round 5 (supervised, the rule answers, not the budget): %s\n' "$1" ;;
+  esac
+}
+r5_f="git -C . push --force origin feat/x"
+r5_a4000="$(printf '%*s' 4000 '' | tr ' ' a)"
+r5_a900="$(printf '%*s' 900 '' | tr ' ' a)"
+r5_az="$(printf 'a-z%.0s' $(seq 1000))"; r5_q="$(printf '%*s' 1000 '' | tr ' ' q)"
+r5_row "S1 a heredoc line print(a x4000)"               "$(printf "python3 - <<'PY'\nprint(%s)\nPY\n%s" "$r5_a4000" "$r5_f")"
+r5_row "S2 a grouped name carrying * (the refused path)" "/usr/bin/(${r5_a4000}|*)q; $r5_f"
+r5_row "S3 four literal groups x900 (inside the cap)"    "/usr/bin/(${r5_a900}|z)(${r5_a900}|z)(${r5_a900}|z)(${r5_a900}|z)q; $r5_f"
+r5_row "S4 bracket groups x1000 (inside the cap)"        "/usr/bin/([${r5_az}]|z)([!${r5_q}]|z)q; $r5_f"
+r5_row "S5 echo a'' x3000 (the mark strip, argument position)" "echo $(printf "a''%.0s" $(seq 3000)); $r5_f"
+r5_row "S6 \\a\\ x3000 (the backslash strip)"          "\\$(printf 'a\\%.0s' $(seq 3000)); $r5_f"
+# The price of the bound, pinned so it is a decision: a long word in COMMAND position opens a git
+# invocation marked obfuscated, so a push read through it denies — and a long word in ARGUMENT position
+# with no backslash, mark or `/git` in it is left alone, so a plain push after it stays silent.
+check_from_reason DENY  "$TFEAT" "#531 round 5 over-block: a long command-position word read as maybe-git" "cannot classify" \
+                  "x${r5_a900} push origin feat/x"
+check_from        ALLOW "$TFEAT" "#531 round 5: a long argument word is not a git invocation" \
+                  "echo ${r5_a900}; git -C . push -u origin feat/x"
+check_from_reason DENY  "$TFEAT" "#531 round 5: a long marked word after git may be push" "may be 'push'" \
+                  "git pu$(printf "''%.0s" $(seq 300))sh origin feat/x"
+check_from_reason DENY  "$TFEAT" "#531 round 5: a short marked push is still stripped and read (the short path is unchanged)" \
+                  "were quoted or escaped" "git pu''sh -u origin feat/x"
+# THE TIME BUDGET — the backstop for the slow path nobody has found yet. A real one first: a heredoc of
+# 1,000 grouped lines each just under the bound costs ~4 s with the budget bypassed on this machine —
+# past the Codex adapter's 4.0 s — because the per-token cost is small and additive. Through the
+# supervisor it must still be a DENY, inside the alarm. The threshold is 4 because `$SECONDS` is whole
+# seconds and the budget lands at ~3.03 s, so 3 would flake on the phase; this row pins "a DENY, not
+# silence", and the synthetic rows below are what pin the budget itself.
+r5_sub="x/($(printf '%*s' 248 '' | tr ' ' a)|z)q"
+r5_agg="$(printf "cat <<'EOF'\n"; for _ in $(seq 1000); do printf '%s\n' "$r5_sub"; done; printf 'EOF\n%s' "$r5_f")"
+r5_t0=$SECONDS
+r5_out=$(printf '%s' "$r5_agg" | jq -Rs '{tool_input:{command:.}}' | (cd "$TFEAT" && perl -e 'alarm shift; exec @ARGV' 8 bash "$GUARD"))
+r5_t1=$SECONDS
+if [ "$(verdict "$r5_out")" = DENY ] && (( r5_t1 - r5_t0 <= 4 )); then
+  pass=$((pass + 1)); printf 'ok    DENY   #531 round 5: 1,000 sub-bound grouped lines, then a force push (%ss)\n' "$((r5_t1 - r5_t0))"
+else
+  fail=$((fail + 1)); printf 'FAIL  #531 round 5: 1,000 sub-bound grouped lines — got %s in %ss\n' "$(verdict "$r5_out")" "$((r5_t1 - r5_t0))"
+fi
+# And a SYNTHETIC one, which does not depend on this machine's speed: the suite-only stall knob makes
+# the worker sleep past a 1 s budget on a command that is otherwise ALLOW. It must come back a DENY
+# carrying the budget's own reason — the proof that a hang becomes a DENY and never silence.
+r5_budget_row() { # r5_budget_row WANT <needle|""> <budget> <stall> <desc>
+  r5_t0=$SECONDS
+  r5_out=$(printf '%s' '{"tool_input":{"command":"ls -la"}}' | (cd "$TFEAT" && PERMISSION_GUARD_BUDGET="$3" PERMISSION_GUARD_TEST_STALL="$4" perl -e 'alarm shift; exec @ARGV' 8 bash "$GUARD"))
+  r5_t1=$SECONDS
+  r5_got=$(verdict "$r5_out")
+  r5_reason=$(printf '%s' "$r5_out" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""' 2>/dev/null)
+  # A DENY must also arrive within one second of the budget: the killer takes the worker's DESCENDANTS
+  # too (the stall is a child `sleep`), and one left alive holds the worker's stdout open, so the
+  # answer would wait for it — measured: with the descendant kill removed, the 1 s row took 3 s.
+  r5_lim=3; case "$3" in 1|2) r5_lim="$3" ;; esac; r5_lim=$((r5_lim + 1))
+  if [ "$r5_got" = "$1" ] && { [ -z "$2" ] || printf '%s' "$r5_reason" | grep -qF "$2"; } \
+     && { [ "$1" != DENY ] || (( r5_t1 - r5_t0 <= r5_lim )); }; then
+    pass=$((pass + 1)); printf 'ok    %-6s #531 round 5 budget: %s (%ss)\n' "$r5_got" "$5" "$((r5_t1 - r5_t0))"
+  else
+    fail=$((fail + 1)); printf 'FAIL  #531 round 5 budget: %s — got %s in %ss, reason %.80s\n' "$5" "$r5_got" "$((r5_t1 - r5_t0))" "$r5_reason"
+  fi
+}
+r5_budget_row DENY  "1-second time budget" 1  3 "a worker stalled past a 1 s budget is a DENY naming the budget"
+r5_budget_row ALLOW ""                     1  "" "the same benign command with no stall is still ALLOW (the budget adds no verdict)"
+r5_budget_row DENY  "3-second time budget" 9  4 "a budget of 9 is IGNORED — the knob can only lower it, so a 4 s stall hits 3 s"
+r5_budget_row ALLOW ""                     x  2 "a malformed budget is ignored too: a 2 s stall under the 3 s default is still ALLOW"
 big_over="$(printf '%*s' 70000 '' | tr ' ' '$')"
 check_reason DENY "#500 F4: past the budget the answer is a DENY with its own reason, never silence" \
               "too large for this guard to verify" "printf %s $big_over '\$(date)'"
