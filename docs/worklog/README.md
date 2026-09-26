@@ -12,6 +12,43 @@ The worklog is an append-only-by-convention event contract for recording which h
 
 No producer is automatic. Planning writes the snapshot; the acting context prepares events at implementation start, checkpoint/handoff, and outcome. A changed harness or effective configuration creates another segment. Existing `dispatch-metrics` comments remain the separate cumulative token/duration instrument and are neither input nor migrated.
 
+## Continuity between sessions — the home is the Issue, and the format is this event (#514)
+
+**State that must survive a session lives on the Issue being worked, as a `handoff` (or `checkpoint`) worklog event.** Never in a scratch file. The session scratchpad is discarded when the session ends, by design. A file in a shared system temporary directory is untracked, is invisible to every other harness and every gate, and survives only by accident. Sprint state was once carried across sessions in exactly such files. The fifth one was written with its words glued together (`reportlowerboundnotnoagentsran`), and the next session resumed from it anyway. The Issue is the one surface that every harness, every fresh context, and the owner can already read. `gh issue view` works the same way whichever tool runs it.
+
+**The format is bounded, because the Issue is public.** A `.gitignore` stops a commit. It does not stop a paste, and a comment's edit history cannot be repaired. So a continuity record carries **facts and the next act, and nothing else**:
+
+| field | what goes in it | bound |
+|---|---|---|
+| `revision` | repository, branch, and the commit the work stands at | a SHA, `unknown` or `null` |
+| `handoff.state` · `handoff.to` | where the item is, and who acts next (`null` if anyone may) | non-empty string |
+| `evidence` | public references: a PR, a check run, a verdict comment, a file path in the repository | **one line, at most 280 characters each, and none of the refused strings below** |
+| `next_act` | **the one act a resuming session performs first**, stated as an act | **one line, at most 280 characters, none of the refused strings below; checkpoint and handoff only** |
+
+**The refused strings, exactly — this is the whole of the privacy filter.** A new event is refused if its `evidence`, its `acceptance_evidence` or its `next_act` contains any of `/tmp/`, `~/`, `/var/folders/`, `/home/`, `/Users/`, `/private/`, `file://`, a Windows drive path such as `C:\`, or `.brand` not followed by an ASCII letter, a digit, `_` or `-`. The match is case-insensitive and can occur anywhere in the text, not only at the start of a word. That covers `(/Users/…)`, `../.brand/…` and `<repo>/.brand/…`. **This is a string check, and copied private CONTENT is undetectable by any string filter**: a sentence copied out of `.brand/` does not contain the text `.brand/`, and nothing here can tell it from public text.
+
+Reasoning, drafts, conversation, private positioning and "notes for next time" have **no field**, and that is the bound. If something needs more than one line to hand over, it belongs in the pull request, in a commit, or in the tracker as the owner's own comment — never in a continuity record.
+
+**Who checks what — the producer and the reader differ on purpose.** `prepare-event` refuses a `handoff` without `next_act`. It refuses any evidence entry that runs over the line or length bound, or that carries a refused string. It applies the same checks to the `corrected_event` inside a `correction`, because the report reads the corrected event as the effective one. `validate-event` and `report` accept retained history exactly as it was written. For evidence they apply only the older, narrower filter: `/Users/`, `/private/tmp/`, `file://` or `.brand/` at the start of a word. Handoff events posted before this contract have no `next_act`, and a reader that rejected them would turn a published record into a report failure. `next_act` has no retained history, so the full filter and the length bound apply to it everywhere it appears, readers included.
+
+**Resuming.** Read the Issue's effective worklog events, oldest to newest by `timestamp`, and start with the latest `next_act`. The effective events are the ones `report` derives: each correction is replaced by its `corrected_event`, and every event a correction supersedes is dropped:
+
+```
+gh issue view <n> --repo <owner/repo> --json comments --jq '[.comments[].body
+  | capture("<!-- worklog-event:v1 -->\\s*\\x60{3}json\\s*(?<j>\\{[\\s\\S]*?\\})\\s*\\x60{3}"; "g").j
+  | fromjson? | select(type == "object")] as $e
+  | [$e[] | select(.event_type == "correction") | .supersedes_event_id] as $s
+  | [$e[] | if .event_type == "correction" then .corrected_event else . end
+          | select(.event_id as $i | any($s[]; . == $i) | not)]
+  | sort_by(.timestamp, .event_id) | map(.next_act // empty) | last // empty'
+```
+
+The command parses each fenced event rather than searching comment text. A comment that merely quotes this page, or mentions `next_act` in prose, is therefore not read as an event. A later checkpoint without a `next_act` does not hide an earlier one. It prints nothing when no effective event carries a `next_act`. Ordering is by the effective event's `timestamp`, never by comment position, so correcting an old handoff does not overtake a newer one. A fenced block that is not valid JSON is skipped rather than failing the command; `report` refuses that same block. **`report` is the authority on effective state**: this command is a convenience that mirrors it, and `scripts/worklog.test.py` checks that the two agree. `\x60` is a backtick, spelled that way so the command survives both Markdown and the shell.
+
+Then re-derive everything else from the tracker rather than trusting the record: whether the PR is still open, which head it points at, and whether a verdict names that head. **A continuity record says where the work was. The tracker says where it is.** Sprint-level state has no record of its own and needs none. The order of record is `docs/planning/sprint-<nn>.md`, and each item's position is its own Issue's latest event plus its PR. A sprint summary written somewhere else would be a second source of truth for facts the tracker already holds.
+
+**What nothing enforces.** Nothing makes a session write a handoff before it ends, and nothing makes a resuming session read one. Both are instructions. `prepare-event` bounds a record's *shape*. It cannot tell a true `next_act` from a plausible one, it cannot detect glued words, and it cannot detect private content that was copied rather than referenced by path. Nothing makes a producer use `prepare-event` at all: an event posted by hand looks like retained history to every reader and gets only the reader's checks. That was an authoring defect, not a storage defect, and moving the record does not fix it. What helps is that the output is printed to stdout to be inspected before posting, and one line is short enough to read back. Whether a shared temporary directory is purged on reboot on the machine where this happened was **not measured**, and it no longer matters, because nothing here depends on it.
+
 ## Accounting
 
 The delivery key is the fully qualified Issue (`owner/repo#number`). A PR, dispatch, attempt, event, or comment is never a delivery key. The event's `revision.repository` identifies the repository containing the applicable code revision and may name a sibling repository; it does not create another delivery. The source comment remains bound to the repository of the Issue that carries it. The first implementation-start event freezes the estimate and its provenance. Mutable labels and milestone moves do not rewrite it. Corrections preserve the original input and reference the superseded event.

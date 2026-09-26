@@ -24,6 +24,17 @@ EVENT_TYPES = {"implementation_start", "checkpoint", "handoff", "outcome", "corr
 OUTCOMES = {"accepted", "reopened", "cancelled", "superseded", "no_longer_relevant"}
 PROVENANCE = {"observed", "declared", "unknown"}
 PRIVATE_EVIDENCE = re.compile(r"(?:^|[\s`])(?:/Users/|/private/tmp/|file://|\.brand/)")
+# The READER filter above is kept as it was, so retained history still reads. The PRODUCER filter below
+# is stricter: it matches anywhere in a token, case-insensitively, and covers the other spellings of a
+# machine-local location. It is a string check — copied private CONTENT carries none of these and passes.
+STRICT_PRIVATE = re.compile(
+    r"/tmp/|~/|/var/folders/|/home/|/Users/|/private/|file://|\.brand(?![A-Za-z0-9_-])|\b[A-Za-z]:\\", re.I)
+# Continuity between sessions (#514). `next_act` is the one free-text field a resuming session acts on,
+# so it is bounded: one line, public, at most FREE_TEXT_LIMIT characters, STRICT_PRIVATE everywhere it
+# appears (it has no retained history to protect). The same bound applies to each evidence entry, but
+# only when an event is PREPARED — retained history is read as it was written.
+CONTINUITY_TYPES = {"checkpoint", "handoff"}
+FREE_TEXT_LIMIT = 280
 
 
 class ContractError(ValueError):
@@ -67,6 +78,35 @@ def public_strings(value: Any, where: str, *, nonempty: bool = False) -> list[st
     if any(PRIVATE_EVIDENCE.search(item) for item in value):
         raise ContractError(f"{where}: contains private or machine-local material")
     return value
+
+
+def bounded_line(value: Any, where: str) -> str:
+    nonempty_string(value, where)
+    if "\n" in value or "\r" in value:
+        raise ContractError(f"{where}: must be a single line")
+    if len(value) > FREE_TEXT_LIMIT:
+        raise ContractError(f"{where}: must be at most {FREE_TEXT_LIMIT} characters")
+    if STRICT_PRIVATE.search(value):
+        raise ContractError(f"{where}: contains private or machine-local material")
+    return value
+
+
+def validate_prepared(event: dict[str, Any], where: str = "event") -> dict[str, Any]:
+    """Producer-side bounds for a NEW event. Readers of retained history do not apply them.
+
+    A correction is checked on its own fields AND on the event it carries, because the report reads the
+    corrected event as the effective one — otherwise wrapping a handoff in a correction skips every bound.
+    """
+    if event["event_type"] == "handoff":
+        require(event, ["next_act"], where)
+    for index, item in enumerate(event["evidence"]):
+        bounded_line(item, f"{where}.evidence[{index}]")
+    for index, item in enumerate(event.get("acceptance_evidence", [])):
+        if STRICT_PRIVATE.search(item):
+            raise ContractError(f"{where}.acceptance_evidence[{index}]: contains private or machine-local material")
+    if event["event_type"] == "correction":
+        validate_prepared(event["corrected_event"], f"{where}.corrected_event")
+    return event
 
 
 def timestamp(value: Any, where: str) -> datetime:
@@ -132,6 +172,10 @@ def validate_event(event: Any, where: str = "event") -> dict[str, Any]:
     nonempty_string(event["handoff"]["state"], f"{where}.handoff.state")
     if event["handoff"]["to"] is not None:
         nonempty_string(event["handoff"]["to"], f"{where}.handoff.to")
+    if "next_act" in event:
+        if event["event_type"] not in CONTINUITY_TYPES:
+            raise ContractError(f"{where}: next_act is only valid on checkpoint and handoff events")
+        bounded_line(event["next_act"], f"{where}.next_act")
     if event["event_type"] == "implementation_start":
         require(event, ["frozen_estimate"], where)
         estimate = event["frozen_estimate"]
@@ -570,6 +614,7 @@ def main() -> int:
             if args.command == "validate-event":
                 print(canonical(event))
             else:
+                validate_prepared(event)
                 print(EVENT_MARKER)
                 print("```json")
                 print(json.dumps(event, sort_keys=True, indent=2, ensure_ascii=False))

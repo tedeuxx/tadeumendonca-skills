@@ -7,6 +7,8 @@ import hashlib
 import importlib.util
 import io
 import json
+import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -44,6 +46,29 @@ def changed(source, path, value):
         target = target[key]
     target[path[-1]] = value
     return result
+
+
+# #514 lens B1: each private spelling below passed the former word-start, four-token filter.
+PRIVATE_SPELLINGS = [
+    "resume from /tmp/x/continuation-6.md",
+    "resume from ~/notes/continuation-6.md",
+    "resume from /var/folders/ab/T/continuation-6.md",
+    "resume from (/Users/someone/x)",
+    "resume from /home/someone/continuation-6.md",
+    "resume from /private/var/x",
+    "open file:///x/y",
+    "read tadeumendonca-io/.brand/positioning.md first",
+    "read ../.brand/positioning.md first",
+    "read .BRAND/positioning.md",
+    "look in the .brand",
+    "resume from C:\\Users\\x\\notes.md",
+]
+PUBLIC_SPELLINGS = [
+    "open the merge request for the branch at the named commit",
+    "re-run hooks/scripts/inventory-counts.test.sh",
+    "read docs/worklog/README.md",
+    "the branding section of README.md, and the .branded-x fixture",
+]
 
 
 class WorklogTest(unittest.TestCase):
@@ -502,6 +527,195 @@ class WorklogTest(unittest.TestCase):
                                     check=False, capture_output=True, text=True)
             self.assertEqual(2, failed.returncode)
             self.assertNotIn("Traceback", failed.stderr)
+
+    def test_continuity_record_is_bounded_public_and_producer_strict(self):
+        # #514: the home for state that must survive a session is a handoff/checkpoint event on the
+        # Issue being worked, and its one free-text field — next_act — is bounded.
+        handoff = copy.deepcopy(next(e for e in FIXTURE["events"] if e["event_type"] == "handoff"))
+        self.assertNotIn("next_act", handoff)
+        # Retained history without next_act still reads, and still reports, exactly as before.
+        worklog.validate_event(copy.deepcopy(handoff))
+        with_act = dict(handoff, next_act="open the merge request for the branch at the named commit")
+        worklog.validate_event(copy.deepcopy(with_act))
+        worklog.validate_prepared(worklog.validate_event(copy.deepcopy(with_act)))
+        checkpoint = dict(handoff, event_type="checkpoint", event_id="skills-7-checkpoint")
+        worklog.validate_prepared(worklog.validate_event(copy.deepcopy(checkpoint)))  # optional there
+        rejected = [
+            ("start-carries-next-act", dict(FIXTURE["events"][0], next_act="x"), "only valid on checkpoint"),
+            ("outcome-carries-next-act", dict(FIXTURE["events"][2], next_act="x"), "only valid on checkpoint"),
+            ("multi-line", dict(handoff, next_act="first\nsecond"), "single line"),
+            ("carriage-return", dict(handoff, next_act="first\rsecond"), "single line"),
+            ("over-limit", dict(handoff, next_act="a" * (worklog.FREE_TEXT_LIMIT + 1)), "at most 280"),
+            ("machine-local", dict(handoff, next_act="resume from /private/tmp/x/continuation-5.md"), "private"),
+            ("private-source", dict(handoff, next_act="read .brand/positioning first"), "private"),
+            ("blank", dict(handoff, next_act="   "), "non-empty"),
+            ("not-a-string", dict(handoff, next_act=["open the PR"]), "non-empty"),
+        ]
+        for label, event, needle in rejected:
+            with self.subTest(label=label), self.assertRaisesRegex(worklog.ContractError, needle):
+                worklog.validate_event(copy.deepcopy(event))
+        # Exactly at the limit is accepted, so the bound is the documented one and not one lower.
+        worklog.validate_event(dict(handoff, next_act="a" * worklog.FREE_TEXT_LIMIT))
+        # Producer strictness: a NEW handoff must name its next act, and new evidence is bounded.
+        with self.assertRaisesRegex(worklog.ContractError, "missing next_act"):
+            worklog.validate_prepared(worklog.validate_event(copy.deepcopy(handoff)))
+        for label, evidence, needle in [
+            ("evidence-over-limit", ["b" * (worklog.FREE_TEXT_LIMIT + 1)], "at most 280"),
+            ("evidence-multi-line", ["a notes\ndump"], "single line"),
+        ]:
+            with self.subTest(label=label), self.assertRaisesRegex(worklog.ContractError, needle):
+                worklog.validate_prepared(worklog.validate_event(dict(with_act, evidence=evidence)))
+        # ...while the READER tolerates the same long evidence on retained history.
+        worklog.validate_event(dict(with_act, evidence=["b" * (worklog.FREE_TEXT_LIMIT + 1)]))
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "handoff.json"
+            path.write_text(json.dumps(handoff))
+            script = str(ROOT / "scripts/worklog.py")
+            refused = subprocess.run(["python3", "-B", script, "prepare-event", str(path)],
+                                     check=False, capture_output=True, text=True)
+            self.assertEqual(2, refused.returncode)
+            self.assertEqual("", refused.stdout)
+            self.assertIn("missing next_act", refused.stderr)
+            validated = subprocess.run(["python3", "-B", script, "validate-event", str(path)],
+                                       check=False, capture_output=True, text=True)
+            self.assertEqual(0, validated.returncode)
+            path.write_text(json.dumps(with_act))
+            prepared = subprocess.run(["python3", "-B", script, "prepare-event", str(path)],
+                                      check=True, capture_output=True, text=True).stdout
+            self.assertIn('"next_act": "open the merge request', prepared)
+
+    def test_privacy_filter_is_strict_for_producers_and_for_next_act(self):
+        handoff = copy.deepcopy(next(e for e in FIXTURE["events"] if e["event_type"] == "handoff"))
+        for text in PRIVATE_SPELLINGS:
+            with self.subTest(next_act=text), self.assertRaisesRegex(worklog.ContractError, "private"):
+                # next_act has no retained history, so the READER is strict too.
+                worklog.validate_event(dict(handoff, next_act=text))
+            with self.subTest(evidence=text):
+                event = dict(handoff, next_act="open the pull request", evidence=[text])
+                if not worklog.PRIVATE_EVIDENCE.search(text):
+                    worklog.validate_event(copy.deepcopy(event))  # the reader filter did not widen
+                with self.assertRaisesRegex(worklog.ContractError, "private"):
+                    worklog.validate_prepared(worklog.validate_event(copy.deepcopy(event)))
+        for text in PUBLIC_SPELLINGS:
+            with self.subTest(allowed=text):
+                worklog.validate_prepared(worklog.validate_event(dict(handoff, next_act=text, evidence=[text])))
+        outcome = copy.deepcopy(FIXTURE["events"][2])
+        worklog.validate_prepared(worklog.validate_event(copy.deepcopy(outcome)))
+        with self.assertRaisesRegex(worklog.ContractError, "acceptance_evidence.*private"):
+            worklog.validate_prepared(worklog.validate_event(dict(outcome, acceptance_evidence=["/tmp/x"])))
+
+    def test_prepare_event_recurses_into_a_corrected_event(self):
+        # #514 lens B2: a correction carrying a handoff must meet the producer bounds of that handoff,
+        # because the report reads the corrected event as the effective one.
+        handoff = copy.deepcopy(next(e for e in FIXTURE["events"] if e["event_type"] == "handoff"))
+        wrapped = dict(handoff, event_id="skills-7-handoff-v2", evidence=["b" * (worklog.FREE_TEXT_LIMIT + 1)])
+        correction = dict(handoff, event_type="correction", event_id="skills-7-correction",
+                          supersedes_event_id=handoff["event_id"], corrected_event=wrapped)
+        worklog.validate_event(copy.deepcopy(correction))  # the reader still accepts it as history
+        with self.assertRaisesRegex(worklog.ContractError, "corrected_event: missing next_act"):
+            worklog.validate_prepared(worklog.validate_event(copy.deepcopy(correction)))
+        with_act = dict(correction, corrected_event=dict(wrapped, next_act="open the pull request"))
+        with self.assertRaisesRegex(worklog.ContractError, r"corrected_event\.evidence\[0\]: must be at most 280"):
+            worklog.validate_prepared(worklog.validate_event(copy.deepcopy(with_act)))
+        private = dict(correction, corrected_event=dict(handoff, event_id="skills-7-handoff-v2",
+                                                        next_act="resume from /tmp/x"))
+        with self.assertRaisesRegex(worklog.ContractError, "corrected_event.next_act: contains private"):
+            worklog.validate_event(copy.deepcopy(private))
+        clean = dict(correction, corrected_event=dict(handoff, event_id="skills-7-handoff-v2",
+                                                      next_act="open the pull request"))
+        worklog.validate_prepared(worklog.validate_event(copy.deepcopy(clean)))
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "correction.json"
+            path.write_text(json.dumps(correction))
+            script = str(ROOT / "scripts/worklog.py")
+            result = subprocess.run(["python3", "-B", script, "prepare-event", str(path)],
+                                    check=False, capture_output=True, text=True)
+            self.assertEqual(2, result.returncode)
+            self.assertEqual("", result.stdout)
+            self.assertIn("corrected_event: missing next_act", result.stderr)
+
+    @unittest.skipUnless(shutil.which("jq"), "jq is not installed")
+    def test_readme_resume_command_agrees_with_the_report(self):
+        # #514 lens B3: the published resume command must return the next_act of the report's effective
+        # set — superseded events dropped, ordered by the effective event's timestamp, not comment position.
+        readme = (ROOT / "docs/worklog/README.md").read_text()
+        match = re.search(r"--json comments --jq '(.*?)'\n```", readme, re.S)
+        self.assertIsNotNone(match, "resume command not found in docs/worklog/README.md")
+        jq_filter = match.group(1)
+        base = copy.deepcopy(next(e for e in FIXTURE["events"] if e["event_type"] == "handoff"))
+
+        def at(minute):
+            return f"2026-09-02T10:{minute:02d}:00Z"
+
+        def handoff(event_id, minute, act=None):
+            event = dict(copy.deepcopy(base), event_id=event_id, timestamp=at(minute))
+            return dict(event, next_act=act) if act else event
+
+        def checkpoint(event_id, minute):
+            return dict(handoff(event_id, minute), event_type="checkpoint")
+
+        def correction(event_id, minute, target, replacement):
+            return dict(handoff(event_id, minute), event_type="correction", supersedes_event_id=target,
+                        corrected_event=replacement)
+
+        def block(event):
+            return f"{worklog.EVENT_MARKER}\n```json\n{json.dumps(event, indent=2)}\n```\n"
+
+        def oracle(events):
+            records = [{"event": e, "source": {}, "available_at": e["timestamp"]} for e in events]
+            effective, _, _ = worklog.retained_graph(records)
+            acts = [r["event"]["next_act"] for r in effective if r["event"].get("next_act")]
+            return acts[-1] if acts else ""
+
+        malformed = f"{worklog.EVENT_MARKER}\n```json\n{{\"event_id\": \"broken\",}}\n```\n"
+        scenarios = {
+            "handoff corrected into a checkpoint": [
+                handoff("x", 1, "act A"), correction("c", 2, "x", checkpoint("x2", 1))],
+            "old handoff corrected after a newer one": [
+                handoff("y", 1, "act OLD"), handoff("x", 2, "act NEW"),
+                correction("c", 3, "y", handoff("y2", 1, "act OLD-FIXED"))],
+            "handoff corrected into a handoff": [
+                handoff("x", 1, "act A"), correction("c", 2, "x", handoff("x2", 1, "act B"))],
+            "correction chain": [
+                handoff("x", 1, "act A"), correction("c", 2, "x", handoff("x2", 1, "act B")),
+                correction("d", 3, "x2", handoff("x3", 1, "act C"))],
+            "no next_act anywhere": [checkpoint("k", 1)],
+        }
+        expected = {"handoff corrected into a checkpoint": "",
+                    "old handoff corrected after a newer one": "act NEW",
+                    "handoff corrected into a handoff": "act B",
+                    "correction chain": "act C",
+                    "no next_act anywhere": ""}
+        for name, events in scenarios.items():
+            for event in events:
+                worklog.validate_event(copy.deepcopy(event))
+            bodies = [block(e) for e in events]
+            with self.subTest(scenario=name):
+                self.assertEqual(expected[name], oracle(events))
+                for extra in ([], [malformed]):
+                    payload = json.dumps({"comments": [{"body": b} for b in bodies + extra]})
+                    result = subprocess.run(["jq", "-r", jq_filter], input=payload, check=False,
+                                            capture_output=True, text=True)
+                    self.assertEqual(0, result.returncode, result.stderr)
+                    self.assertEqual(expected[name], result.stdout.strip())
+
+    def test_schema_documents_the_continuity_field(self):
+        schema = json.loads((ROOT / "docs/worklog/event.schema.json").read_text())
+        field = schema["properties"]["next_act"]
+        # The schema carries the strict next_act filter too, spelled without flags. Checked by behaviour,
+        # against the same spellings the code is tested with, rather than by comparing strings.
+        strict = [re.compile(part["not"]["pattern"]) for part in field["allOf"] if set(part) == {"not"}]
+        self.assertEqual(1, len(strict))
+        for text in PRIVATE_SPELLINGS:
+            with self.subTest(schema_refuses=text):
+                self.assertTrue(strict[0].search(text))
+        for text in PUBLIC_SPELLINGS:
+            with self.subTest(schema_allows=text):
+                self.assertIsNone(strict[0].search(text))
+        self.assertIn({"maxLength": worklog.FREE_TEXT_LIMIT, "not": {"pattern": "[\\r\\n]"}}, field["allOf"])
+        self.assertIn({"if": {"required": ["next_act"]},
+                       "then": {"properties": {"event_type": {"enum": sorted(worklog.CONTINUITY_TYPES)}}}},
+                      schema["allOf"])
 
 
 if __name__ == "__main__":
