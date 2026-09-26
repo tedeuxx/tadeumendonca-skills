@@ -1239,6 +1239,28 @@ check(d is not None and d["decision"] == "block",
       "#500 — a 24 KB input (4,000 heredoc openers + the QA fixture) is BLOCKED through the adapter "
       "in %.2fs, not abstained on at its 4.0 s timeout" % _dt)
 
+# #531 round 5, N1: the guard's grouped-name arm rebuilt `g(i)t` as the extglob `g@(i)t`, and
+# bash backtracks EXPONENTIALLY on `@(…)` groups holding `*` or `?`. At fea9caeb each of these
+# ~120-160 character commands made this adapter abstain at its 4.0 s budget, so a force-push DENY
+# became no decision on the Codex route. Asserted from a `feat/x` checkout so no trunk rule answers
+# first; `None` is the abstain, so the arm needs no clock of its own, and the time is reported.
+_n1_cwd = tempfile.mkdtemp()
+subprocess.run(["git", "init", "-q", "-b", "feat/x", _n1_cwd], check=True)
+_n1_force = "git -C . push --for" + "ce origin feat/x"
+for _cmd, _label in (
+    ("/usr/bin/" + "(*|*)" * 18 + "q; " + _n1_force, "/usr/bin/(*|*)x18q"),
+    ("/usr/bin/" + "(*|?|*)" * 16 + "q; " + _n1_force, "/usr/bin/(*|?|*)x16q"),
+    ("env " + "(*|*)" * 16 + "q; " + _n1_force, "env (*|*)x16q"),
+    ("cat <<'EOF'\nx/" + "(*|*)" * 16 + "q\nEOF\n" + _n1_force, "a heredoc body line (*|*)x16q"),
+):
+    _t = time.time()
+    d = decision_of(run_adapter(codex_payload(_cmd, cwd=_n1_cwd), cwd=_n1_cwd))
+    _dt = time.time() - _t
+    check(d is not None and d["decision"] == "block" and _dt < 3.0,
+          "#531 N1 — %s before a force push is BLOCKED through the adapter in %.2fs, not "
+          "abstained on at its 4.0 s timeout" % (_label, _dt))
+shutil.rmtree(_n1_cwd, ignore_errors=True)
+
 for command, label in FLOOR + MANUFACTURED:
     d = decision_of(run_adapter(codex_payload(command)))
     check(d is not None and d["decision"] == "block",

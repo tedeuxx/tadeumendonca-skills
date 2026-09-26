@@ -3066,6 +3066,60 @@ check_from_reason DENY  "$TFEAT" "#531 B1: a 40-deep glob name falls back, close
                   "/usr/bin/${deep40}git${deep40c} push origin main"
 check_from_reason DENY  "$TFEAT" "#531 B1: the fallback's over-block, pinned"        "cannot classify" \
                   "echo a${deep40}z${deep40c} && (git -C . push -u origin feat/x)"
+# #531 ROUND 5, N1 — EXPONENTIAL, NOT QUADRATIC, AND IN THE NAME ARM. The B2 fix rebuilt a grouped
+# command name as an extglob (`g(i)t` -> `g@(i)t`) and matched it against `zzzz` and eight spellings of
+# `git`. Bash's extglob matcher backtracks exponentially on `@(…)` groups holding `*` or `?`, so at
+# fea9caeb `/usr/bin/(*|*)…×18q; git -C . push --force origin feat/x` (137 characters) drew no answer
+# in 60 s, and the heredoc form through the Codex adapter went SILENT at 4 s. The name arm now refuses
+# a grouped name carrying `*` or `?`, or more than four groups, WITHOUT matching it. These rows
+# run the guard under a hard 8 s alarm, because the unfixed guard does not terminate on its own and a
+# row that hangs the suite is not a red. Each must DENY, and inside 3 s.
+n1_row() { # n1_row <desc> <cmd>
+  n1_t0=$SECONDS
+  n1_out=$(printf '%s' "$2" | jq -R '{tool_input:{command:.}}' | (cd "$TFEAT" && perl -e 'alarm shift; exec @ARGV' 8 bash "$GUARD"))
+  n1_t1=$SECONDS
+  n1_got=$(verdict "$n1_out"); [ -n "$n1_out" ] || n1_got="NO-DECISION"
+  if [ "$n1_got" = DENY ] && (( n1_t1 - n1_t0 <= 3 )); then
+    pass=$((pass + 1)); printf 'ok    DENY   #531 N1: %s (%ss)\n' "$1" "$((n1_t1 - n1_t0))"
+  else
+    fail=$((fail + 1)); printf 'FAIL  #531 N1: %s — got %s in %ss; the extglob name match is exponential again\n' "$1" "$n1_got" "$((n1_t1 - n1_t0))"
+  fi
+}
+n1_g2="$(printf '(*|*)%.0s' $(seq 18))"
+n1_g3="$(printf '(*|?|*)%.0s' $(seq 16))"
+n1_e2="$(printf '(*|*)%.0s' $(seq 16))"
+n1_row "/usr/bin/(*|*)x18q before a force push"       "/usr/bin/${n1_g2}q; git -C . push --force origin feat/x"
+n1_row "/usr/bin/(*|?|*)x16q before a force push"     "/usr/bin/${n1_g3}q; git -C . push --force origin feat/x"
+n1_row "env (*|*)x16q before a force push"            "env ${n1_e2}q; git -C . push --force origin feat/x"
+n1_row "a heredoc body line (*|*)x16q, then a force push" \
+       "$(printf "cat <<'EOF'\nx/%sq\nEOF\ngit -C . push --force origin feat/x" "$n1_e2")"
+# `[` is NOT refused, and these two rows are why. A bracket is one character wide, so it adds no split
+# position: four groups of 200 `[!z]` alternatives before a trailing mismatch are still MATCHED, and
+# must answer inside the same bound. And refusing `[` turned four transcript heredocs whose body line
+# carries `if len(samples[short])<2: …` from ALLOW to DENY — the second row is that line, verbatim from
+# the corpus, and must stay silent.
+n1_br="([!z]$(printf '|[!z]%.0s' $(seq 199)))"
+n1_row "/usr/bin/([!z]|…×200)x4q before a force push (matched, not refused)" \
+       "/usr/bin/${n1_br}${n1_br}${n1_br}${n1_br}q; git -C . push --force origin feat/x"
+check_from ALLOW "$TFEAT" "#531 N1: a bracket in a grouped name is matched, so a heredoc line len(a[k]) stays silent" \
+           "$(printf "python3 - <<'PY'\n    if len(samples[short])<2: samples[short].append(blob[:260])\nPY")"
+# The cheap side stays exact: a literal-alternation name with few groups is still MATCHED, so
+# `g(i|x)t` is read as git (DENY) and `(ls|cat)x` is not (a plain push after it stays ALLOW).
+check_from_reason DENY  "$TFEAT" "#531 N1: a literal g(i|x)t is still matched as git"  "cannot classify" \
+                  "g(i|x)t push origin feat/x"
+check_from        ALLOW "$TFEAT" "#531 N1: a literal (ls|cat)x name is still matched, not git" \
+                  "(ls|cat)x README; git -C . push -u origin feat/x"
+# The price, pinned so it is a decision rather than a discovery — one row per half of the bound, so
+# removing either half reddens a row even though each half alone would keep the timed rows fast. A
+# grouped name with `*` or `?` in it, or with five groups, is refused WITHOUT being matched, so a push
+# through it denies although neither `(*|x)q` nor `(a|b)×5` can expand to git. Four literal groups
+# are still matched, and stay silent.
+check_from_reason DENY  "$TFEAT" "#531 N1 over-block: a glob inside a grouped name"   "cannot classify" \
+                  "(*|x)q push origin feat/x"
+check_from_reason DENY  "$TFEAT" "#531 N1 over-block: five literal groups in a name"  "cannot classify" \
+                  "(a|b)(a|b)(a|b)(a|b)(a|b) push origin feat/x"
+check_from        ALLOW "$TFEAT" "#531 N1: four literal groups are still matched, not git" \
+                  "(a|b)(a|b)(a|b)(a|b) push origin feat/x"
 big_over="$(printf '%*s' 70000 '' | tr ' ' '$')"
 check_reason DENY "#500 F4: past the budget the answer is a DENY with its own reason, never silence" \
               "too large for this guard to verify" "printf %s $big_over '\$(date)'"

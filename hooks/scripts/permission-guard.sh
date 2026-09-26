@@ -2188,6 +2188,12 @@ fi
 #    force push took 7.9 s (base 0.68 s). It now appends to an array, and a timed row in
 #    `permission-guard.test.sh` ("#531 B1") pins it inside the adapter's budget. The honest claim is
 #    narrower: the fold adds no LOGICAL path from DENY to ALLOW; its cost is bounded by that row.
+#    THAT ROW COVERS THIS FOLD ONLY (round 5, N1). Rule 3b's grouped-name arm matched an attacker-
+#    shaped EXTGLOB and was exponential, not quadratic: at fea9caeb a 137-character command drew no
+#    answer in 15 s (the lens waited 60 s). It is bounded in the arm itself — a grouped name with more
+#    than four groups, or carrying `*` or `?`, is refused unmatched — and pinned by the "#531 N1" rows, each under a hard
+#    alarm. This fold's own patterns are plain globs (extglob is off here), and the shapes tried were fast:
+#    300 repetitions of `*?` or `*[gG]` in a name answer in about 0.1 s.
 bare7="$(printf '%s' "$bare" | sed -E \
   -e 's/(^|[^[:alnum:]_])[Gg][Ii][Tt]([[:space:];&|)]|$)/\1git\2/g' \
   -e 's/(^|[^[:alnum:]_])[Gg][Ii][Tt]([[:space:];&|)]|$)/\1git\2/g')"
@@ -2818,8 +2824,26 @@ if [ -n "$push_view" ]; then
                   # `g@(i)t`, `(git|zzq)` is `@(git|zzq)` — and tested like any other glob name. A
                   # group whose marks are unbalanced here (a `/` inside it, so the last-component
                   # cut split it) cannot be rebuilt, and is refused rather than guessed.
+                  #
+                  # BOUNDED BEFORE IT IS MATCHED (#531 round 5, N1). Bash's extglob matcher
+                  # backtracks EXPONENTIALLY on `@(…)` groups holding `*` or `?`: at fea9caeb a
+                  # 137-character `/usr/bin/(*|*)…×18q; git -C . push --force origin feat/x` drew no
+                  # answer in 60 s, and through the Codex adapter a heredoc of the same shape went
+                  # SILENT at its 4 s budget — a DENY turned into no decision. So a grouped name with
+                  # more than four groups, or carrying `*` or `?`, is NOT matched at all: it is refused
+                  # as maybe-git, which fails closed (a push through it denies as "cannot classify").
+                  # The blow-up is in the SPLIT POSITIONS a variable-width group can take, so the
+                  # group cap is what bounds it — measured with the `*`/`?` refusal switched off, four
+                  # groups of 200 `*` alternatives answer in 0.13 s — and the `*`/`?` refusal is a
+                  # second, independent bound. `[` is deliberately NOT refused: a bracket is one
+                  # character wide, so it adds no split position — four groups of 200 `[!z]`
+                  # alternatives before a trailing mismatch answer in 0.16 s — while refusing it
+                  # turned four Python heredocs in the transcript corpus (`len(samples[short])` at the
+                  # start of a body line) from ALLOW to DENY.
                   pv_o="${pv_nm//[!$pv_go]/}"; pv_c="${pv_nm//[!$pv_gc]/}"
-                  if [ "${#pv_o}" != "${#pv_c}" ]; then
+                  if [ "${#pv_o}" != "${#pv_c}" ] || [ "${#pv_o}" -gt 4 ]; then
+                    pv_maybe=1
+                  elif case "$pv_nm" in *[?*]*) true ;; *) false ;; esac; then
                     pv_maybe=1
                   else
                     pv_lp='@('; pv_rp=')'; pv_br='|'
