@@ -286,13 +286,49 @@ class WorklogTest(unittest.TestCase):
         # Declared complete, with a prior export that also held an Issue this capture leaves out.
         prior = worklog.build_export(captures + [{"url": "https://github.com/acme/site/issues/99", "comments": [
             {"url": "https://github.com/acme/site/issues/99#issuecomment-777", "createdAt": "2026-09-01T00:00:00Z",
-             "includesCreatedEdit": False, "body": "not an event"}]}], "2026-10-01T00:00:00Z")
+             "includesCreatedEdit": False, "body": "not an event"}]}], "2026-10-01T00:00:00Z",
+            pagination_complete=True)
         declared = worklog.build_export(captures, "2026-10-01T00:00:00Z", prior, pagination_complete=True)
         self.assertEqual({"complete": True, "comment_ids": sorted(ids, key=str)}, declared["prior_inventory"])
         clean = worklog.report(CLEAN_SNAPSHOT, worklog.build_export(
             gh_captures(CLEAN_EVENTS)[0], "2026-10-01T00:00:00Z",
-            worklog.build_export(gh_captures(CLEAN_EVENTS)[0], "2026-10-01T00:00:00Z"), True), "reproduce")
+            worklog.build_export(gh_captures(CLEAN_EVENTS)[0], "2026-10-01T00:00:00Z", pagination_complete=True),
+            True), "reproduce")
         self.assertFalse(clean["partial"], clean["warnings"])  # a producer-made export CAN be complete
+
+    def test_export_prior_inventory_is_only_as_complete_as_the_prior_capture(self):
+        """#515 lens finding. Source mutation: `prior_inventory.complete` is True for any prior. A prior built
+        without `--pagination-complete` (or missing a repository captured now) cannot vouch for history, so the
+        new export's inventory stays incomplete and the report stays partial, with the named warning."""
+        captures, _ = gh_captures(CLEAN_EVENTS)
+        truncated = copy.deepcopy(captures)
+        for capture in truncated:
+            capture["comments"] = capture["comments"][:1]
+        undeclared = worklog.build_export(truncated, "2026-10-01T00:00:00Z")
+        current = worklog.build_export(captures, "2026-10-01T00:00:00Z", undeclared, pagination_complete=True)
+        self.assertFalse(current["prior_inventory"]["complete"])
+        result = worklog.report(CLEAN_SNAPSHOT, current, "reproduce")
+        self.assertTrue(result["partial"])
+        self.assertIn("historical integrity unknown: prior inventory is absent or incomplete", result["warnings"])
+
+        # One repository declared, the other not: still incomplete.
+        mixed = copy.deepcopy(worklog.build_export(captures, "2026-10-01T00:00:00Z", pagination_complete=True))
+        mixed["repositories"][0]["pagination_complete"] = False
+        self.assertFalse(worklog.build_export(captures, "2026-10-01T00:00:00Z", mixed, True)
+                         ["prior_inventory"]["complete"])
+
+        # A prior that never captured a repository captured now: incomplete for that repository.
+        repos = sorted({c["url"].split("/issues/")[0] for c in captures})
+        self.assertGreater(len(repos), 1)
+        one_repo = [c for c in captures if c["url"].startswith(repos[0] + "/")]
+        partial_prior = worklog.build_export(one_repo, "2026-10-01T00:00:00Z", pagination_complete=True)
+        self.assertFalse(worklog.build_export(captures, "2026-10-01T00:00:00Z", partial_prior, True)
+                         ["prior_inventory"]["complete"])
+
+        # Control: the same prior, declared complete for every repository, IS complete.
+        declared = worklog.build_export(truncated, "2026-10-01T00:00:00Z", pagination_complete=True)
+        self.assertTrue(worklog.build_export(captures, "2026-10-01T00:00:00Z", declared, True)
+                        ["prior_inventory"]["complete"])
 
         edited, _ = gh_captures(CLEAN_EVENTS)
         edited[0]["comments"][0]["includesCreatedEdit"] = True

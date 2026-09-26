@@ -610,7 +610,9 @@ def build_export(captures: list[Any], cutoff: str, prior: Any = None,
     - pagination: whether the capture held every comment is not observable from it, so `pagination_complete`
       is the operator's declaration, false unless `--pagination-complete` is given.
     - prior inventory: absent unless `--prior` names an earlier export; its comment IDs are kept only for the
-      Issues captured now, so an Issue left out of this capture does not read as deleted history.
+      Issues captured now, so an Issue left out of this capture does not read as deleted history. It is marked
+      complete only when the prior declared `pagination_complete` for every repository captured now; a truncated
+      prior cannot vouch for history, so otherwise it stays incomplete and the report stays PARTIAL.
     """
     timestamp(cutoff, "export.cutoff")
     comments: list[dict[str, Any]] = []
@@ -652,7 +654,10 @@ def build_export(captures: list[Any], cutoff: str, prior: Any = None,
         inventory = {"complete": False, "comment_ids": []}
     else:
         extract_events(prior)
-        inventory = {"complete": True, "comment_ids": sorted(
+        # An inventory is only as complete as the capture it came from: a prior whose own pagination was not
+        # declared complete, or that never captured a repository captured now, cannot vouch for history.
+        prior_complete = {repo["repository"] for repo in prior["repositories"] if repo["pagination_complete"]}
+        inventory = {"complete": repositories <= prior_complete, "comment_ids": sorted(
             {comment["comment_id"] for comment in prior["comments"] if comment["issue"] in issues}, key=str)}
     comments.sort(key=lambda item: (item["issue"], item["created_at"], str(item["comment_id"])))
     export = {"schema_version": 1, "cutoff": cutoff,
