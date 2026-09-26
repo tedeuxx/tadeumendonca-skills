@@ -204,11 +204,16 @@ here adjusted their reading of `sprint-01`'s numbers by it:**
    wrote to; each record carries `worktree:`, `worktree_resolution:`, `payload_cwd:`,
    `prs_written:`, `worktrees_rejected:` and `attribution:` so an attribution can be audited
    instead of trusted. **The misattribution is NARROWED, not closed.** When the dispatch wrote to a
-   PR and named no worktree, the primary's branch is dropped (`attribution: prs-written-only`). **A
-   dispatch that names no worktree AND writes to no PR still gets the primary checkout's branch**, so
+   PR and named no worktree other than the primary, the primary's branch is dropped (`attribution:
+   prs-written-only`). This applies even when the dispatch referenced the primary, because reviewers
+   read it while it holds an unrelated branch. **A dispatch that names no worktree AND writes to no
+   PR still gets the primary checkout's branch**, so
    while the primary holds another slice's branch, its record still lands on that slice's Issue.
    **Read `worktree_resolution: payload-cwd` with `attribution: union` on a record as *unverified*:**
-   it is exactly the shape the residual produces.
+   it is exactly the shape the residual produces. **And one silent shape survives #513, so *"no
+   records"* is still not proof of absence:** a dispatch whose absolute `git -C` reads of a sibling
+   repository outrank its relative-path work in the primary resolves to the sibling, and a PR it wrote
+   in the primary's repository is then filtered as foreign. The PR 519 gate lost its record this way.
 6. **Codex emits NO records, on any Issue.** `codex-hooks.json` registers `PreToolUse` and
    `UserPromptSubmit` only — there is no `SubagentStop` equivalent and no reference to this hook:
 

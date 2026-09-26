@@ -207,7 +207,9 @@
 # is read, and at most four. This is what survives a merge that left every checkout on `main`.
 # When the branch came from the PAYLOAD CWD and this source found something, the two branch-derived
 # sources are DROPPED (`attribution: prs-written-only`): the PR is the dispatch's own act, the
-# primary's branch is not.
+# primary's branch is not. The primary counts as the payload cwd EVEN WHEN THE DISPATCH REFERENCED IT,
+# because reviewers read it constantly while it holds an unrelated branch; the reason is at the
+# narrowing below.
 #
 # WHAT THIS STILL DOES NOT COVER, stated so it is not rediscovered: A DISPATCH THAT NAMES NO WORKTREE
 # AND WRITES TO NO PR STILL GETS THE PRIMARY CHECKOUT'S BRANCH — so while the primary sits on another
@@ -219,6 +221,12 @@
 # payload cwd counts no reference, so one absolute `git -C` into a sibling repository can outrank it;
 # a PR written on the payload cwd's repository is then filtered as foreign and the record is lost —
 # found on replay (a gate that merged a `-skills` PR after two `git -C` reads of `-io` on `main`).
+# A dispatch that genuinely works on the PRIMARY's branch and writes to ANOTHER slice's PR is recorded
+# only on that PR's Issue and loses its own: the narrowing cannot tell working on the primary from
+# reading it, so it drops the primary's branch either way. This is a misattribution, not a lost
+# record, and it is rare (a builder in the primary commenting on a neighbour's PR). Reproduced on
+# review with a throwaway primary on `loop/540` commenting on PR 535: recorded on 513 only, 540
+# dropped.
 # A dispatch that only READ — an
 # intake review on `main` that touched no worktree and wrote to no PR — is still `no-issue-resolved`;
 # a PR number placed after a flag (`gh pr merge --merge 517`) is not recognised, since the loop's own
@@ -398,13 +406,19 @@ $(gh pr view "$pr" --repo "$repo" --json headRefName,closingIssuesReferences \
   done
 fi
 
-# THE NARROWING (#513 review). When the branch was read from the PAYLOAD CWD — no referenced worktree
-# was accepted — that branch is whatever the session's primary checkout holds, which is the source of
-# the misattribution this slice exists for. If the dispatch WROTE to a PR, that PR is its own act and
-# names its Issue; the primary's branch then adds only a possibly-wrong Issue on top (measured: two
-# gates on #532 resolved to the primary's #513 plus the correct #511). So the two branch-derived
-# sources are DROPPED in exactly that case. Kept whenever the branch came from a worktree the dispatch
-# itself used, and whenever no PR was written — see the residual in the header.
+# THE NARROWING (#513 review). When the branch was read from the PAYLOAD CWD, that branch is whatever
+# the session's primary checkout holds, which is the source of the misattribution this slice exists
+# for. THE PRIMARY COUNTS AS PAYLOAD-CWD EVEN WHEN THE DISPATCH REFERENCED IT: the ranked loop above
+# sets `transcript-worktree` only for an accepted root OTHER than the payload cwd, so a dispatch whose
+# most-referenced root is the primary itself stays `payload-cwd` and is narrowed here. That is
+# deliberate. Reviewers read the primary constantly while it sits on an unrelated slice's branch, so
+# a reference to it is no evidence that its branch is the dispatch's work (replay: 16 of the 23
+# narrowed dispatches referenced the primary by absolute path). If the dispatch WROTE to a PR, that PR
+# is its own act and names its Issue; the primary's branch then adds only a possibly-wrong Issue on top
+# (measured: two gates on #532 resolved to the primary's #513 plus the correct #511). So the two
+# branch-derived sources are DROPPED in exactly that case. They are kept whenever the branch came from
+# a NON-PRIMARY worktree the dispatch itself used, and whenever no PR was written. See the residuals in
+# the header, including the one this rule creates.
 attribution="union"
 if [ "$resolution" = "payload-cwd" ] && [ -n "$(printf '%s' "$touched_issues" | tr -d '[:space:]')" ]; then
   pr_issues=""
