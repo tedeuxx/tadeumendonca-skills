@@ -7,6 +7,8 @@ import hashlib
 import importlib.util
 import io
 import json
+import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -37,6 +39,39 @@ def tracker_export(events, complete=True, cutoff="2026-10-01T00:00:00Z"):
             "comments": comments}
 
 
+# #515: a scenario whose report is COMPLETE, so a defect that only flips `partial` is observable. The full
+# fixture is partial from the start (acme/site#8 carries unknown attribution), which is how a silent
+# zero-credit could hide behind an unrelated warning.
+CLEAN_SNAPSHOT = dict(copy.deepcopy(FIXTURE["snapshot"]), counting_units=copy.deepcopy(
+    [unit for unit in FIXTURE["snapshot"]["counting_units"] if unit["issue"] != "acme/site#8"]))
+CLEAN_EVENTS = [copy.deepcopy(event) for event in FIXTURE["events"] if event["issue"] != "acme/site#8"]
+
+
+def with_comment(export, issue, comment_id, body):
+    result = copy.deepcopy(export)
+    result["comments"].append({"repository": issue.split("#")[0], "issue": issue, "comment_id": comment_id,
+                               "created_at": "2026-09-02T00:00:00Z", "updated_at": "2026-09-02T00:00:00Z",
+                               "body": body, "body_sha256": hashlib.sha256(body.encode()).hexdigest()})
+    result["prior_inventory"]["comment_ids"].append(comment_id)
+    return result
+
+
+def gh_captures(events):
+    """The shape `gh issue view <n> --repo <r> --json url,comments` prints, one capture per Issue."""
+    captures, ids = {}, []
+    for index, event in enumerate(events):
+        repo, number = event["issue"].split("#")
+        url = f"https://github.com/{repo}/issues/{number}"
+        capture = captures.setdefault(event["issue"], {"url": url, "comments": []})
+        comment_id = 5000 + index
+        ids.append(comment_id)
+        capture["comments"].append({
+            "url": f"{url}#issuecomment-{comment_id}", "id": f"IC_{comment_id}", "createdAt": event["timestamp"],
+            "includesCreatedEdit": False, "author": {"login": "someone"},
+            "body": f"{worklog.EVENT_MARKER}\n```json\n{json.dumps(event, sort_keys=True)}\n```"})
+    return list(captures.values()), sorted(ids)
+
+
 def changed(source, path, value):
     result = copy.deepcopy(source)
     target = result
@@ -44,6 +79,29 @@ def changed(source, path, value):
         target = target[key]
     target[path[-1]] = value
     return result
+
+
+# #514 lens B1: each private spelling below passed the former word-start, four-token filter.
+PRIVATE_SPELLINGS = [
+    "resume from /tmp/x/continuation-6.md",
+    "resume from ~/notes/continuation-6.md",
+    "resume from /var/folders/ab/T/continuation-6.md",
+    "resume from (/Users/someone/x)",
+    "resume from /home/someone/continuation-6.md",
+    "resume from /private/var/x",
+    "open file:///x/y",
+    "read tadeumendonca-io/.brand/positioning.md first",
+    "read ../.brand/positioning.md first",
+    "read .BRAND/positioning.md",
+    "look in the .brand",
+    "resume from C:\\Users\\x\\notes.md",
+]
+PUBLIC_SPELLINGS = [
+    "open the merge request for the branch at the named commit",
+    "re-run hooks/scripts/inventory-counts.test.sh",
+    "read docs/worklog/README.md",
+    "the branding section of README.md, and the .branded-x fixture",
+]
 
 
 class WorklogTest(unittest.TestCase):
@@ -97,29 +155,219 @@ class WorklogTest(unittest.TestCase):
         with self.assertRaisesRegex(worklog.ContractError, "conflicting content"):
             worklog.report(FIXTURE["snapshot"], tracker_export(events), "reproduce")
 
-    def test_mutation_current_label_cannot_replace_frozen_estimate(self):
-        result = self.baseline()
+    # #515: the three tests that stood here compared numbers the TEST computed (`sum(999 …)`, `8 + 8 + 5 + 3`,
+    # a copy of the result with an item deleted), so no source mutation could turn them red. Every test below
+    # mutates the INPUT and asserts what the SOURCE derives from it; each was confirmed red under the source
+    # mutation named in its docstring and green again after restoring the source.
+
+    def test_credit_is_the_frozen_estimate_not_the_current_label(self):
+        """Source mutation: credit `unit["planned_points"]` instead of the frozen estimate."""
+        relabelled = copy.deepcopy(FIXTURE["snapshot"])
+        relabelled["counting_units"][0]["planned_points"] = 13  # the label moved after implementation start
+        result = worklog.report(relabelled, tracker_export(FIXTURE["events"]), "reproduce")
         self.assertEqual(8, next(item["points"] for item in result["items"] if item["issue"] == "acme/skills#7"))
-        mutated_total = sum(999 for item in result["items"] if item["credited"])
-        self.assertNotEqual(result["totals"]["completed_points"], mutated_total,
-                            "MUTATION SURVIVED: current labels replaced frozen estimates")
+        self.assertEqual(13, result["totals"]["completed_points"])  # 8 frozen + 5, never 13 + 5
+        self.assertEqual(1, result["totals"]["scope_changes"])
 
-    def test_mutation_duplicate_and_reopen_cannot_inflate_credit(self):
-        result = self.baseline()
-        naive_duplicate_total = 8 + 8 + 5 + 3
-        self.assertNotEqual(result["totals"]["completed_points"], naive_duplicate_total,
-                            "MUTATION SURVIVED: duplicates or reopened work received credit")
+    def test_duplicates_and_reopen_do_not_inflate_credit(self):
+        """Source mutation: read the FIRST outcome instead of the latest (reopened work is then credited)."""
+        result = self.baseline()  # carries one event delivered twice
+        self.assertEqual(13, result["totals"]["completed_points"])
+        self.assertEqual(3, result["totals"]["carryover_points"])
         site8 = next(item for item in result["items"] if item["issue"] == "acme/site#8")
-        self.assertFalse(site8["credited"])
+        self.assertEqual(("reopened", False), (site8["outcome"], site8["credited"]))
 
-    def test_mutation_lost_participant_or_repository_breaks_reconciliation(self):
-        result = self.baseline()
-        mutated = copy.deepcopy(result)
-        mutated["items"] = [item for item in mutated["items"] if item["issue"] != "acme/skills#7"]
-        self.assertNotEqual(result["totals"]["completed_points"],
-                            sum(item["points"] for item in mutated["items"] if item["credited"]),
-                            "MUTATION SURVIVED: repository loss still reconciled")
-        self.assertEqual("mixed", next(item["cohort"] for item in result["items"] if item["issue"] == "acme/skills#7"))
+    def test_sprint_mismatch_is_named_and_makes_the_report_partial(self):
+        """#515 defect 1. Source mutations: drop the completion-sprint check (credit returns); drop the warning."""
+        clean = worklog.report(CLEAN_SNAPSHOT, tracker_export(CLEAN_EVENTS), "reproduce")
+        self.assertFalse(clean["partial"], clean["warnings"])  # calibration: nothing else makes this partial
+        self.assertEqual(13, clean["totals"]["completed_points"])
+        self.assertEqual([], clean["totals"]["completion_sprint_mismatches"])
+        renamed = dict(copy.deepcopy(CLEAN_SNAPSHOT), sprint="sprint-other")
+        result = worklog.report(renamed, tracker_export(CLEAN_EVENTS), "reproduce")
+        self.assertEqual(0, result["totals"]["completed_points"])
+        self.assertTrue(result["partial"], "a zero produced by a sprint-name mismatch read as a complete zero")
+        self.assertEqual([{"issue": "acme/site#7", "completion_sprint": "sprint-fixture"},
+                          {"issue": "acme/skills#7", "completion_sprint": "sprint-fixture"}],
+                         result["totals"]["completion_sprint_mismatches"])
+        self.assertIn("completion sprint mismatch: acme/skills#7 was accepted in sprint-fixture, "
+                      "not sprint-other; no credit here", result["warnings"])
+        self.assertEqual(13, result["totals"]["carryover_points"])
+        self.assertIn("completion sprint mismatches: `[{", worklog.markdown(result))
+
+    def test_non_delivery_outcomes_are_excluded_not_carried_over(self):
+        """#515 defect 2. Source mutation: drop the cancelled/superseded/no-longer-relevant exclusion branch."""
+        for reason in ("cancelled", "superseded", "no_longer_relevant"):
+            with self.subTest(reason=reason):
+                events = copy.deepcopy(CLEAN_EVENTS)
+                late = copy.deepcopy(next(e for e in events if e["event_id"] == "site-7-accepted"))
+                late.update({"event_id": f"site-7-{reason}", "timestamp": "2026-09-06T11:00:00Z",
+                             "outcome": reason})
+                late.pop("completion_sprint")
+                late.pop("acceptance_evidence")
+                events.append(late)
+                result = worklog.report(CLEAN_SNAPSHOT, tracker_export(events), "reproduce")
+                self.assertEqual([{"issue": "acme/site#7", "reason": reason}], result["excluded"])
+                self.assertEqual(0, result["totals"]["carryover_points"])
+                self.assertEqual(8, result["totals"]["completed_points"])
+
+    def test_accepted_work_without_a_frozen_estimate_is_listed(self):
+        """#515 defect 2. Source mutation: stop appending accepted-but-unestimated items."""
+        events = [e for e in CLEAN_EVENTS if e["event_id"] != "site-7-start"]
+        result = worklog.report(CLEAN_SNAPSHOT, tracker_export(events), "reproduce")
+        self.assertEqual(["acme/site#7"], result["totals"]["unestimated_completions"])
+        self.assertEqual(8, result["totals"]["completed_points"])
+        self.assertEqual(0, result["totals"]["carryover_points"])
+        self.assertTrue(result["partial"])
+
+    def test_points_per_week_is_completed_points_over_measured_weeks(self):
+        """#515 defect 2. Source mutation: any change to `completed * 7 / duration_days`."""
+        for ends_at, days, expected in (("2026-09-08T00:00:00Z", 7.0, 13.0),
+                                        ("2026-09-15T00:00:00Z", 14.0, 6.5),
+                                        ("2026-09-11T00:00:00Z", 10.0, 9.1)):
+            with self.subTest(ends_at=ends_at):
+                snapshot = dict(copy.deepcopy(CLEAN_SNAPSHOT), ends_at=ends_at)
+                totals = worklog.report(snapshot, tracker_export(CLEAN_EVENTS), "reproduce")["totals"]
+                self.assertEqual((13, days, expected),
+                                 (totals["completed_points"], totals["duration_days"], totals["points_per_week"]))
+
+    def test_harness_spellings_are_one_cohort(self):
+        """#515 defect 3. Source mutation: compare `harness` as written instead of through harness_key."""
+        def with_site7_checkpoint(harness):
+            events = copy.deepcopy(CLEAN_EVENTS)
+            checkpoint = copy.deepcopy(next(e for e in events if e["event_id"] == "site-7-start"))
+            checkpoint.update({"event_id": "site-7-checkpoint", "event_type": "checkpoint",
+                               "timestamp": "2026-09-02T11:00:00Z"})
+            checkpoint.pop("frozen_estimate")
+            checkpoint["attribution"]["harness"] = harness
+            events.append(checkpoint)
+            result = worklog.report(CLEAN_SNAPSHOT, tracker_export(events), "reproduce")
+            return next(i["cohort"] for i in result["items"] if i["issue"] == "acme/site#7"), result["partial"]
+
+        self.assertEqual("Kiro", next(e for e in CLEAN_EVENTS if e["event_id"] == "site-7-start")
+                         ["attribution"]["harness"])
+        for spelling in ("kiro", "KIRO", " Kiro ", "ki-ro"):
+            with self.subTest(spelling=spelling):
+                self.assertEqual(("sole", False), with_site7_checkpoint(spelling))
+        self.assertEqual(("mixed", False), with_site7_checkpoint("Codex"))  # control: a real second harness
+        self.assertEqual("unknown", with_site7_checkpoint("---")[0])
+        self.assertEqual(worklog.harness_key("Claude Code"), worklog.harness_key("claude-code"))
+        result = worklog.report(CLEAN_SNAPSHOT, tracker_export(CLEAN_EVENTS), "reproduce")
+        self.assertIn('"harness": "Kiro"', json.dumps(result["items"]))  # segments keep the value as written
+
+    def test_a_marker_quoted_in_prose_is_not_an_event(self):
+        """#515 defect 6. Source mutation: un-anchor EVENT_MARKER_RE / EVENT_RE from the start of a line."""
+        prose = [f"the `{worklog.EVENT_MARKER}` marker opens an event",
+                 "a later `<!-- worklog-event:v2 -->` would be refused",
+                 f"quoted twice: {worklog.EVENT_MARKER} and {worklog.EVENT_MARKER}"]
+        expected = worklog.report(CLEAN_SNAPSHOT, tracker_export(CLEAN_EVENTS), "reproduce")["totals"]
+        for body in prose:
+            with self.subTest(body=body):
+                export = with_comment(tracker_export(CLEAN_EVENTS), "acme/skills#7", 900, body)
+                self.assertEqual(expected, worklog.report(CLEAN_SNAPSHOT, export, "reproduce")["totals"])
+        # An envelope marker on its own line with no event fence is still malformed, and still fails.
+        broken = with_comment(tracker_export(CLEAN_EVENTS), "acme/skills#7", 901,
+                              f"{worklog.EVENT_MARKER}\nthe fence is missing")
+        with self.assertRaisesRegex(worklog.ContractError, "malformed worklog event body"):
+            worklog.report(CLEAN_SNAPSHOT, broken, "reproduce")
+
+    def test_export_producer_composes_what_the_report_reads(self):
+        """#515 defect 4. Source mutations: edited comments keep created_at as updated_at; the prior inventory
+        keeps IDs of Issues not captured now; pagination defaults to complete; the comment ID is not parsed."""
+        captures, ids = gh_captures(FIXTURE["events"])
+        export = worklog.build_export(captures, "2026-10-01T00:00:00Z")
+        self.assertEqual(ids, sorted(comment["comment_id"] for comment in export["comments"]))
+        result = worklog.report(FIXTURE["snapshot"], export, "reproduce")
+        expected = worklog.report(FIXTURE["snapshot"], tracker_export(FIXTURE["events"]), "reproduce")
+        self.assertEqual(expected["totals"], result["totals"])
+        self.assertIn("incomplete pagination: acme/skills", result["warnings"])
+        self.assertIn("historical integrity unknown: prior inventory is absent or incomplete", result["warnings"])
+
+        # Declared complete, with a prior export that also held an Issue this capture leaves out.
+        prior = worklog.build_export(captures + [{"url": "https://github.com/acme/site/issues/99", "comments": [
+            {"url": "https://github.com/acme/site/issues/99#issuecomment-777", "createdAt": "2026-09-01T00:00:00Z",
+             "includesCreatedEdit": False, "body": "not an event"}]}], "2026-10-01T00:00:00Z",
+            pagination_complete=True)
+        declared = worklog.build_export(captures, "2026-10-01T00:00:00Z", prior, pagination_complete=True)
+        self.assertEqual({"complete": True, "comment_ids": sorted(ids, key=str)}, declared["prior_inventory"])
+        clean = worklog.report(CLEAN_SNAPSHOT, worklog.build_export(
+            gh_captures(CLEAN_EVENTS)[0], "2026-10-01T00:00:00Z",
+            worklog.build_export(gh_captures(CLEAN_EVENTS)[0], "2026-10-01T00:00:00Z", pagination_complete=True),
+            True), "reproduce")
+        self.assertFalse(clean["partial"], clean["warnings"])  # a producer-made export CAN be complete
+
+        edited, _ = gh_captures(CLEAN_EVENTS)
+        edited[0]["comments"][0]["includesCreatedEdit"] = True
+        result = worklog.report(CLEAN_SNAPSHOT, worklog.build_export(edited, "2026-10-01T00:00:00Z"), "reproduce")
+        self.assertTrue(any(w.startswith("comment edit timestamp unavailable: ") for w in result["warnings"]))
+
+        for label, mutate, needle in (
+                ("duplicate capture", lambda c: c.append(copy.deepcopy(c[0])), "captured twice"),
+                ("not an issue url", lambda c: c[0].update(url="https://github.com/acme/site/pull/7"),
+                 "must be a GitHub issue URL"),
+                ("comment from another issue", lambda c: c[0]["comments"][0].update(
+                    url="https://github.com/acme/site/issues/8#issuecomment-5"), "must be a comment URL on")):
+            with self.subTest(label=label):
+                bad, _ = gh_captures(FIXTURE["events"])
+                mutate(bad)
+                with self.assertRaisesRegex(worklog.ContractError, needle):
+                    worklog.build_export(bad, "2026-10-01T00:00:00Z")
+
+    def test_export_prior_inventory_is_only_as_complete_as_the_prior_capture(self):
+        """#515 lens finding. Source mutation: `prior_inventory.complete` is True for any prior. A prior built
+        without `--pagination-complete` (or missing a repository captured now) cannot vouch for history, so the
+        new export's inventory stays incomplete and the report stays partial, with the named warning."""
+        captures, _ = gh_captures(CLEAN_EVENTS)
+        truncated = copy.deepcopy(captures)
+        for capture in truncated:
+            capture["comments"] = capture["comments"][:1]
+        undeclared = worklog.build_export(truncated, "2026-10-01T00:00:00Z")
+        current = worklog.build_export(captures, "2026-10-01T00:00:00Z", undeclared, pagination_complete=True)
+        self.assertFalse(current["prior_inventory"]["complete"])
+        result = worklog.report(CLEAN_SNAPSHOT, current, "reproduce")
+        self.assertTrue(result["partial"])
+        self.assertIn("historical integrity unknown: prior inventory is absent or incomplete", result["warnings"])
+
+        # One repository declared, the other not: still incomplete.
+        mixed = copy.deepcopy(worklog.build_export(captures, "2026-10-01T00:00:00Z", pagination_complete=True))
+        mixed["repositories"][0]["pagination_complete"] = False
+        self.assertFalse(worklog.build_export(captures, "2026-10-01T00:00:00Z", mixed, True)
+                         ["prior_inventory"]["complete"])
+
+        # A prior that never captured a repository captured now: incomplete for that repository.
+        repos = sorted({c["url"].split("/issues/")[0] for c in captures})
+        self.assertGreater(len(repos), 1)
+        one_repo = [c for c in captures if c["url"].startswith(repos[0] + "/")]
+        partial_prior = worklog.build_export(one_repo, "2026-10-01T00:00:00Z", pagination_complete=True)
+        self.assertFalse(worklog.build_export(captures, "2026-10-01T00:00:00Z", partial_prior, True)
+                         ["prior_inventory"]["complete"])
+
+        # Control: the same prior, declared complete for every repository, IS complete.
+        declared = worklog.build_export(truncated, "2026-10-01T00:00:00Z", pagination_complete=True)
+        self.assertTrue(worklog.build_export(captures, "2026-10-01T00:00:00Z", declared, True)
+                        ["prior_inventory"]["complete"])
+
+    def test_export_cli_feeds_the_report_cli(self):
+        with tempfile.TemporaryDirectory() as directory:
+            temp = Path(directory)
+            script = str(ROOT / "scripts/worklog.py")
+            paths = []
+            for index, capture in enumerate(gh_captures(CLEAN_EVENTS)[0]):
+                paths += ["--capture", str(temp / f"capture-{index}.json")]
+                (temp / f"capture-{index}.json").write_text(json.dumps(capture))
+            produced = subprocess.run(["python3", "-B", script, "export", "--cutoff", "2026-10-01T00:00:00Z"]
+                                      + paths, check=True, capture_output=True, text=True).stdout
+            (temp / "export.json").write_text(produced)
+            (temp / "snapshot.json").write_text(json.dumps(CLEAN_SNAPSHOT))
+            reported = json.loads(subprocess.run(
+                ["python3", "-B", script, "report", "--snapshot", str(temp / "snapshot.json"),
+                 "--export", str(temp / "export.json"), "--format", "json", "--reproduction-command", "r"],
+                check=True, capture_output=True, text=True).stdout)
+            self.assertEqual(13, reported["totals"]["completed_points"])
+            failed = subprocess.run(["python3", "-B", script, "export", "--cutoff", "not-a-time"] + paths,
+                                    check=False, capture_output=True, text=True)
+            self.assertEqual(2, failed.returncode)
+            self.assertNotIn("Traceback", failed.stderr)
 
     def test_incomplete_and_edited_inputs_are_partial_or_invalid(self):
         incomplete = worklog.report(FIXTURE["snapshot"], tracker_export(FIXTURE["events"], False), "reproduce")
@@ -502,6 +750,195 @@ class WorklogTest(unittest.TestCase):
                                     check=False, capture_output=True, text=True)
             self.assertEqual(2, failed.returncode)
             self.assertNotIn("Traceback", failed.stderr)
+
+    def test_continuity_record_is_bounded_public_and_producer_strict(self):
+        # #514: the home for state that must survive a session is a handoff/checkpoint event on the
+        # Issue being worked, and its one free-text field — next_act — is bounded.
+        handoff = copy.deepcopy(next(e for e in FIXTURE["events"] if e["event_type"] == "handoff"))
+        self.assertNotIn("next_act", handoff)
+        # Retained history without next_act still reads, and still reports, exactly as before.
+        worklog.validate_event(copy.deepcopy(handoff))
+        with_act = dict(handoff, next_act="open the merge request for the branch at the named commit")
+        worklog.validate_event(copy.deepcopy(with_act))
+        worklog.validate_prepared(worklog.validate_event(copy.deepcopy(with_act)))
+        checkpoint = dict(handoff, event_type="checkpoint", event_id="skills-7-checkpoint")
+        worklog.validate_prepared(worklog.validate_event(copy.deepcopy(checkpoint)))  # optional there
+        rejected = [
+            ("start-carries-next-act", dict(FIXTURE["events"][0], next_act="x"), "only valid on checkpoint"),
+            ("outcome-carries-next-act", dict(FIXTURE["events"][2], next_act="x"), "only valid on checkpoint"),
+            ("multi-line", dict(handoff, next_act="first\nsecond"), "single line"),
+            ("carriage-return", dict(handoff, next_act="first\rsecond"), "single line"),
+            ("over-limit", dict(handoff, next_act="a" * (worklog.FREE_TEXT_LIMIT + 1)), "at most 280"),
+            ("machine-local", dict(handoff, next_act="resume from /private/tmp/x/continuation-5.md"), "private"),
+            ("private-source", dict(handoff, next_act="read .brand/positioning first"), "private"),
+            ("blank", dict(handoff, next_act="   "), "non-empty"),
+            ("not-a-string", dict(handoff, next_act=["open the PR"]), "non-empty"),
+        ]
+        for label, event, needle in rejected:
+            with self.subTest(label=label), self.assertRaisesRegex(worklog.ContractError, needle):
+                worklog.validate_event(copy.deepcopy(event))
+        # Exactly at the limit is accepted, so the bound is the documented one and not one lower.
+        worklog.validate_event(dict(handoff, next_act="a" * worklog.FREE_TEXT_LIMIT))
+        # Producer strictness: a NEW handoff must name its next act, and new evidence is bounded.
+        with self.assertRaisesRegex(worklog.ContractError, "missing next_act"):
+            worklog.validate_prepared(worklog.validate_event(copy.deepcopy(handoff)))
+        for label, evidence, needle in [
+            ("evidence-over-limit", ["b" * (worklog.FREE_TEXT_LIMIT + 1)], "at most 280"),
+            ("evidence-multi-line", ["a notes\ndump"], "single line"),
+        ]:
+            with self.subTest(label=label), self.assertRaisesRegex(worklog.ContractError, needle):
+                worklog.validate_prepared(worklog.validate_event(dict(with_act, evidence=evidence)))
+        # ...while the READER tolerates the same long evidence on retained history.
+        worklog.validate_event(dict(with_act, evidence=["b" * (worklog.FREE_TEXT_LIMIT + 1)]))
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "handoff.json"
+            path.write_text(json.dumps(handoff))
+            script = str(ROOT / "scripts/worklog.py")
+            refused = subprocess.run(["python3", "-B", script, "prepare-event", str(path)],
+                                     check=False, capture_output=True, text=True)
+            self.assertEqual(2, refused.returncode)
+            self.assertEqual("", refused.stdout)
+            self.assertIn("missing next_act", refused.stderr)
+            validated = subprocess.run(["python3", "-B", script, "validate-event", str(path)],
+                                       check=False, capture_output=True, text=True)
+            self.assertEqual(0, validated.returncode)
+            path.write_text(json.dumps(with_act))
+            prepared = subprocess.run(["python3", "-B", script, "prepare-event", str(path)],
+                                      check=True, capture_output=True, text=True).stdout
+            self.assertIn('"next_act": "open the merge request', prepared)
+
+    def test_privacy_filter_is_strict_for_producers_and_for_next_act(self):
+        handoff = copy.deepcopy(next(e for e in FIXTURE["events"] if e["event_type"] == "handoff"))
+        for text in PRIVATE_SPELLINGS:
+            with self.subTest(next_act=text), self.assertRaisesRegex(worklog.ContractError, "private"):
+                # next_act has no retained history, so the READER is strict too.
+                worklog.validate_event(dict(handoff, next_act=text))
+            with self.subTest(evidence=text):
+                event = dict(handoff, next_act="open the pull request", evidence=[text])
+                if not worklog.PRIVATE_EVIDENCE.search(text):
+                    worklog.validate_event(copy.deepcopy(event))  # the reader filter did not widen
+                with self.assertRaisesRegex(worklog.ContractError, "private"):
+                    worklog.validate_prepared(worklog.validate_event(copy.deepcopy(event)))
+        for text in PUBLIC_SPELLINGS:
+            with self.subTest(allowed=text):
+                worklog.validate_prepared(worklog.validate_event(dict(handoff, next_act=text, evidence=[text])))
+        outcome = copy.deepcopy(FIXTURE["events"][2])
+        worklog.validate_prepared(worklog.validate_event(copy.deepcopy(outcome)))
+        with self.assertRaisesRegex(worklog.ContractError, "acceptance_evidence.*private"):
+            worklog.validate_prepared(worklog.validate_event(dict(outcome, acceptance_evidence=["/tmp/x"])))
+
+    def test_prepare_event_recurses_into_a_corrected_event(self):
+        # #514 lens B2: a correction carrying a handoff must meet the producer bounds of that handoff,
+        # because the report reads the corrected event as the effective one.
+        handoff = copy.deepcopy(next(e for e in FIXTURE["events"] if e["event_type"] == "handoff"))
+        wrapped = dict(handoff, event_id="skills-7-handoff-v2", evidence=["b" * (worklog.FREE_TEXT_LIMIT + 1)])
+        correction = dict(handoff, event_type="correction", event_id="skills-7-correction",
+                          supersedes_event_id=handoff["event_id"], corrected_event=wrapped)
+        worklog.validate_event(copy.deepcopy(correction))  # the reader still accepts it as history
+        with self.assertRaisesRegex(worklog.ContractError, "corrected_event: missing next_act"):
+            worklog.validate_prepared(worklog.validate_event(copy.deepcopy(correction)))
+        with_act = dict(correction, corrected_event=dict(wrapped, next_act="open the pull request"))
+        with self.assertRaisesRegex(worklog.ContractError, r"corrected_event\.evidence\[0\]: must be at most 280"):
+            worklog.validate_prepared(worklog.validate_event(copy.deepcopy(with_act)))
+        private = dict(correction, corrected_event=dict(handoff, event_id="skills-7-handoff-v2",
+                                                        next_act="resume from /tmp/x"))
+        with self.assertRaisesRegex(worklog.ContractError, "corrected_event.next_act: contains private"):
+            worklog.validate_event(copy.deepcopy(private))
+        clean = dict(correction, corrected_event=dict(handoff, event_id="skills-7-handoff-v2",
+                                                      next_act="open the pull request"))
+        worklog.validate_prepared(worklog.validate_event(copy.deepcopy(clean)))
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "correction.json"
+            path.write_text(json.dumps(correction))
+            script = str(ROOT / "scripts/worklog.py")
+            result = subprocess.run(["python3", "-B", script, "prepare-event", str(path)],
+                                    check=False, capture_output=True, text=True)
+            self.assertEqual(2, result.returncode)
+            self.assertEqual("", result.stdout)
+            self.assertIn("corrected_event: missing next_act", result.stderr)
+
+    @unittest.skipUnless(shutil.which("jq"), "jq is not installed")
+    def test_readme_resume_command_agrees_with_the_report(self):
+        # #514 lens B3: the published resume command must return the next_act of the report's effective
+        # set — superseded events dropped, ordered by the effective event's timestamp, not comment position.
+        readme = (ROOT / "docs/worklog/README.md").read_text()
+        match = re.search(r"--json comments --jq '(.*?)'\n```", readme, re.S)
+        self.assertIsNotNone(match, "resume command not found in docs/worklog/README.md")
+        jq_filter = match.group(1)
+        base = copy.deepcopy(next(e for e in FIXTURE["events"] if e["event_type"] == "handoff"))
+
+        def at(minute):
+            return f"2026-09-02T10:{minute:02d}:00Z"
+
+        def handoff(event_id, minute, act=None):
+            event = dict(copy.deepcopy(base), event_id=event_id, timestamp=at(minute))
+            return dict(event, next_act=act) if act else event
+
+        def checkpoint(event_id, minute):
+            return dict(handoff(event_id, minute), event_type="checkpoint")
+
+        def correction(event_id, minute, target, replacement):
+            return dict(handoff(event_id, minute), event_type="correction", supersedes_event_id=target,
+                        corrected_event=replacement)
+
+        def block(event):
+            return f"{worklog.EVENT_MARKER}\n```json\n{json.dumps(event, indent=2)}\n```\n"
+
+        def oracle(events):
+            records = [{"event": e, "source": {}, "available_at": e["timestamp"]} for e in events]
+            effective, _, _ = worklog.retained_graph(records)
+            acts = [r["event"]["next_act"] for r in effective if r["event"].get("next_act")]
+            return acts[-1] if acts else ""
+
+        malformed = f"{worklog.EVENT_MARKER}\n```json\n{{\"event_id\": \"broken\",}}\n```\n"
+        scenarios = {
+            "handoff corrected into a checkpoint": [
+                handoff("x", 1, "act A"), correction("c", 2, "x", checkpoint("x2", 1))],
+            "old handoff corrected after a newer one": [
+                handoff("y", 1, "act OLD"), handoff("x", 2, "act NEW"),
+                correction("c", 3, "y", handoff("y2", 1, "act OLD-FIXED"))],
+            "handoff corrected into a handoff": [
+                handoff("x", 1, "act A"), correction("c", 2, "x", handoff("x2", 1, "act B"))],
+            "correction chain": [
+                handoff("x", 1, "act A"), correction("c", 2, "x", handoff("x2", 1, "act B")),
+                correction("d", 3, "x2", handoff("x3", 1, "act C"))],
+            "no next_act anywhere": [checkpoint("k", 1)],
+        }
+        expected = {"handoff corrected into a checkpoint": "",
+                    "old handoff corrected after a newer one": "act NEW",
+                    "handoff corrected into a handoff": "act B",
+                    "correction chain": "act C",
+                    "no next_act anywhere": ""}
+        for name, events in scenarios.items():
+            for event in events:
+                worklog.validate_event(copy.deepcopy(event))
+            bodies = [block(e) for e in events]
+            with self.subTest(scenario=name):
+                self.assertEqual(expected[name], oracle(events))
+                for extra in ([], [malformed]):
+                    payload = json.dumps({"comments": [{"body": b} for b in bodies + extra]})
+                    result = subprocess.run(["jq", "-r", jq_filter], input=payload, check=False,
+                                            capture_output=True, text=True)
+                    self.assertEqual(0, result.returncode, result.stderr)
+                    self.assertEqual(expected[name], result.stdout.strip())
+
+    def test_schema_documents_the_continuity_field(self):
+        schema = json.loads((ROOT / "docs/worklog/event.schema.json").read_text())
+        field = schema["properties"]["next_act"]
+        # The schema carries the strict next_act filter too, spelled without flags. Checked by behaviour,
+        # against the same spellings the code is tested with, rather than by comparing strings.
+        strict = [re.compile(part["not"]["pattern"]) for part in field["allOf"] if set(part) == {"not"}]
+        self.assertEqual(1, len(strict))
+        for text in PRIVATE_SPELLINGS:
+            with self.subTest(schema_refuses=text):
+                self.assertTrue(strict[0].search(text))
+        for text in PUBLIC_SPELLINGS:
+            with self.subTest(schema_allows=text):
+                self.assertIsNone(strict[0].search(text))
+        self.assertIn({"maxLength": worklog.FREE_TEXT_LIMIT, "not": {"pattern": "[\\r\\n]"}}, field["allOf"])
+        self.assertIn({"if": {"required": ["next_act"]},
+                       "then": {"properties": {"event_type": {"enum": sorted(worklog.CONTINUITY_TYPES)}}}},
+                      schema["allOf"])
 
 
 if __name__ == "__main__":

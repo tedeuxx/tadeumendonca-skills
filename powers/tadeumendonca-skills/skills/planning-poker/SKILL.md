@@ -73,9 +73,17 @@ obvious ones" — and that is not wrong, but it is not the first question either
 taken seriously. The first question is **whether this team needs a velocity signal at all.** A single
 person doing solo, sporadic work has nothing to build a sprint-over-sprint series against, and no group to
 converge; a gut-call estimate or a t-shirt size is the right-sized tool, not a lesser version of planning
-poker. A team that ships continuously with no fixed-length iteration to plan against — this repo's own
-loop is exactly that case — has nowhere for a velocity number to land either, which is *why* it has no
-mechanical use for the ceremony rather than a symptom of skipping a step.
+poker. A team that ships continuously with no fixed-length iteration to plan against has nowhere for a
+velocity number to land either, which is *why* it has no mechanical use for the ceremony rather than a
+symptom of skipping a step.
+
+~~— this repo's own loop is exactly that case —~~ **Struck at #515. This stopped being true when #499
+selected prospective team velocity.** The loop named there now plans in iterations. It freezes each
+item's median estimate when implementation starts, and a worklog report sums the frozen estimates per
+iteration. It is a counterexample now: it has a velocity number and still does not run the ceremony. Its
+estimators are dispatched in isolation, its median is recorded, and no group converges. **Its rate is
+still unmeasured.** Its iterations carry no recorded start or end date, so a points-per-week figure has no
+denominator. That leaves the series empty rather than meaningless.
 
 Where a team **does** run fixed-length iterations and plans capacity against them, the uncertainty-based
 rule of thumb still applies inside that context: reach for full planning poker on items where the team's

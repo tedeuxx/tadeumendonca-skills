@@ -241,7 +241,13 @@ stated here — read them from `docs/loop-mode.md`.
 6. **Scratch never goes to a shared system temporary directory, and never inside a repository's `.git`
    directory.** Floor item 7 says where scratch goes; these are the two places it has actually gone
    instead. If your harness gives you no session scratchpad, ask where scratch belongs rather than
-   choosing either of those.
+   choosing either of those. **State that must outlive your session is not scratch, and it does not
+   go in a file at all.** It goes on the issue being worked, as a worklog `handoff` or `checkpoint`
+   event, prepared with `scripts/worklog.py prepare-event` and posted by file. That issue is public,
+   so the record carries facts and one next act, one line each, and never your reasoning or anything
+   private. The contract and the command that reads it back on resume are in `docs/worklog/README.md`.
+   A later session resumes from the latest next act, then re-checks the tracker, because the record
+   says where the work was, not where it is.
 7. **Never wait on a pipeline with a sleep-and-poll loop.** Push, report that checks are running, and
    check once, when it matters. When you read a result, read it for the exact commit you mean, by its
    full identifier. **The same holds for an agent you dispatched:** wait for it once, blocking, with
