@@ -296,6 +296,23 @@ class WorklogTest(unittest.TestCase):
             True), "reproduce")
         self.assertFalse(clean["partial"], clean["warnings"])  # a producer-made export CAN be complete
 
+        edited, _ = gh_captures(CLEAN_EVENTS)
+        edited[0]["comments"][0]["includesCreatedEdit"] = True
+        result = worklog.report(CLEAN_SNAPSHOT, worklog.build_export(edited, "2026-10-01T00:00:00Z"), "reproduce")
+        self.assertTrue(any(w.startswith("comment edit timestamp unavailable: ") for w in result["warnings"]))
+
+        for label, mutate, needle in (
+                ("duplicate capture", lambda c: c.append(copy.deepcopy(c[0])), "captured twice"),
+                ("not an issue url", lambda c: c[0].update(url="https://github.com/acme/site/pull/7"),
+                 "must be a GitHub issue URL"),
+                ("comment from another issue", lambda c: c[0]["comments"][0].update(
+                    url="https://github.com/acme/site/issues/8#issuecomment-5"), "must be a comment URL on")):
+            with self.subTest(label=label):
+                bad, _ = gh_captures(FIXTURE["events"])
+                mutate(bad)
+                with self.assertRaisesRegex(worklog.ContractError, needle):
+                    worklog.build_export(bad, "2026-10-01T00:00:00Z")
+
     def test_export_prior_inventory_is_only_as_complete_as_the_prior_capture(self):
         """#515 lens finding. Source mutation: `prior_inventory.complete` is True for any prior. A prior built
         without `--pagination-complete` (or missing a repository captured now) cannot vouch for history, so the
@@ -329,23 +346,6 @@ class WorklogTest(unittest.TestCase):
         declared = worklog.build_export(truncated, "2026-10-01T00:00:00Z", pagination_complete=True)
         self.assertTrue(worklog.build_export(captures, "2026-10-01T00:00:00Z", declared, True)
                         ["prior_inventory"]["complete"])
-
-        edited, _ = gh_captures(CLEAN_EVENTS)
-        edited[0]["comments"][0]["includesCreatedEdit"] = True
-        result = worklog.report(CLEAN_SNAPSHOT, worklog.build_export(edited, "2026-10-01T00:00:00Z"), "reproduce")
-        self.assertTrue(any(w.startswith("comment edit timestamp unavailable: ") for w in result["warnings"]))
-
-        for label, mutate, needle in (
-                ("duplicate capture", lambda c: c.append(copy.deepcopy(c[0])), "captured twice"),
-                ("not an issue url", lambda c: c[0].update(url="https://github.com/acme/site/pull/7"),
-                 "must be a GitHub issue URL"),
-                ("comment from another issue", lambda c: c[0]["comments"][0].update(
-                    url="https://github.com/acme/site/issues/8#issuecomment-5"), "must be a comment URL on")):
-            with self.subTest(label=label):
-                bad, _ = gh_captures(FIXTURE["events"])
-                mutate(bad)
-                with self.assertRaisesRegex(worklog.ContractError, needle):
-                    worklog.build_export(bad, "2026-10-01T00:00:00Z")
 
     def test_export_cli_feeds_the_report_cli(self):
         with tempfile.TemporaryDirectory() as directory:
