@@ -192,6 +192,76 @@ here adjusted their reading of `sprint-01`'s numbers by it:**
    comment now carries this rule in its own trailer, so a future consumer gets it from the artifact
    rather than from this file.
 
+5. **The records went dark from 2026-09-11 to 2026-09-24 and were partly MISATTRIBUTED after that
+   — repaired at #513, and the window is not re-derivable from them.** Measured from a captured live
+   `SubagentStop` payload (build 2.1.283): the payload's `cwd` is the session's **primary checkout**,
+   never the slice's worktree, so the hook read whatever branch the primary held at stop. On `main`
+   that is silence (`no-issue-resolved`); on another slice's branch it is the **wrong Issue** —
+   `-wt-510`/`-wt-512` work landed on `#473`, `-wt-531` work on `#511`, and a `-io` branch named for
+   a `-skills` Issue put 17 records on an unrelated `-io` Issue. **So *"no records"* for an Issue in
+   that window means nothing, and records on the Issue the primary checkout held are a superset.**
+   Since #513 the hook reads the working tree the dispatch's own tool calls used, plus the PRs it
+   wrote to; each record carries `worktree:`, `worktree_resolution:`, `payload_cwd:`,
+   `prs_written:`, `worktrees_rejected:` and `attribution:` so an attribution can be audited
+   instead of trusted. **The misattribution is NARROWED, not closed.** When the dispatch wrote to a
+   PR that names an Issue and named no worktree other than the primary, the primary's branch is
+   dropped (`attribution: prs-written-only`). This applies even when the dispatch referenced the
+   primary, because reviewers read it while it holds an unrelated branch. **A dispatch that names no
+   worktree AND writes to no PR still gets the primary checkout's branch**, and so does one that
+   writes only to a PR naming no Issue (a chore or rite PR): its record gets `attribution: union`
+   with the primary's branch. So while the primary holds another slice's branch, either record still
+   lands on that slice's Issue.
+   **Read `worktree_resolution: payload-cwd` with `attribution: union` on a record as *unverified*:**
+   it is exactly the shape the residual produces. **And several silent shapes survive #513, so *"no
+   records"* is still not proof of absence.** At least four are known, and the hook's header
+   names three of them. The first is a read-only dispatch on `main` that touched no worktree and
+   wrote to no PR. The second is a merge whose PR number follows a flag (`gh pr merge --merge <n>`).
+   The third is the sibling-outranking shape: a dispatch whose absolute `git -C` reads of a sibling
+   repository outrank its relative-path work in the primary resolves to the sibling, and a PR it
+   wrote in the primary's repository is then filtered as foreign. The PR 519 gate lost its record
+   this way. The fourth, not in the header, is a dispatch on `main` that writes only to a PR naming
+   no Issue.
+6. **Codex emits NO records, on any Issue.** `codex-hooks.json` registers `PreToolUse` and
+   `UserPromptSubmit` only — there is no `SubagentStop` equivalent and no reference to this hook:
+
+   ```
+   jq -r '.hooks|keys[]' codex-hooks.json          # -> PreToolUse, UserPromptSubmit
+   grep -c 'dispatch-metrics' codex-hooks.json     # -> 0
+   ```
+
+   **An iteration run on Codex derives an EMPTY set from this source by construction**, which is the
+   reason the second source below is not optional there.
+
+### The SECOND source — the PR verdict markers, and it answers for two personas only (#513)
+
+**Read the verdict markers on the iteration's merged PRs and UNION them with the records above.** A
+marker is posted by the persona itself, on the PR, and names nothing about a working tree, so it
+survives every failure in limit 5 and does not depend on the host at all:
+
+```
+gh pr list --repo <owner>/<repo> --state merged --search "merged:<start>..<end>" --limit 200 \
+  --json number,comments \
+  --jq '{prs:length,
+         gatekeeper:[.[]|select(any(.comments[];.body|contains("<!-- gatekeeper-verdict:")))|.number],
+         harness:[.[]|select(any(.comments[];.body|contains("<!-- harness-lead-verdict:")))|.number]}'
+```
+
+Measured 2026-09-25 over `-skills`, merged `2026-09-11..2026-09-22` (sprint-02's window): **36 PRs,
+35 carrying a `gatekeeper-verdict`, 36 a `harness-lead-verdict`** — against a derived set of *none*
+from the records, which is what `docs/retrospective/sprint-02/00-scope.md` published. **The selector
+can return zero**: the same query for the literal `<!-- product-lead-verdict:` returns `0`, because
+no such marker exists.
+
+**What it attests, exactly: `gatekeeper-verdict` → `quality-assurance` ran; `harness-lead-verdict` →
+`agents-lead` ran.** Nothing else. `product-lead` posts no marker (rule 5e denies it the comment
+subcommands), and `developer`, `tech-lead` and the content pair post none either, so **their presence
+still comes from the records alone** — the second source raises the floor for two personas and leaves
+the lower bound a lower bound. It is per repository, exactly as the records are.
+
+**And the date window is the derivation's own weak limb, not the marker's.** `merged:<start>..<end>`
+selects by merge date, so a PR reviewed in the iteration and merged after it is outside the set.
+Where the iteration's PRs can be listed by Issue instead, prefer that list.
+
 **And the whole set is a LOWER BOUND, never the set.** That is unchanged by #382 — the repair narrowed
 the silent set, it did not close it. `dispatch-metrics-stop.sh` exits 0 silently on several paths, and
 since #382 each one is **named in the source** rather than estimated here — read the members, not a
