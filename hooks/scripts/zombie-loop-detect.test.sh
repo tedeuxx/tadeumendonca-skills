@@ -710,6 +710,562 @@ else
 fi
 teardown
 
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# #522 — CARRY-FORWARD. A stale marker is NOT reported when the tree delta from its own `commit:`
+# SHA to the head touches no hold-2 path (hold 2 in agents/quality-assurance.md). Every refusal
+# below is asserted as the notice FIRING, because the carry fails closed to the pre-#522 notice.
+#
+# These cases need REAL commit SHAs, so they build history in the fixture repository; the fake
+# heads above ("headaaa", "oldbbb") hold no 40-character SHA and never reach the carry block,
+# which is why every earlier arm is unchanged by it.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+commit_path() { # path -> prints the new HEAD sha
+  mkdir -p "$repo/$(dirname "$1")"
+  printf '%s\n' "$RANDOM$RANDOM" >> "$repo/$1"
+  git -C "$repo" add -- "$1"
+  git -C "$repo" commit -q -m "touch $1"
+  git -C "$repo" rev-parse HEAD
+}
+
+plugin_repo() { # the plugin repository: manifest at the root, and an origin/main ref
+  commit_path .claude-plugin/plugin.json >/dev/null
+  git -C "$repo" update-ref refs/remotes/origin/main HEAD
+}
+
+consuming_repo() { # no manifest, and an origin/main ref, so ls-tree classifies cleanly
+  git -C "$repo" update-ref refs/remotes/origin/main HEAD
+}
+
+stale_fires() { # label · output
+  case "$2" in
+    *'STALE agents-lead verdict marker'*) ok "$1" ;;
+    *) bad "$1" "expected the stale notice, got: ${2:-<silence>}" ;;
+  esac
+}
+
+stays_silent() { # label · output
+  case "$2" in
+    *'STALE agents-lead verdict marker'*) bad "$1" "got: $2" ;;
+    *) ok "$1" ;;
+  esac
+}
+
+echo '--- #522: a docs-only delta since the marker carries it forward — silent ---'
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+h="$(commit_path docs/notes.md)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stays_silent 'a delta touching only docs/** carries the marker forward' "$(run_hook)"
+teardown
+
+echo '--- #522: the SAME history with a hold-2 path planted in the delta — fires ---'
+# The discriminating pair for the case above: one path differs, and the verdict flips.
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+commit_path docs/notes.md >/dev/null
+h="$(commit_path hooks/scripts/x.sh)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'a hold-2 path in the delta refuses the carry' "$(run_hook)"
+teardown
+
+echo '--- #522: the #506 shape — scripts/ is inside the plugin-repository class, so it does NOT carry ---'
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path scripts/worklog.py)"
+commit_path docs/worklog/README.md >/dev/null
+h="$(commit_path scripts/worklog.test.py)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'a delta touching scripts/ refuses the carry in the plugin repository' "$(run_hook)"
+teardown
+
+echo '--- #522: an empty tree delta carries — silent ---'
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+git -C "$repo" commit -q --allow-empty -m 'empty'
+h="$(git -C "$repo" rev-parse HEAD)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stays_silent 'an empty delta carries the marker forward' "$(run_hook)"
+teardown
+
+echo '--- #522: an ORPHANED marker (force-push / rebase) refuses even with a docs-only delta ---'
+# The marked commit is on a history the head does not contain. The tree delta between the two is
+# docs-only, so ONLY the ancestry check can refuse this — that is what makes the case discriminate.
+setup; plugin_repo; checkout_branch loop/x
+commit_path hooks/scripts/x.sh >/dev/null
+git -C "$repo" checkout -q -b orphaned
+m="$(commit_path docs/old.md)"
+git -C "$repo" checkout -q loop/x
+h="$(commit_path docs/new.md)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'a marked commit that is not an ancestor of the head refuses the carry' "$(run_hook)"
+teardown
+
+echo '--- #522: a marker SHA this clone cannot read refuses — silent would be fail-open ---'
+setup; plugin_repo; checkout_branch loop/x
+commit_path hooks/scripts/x.sh >/dev/null
+h="$(commit_path docs/notes.md)"
+open_pr 522 "$h"; view_with_harness_markers "$h" 0123456789abcdef0123456789abcdef01234567
+stale_fires 'an unreadable marker SHA refuses the carry' "$(run_hook)"
+teardown
+
+echo '--- #522: an ABBREVIATED commit: line refuses, even where the full SHA would carry ---'
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+h="$(commit_path docs/notes.md)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "${m:0:12}"
+stale_fires 'an abbreviated commit: line carries nothing' "$(run_hook)"
+teardown
+
+echo '--- #522: markup around the full SHA is tolerated, as in hold 2 — silent ---'
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+h="$(commit_path README.md)"
+open_pr 522 "$h"
+jq -n --arg h "$h" --arg m "$m" '{headRefOid:$h, comments:[{authorAssociation:"OWNER",
+  body:("<!-- harness-lead-verdict: reviewed -->\ncommit: `" + $m + "`")}]}' > "$root/fix/view.json"
+stays_silent 'a backticked full SHA on the commit: line carries' "$(run_hook)"
+teardown
+
+echo '--- #522: the NEWEST marker carries — silent, older non-carrying markers are not consulted ---'
+setup; plugin_repo; checkout_branch loop/x
+m1="$(commit_path hooks/scripts/x.sh)"
+m2="$(commit_path hooks/scripts/y.sh)"
+h="$(commit_path docs/notes.md)"
+git -C "$repo" checkout -q -b orphaned2 "$m1"
+mo="$(commit_path docs/other.md)"
+git -C "$repo" checkout -q loop/x
+open_pr 522 "$h"; view_with_harness_markers "$h" "$mo" "$m1" "$m2"
+stays_silent 'the newest marker carries even though an older one does not' "$(run_hook)"
+teardown
+
+echo '--- #522: a CONSUMING repository uses the harness-path list — scripts/ carries there ---'
+setup; consuming_repo; checkout_branch loop/x
+m="$(commit_path .github/workflows/ci.yml)"
+h="$(commit_path scripts/build.sh)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stays_silent 'a consuming-repository delta outside the harness-path list carries' "$(run_hook)"
+teardown
+
+echo '--- #522: and a harness path in a consuming repository refuses, at any depth ---'
+setup; consuming_repo; checkout_branch loop/x
+m="$(commit_path scripts/build.sh)"
+h="$(commit_path apps/fed/CLAUDE.md)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'a nested CLAUDE.md in the delta refuses the carry in a consuming repository' "$(run_hook)"
+teardown
+
+echo '--- #522: an UNCLASSIFIABLE repository (no origin/main) refuses the carry — scripts/ delta ---'
+# Same history as the consuming-repository carry above, minus the origin/main ref. `ls-tree` on
+# the missing ref fails, and an unclassified repository carries nothing. (Since round 6 the base
+# check's merge-base fails on the missing ref first; the r5 arm below isolates classification.)
+setup; checkout_branch loop/x
+m="$(commit_path .github/workflows/ci.yml)"
+h="$(commit_path scripts/build.sh)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'an unreadable origin/main refuses the carry (scripts/ delta)' "$(run_hook)"
+teardown
+
+echo '--- #522: an UNCLASSIFIABLE repository refuses even a DOCS-ONLY delta ---'
+# The discriminating case for the refusal: under the old "wider class" rule this carried, because
+# docs/** is excluded from the plugin-repository class. It must refuse, whatever the delta holds.
+setup; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+h="$(commit_path docs/notes.md)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'an unreadable origin/main refuses a docs-only delta' "$(run_hook)"
+teardown
+
+echo '--- #522 r5: an UNCLASSIFIABLE repository with a READABLE origin/main ref refuses — docs-only delta ---'
+# The two arms above refuse TWICE: with no origin/main, the base check's merge-base fails before
+# the repository is classified (round 5's not-on-trunk check did the same, and round 6 replaced
+# it). So neither arm isolates the classification refusal, and replacing it with "select a class"
+# left the suite green. This fixture separates them: origin/main's ROOT TREE is deleted, so the
+# commit graph answers (both merge-bases read, and they are equal: the base has not moved) while
+# `ls-tree origin/main` exits 128. The guard asserts that shape.
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+h="$(commit_path docs/notes.md)"
+t="$(git -C "$repo" rev-parse 'origin/main^{tree}')"
+rm -f "$repo/.git/objects/${t:0:2}/${t:2}"
+bm=0; mbm="$(git -C "$repo" merge-base --all origin/main "$m" 2>/dev/null)" || bm=$?
+bh=0; mbh="$(git -C "$repo" merge-base --all origin/main "$h" 2>/dev/null)" || bh=$?
+lt=0; git -C "$repo" ls-tree --name-only origin/main >/dev/null 2>&1 || lt=$?
+if [ "$bm" -eq 0 ] && [ "$bh" -eq 0 ] && [ -n "$mbm" ] && [ "$mbm" = "$mbh" ] && [ "$lt" -ne 0 ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+  stale_fires 'an unreadable trunk tree refuses the carry although the base has not moved' "$(run_hook)"
+else
+  bad 'unreadable-trunk-tree fixture' "expected equal readable merge-bases and ls-tree non-zero, got $bm/$bh '${mbm:0:8}' '${mbh:0:8}' and $lt"
+fi
+teardown
+
+echo '--- #522: a QUOTED harness path in a CONSUMING repository refuses the carry ---'
+# git quotes a non-ASCII name, so the line starts with a double quote and no ^- or /-anchored
+# pattern sees ".claude/". core.quotePath is pinned so the arm does not depend on user config.
+setup; consuming_repo; checkout_branch loop/x
+git -C "$repo" config core.quotePath true
+m="$(commit_path scripts/build.sh)"
+h="$(commit_path ".claude/agents/caf$(printf '\303\251').md")"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'a quoted .claude/ path refuses the carry in a consuming repository' "$(run_hook)"
+teardown
+
+echo '--- #522: a QUOTED path in the PLUGIN repository is inside the class — refuses ---'
+setup; plugin_repo; checkout_branch loop/x
+git -C "$repo" config core.quotePath true
+m="$(commit_path hooks/scripts/x.sh)"
+h="$(commit_path "skills/caf$(printf '\303\251')/SKILL.md")"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'a quoted skills/ path refuses the carry in the plugin repository' "$(run_hook)"
+teardown
+
+echo '--- #522: the NEWEST marker governs — an older closing marker does not carry past a newer one ---'
+# Older marker at A carries on its own: A -> head is docs-only, because B's hooks change is
+# reverted. The newer marker at B is the lens's current word, and B -> head touches hooks/.
+setup; plugin_repo; checkout_branch loop/x
+a="$(commit_path hooks/scripts/x.sh)"
+b="$(commit_path hooks/scripts/x.sh)"
+git -C "$repo" revert --no-edit HEAD >/dev/null 2>&1
+h="$(commit_path docs/notes.md)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$a" "$b"
+stale_fires 'an older carrying marker does not carry past a newer non-carrying one' "$(run_hook)"
+teardown
+
+echo '--- #522: a MISSING TREE OBJECT — --is-ancestor exits 0, the diff exits 128 — refuses ---'
+# The commit graph is intact, so the ancestry check passes; the diff reads trees and fails. Only
+# the diff's own status check can refuse this. Guarded, so the arm cannot pass vacuously.
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+h="$(commit_path docs/notes.md)"
+t="$(git -C "$repo" rev-parse "$h:docs")"
+rm -f "$repo/.git/objects/${t:0:2}/${t:2}"
+ia=0; git -C "$repo" merge-base --is-ancestor "$m" "$h" 2>/dev/null || ia=$?
+df=0; git -C "$repo" diff --no-renames --name-only "$m" "$h" >/dev/null 2>&1 || df=$?
+if [ "$ia" -eq 0 ] && [ "$df" -ne 0 ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+  stale_fires 'an unreadable delta refuses the carry although the ancestry check passes' "$(run_hook)"
+else
+  bad 'missing-tree-object fixture' "expected is-ancestor 0 and diff non-zero, got $ia and $df"
+fi
+teardown
+
+echo '--- #522: a FAILING class filter refuses — its silence must not read as an empty delta ---'
+# The carry filter is the hook's only grep, so a stub that prints nothing and exits 2 isolates it.
+# The delta is docs-only, which carries with a working grep (the first #522 arm).
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+h="$(commit_path docs/notes.md)"
+printf '#!/bin/sh\nexit 2\n' > "$root/bin/grep"; chmod +x "$root/bin/grep"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'a class filter that errors refuses the carry' "$(run_hook)"
+teardown
+
+echo '--- #522: a RENAME from hooks/ into docs/ refuses — --no-renames is load-bearing ---'
+# Without --no-renames the delta prints only docs/x.sh, which the plugin filter excludes.
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+mkdir -p "$repo/docs"
+git -C "$repo" mv hooks/scripts/x.sh docs/x.sh
+git -C "$repo" commit -q -m 'move x.sh into docs'
+h="$(git -C "$repo" rev-parse HEAD)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'a hooks/ -> docs/ rename refuses the carry' "$(run_hook)"
+teardown
+
+echo '--- #522 r5: a marker naming a PRE-BRANCH TRUNK commit refuses (the gate'"'"'s P-A) ---'
+# Trunk X -> M changes hooks/scripts/a.sh; the PR, cut from M, restores X's content; a marker names
+# X. X is an ancestor of the head and the X -> head tree delta is EMPTY, so every earlier check
+# passes. Round 5 refused it with a not-on-trunk check; since round 6 the base check refuses it:
+# X's merge-base with origin/main is X itself, the head's is M. The guard asserts that shape, so
+# the arm cannot pass because some other check happened to fire.
+setup; plugin_repo
+x="$(commit_path hooks/scripts/a.sh)"
+commit_path hooks/scripts/a.sh >/dev/null
+git -C "$repo" update-ref refs/remotes/origin/main HEAD
+checkout_branch loop/x
+git -C "$repo" checkout -q "$x" -- hooks/scripts/a.sh
+git -C "$repo" commit -q -m 'restore a.sh to its pre-branch content'
+h="$(git -C "$repo" rev-parse HEAD)"
+ia=0; git -C "$repo" merge-base --is-ancestor "$x" "$h" 2>/dev/null || ia=$?
+ot=0; git -C "$repo" merge-base --is-ancestor "$x" origin/main 2>/dev/null || ot=$?
+dl="$(git -C "$repo" diff --no-renames --name-only "$x" "$h")"
+mbx="$(git -C "$repo" merge-base --all origin/main "$x")"; mbh="$(git -C "$repo" merge-base --all origin/main "$h")"
+if [ "$ia" -eq 0 ] && [ "$ot" -eq 0 ] && [ -z "$dl" ] && [ -n "$mbx" ] && [ "$mbx" != "$mbh" ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$x"
+  stale_fires 'a marker on a pre-branch trunk commit refuses although its delta is empty' "$(run_hook)"
+else
+  bad 'P-A fixture' "expected ancestor 0, on-trunk 0, an empty delta and differing bases, got $ia, $ot, '$dl', '${mbx:0:8}' vs '${mbh:0:8}'"
+fi
+teardown
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# #522 round 6 — THE BASE MUST NOT HAVE MOVED. The round-5 lens's B1: a stale marker on one of the
+# PR's OWN commits still carried a trunk hooks/ change no lens read, once the PR merged main and
+# then either restored the old file (H1) or resolved the merge with `-X ours` (H2). In both the
+# marker -> head tree delta is EMPTY, so only the base check can refuse. Each guard asserts that
+# the delta is class-free and the two merge-bases differ (or fail), so no arm passes because some
+# other check fired. `bases_differ` prints "y" only when both merge-bases READ and differ.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+bases_differ() { # marker · head
+  local a b
+  a="$(git -C "$repo" merge-base --all origin/main "$1" 2>/dev/null)" || { echo err; return; }
+  b="$(git -C "$repo" merge-base --all origin/main "$2" 2>/dev/null)" || { echo err; return; }
+  [ -n "$a" ] && [ -n "$b" ] && [ "$a" != "$b" ] && echo y || echo n
+}
+class_free_delta() { # marker · head -> prints the plugin-class paths in the delta (empty = class-free)
+  git -C "$repo" diff --no-renames --name-only "$1" "$2" \
+    | grep -vE '^$|^(docs/|powers/)|^(README\.md|VERSION|\.bumpversion\.toml|LICENSE)$'
+}
+
+echo '--- #522 r6 H1: the PR merges main (a hooks/ change), then RESTORES the old file — fires ---'
+setup; plugin_repo
+x="$(commit_path hooks/scripts/a.sh)"; git -C "$repo" update-ref refs/remotes/origin/main HEAD
+checkout_branch loop/x; p1="$(commit_path docs/notes.md)"
+git -C "$repo" checkout -q main; commit_path hooks/scripts/a.sh >/dev/null
+git -C "$repo" update-ref refs/remotes/origin/main HEAD
+git -C "$repo" checkout -q loop/x; git -C "$repo" merge -q --no-edit main
+git -C "$repo" checkout -q "$x" -- hooks/scripts/a.sh; git -C "$repo" commit -q -m 'restore a.sh'
+h="$(git -C "$repo" rev-parse HEAD)"
+dl="$(git -C "$repo" diff --no-renames --name-only "$p1" "$h")"; bd="$(bases_differ "$p1" "$h")"
+if [ -z "$dl" ] && [ "$bd" = y ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$p1"
+  stale_fires 'a PR-own marker refuses once a merged trunk hooks/ change is restored away (H1)' "$(run_hook)"
+else
+  bad 'H1 fixture' "expected an empty delta and differing bases, got '$dl' and $bd"
+fi
+teardown
+
+echo '--- #522 r6 H2: the PR merges main with -X ours, DROPPING a trunk hooks/ change — fires ---'
+setup; plugin_repo
+commit_path hooks/scripts/a.sh >/dev/null; git -C "$repo" update-ref refs/remotes/origin/main HEAD
+checkout_branch loop/x; p1="$(commit_path hooks/scripts/a.sh)"
+git -C "$repo" checkout -q main; commit_path hooks/scripts/a.sh >/dev/null
+git -C "$repo" update-ref refs/remotes/origin/main HEAD
+git -C "$repo" checkout -q loop/x; git -C "$repo" merge -q --no-edit -X ours main >/dev/null 2>&1
+h="$(git -C "$repo" rev-parse HEAD)"
+np="$(git -C "$repo" rev-list --parents -n 1 "$h" | wc -w | tr -d ' ')"
+dl="$(git -C "$repo" diff --no-renames --name-only "$p1" "$h")"; bd="$(bases_differ "$p1" "$h")"
+if [ "$np" -eq 3 ] && [ -z "$dl" ] && [ "$bd" = y ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$p1"
+  stale_fires 'a PR-own marker refuses once a merge drops a trunk hooks/ change (H2)' "$(run_hook)"
+else
+  bad 'H2 fixture' "expected a merge commit, an empty delta and differing bases, got $np words, '$dl' and $bd"
+fi
+teardown
+
+echo '--- #522 r6: a DOCS-ONLY trunk move merged after the marker ALSO refuses — the accepted cost ---'
+# The base moved, so the rule refuses without reading what moved it. Round 5 carried this; round 6
+# gives it up deliberately, for the rule that closes H1/H2 without a second class-filtered diff.
+setup; plugin_repo
+checkout_branch loop/x; p1="$(commit_path hooks/scripts/a.sh)"
+git -C "$repo" checkout -q main; commit_path docs/t.md >/dev/null
+git -C "$repo" update-ref refs/remotes/origin/main HEAD
+git -C "$repo" checkout -q loop/x; git -C "$repo" merge -q --no-edit main
+h="$(git -C "$repo" rev-parse HEAD)"
+cf="$(class_free_delta "$p1" "$h")"; bd="$(bases_differ "$p1" "$h")"
+if [ -z "$cf" ] && [ "$bd" = y ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$p1"
+  stale_fires 'a docs-only trunk merge after the marker refuses the carry (base moved)' "$(run_hook)"
+else
+  bad 'docs-only base-move fixture' "expected a class-free delta and differing bases, got '$cf' and $bd"
+fi
+teardown
+
+echo '--- #522 r6: an UNREADABLE trunk history refuses — two failed merge-bases are not "equal" ---'
+# An intermediate trunk commit object is deleted, so both merge-base calls fail and print NOTHING,
+# and two empty outputs compare equal. The delta is docs-only and `ls-tree origin/main` still
+# reads, so the rc / non-empty checks are the ONLY thing refusing. Guarded on that shape.
+setup; plugin_repo
+checkout_branch loop/x; m="$(commit_path hooks/scripts/x.sh)"; h="$(commit_path docs/notes.md)"
+git -C "$repo" checkout -q main; n1="$(commit_path docs/n1.md)"; commit_path docs/n2.md >/dev/null
+git -C "$repo" update-ref refs/remotes/origin/main HEAD
+rm -f "$repo/.git/objects/${n1:0:2}/${n1:2}"
+bm=0; git -C "$repo" merge-base --all origin/main "$m" >/dev/null 2>&1 || bm=$?
+bh=0; git -C "$repo" merge-base --all origin/main "$h" >/dev/null 2>&1 || bh=$?
+lt=0; git -C "$repo" ls-tree --name-only origin/main >/dev/null 2>&1 || lt=$?
+cf="$(class_free_delta "$m" "$h")"
+if [ "$bm" -ne 0 ] && [ "$bh" -ne 0 ] && [ "$lt" -eq 0 ] && [ -z "$cf" ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+  stale_fires 'failed merge-base reads refuse the carry although both print the same (nothing)' "$(run_hook)"
+else
+  ce=0; git -C "$repo" cat-file -e "$n1" 2>/dev/null || ce=$?
+  bad 'unreadable-trunk-history fixture' "expected both merge-bases non-zero, ls-tree 0 and a class-free delta, got $bm, $bh, $lt and '$cf' (cat-file -e on the deleted commit: $ce; trunk $(git -C "$repo" log --format=%h origin/main | tr '\n' ' '))"
+fi
+teardown
+
+echo '--- #522 r6: a marker naming the BRANCH POINT carries — the round-5 check refused it, harmlessly ---'
+# The marker is a trunk commit, so round 5's not-on-trunk check refused. It is also the head's
+# merge-base, so the base has not moved and the marker -> head delta is the PR's whole diff against
+# that base, which the class filter reads (docs-only here). This arm is what shows the round-5
+# check was removed rather than kept: restoring it turns this arm red.
+setup; plugin_repo
+x="$(git -C "$repo" rev-parse HEAD)"
+checkout_branch loop/x; h="$(commit_path docs/n.md)"
+git -C "$repo" checkout -q main; commit_path hooks/scripts/a.sh >/dev/null
+git -C "$repo" update-ref refs/remotes/origin/main HEAD
+git -C "$repo" checkout -q loop/x
+ot=0; git -C "$repo" merge-base --is-ancestor "$x" origin/main 2>/dev/null || ot=$?
+bd="$(bases_differ "$x" "$h")"
+if [ "$ot" -eq 0 ] && [ "$bd" = n ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$x"
+  stays_silent 'a marker naming the head'"'"'s own branch point carries a class-free PR' "$(run_hook)"
+else
+  bad 'branch-point fixture' "expected on-trunk 0 and equal bases, got $ot and $bd"
+fi
+teardown
+
+echo '--- #522 r6: a CRISS-CROSS where only --all sees the base move — fires ---'
+# Trunk: B -> C (side, hooks/c.sh) and B -> A (docs), merged, A's date NEWER than C's. The PR
+# merges A (marker m), then merges C's side branch and deletes c.sh (head h). Bases: m = {A},
+# h = {A, C}. Plain `merge-base` prints one base, and with A newer it prints A for BOTH, so a hook
+# without `--all` sees an unmoved base, reads the empty m -> h delta, and CARRIES over a hooks/
+# deletion no lens read. Dates are pinned because which single base plain `merge-base` prints
+# follows the date order; with C newer, plain differs too and the arm would not discriminate.
+# Measured by the round-6 lens and the gate; the guard asserts the shape rather than the dates.
+setup; plugin_repo
+g6() { git -C "$repo" "$@"; }
+at6() { export GIT_COMMITTER_DATE="$1 +0000" GIT_AUTHOR_DATE="$1 +0000"; }
+b="$(g6 rev-parse HEAD)"
+g6 checkout -q -b cside "$b"; at6 2026-01-02T00:00:00; c="$(commit_path hooks/scripts/c.sh)"
+g6 checkout -q main;          at6 2026-01-03T00:00:00; a="$(commit_path docs/a.md)"
+at6 2026-01-04T00:00:00; g6 merge -q --no-edit cside >/dev/null; g6 update-ref refs/remotes/origin/main HEAD
+g6 checkout -q -b loop/x "$b"; at6 2026-01-05T00:00:00; commit_path docs/p1.md >/dev/null
+at6 2026-01-06T00:00:00; g6 merge -q --no-edit "$a" >/dev/null; m="$(g6 rev-parse HEAD)"
+at6 2026-01-07T00:00:00; g6 merge -q --no-edit cside >/dev/null
+at6 2026-01-08T00:00:00; g6 rm -q hooks/scripts/c.sh; g6 commit -q -m 'drop c.sh'
+h="$(g6 rev-parse HEAD)"
+unset GIT_COMMITTER_DATE GIT_AUTHOR_DATE
+pm="$(g6 merge-base origin/main "$m" 2>/dev/null)"; ph="$(g6 merge-base origin/main "$h" 2>/dev/null)"
+bd="$(bases_differ "$m" "$h")"; cf="$(class_free_delta "$m" "$h")"
+an=0; g6 merge-base --is-ancestor "$m" "$h" || an=$?
+if [ -n "$pm" ] && [ "$pm" = "$ph" ] && [ "$bd" = y ] && [ "$an" -eq 0 ] && [ -z "$cf" ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+  stale_fires 'a criss-cross base move that only merge-base --all sees refuses the carry' "$(run_hook)"
+else
+  bad 'criss-cross --all fixture' "expected plain bases equal, --all bases differing, ancestry 0 and a class-free delta, got '${pm:0:8}' vs '${ph:0:8}', $bd, $an and '$cf'"
+fi
+unset -f g6 at6
+teardown
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# #522 round 3 — WHICH COMMENTS ARE LENS MARKERS (advisories A1 and A2). The newest marker is the
+# last comment passing `lens_marker`: an envelope at column 0, outside a fence, in a body that does
+# not open with the gate's envelope. Every arm below uses one history, so only the comment set
+# differs:  c = hooks/ change (a marker here CARRIES to h: c -> h is docs-only)
+#           b = the commit before c (a marker here does NOT carry: b -> h holds c's hooks/ change)
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+view_bodies() { # head_sha · bodies... (each an OWNER comment, in posting order)
+  vh="$1"; shift
+  jq -n --arg h "$vh" '{headRefOid: $h,
+     comments: ($ARGS.positional | map({body: ., authorAssociation: "OWNER"}))}' \
+     --args "$@" > "$root/fix/view.json"
+}
+lens_body() { printf '<!-- harness-lead-verdict: %s -->\ncommit: %s' "$2" "$1"; }
+gate_body() { # commit-line sha (may be empty) -- quotes the lens envelope at column 0, as -skills#303 did
+  printf '<!-- gatekeeper-verdict: quality-assurance -->\nAPPROVE-AND-MERGE-BOUNDARY\nhead: 0000000000000000000000000000000000000000\nhold 2 reads:\n<!-- harness-lead-verdict: … -->\n%s' \
+    "${1:+commit: $1}"
+}
+round3_history() {
+  setup; plugin_repo; checkout_branch loop/x
+  b="$(commit_path hooks/scripts/x.sh)"
+  c="$(commit_path hooks/scripts/y.sh)"
+  h="$(commit_path docs/notes.md)"
+  open_pr 522 "$h"
+}
+
+echo '--- #522 r3 A1: a GATE VERDICT posted last, with no commit: line — the lens marker before it carries ---'
+# The 16-of-60 shape the lens measured: the published loose selector `test("harness-lead-verdict")`
+# picks this gate verdict as newest, finds no SHA, and refuses.
+round3_history
+view_bodies "$h" "$(lens_body "$c" closed)" "$(gate_body '')"
+stays_silent 'a gate verdict last (no commit: line) does not displace the newest lens marker' "$(run_hook)"
+teardown
+
+echo '--- #522 r3 A1: a gate verdict last whose commit: line would NOT carry — still silent ---'
+round3_history
+view_bodies "$h" "$(lens_body "$c" closed)" "$(gate_body "$b")"
+stays_silent 'a gate verdict last naming a non-carrying SHA does not govern the carry' "$(run_hook)"
+teardown
+
+echo '--- #522 r3 A1: a gate verdict last whose commit: line WOULD carry, over a non-carrying lens marker — fires ---'
+# The discriminating direction: a loose selector carries on the gate's SHA and goes silent.
+round3_history
+view_bodies "$h" "$(lens_body "$b" blocking)" "$(gate_body "$c")"
+stale_fires 'a gate verdict cannot carry a SHA in place of the lens' "$(run_hook)"
+teardown
+
+echo '--- #522 r3 A2: a ``` FENCED quote of a carrying marker, after a non-carrying one — fires ---'
+round3_history
+fenced="$(printf 'relaying the earlier marker:\n```\n%s\n```' "$(lens_body "$c" closed)")"
+view_bodies "$h" "$(lens_body "$c" closed)" "$(lens_body "$b" blocking)" "$fenced"
+stale_fires 'a marker quoted inside a ``` fence is not the newest marker' "$(run_hook)"
+teardown
+
+echo '--- #522 r3 A2: the same with a ~~~ fence, indented by three spaces — fires ---'
+round3_history
+fenced="$(printf 'relaying:\n   ~~~\n%s\n   ~~~' "$(lens_body "$c" closed)")"
+view_bodies "$h" "$(lens_body "$b" blocking)" "$fenced"
+stale_fires 'a marker quoted inside an indented ~~~ fence is not a marker' "$(run_hook)"
+teardown
+
+echo '--- #522 r3 A2 calibration: a fence that CLOSES — a real marker after it counts — silent ---'
+# Without this the fence limb could pass by treating every comment containing ``` as a quote.
+round3_history
+closed_fence="$(printf 'context:\n```\nsome log\n```\n%s' "$(lens_body "$c" closed)")"
+view_bodies "$h" "$(lens_body "$b" blocking)" "$closed_fence"
+stays_silent 'a marker after a closed fence is still a marker, and it carries' "$(run_hook)"
+teardown
+
+echo '--- #522 r3 A2: a fenced quote naming the HEAD does not make a stale PR fresh — fires ---'
+# The same predicate governs the stale arm: a relay quoting the head SHA in a fence is not a lens
+# marker at the head. b -> h does not carry, so only a false "fresh" could silence this.
+round3_history
+fenced="$(printf 'draft for the lens:\n```\n%s\n```' "$(lens_body "$h" closed)")"
+view_bodies "$h" "$(lens_body "$b" blocking)" "$fenced"
+stale_fires 'a fenced marker naming the head is not a fresh marker' "$(run_hook)"
+teardown
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# #522 round 4 (blocker B1) — the AUTHOR limb on the CARRY path. Until round 4 the author filter
+# sat beside `lens_marker` at each call site, and dropping it from the carry block alone left this
+# suite green: the only author arm (#385, above) exercises the STALE arm. These put a member's
+# BLOCKING marker (b, does not carry) first and a non-member's CLOSING marker (c, would carry) last.
+# A carry that honours the author limb picks b as newest and fires; one that ignores it picks c,
+# carries, and goes silent. Anyone signed in can comment on a public repository's PR, so this is
+# the forged-marker shape.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+view_assoc() { # head_sha · (association body) pairs, in posting order
+  vh="$1"; shift
+  jq -n --arg h "$vh" '{headRefOid: $h,
+     comments: [$ARGS.positional | _nwise(2) | {authorAssociation: .[0], body: .[1]}]}' \
+     --args "$@" > "$root/fix/view.json"
+}
+
+echo '--- #522 r4 B1: a NONE closing marker posted after a member blocking one does not carry — fires ---'
+round3_history
+view_assoc "$h" OWNER "$(lens_body "$b" blocking)" NONE "$(lens_body "$c" closed)"
+stale_fires 'a non-member (NONE) closing marker posted last cannot carry' "$(run_hook)"
+teardown
+
+echo '--- #522 r4 B1: the same with CONTRIBUTOR — fires ---'
+round3_history
+view_assoc "$h" OWNER "$(lens_body "$b" blocking)" CONTRIBUTOR "$(lens_body "$c" closed)"
+stale_fires 'a CONTRIBUTOR closing marker posted last cannot carry' "$(run_hook)"
+teardown
+
+echo '--- #522 r4 B1 calibration: the same closing marker from a MEMBER carries — silent ---'
+# Without this the two arms above could pass on a carry path that never carries at all.
+round3_history
+view_assoc "$h" OWNER "$(lens_body "$b" blocking)" MEMBER "$(lens_body "$c" closed)"
+stays_silent 'a MEMBER closing marker posted last carries' "$(run_hook)"
+teardown
+
+echo '--- #522 r4 B1 calibration: the same closing marker from a COLLABORATOR carries — silent ---'
+# Every other arm posts as OWNER or MEMBER, so without this the allow-list could lose COLLABORATOR
+# (a real association on a personal-account repository) with the suite green. Measured: it did.
+round3_history
+view_assoc "$h" OWNER "$(lens_body "$b" blocking)" COLLABORATOR "$(lens_body "$c" closed)"
+stays_silent 'a COLLABORATOR closing marker posted last carries' "$(run_hook)"
+teardown
+
 echo
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
