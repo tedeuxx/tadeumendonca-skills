@@ -1047,7 +1047,8 @@ not.
      *Why the fetch comes before the test and not inside the selectors below:* a `<headRefOid>`
      your clone has never fetched is an unreadable ref, so without the fetch the head call exits 128
      and the rule above applies the wider class. In a consuming repository that turns every product
-     merge into a hold 2 it does not owe, which ends in a false `APPROVE-PENDING-HUMAN`. Run the fetch
+     merge that touches a path outside the exclusion list into a hold 2 it does not owe, which ends
+     in a false `APPROVE-PENDING-HUMAN`. Run the fetch
      once, here. Both selectors below read the refs it fetched.
 
      **In a CONSUMING repository, the class is the harness-path list, and nothing else:**
