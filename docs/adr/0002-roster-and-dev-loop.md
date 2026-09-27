@@ -5566,7 +5566,7 @@ so:
   while resolving the merge with `-X ours` (H2), and the delta is empty over a trunk change no lens
   read — **so the earlier claim here that a trunk merge "shows up as the paths it brought" was
   false.** The not-on-trunk check was REMOVED rather than kept beside it: a trunk commit is its own
-  merge-base with the trunk, so a trunk marker passes only when it is the head's branch point, where
+  merge-base with the trunk, so a trunk marker passes only when it is the head's merge-base with the trunk, where
   the delta is the PR's whole diff against an unmoved base and the carry is correct; and its
   exit-128 case walks the same trunk history as the merge-base calls. Two empty outputs compare
   equal, and with an intermediate trunk commit deleted both calls exit 255 and print nothing, which

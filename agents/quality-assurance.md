@@ -1259,9 +1259,14 @@ not.
        (the command is in ADR-0002's #522 amendment). **Run it after the fetch above**, which
        updates `origin/main`; against a stale local ref a trunk that moved past the ref is not seen
        to move. **`--all`** because a criss-cross history has more than one merge-base and the
-       plain form prints only the first; comparing the whole output can only refuse more. It is not
-       measured to change a verdict: in both criss-cross fixtures built for it, the plain form
-       refused too.
+       plain form prints only one of them; comparing the whole output can only refuse more.
+       **`--all` is load-bearing, measured 2026-09-27:** in a criss-cross whose trunk merges C
+       (a `hooks/` change) and a NEWER A (docs), a marker after the PR merges A has bases {A}, and
+       a head that then merges C and deletes C's file has {A, C}. The plain form prints A for both,
+       so without `--all` the empty marker-to-head delta carries over a `hooks/` change no lens
+       read. With the dates reversed the plain form refuses too, which is why the earlier fixtures
+       could not tell the two apart; `zombie-loop-detect.test.sh`'s criss-cross arm pins the dates,
+       and dropping `--all` from the hook turns it red.
      - **the second or third command exits non-zero, or prints nothing** — refuse. **Do not compare
        the outputs alone:** measured 2026-09-27 with an intermediate trunk commit object deleted,
        both calls exit 255 and print nothing, and two empty outputs are equal. A read failure is
@@ -1271,7 +1276,7 @@ not.
        It was added at round 5 for the gate's P-A — trunk X to M changes `hooks/a.sh`, the PR
        restores X's content, and a marker names X — and the base check covers every case it
        refused that matters. A trunk commit is its own merge-base with `origin/main`, so a marker on
-       the trunk passes the base check only when it IS the head's branch point. Then the
+       the trunk passes the base check only when it IS the head's merge-base with the trunk. Then the
        marker-to-head delta is the PR's whole diff against a base that has not moved, the class
        filter reads it, and the carry is correct. Every other trunk marker, P-A included, has a
        different base and refuses. Its exit-128 case added nothing either: it walks the same trunk

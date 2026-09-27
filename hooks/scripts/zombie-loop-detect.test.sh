@@ -1112,6 +1112,39 @@ else
 fi
 teardown
 
+echo '--- #522 r6: a CRISS-CROSS where only --all sees the base move — fires ---'
+# Trunk: B -> C (side, hooks/c.sh) and B -> A (docs), merged, A's date NEWER than C's. The PR
+# merges A (marker m), then merges C's side branch and deletes c.sh (head h). Bases: m = {A},
+# h = {A, C}. Plain `merge-base` prints one base, and with A newer it prints A for BOTH, so a hook
+# without `--all` sees an unmoved base, reads the empty m -> h delta, and CARRIES over a hooks/
+# deletion no lens read. Dates are pinned because which single base plain `merge-base` prints
+# follows the date order; with C newer, plain differs too and the arm would not discriminate.
+# Measured by the round-6 lens and the gate; the guard asserts the shape rather than the dates.
+setup; plugin_repo
+g6() { git -C "$repo" "$@"; }
+at6() { export GIT_COMMITTER_DATE="$1 +0000" GIT_AUTHOR_DATE="$1 +0000"; }
+b="$(g6 rev-parse HEAD)"
+g6 checkout -q -b cside "$b"; at6 2026-01-02T00:00:00; c="$(commit_path hooks/scripts/c.sh)"
+g6 checkout -q main;          at6 2026-01-03T00:00:00; a="$(commit_path docs/a.md)"
+at6 2026-01-04T00:00:00; g6 merge -q --no-edit cside >/dev/null; g6 update-ref refs/remotes/origin/main HEAD
+g6 checkout -q -b loop/x "$b"; at6 2026-01-05T00:00:00; commit_path docs/p1.md >/dev/null
+at6 2026-01-06T00:00:00; g6 merge -q --no-edit "$a" >/dev/null; m="$(g6 rev-parse HEAD)"
+at6 2026-01-07T00:00:00; g6 merge -q --no-edit cside >/dev/null
+at6 2026-01-08T00:00:00; g6 rm -q hooks/scripts/c.sh; g6 commit -q -m 'drop c.sh'
+h="$(g6 rev-parse HEAD)"
+unset GIT_COMMITTER_DATE GIT_AUTHOR_DATE
+pm="$(g6 merge-base origin/main "$m" 2>/dev/null)"; ph="$(g6 merge-base origin/main "$h" 2>/dev/null)"
+bd="$(bases_differ "$m" "$h")"; cf="$(class_free_delta "$m" "$h")"
+an=0; g6 merge-base --is-ancestor "$m" "$h" || an=$?
+if [ -n "$pm" ] && [ "$pm" = "$ph" ] && [ "$bd" = y ] && [ "$an" -eq 0 ] && [ -z "$cf" ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+  stale_fires 'a criss-cross base move that only merge-base --all sees refuses the carry' "$(run_hook)"
+else
+  bad 'criss-cross --all fixture' "expected plain bases equal, --all bases differing, ancestry 0 and a class-free delta, got '${pm:0:8}' vs '${ph:0:8}', $bd, $an and '$cf'"
+fi
+unset -f g6 at6
+teardown
+
 # ══════════════════════════════════════════════════════════════════════════════════════════════
 # #522 round 3 — WHICH COMMENTS ARE LENS MARKERS (advisories A1 and A2). The newest marker is the
 # last comment passing `lens_marker`: an envelope at column 0, outside a fence, in a body that does

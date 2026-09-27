@@ -439,10 +439,15 @@ harness_stale="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-ve
 #     round-5 lens: H1 (the PR merges main, whose M changes hooks/a.sh, then restores the old a.sh)
 #     and H2 (the PR merges main with `-X ours`, dropping M's a.sh change). Both carried at round 5
 #     and both refuse here. `--all` because a criss-cross history has more than one base, plain
-#     `merge-base` prints only the first, and two histories agreeing on the first need not agree on
-#     the set; comparing the whole output can only refuse more. It is NOT measured to change a
-#     verdict: in both criss-cross fixtures built for it, plain `merge-base` refused too, so a
-#     mutation dropping `--all` survives the suite. A READ FAILURE is not "equal":
+#     `merge-base` prints only one of them, and two histories agreeing on that one need not agree
+#     on the set; comparing the whole output can only refuse more. `--all` IS load-bearing,
+#     measured: in a criss-cross whose trunk merges C (hooks/c.sh) and a NEWER A (docs), a marker
+#     after the PR merges A has bases {A} and a head that then merges C and deletes c.sh has
+#     {A, C}. Plain `merge-base` prints A for both, so without `--all` the empty marker -> head
+#     delta carries over a hooks/ change no lens read. With the dates reversed plain prints
+#     different bases and refuses too, which is why the earlier fixtures could not tell the two
+#     apart. The suite's criss-cross arm pins the dates, and dropping `--all` turns it red.
+#     A READ FAILURE is not "equal":
 #     measured with an intermediate trunk commit object deleted, both calls exit 255 and print
 #     nothing, so two empty outputs compare equal. That is why the exit statuses and the non-empty
 #     output are checked, not the comparison alone. It reads the LOCAL `origin/main`: a trunk that
@@ -453,7 +458,8 @@ harness_stale="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-ve
 #   - ~~`git merge-base --is-ancestor <marker> origin/main` must exit 1~~ — struck at round 6: the
 #     round-5 not-on-trunk check (the gate's P-A) is REMOVED, because the base check above covers
 #     every case it refused that matters. A marker on the trunk has itself as its merge-base with
-#     origin/main, so the two bases are equal only when the marker IS the head's branch point. Then
+#     origin/main, so the two bases are equal only when the marker IS the head's merge-base with the
+#     trunk. Then
 #     the marker -> head delta is the PR's whole diff against an unmoved base, which the class
 #     filter reads, and the carry is correct. Every other trunk marker, P-A included, has a
 #     different base and refuses. Its exit-128 case adds nothing either: it walks the same trunk
