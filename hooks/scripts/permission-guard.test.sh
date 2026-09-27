@@ -3207,6 +3207,39 @@ r5_budget_row DENY  "1-second time budget" 1  3 "a worker stalled past a 1 s bud
 r5_budget_row ALLOW ""                     1  "" "the same benign command with no stall is still ALLOW (the budget adds no verdict)"
 r5_budget_row DENY  "3-second time budget" 9  4 "a budget of 9 is IGNORED — the knob can only lower it, so a 4 s stall hits 3 s"
 r5_budget_row ALLOW ""                     x  2 "a malformed budget is ignored too: a 2 s stall under the 3 s default is still ALLOW"
+# #534 round 7: a worker that exits NON-ZERO is a DENY, never a relayed failure. Before this, a worker
+# killed by SEGV/TERM or failing on a missing binary (127) passed its partial body and its status
+# through, which is NO decision. The crash is made deterministic with a fake `sleep` first on PATH: on
+# the stall value 7 it kills its PARENT (the worker, which runs the knob's sleep as a direct child) with
+# the given signal, or exits 127 as if absent; on any other value it runs the real `sleep`, so the
+# supervisor's own killer is untouched. Each row asserts DENY, the failure's own reason, the status it
+# names, AND the supervisor's rc 0 — a relay of the crash would carry the worker's status instead.
+R7_SLEEP_DIR="$(mktemp -d)"
+r7_real_sleep="$(command -v sleep)"
+cat > "$R7_SLEEP_DIR/sleep" <<STUB
+#!/bin/sh
+if [ "\$1" = 7 ]; then
+  case "\${R7_MODE:-}" in 127) exit 127 ;; *) kill -"\$R7_MODE" "\$PPID"; exit 0 ;; esac
+fi
+exec "$r7_real_sleep" "\$@"
+STUB
+chmod +x "$R7_SLEEP_DIR/sleep"
+r7_fail_row() { # r7_fail_row <mode> <status the reason must name> <desc>
+  r7_out=$(printf '%s' '{"tool_input":{"command":"ls -la"}}' | (cd "$TFEAT" && R7_MODE="$1" PATH="$R7_SLEEP_DIR:$PATH" PERMISSION_GUARD_TEST_STALL=7 perl -e 'alarm shift; exec @ARGV' 8 bash "$GUARD"))
+  r7_rc=$?
+  r7_got=$(verdict "$r7_out")
+  r7_reason=$(printf '%s' "$r7_out" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""' 2>/dev/null)
+  if [ "$r7_got" = DENY ] && [ "$r7_rc" = 0 ] \
+     && printf '%s' "$r7_reason" | grep -qF "worker exited with status $2)"; then
+    pass=$((pass + 1)); printf 'ok    DENY   #534 round 7 worker failure: %s\n' "$3"
+  else
+    fail=$((fail + 1)); printf 'FAIL  #534 round 7 worker failure: %s — got %s rc=%s, reason %.80s\n' "$3" "$r7_got" "$r7_rc" "$r7_reason"
+  fi
+}
+r7_fail_row SEGV 139 "a worker killed by SIGSEGV is a DENY naming status 139, not a relayed crash"
+r7_fail_row TERM 143 "a worker killed by SIGTERM is a DENY naming status 143"
+r7_fail_row 127  127 "the stall knob with no usable sleep (worker exits 127) is a DENY, not silence"
+rm -rf "$R7_SLEEP_DIR"
 big_over="$(printf '%*s' 70000 '' | tr ' ' '$')"
 check_reason DENY "#500 F4: past the budget the answer is a DENY with its own reason, never silence" \
               "too large for this guard to verify" "printf %s $big_over '\$(date)'"

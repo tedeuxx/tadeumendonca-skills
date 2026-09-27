@@ -158,7 +158,8 @@
 # HOW, AND WHY THIS SHAPE. The process the host started (this one) becomes a SUPERVISOR: it re-runs this
 # same file as a WORKER (`PERMISSION_GUARD_WORKER=1`), captures the worker's stdout, and starts a
 # killer that sleeps the budget and then stops and kills the worker and every descendant of it. The
-# supervisor prints either the worker's answer or the budget DENY, NEVER BOTH, and exits 0 itself.
+# supervisor prints either the worker's answer or ONE DENY (the budget's, or a worker-failure one when
+# the worker exited non-zero), NEVER BOTH, and exits 0 itself.
 # Rejected, each on a stated reason:
 #   · a `trap … ALRM` in one process — bash runs a trap only BETWEEN commands, and the slow paths so
 #     far were a single builtin expansion, so the trap would fire after the damage;
@@ -170,9 +171,13 @@
 # NO NEW DEPENDENCY: `sleep` and `kill` (a builtin) do the work; `pgrep` finds the descendants. The
 # MISSING-DEPENDENCY PATHS, stated: no `sleep` -> the killer's `sleep … &&` fails, NOTHING is killed,
 # and the guard behaves exactly as it did before this block (no budget, never a spurious DENY); no
-# `pgrep` -> only the worker is killed, and an orphaned descendant may still hold stderr open, which
-# can delay the host reading the (already written) DENY. Both fall back to the previous behaviour,
-# never to anything more permissive than it.
+# `pgrep` -> only the worker is killed, so the budget bounds time spent in the worker's OWN `bash`
+# process and NOT time spent in a child of it (`sed`, `jq`, rule 7c's `gh`, the stall knob's `sleep`).
+# That child inherits the stdout pipe of the capture below, so the supervisor waits for it and PRINTS
+# NOTHING until it exits: the DENY is written late, not read late (measured, lens round 6 on #534: a
+# 9 s child gave the DENY at 9.01 s, and the adapter, at 4.05 s, got no decision). So `pgrep` is
+# REQUIRED for the budget to bound a child. Both fall back to the previous behaviour, never to
+# anything more permissive than it.
 #
 # WHAT IT COSTS: one extra `bash` start per call, plus a subshell and a `sleep` (measured per call in
 # #534's body, with the command). A merge whose rule-7c `gh` read takes longer than the budget is now
@@ -182,11 +187,15 @@
 # WHAT IT DOES NOT DO: it bounds the GUARD, not the host. If the host kills the supervisor before the
 # budget (a host timeout set below it), nothing here runs. And the race at the budget's edge — the
 # worker writing its answer in the same instant the killer fires — is resolved on the worker's exit
-# status: an answer is relayed only from a worker that EXITED, and a killed worker's output is
-# discarded in favour of the DENY.
+# status: an answer is relayed only from a worker that EXITED 0, and any other worker's output is
+# discarded in favour of a DENY (137, the budget's kill, gets the budget's reason).
 #
-# THE TWO ENVIRONMENT KNOBS ARE FOR THE SUITE AND CAN ONLY MAKE THE ANSWER A DENY. The host's
-# environment is not reachable from a command string, and both knobs are one-directional:
+# THE TWO ENVIRONMENT KNOBS ARE FOR THE SUITE AND CAN ONLY MAKE THE ANSWER A DENY — UNLESS
+# `PERMISSION_GUARD_WORKER=1` IS ALSO SET IN THE HOST ENVIRONMENT. That setting skips this supervisor,
+# so no budget runs and a stall there is silence past the host timeout, i.e. NO decision. None of the
+# three variables is reachable from a command string (an inline `VAR=x` prefix is denied by rule 8,
+# and `export`/`env` set it only for the command being judged, not for this process); reaching them
+# needs control of the host's environment. Within the supervised path both knobs are one-directional:
 # `PERMISSION_GUARD_BUDGET` may only LOWER the budget (1 or 2; anything else is ignored), and
 # `PERMISSION_GUARD_TEST_STALL` makes the worker sleep, which the budget turns into a DENY.
 if [ "${PERMISSION_GUARD_WORKER:-}" != 1 ]; then
@@ -217,15 +226,24 @@ if [ "${PERMISSION_GUARD_WORKER:-}" != 1 ]; then
     printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Blocked: the permission guard ran past its own '"$pg_budget"'-second time budget, so this command was NOT judged, and a command the floor could not judge is refused rather than let through (#531). The budget exists because a guard that overruns its host timeout gives no decision at all. Use instead: split the command into smaller calls, or shorten any very long unbroken word in it, and retry."}}'
     exit 0
   fi
+  # A worker that exited NON-ZERO is also a DENY (#534 round 7). Every decision this file makes is an
+  # exit 0 (ALLOW is exit 0 with no output); a non-zero status is a crash (SEGV/TERM/ABRT, or a missing
+  # binary's 127), and relaying it gave the host a partial body and a failing status — NO decision.
+  # Measured before adding it: 43,878 distinct transcript commands through the bare worker, all exit 0.
+  if [ "$pg_s" != 0 ]; then
+    printf '%s\n' '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Blocked: the permission guard failed while judging this command (its worker exited with status '"${pg_s//[!0-9]/}"'), so this command was NOT judged, and a command the floor could not judge is refused rather than let through (#531). Use instead: retry the command; if it fails again, check that bash, jq and sed are on PATH for hooks."}}'
+    exit 0
+  fi
   [ -n "$pg_body" ] && printf '%s\n' "$pg_body"
-  exit "$pg_s"
+  exit 0
 fi
 
 set -euo pipefail
 
 input="$(cat 2>/dev/null || true)"
 
-# Suite-only: see "THE TWO ENVIRONMENT KNOBS" above. A stall is only ever turned into a DENY.
+# Suite-only: see "THE TWO ENVIRONMENT KNOBS" above. Under the supervisor a stall is only ever turned
+# into a DENY; with `PERMISSION_GUARD_WORKER=1` in the host environment it is silence.
 case "${PERMISSION_GUARD_TEST_STALL:-}" in [1-9]) sleep "$PERMISSION_GUARD_TEST_STALL" ;; esac
 
 # Extract the bash command; allow normal flow if we can't read it.
