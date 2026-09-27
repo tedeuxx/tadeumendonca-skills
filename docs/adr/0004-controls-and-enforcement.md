@@ -7230,6 +7230,18 @@ body, which rule 8's older predicate denies. That over-block class is already pi
 members of it. Seven DENY -> DENY rows per caller changed their reason and not their verdict. The
 command is in #536's PR.
 
+**Re-run after round 2, three ways** (`88fc667c`, the round-1 head `c0d33be9`, and this one), over a
+corpus that had grown to 44,771 distinct commands. That was 268,626 guard runs, every one exit 0.
+
+| caller | ALLOW -> ALLOW | ALLOW -> DENY | DENY -> DENY | DENY -> ALLOW |
+|---|---|---|---|---|
+| orchestrator, from `88fc667c` | 43,072 | 5 | 1,694 | **0** |
+| persona, from `88fc667c` | 42,933 | 5 | 1,833 | **0** |
+
+Against `c0d33be9`, **no verdict changed for either caller**. The round-2 fixes bite only on the
+constructs the lens found, and none of them occurs in the corpus. The five ALLOW -> DENY are the same
+five commands as round 1.
+
 **Zero DENY -> ALLOW is a property of the construction, not a finding of the run.** The run confirms
 it. The second pass is what makes it hold. Without it, twelve commands per caller would have
 gone DENY -> ALLOW, every one an over-block where the old pairing exposed text inside a real quote.
@@ -7251,29 +7263,66 @@ gone DENY -> ALLOW, every one an over-block where the old pairing exposed text i
 
 ### Consequences
 
-Good: the A1 class is closed for the command a comment or a heredoc precedes, and for every act the
-matrix names. The scanner is linear. The per-kind failure memory stops an unclosed quote from making
-the scan re-read its tail.
+~~Good: the A1 class is closed for the command a comment or a heredoc precedes, and for every act the
+matrix names.~~ **Struck in round 2: false in the permissive direction.** The round-2 lens found three
+heredoc openers that the scanner and the shell read differently: `<<$'EOF'` and `<<$"EOF"` (the
+scanner kept the `$`), a delimiter longer than 256 characters (the lookahead was capped), and an
+arithmetic shift `((x=1<<2))` or `$[1<<2]` (read as an opener). In each case the lines bash executes
+after the construct were read as a body. A body is collapsed with the pre-#536 regex pair, so A1 came
+back there for a trunk push, a merge and a secret set. All three were ALLOW at `c0d33be9` and at
+`88fc667c`, so this was a false claim and not a regression.
+
+Good, as it now stands: A1 is closed across a `"…"`, a `\'`, a comment, a backtick span, a heredoc
+whose delimiter the shell and the scanner read alike (the scanner now does the shell's quote removal,
+including ANSI-C translation, and reads a delimiter of any length), and a one-line arithmetic context
+(`((…))` with adjacent closers, and `$[…]`). **A heredoc whose terminator never arrives is re-read with
+the shell's rules instead of as a region.** That is the class-level repair: an opener the scanner
+invented and bash did not has no terminator in the common case, so the lines after it are judged as
+bash runs them. The suite pins 56 cells for the three triggers (8 shapes, 3 or 4 acts, 2 callers).
+Each cell is red when all four fixes are planted back out, and the single plants show which fix holds
+which construct. The scanner is linear. The per-kind failure memory stops an unclosed quote from
+making the scan re-read its tail.
 
 Bad, stated rather than discovered:
 
 - **A1 written wholly INSIDE a heredoc body fed to a shell is still hidden.** Inside a body the regex
   pair still reads quotes, as before. The suite pins this as silence (`#536 RESIDUAL`).
+- **Arithmetic that spans a newline is not recognised.** The check is per line. If the shift's operand
+  later stands alone on a line, the lines between are a body and A1 is open there. The suite pins this
+  as silence (`#536 r2 RESIDUAL`).
+- **A delimiter escape outside the translated set** (`\u`, `\c`; bash 3.2 has neither and zsh has
+  `\u`). The scanner waits on the untranslated spelling. It finds no such line and re-reads the rest as
+  shell, so the hole reopens only if a later line equals that exact spelling.
+- **A truly unterminated body is now read as shell, not as data.** bash runs nothing after such a body,
+  so this can only over-block. The corpus below counts what it cost.
 - **perl is required for any quoted command.** On a host without it, those commands are refused.
+  The Codex adapter's `--selfcheck` now names perl as a floor dependency. A missing perl is a note and
+  not a BLOCK, because it fails closed rather than open.
 - **The over-blocks of the regex pair are kept.** The #497 `'it'\''s $(…)'` pin stays green for that
   reason.
 - **The second pass costs a second run of the rules.** It runs only when the first pass allowed and
   the views differ, which is 882 of the corpus's 30,747 quoted commands (2.9%), measured
-  2026-09-27. At worst it doubles a cost 3b already pays: 1.84 s for a 12,000-deep `a(` before an
-  `"it's" 'y z'`, against 0.89 s at `88fc667c`. The guard's time budget bounds both passes together.
+  2026-09-27. ~~At worst it doubles a cost 3b already pays: 1.84 s for a 12,000-deep `a(` before an
+  `"it's" 'y z'`, against 0.89 s at `88fc667c`.~~ **Struck in round 2: 1.84 s was the worst found at
+  12,000-deep, not the worst.** At 20,000-deep the same shape is ALLOW at 2.94 s (1.45 s at
+  `88fc667c`), right at the edge. At 30,000-deep it is a **budget DENY at 3.04 s where `88fc667c`
+  allowed it in 2.16 s**. That is a new over-block class at extreme depth. The double pass moves the
+  budget cliff from about 40,000-deep to about 20,000-deep. Measured 2026-09-27, supervised, with
+  pgrep present. The guard's time budget bounds both passes together **where `pgrep` exists**. Without
+  it, the budget does not bound a child (see the guard's header), and the round-2 lens measured a
+  40,000-deep shape past the host's 5 s hook timeout on that path. That path was already degraded and
+  already stated as degraded; the second pass only adds a longer child to it.
 
 ### What holds it
 
 `hooks/scripts/permission-guard.test.sh` section "#536". It holds the matrix, the controls, the
 calibration by planting the old lines (all arms red, all controls green, and each site red on its
 own), the legacy-pass calibration (the trap removed turns a kept over-block into an ALLOW), the
-missing-perl and failing-perl rows, and ten latency rows run with the budget bypassed.
-`scripts/codex-hook-adapter.test.py` section 1b pins the first reproducer through the Codex route.
+missing-perl and failing-perl rows, and ten latency rows run with the budget bypassed. Round 2 adds
+the 56 opener-desync cells, their four-plant calibration, the `((cat <<EOF) )` and `<<-` rows, the
+multi-line arithmetic residual, and five more latency rows.
+`scripts/codex-hook-adapter.test.py` section 1b pins the first reproducer through the Codex route, and
+the perl selfcheck note in both states.
 
 ### Significance
 

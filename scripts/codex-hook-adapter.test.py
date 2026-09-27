@@ -168,6 +168,35 @@ check(d is not None and d.get("decision") == "block"
       "#536 A1 — an apostrophe commit chained to a trunk push is blocked on the trunk rule"
       + ("" if d else " (NO DECISION: the mis-pairing is back)"))
 
+# perl is a floor dependency since #536 and selfcheck must say so, in both states. The
+# perl-free PATH links every executable on this PATH except perl*, so bash, jq, git and gh
+# stay reachable and the only difference between the two runs is perl.
+with tempfile.TemporaryDirectory() as noperl_work:
+    noperl = Path(noperl_work) / "bin"
+    noperl.mkdir()
+    for pdir in os.environ.get("PATH", "").split(os.pathsep):
+        if not os.path.isdir(pdir):
+            continue
+        for name in os.listdir(pdir):
+            src_bin = os.path.join(pdir, name)
+            if name.startswith("perl") or (noperl / name).exists():
+                continue
+            if os.access(src_bin, os.X_OK) and not os.path.isdir(src_bin):
+                os.symlink(src_bin, noperl / name)
+    p_with = subprocess.run([sys.executable, str(ADAPTER), "--selfcheck"],
+                            capture_output=True, text=True)
+    p_without = subprocess.run([sys.executable, str(ADAPTER), "--selfcheck"],
+                               capture_output=True, text=True,
+                               env=dict(os.environ, PATH=str(noperl)))
+    check("floor dependency: perl is on PATH" in p_with.stdout
+          and "FLOOR DEPENDENCY MISSING: perl" not in p_with.stdout,
+          "#536 selfcheck — perl present is named as a floor dependency")
+    check("FLOOR DEPENDENCY MISSING: perl is not on PATH" in p_without.stdout
+          and "every command carrying a quote is DENIED" in p_without.stdout,
+          "#536 selfcheck — perl missing is reported, with its fail-closed consequence"
+          + ("" if shutil.which("perl", path=str(noperl)) is None
+             else " (FIXTURE BROKEN: the perl-free PATH still resolves perl)"))
+
 # ── 2 · identity — measured against the live guard, and the hazard is re-derived ──────
 # The naive mapping is the safe one. This is asserted by MEASURING both, not by trusting
 # the adapter's comment.

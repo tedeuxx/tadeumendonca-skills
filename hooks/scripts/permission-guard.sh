@@ -780,6 +780,17 @@ done
 #   · `<<`/`<<-` (never `<<<`) queues a heredoc whose delimiter is the next shell word with its quotes
 #     removed; the body starts at the next unquoted newline and runs up to the line equal to the
 #     delimiter (leading tabs stripped for `<<-`), and that terminator line is emitted as it is.
+#     Quote removal is the SHELL's (#536 round 2): a `$` directly before a quote is dropped and a
+#     `$'…'` delimiter has its ANSI-C escapes translated, so `<<$'EOF'` and `<<$"EOF"` end at `EOF`
+#     and `<<$'E\x41'` at `EA` — measured with /bin/bash 3.2.57 and /bin/zsh, which agree on all
+#     three except `<<$"EOF"`, where zsh keeps the body to the end (so nothing after it runs there);
+#   · `<<` inside an ARITHMETIC context is a shift, never an opener: `((…))` whose two closers are
+#     ADJACENT, and `$[…]`, each matched on its own line. `((cat <<EOF) )` is not arithmetic — zsh
+#     runs it as a subshell holding a real heredoc — and its closers are not adjacent;
+#   · a heredoc whose terminator line NEVER ARRIVES is not a region: the scan returns to the body's
+#     first line and reads the rest with the shell's rules. bash treats such a body as data to the end
+#     (with a warning), so this can only over-block that case; where the scanner opened a heredoc bash
+#     did not, it is exactly what bash does.
 # Each closed span becomes `''`, `""`, `$''` or `$""` — exactly what the two regexes produced — so a rule
 # downstream sees the same shapes it always saw, only paired correctly.
 #
@@ -806,8 +817,25 @@ done
 # boundary the failed scan also crossed), so the scanner remembers the failure per kind and never
 # re-reads the tail. The failure memory is per REGION, so it cannot leak out of a comment or a body,
 # and the same holds for the escape-aware single quotes a region is collapsed with.
-# A heredoc delimiter is read from at most 256 characters; a longer one never matches its terminator,
-# so its body runs to the end, scanned as one region.
+# ~~A heredoc delimiter is read from at most 256 characters; a longer one never matches its terminator,
+# so its body runs to the end, scanned as one region.~~ STRUCK (#536 round 2): that was an A1
+# REOPENING, not a bound — bash accepts a 300-character delimiter and runs the line after it, which the
+# scanner then read as body. The delimiter word is now read with possessive quantifiers and no cap,
+# the terminator is found through a per-command line index (so a pending heredoc never walks lines it
+# cannot close), and the arithmetic check is a per-line paren/bracket table: all three stay linear.
+#
+# WHY A DESYNCED OPENER MATTERED, because the fix is shaped by it. Every heredoc the scanner opens and
+# bash does not — or opens with a terminator bash does not use — turns the lines bash EXECUTES into a
+# region, and a region is collapsed with the pre-#536 regex pair: A1 itself. The round-2 lens found
+# three triggers (`$`-quoted delimiters, a delimiter over 256 characters, an arithmetic shift), each
+# ALLOW for a trunk push, a merge and a secret set placed after it, at c0d33be9 and at 88fc667c.
+# RESIDUALS, each pinned in the suite or named here:
+#   · A1 written wholly INSIDE a heredoc body fed to a shell (pre-existing; `#536 RESIDUAL`);
+#   · an arithmetic expression SPANNING A NEWLINE — the check is per line — whose shift operand later
+#     stands alone on a line: the lines between are a body (`#536 r2 RESIDUAL`, pinned as ALLOW);
+#   · a delimiter spelled with an escape the translation does not cover (`\u`, `\c` — bash 3.2 has
+#     neither, zsh has `\u`): the scanner waits on the untranslated spelling, finds no such line, and
+#     re-reads the rest as shell — it reopens only if a later line equals that exact spelling.
 #
 # 3b's push view reads the same scanner in its `pv` mode, which adds that view's own word-only unquoting
 # and `eval` handling — see there.
@@ -837,13 +865,21 @@ my @items = split /\x00/, $all, -1;
 pop @items if @items > 1 && $items[-1] eq "";
 my $Q = "\x27";
 my $MK = "\x1f";
+my %ansi = (a => "\a", b => "\b", e => "\e", E => "\e", f => "\f", n => "\n", r => "\r", t => "\t",
+             v => "\x0b", "\\" => "\\", $Q => $Q, "\"" => "\"", "?" => "?");
+sub ansi_c {
+  my $x = shift;
+  $x =~ s/\\(?:x([0-9A-Fa-f]{1,2})|([0-7]{1,3})|(.))/defined $1 ? chr(hex $1) : defined $2 ? chr(oct($2) & 255) : exists $ansi{$3} ? $ansi{$3} : "\\" . $3/gse;
+  return $x;
+}
 sub dequote {
   my $w = shift; my $r = "";
-  while ($w =~ /\G(?:\x27([^\x27]*)\x27|"((?:[^"\\]|\\.)*)"|\\(.)|(.))/gcs) {
-    if (defined $1) { $r .= $1; }
-    elsif (defined $2) { my $x = $2; $x =~ s/\\([\$`"\\\n])/$1/g; $r .= $x; }
-    elsif (defined $3) { $r .= $3; }
-    else { $r .= $4; }
+  while ($w =~ /\G(?:\$\x27((?:[^\x27\\]|\\.)*)\x27|\$?\x27([^\x27]*)\x27|\$?"((?:[^"\\]|\\.)*)"|\\(.)|(.))/gcs) {
+    if (defined $1) { $r .= ansi_c($1); }
+    elsif (defined $2) { $r .= $2; }
+    elsif (defined $3) { my $x = $3; $x =~ s/\\([\$`"\\\n])/$1/g; $r .= $x; }
+    elsif (defined $4) { $r .= $4; }
+    else { $r .= $5; }
   }
   return $r;
 }
@@ -883,7 +919,43 @@ sub scan {
     }
     return $dollar . $q . $q;
   };
-  my $plain = qr/\G([^\x27"\\\$#<\n]+)/;
+  my $plain = qr/\G([^\x27"\\\$#<\n(]+)/;
+  my ($ls, $le, $aend) = (-1, -1, -1);
+  my (%pm, %bm);
+  my $mline = sub {
+    my $p = shift;
+    return if $p >= $ls && $p < $le;
+    my $e = index($s, "\n", $p); $e = $n if $e < 0;
+    my $bg = rindex($s, "\n", $p); $bg = ($bg < 0) ? 0 : $bg + 1;
+    ($ls, $le) = ($bg, $e); %pm = (); %bm = ();
+    my (@ps, @bs);
+    my $ln = substr($s, $bg, $e - $bg);
+    while ($ln =~ /([()\[\]])/g) {
+      my ($ch, $at) = ($1, $bg + pos($ln) - 1);
+      if ($ch eq "(") { push @ps, $at; }
+      elsif ($ch eq ")") { $pm{pop @ps} = $at if @ps; }
+      elsif ($ch eq "[") { push @bs, $at; }
+      else { $bm{pop @bs} = $at if @bs; }
+    }
+  };
+  my (%li, %lt, %ptr); my $indexed = 0;
+  my $term = sub {
+    my ($d, $dash, $from) = @_;
+    if (!$indexed) {
+      $indexed = 1; my $at = 0;
+      for my $l (split /\n/, $s, -1) {
+        push @{$li{$l}}, $at;
+        my $t = $l; $t =~ s/\A\t+//; push @{$lt{$t}}, $at;
+        $at += length($l) + 1;
+      }
+    }
+    my $L = ($dash ? $lt{$d} : $li{$d}) or return -1;
+    my $k = ($dash ? "t" : "l") . "\x00" . $d;
+    my $i = $ptr{$k} || 0;
+    $i++ while $i < @$L && $L->[$i] < $from;
+    $ptr{$k} = $i;
+    return ($i < @$L && $L->[$i] < $n) ? $L->[$i] : -1;
+  };
   pos($s) = 0;
   while (pos($s) < $n) {
     if ($s =~ /$plain/gc) { $out .= $1; $prev = substr($1, -1); next; }
@@ -910,7 +982,20 @@ sub scan {
         }
         $out .= "\$\""; pos($s) = $p + 2; $prev = "\""; next;
       }
+      if ($nx eq "[" && $p >= $aend) {
+        $mline->($p);
+        my $m = $bm{$p + 1};
+        $aend = $m + 1 if defined $m;
+      }
       $out .= "\$"; pos($s) = $p + 1; $prev = "\$"; next;
+    }
+    if ($c eq "(") {
+      if ($p >= $aend && substr($s, $p + 1, 1) eq "(") {
+        $mline->($p);
+        my ($m, $m2) = ($pm{$p}, $pm{$p + 1});
+        $aend = $m + 1 if defined $m && defined $m2 && $m2 == $m - 1;
+      }
+      $out .= "("; pos($s) = $p + 1; $prev = "("; next;
     }
     if ($c eq $Q) {
       if (!$fs) {
@@ -932,12 +1017,14 @@ sub scan {
     }
     if ($c eq "<") {
       if (substr($s, $p, 3) eq "<<<") { $out .= "<<<"; pos($s) = $p + 3; $prev = "<"; next; }
+      if ($p < $aend && substr($s, $p, 2) eq "<<") { $out .= "<<"; pos($s) = $p + 2; $prev = "<"; next; }
       if ($s =~ /\G(<<(-?)[ \t]*)/gc) {
         my ($lead, $dash) = ($1, $2);
-        my $w = substr($s, pos($s), 256);
-        if ($w =~ /\A((?:\x27[^\x27]*\x27|"(?:[^"\\]|\\.)*"|\\.|[^\s;&|<>()\x27"\\])+)/s) {
+        my $q0 = pos($s);
+        if ($s =~ /\G((?:\$\x27(?:[^\x27\\]++|\\.)*+\x27|\$?\x27[^\x27]*+\x27|\$?"(?:[^"\\]++|\\.)*+"|\\.|[^\s;&|<>()\x27"\\])++)/gcs) {
           push @pend, [dequote($1), ($dash eq "-") ? 1 : 0];
         }
+        pos($s) = $q0;
         $out .= $lead; $prev = "<"; next;
       }
       $out .= "<"; pos($s) = $p + 1; $prev = "<"; next;
@@ -945,17 +1032,13 @@ sub scan {
     if ($c eq "\n") {
       $out .= "\n"; pos($s) = $p + 1; $prev = "\n";
       while ($pi < @pend && pos($s) < $n) {
-        my $body = "";
-        my $closed = 0;
-        while (pos($s) < $n) {
-          $s =~ /\G([^\n]*)(\n?)/gc;
-          my ($line, $nl) = ($1, $2);
-          my $cmp = $line;
-          $cmp =~ s/\A\t+// if $pend[$pi][1];
-          if ($cmp eq $pend[$pi][0]) { $out .= region($body) . $line . $nl; $closed = 1; last; }
-          $body .= $line . $nl;
-        }
-        if (!$closed) { $out .= region($body); last; }
+        my $from = pos($s);
+        my $t = $term->($pend[$pi][0], $pend[$pi][1], $from);
+        if ($t < 0) { @pend = (); $pi = 0; last; }
+        my $body = substr($s, $from, $t - $from);
+        pos($s) = $t;
+        $s =~ /\G([^\n]*)(\n?)/gc;
+        $out .= region($body) . $1 . $2;
         $pi++;
       }
       if ($pi >= @pend) { @pend = (); $pi = 0; }
@@ -1005,7 +1088,12 @@ qscan_unavailable="Blocked: this command contains a quote, and the permission gu
 #     as a single line (the second pass) rather than spread across every rule;
 #   · a second run of the rules, only when the first pass allowed AND the views differ — 882 of the
 #     corpus's 30,747 quoted commands (2.9%; 2.0% of all 44,227), measured 2026-09-27 — and the time
-#     budget above bounds both passes together, because the second is a child of the first;
+#     budget above bounds both passes together, because the second is a child of the first (where
+#     `pgrep` exists; see the header: without it the budget does not bound a child, and the round-2
+#     lens measured a 40,000-deep `a(` shape past the host's 5 s hook timeout on that path). What the
+#     double pass costs at extreme depth is an OVER-BLOCK, stated: a 30,000-deep `a(` before
+#     `"it's" 'y z'` is a budget DENY at 3.04 s here, where 88fc667c allowed it in 2.16 s; 20,000-deep
+#     is ALLOW at 2.94 s (measured 2026-09-27, supervised, pgrep present);
 #   · the second pass reads the OLD views, so on its own it is blind to A1 — which is why it can only
 #     ever ADD a denial to a first pass that allowed, and never runs when the first pass denied.
 bare_legacy_view() {
@@ -2867,7 +2955,7 @@ fi
 #     NARROWED AGAIN at round 3: not even of every argument spelling — only of arguments the view
 #     actually delivers to the grammar. A brace expansion was cut out of the push before the grammar
 #     ran (A2, closed at round 3), and a quote mis-pairing collapses the whole push away (A1, ~~OPEN~~
-#     closed at #536 — the view is built by the quote scanner now, see A1 below):
+#     closed at #536 for the shapes A1 below names — the view is built by the quote scanner now):
 #     both are spellings of a push's ARGUMENTS that never reached this grammar. The error
 #     runs toward a visible over-block — the direction this floor's own standing rule prefers, because
 #     a refused push costs one re-typed command and a forced one can cost someone else's commits.
@@ -2982,7 +3070,17 @@ push_view=""
 #     ── ROUND 3 — THE LIST ABOVE WAS PRESENTED AS COMPLETE AND WAS NOT (lens, PR #534 marker 5842274316)
 #     Three pre-existing classes, none a regression of this slice (each was ALLOW at 4b66b789 too):
 #
-#       A1 · ~~OPEN, NOT CLOSED HERE~~ CLOSED AT #536, AND IT WAS THE REALISTIC ONE — QUOTE MIS-PAIRING.
+#       A1 · ~~OPEN, NOT CLOSED HERE~~ ~~CLOSED AT #536~~ CLOSED AT #536 FOR THE SHAPES NAMED HERE,
+#            AND IT WAS THE REALISTIC ONE — QUOTE MIS-PAIRING. The unqualified "CLOSED" was FALSE at
+#            c0d33be9 (#536 round-2 lens): three heredoc-opener desyncs — `<<$'EOF'`/`<<$"EOF"`, a
+#            delimiter over 256 characters, an arithmetic `((x=1<<2))`/`$[1<<2]` — turned the lines
+#            bash runs after them into a region, and A1 came back for a trunk push, a merge and a secret
+#            set there. Closed now: A1 across a `"…"`, a `\'`, a comment, a heredoc (any delimiter
+#            spelling the shell and the scanner read alike, any length), a backtick span, and a one-line
+#            arithmetic context; and any heredoc whose terminator never arrives is re-read as shell.
+#            STILL OPEN, named at the scanner: A1 wholly inside a body fed to a shell; arithmetic that
+#            spans a newline with its operand later on a line alone; a delimiter escape the translation
+#            does not cover, where a later line equals the untranslated spelling.
 #            The paragraph below is kept as the record of the defect; the repair is the quote scanner
 #            beside `$bare`'s definition, which builds `$bare` and this view alike, and every reproducer
 #            below is now an arm in `permission-guard.test.sh` ("#536"), calibrated red against the two

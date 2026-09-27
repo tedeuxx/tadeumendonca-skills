@@ -3860,6 +3860,174 @@ a536_time "5,000 heredoc openers, then the push"   "$(printf 'cat'; printf ' <<E
 a536_time "a 51 KB heredoc of quoted lines"        "$(printf "cat <<'EOF'\n"; for _ in $(seq 1500); do printf '%s\n' "$a5_line"; done; printf 'EOF\n%s' "$a5_f")"
 a536_time "2,000 nested eval \" openers"           "$(printf 'eval "%.0s' $(seq 2000))x; $a5_f"
 a536_time "12,000-deep a(b( nesting after \"it's\"" "echo \"it's\"; x$(printf 'a(%.0s' $(seq 12000)); $a5_f"
+# The three constructs the round-2 lens reopened A1 through are bounded too: the arithmetic check is a
+# per-LINE paren/bracket table, the terminator is a per-command line index, and the delimiter word is
+# read with possessive quantifiers and no length cap.
+a536_time "15,000 (( openers on one line"          "echo \"it's\"; $(printf '((%.0s' $(seq 15000)); $a5_f"
+a536_time "10,000 \$[ openers on one line"          "echo \"it's\"; $(printf '$[%.0s' $(seq 10000)); $a5_f"
+a536_time "3,000 unterminated heredocs, one a line" "$(printf 'cat <<E%s\n' $(seq 3000); printf '%s' "$a5_f")"
+a536_time "a 50,000-character heredoc delimiter"    "$(printf 'cat <<%s\nx\n' "$(printf 'A%.0s' $(seq 50000))"; printf '%s' "$a5_f")"
+a536_time "<<' with no closer, then 50,000 chars"   "$(printf "cat <<'"; printf 'a%.0s' $(seq 50000); printf '\n%s' "$a5_f")"
+
+# ── #536 round 2: a heredoc opener the scanner and bash read DIFFERENTLY reopened A1 ──────────────────
+# The round-2 lens found three triggers. Each made the scanner open a heredoc bash does not (or wait on
+# a terminator bash does not use), so every later line was read as BODY — and a body is collapsed with
+# the pre-#536 regex pair, which is A1 itself. Measured with /bin/bash 3.2.57 AND /bin/zsh: bash runs
+# the line after each construct, so the act placed there EXECUTES:
+#   · `<<$'EOF'` / `<<$"EOF"` — the shell drops the `$` and ends at `EOF` (and translates ANSI-C
+#     escapes: `<<$'E\x41'` ends at `EA`); `dequote` kept the `$` and waited for `$EOF`;
+#   · a delimiter longer than 256 characters — the lookahead was capped at 256, so it never matched;
+#   · `((x=1<<2))` / `$[1<<2]` — an arithmetic SHIFT, read as a heredoc opener.
+# All three were ALLOW at c0d33be9 AND at 88fc667c. Each row below asserts the act's own reason, both
+# callers. `$((1<<2))` is not a row: rule 8 already refuses `$(` in every guard, so it is never an arm.
+a536r2_shape() { # shape-id ACT -> command
+  case "$1" in
+    hdansi)    printf 'cat <<$'"'"'EOF'"'"'\nx\nEOF\n' ;;
+    hdloc)     printf 'cat <<$"EOF"\nx\nEOF\n' ;;
+    hdesc)     printf 'cat <<$'"'"'E\\x41'"'"'\nx\nEA\n' ;;
+    hdlong)    printf 'cat <<%s\nx\n%s\n' "$A536_LONG" "$A536_LONG" ;;
+    arith)     printf '((x=1<<2))\n' ;;
+    arithold)  printf 'echo $[1<<2]\n' ;;
+    arith2)    printf '((x=1<<2))\n' ;;
+    arithold2) printf 'echo $[1<<2]\n' ;;
+  esac
+  printf '%s' "echo \"it's\" && $2 && echo 'y z'"
+  case "$1" in arith2|arithold2) printf '\n2' ;; esac
+}
+A536_LONG="$(printf 'A%.0s' $(seq 300))"
+A536R2_ACTS="trunk|git push origin main|pushing to the trunk. Merging
+merge|gh pr merge 5 --merge|merging a PR is the deploy
+secret|gh secret set X --body y|writing or deleting a repository secret
+force|git push origin +feat/x|force-push rewrites a ref"
+a536r2_expect() { # guard shape caller act-cmd needle -> 0 if the guard denies with the needle
+  a5_out=$(jq -n --arg c "$(a536r2_shape "$2" "$4")" --arg a "$3" '{tool_input:{command:$c}, agent_type:$a}' | bash "$1")
+  a5_r=$(printf '%s' "$a5_out" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""' 2>/dev/null)
+  [ "$(verdict "$a5_out")" = DENY ] && printf '%s' "$a5_r" | grep -qF "$5"
+}
+a536r2_cells() { # -> "shape act cmd needle" lines: force only for the heredoc shapes (under `((` 3b's
+                 # repository resolver answers first, with its own DENY, so the needle would lie)
+  for a5_shape in hdansi hdloc hdesc hdlong arith arithold arith2 arithold2; do
+    while IFS='|' read -r a5_act a5_cmd a5_needle; do
+      case "$a5_shape/$a5_act" in arith*/force) continue ;; esac
+      printf '%s|%s|%s|%s\n' "$a5_shape" "$a5_act" "$a5_cmd" "$a5_needle"
+    done <<< "$A536R2_ACTS"
+  done
+}
+a536r2_red() { # guard -> number of cells NOT denied on their reason, over both callers
+  a5_red=0
+  while IFS='|' read -r a5_shape a5_act a5_cmd a5_needle; do
+    for a5_caller in "" "$A536_PERSONA"; do
+      a536r2_expect "$1" "$a5_shape" "$a5_caller" "$a5_cmd" "$a5_needle" || a5_red=$((a5_red + 1))
+    done
+  done <<< "$(a536r2_cells)"
+  printf '%s' "$a5_red"
+}
+while IFS='|' read -r a5_shape a5_act a5_cmd a5_needle; do
+  for a5_caller in "" "$A536_PERSONA"; do
+    a5_who="${a5_caller:-orchestrator}"; a5_who="${a5_who##*:}"
+    if a536r2_expect "$GUARD" "$a5_shape" "$a5_caller" "$a5_cmd" "$a5_needle"; then
+      pass=$((pass + 1)); printf 'ok    DENY   #536 r2 %s x %s x %s\n' "$a5_shape" "$a5_who" "$a5_act"
+    else
+      fail=$((fail + 1)); printf 'FAIL  #536 r2 %s x %s x %s — the act after the construct was not refused on its own reason\n' "$a5_shape" "$a5_who" "$a5_act"
+    fi
+  done
+done <<< "$(a536r2_cells)"
+# What must stay SILENT: the same constructs before an ordinary quoted command, and an arithmetic
+# shift inside a quoted python body.
+check ALLOW "#536 r2 control: an arithmetic shift before a quoted echo" "$(printf "((x=1<<2))\necho ok 'a b'")"
+check ALLOW "#536 r2 control: <<\$'EOF' before a quoted echo" "$(printf "cat <<\$'EOF'\nx\nEOF\necho ok 'a b'")"
+# The zsh case the arithmetic rule is shaped around: `((cat <<EOF) )` is a SUBSHELL holding a real
+# heredoc in zsh (bash 3.2 reads it otherwise). Its two closers are not adjacent, so it is NOT taken as
+# arithmetic, the body stays a body, and its apostrophe cannot pair past EOF.
+check_reason DENY "#536 r2 ((cat <<EOF) ) keeps its heredoc: the push after EOF is seen" "pushing to the trunk. Merging" \
+             "$(printf "((cat <<EOF) )\nit's\nEOF\ngit push origin main && echo 'y z'")"
+check_reason DENY "#536 r2 <<-EOF with a tab-indented terminator: the push after it is seen" "pushing to the trunk. Merging" \
+             "$(printf "cat <<-EOF\n\tit's\n\tEOF\ngit push origin main && echo 'y z'")"
+# RESIDUAL, pinned as SILENCE: an arithmetic expression SPANNING A NEWLINE is not recognised (the
+# check is per line), so its `<<2` queues a heredoc — and when a later line is exactly `2`, the lines
+# between are a body. Unterminated, it is re-read as shell and seen; terminated, A1 is back for the
+# lines in between. If this goes red the arithmetic check learned multi-line and the row should move.
+check ALLOW "#536 r2 RESIDUAL: multi-line arithmetic with a later operand line hides the lines between" \
+      "$(printf "((x=1\n<<2))\necho \"it's\" && git push origin main && echo 'y z'\n2")"
+
+# CALIBRATION — each fix is planted back OUT of a copy of the guard, alone and together. With all four
+# reverted the scanner reads these constructs as c0d33be9 did, and every cell above must go red. The
+# singles show which fix is load-bearing for which construct, and that the unterminated-body rule is a
+# second layer under the other three rather than a duplicate of any of them.
+a536_lit() { # out in from-file to-file -> replace the ONE literal occurrence; exit 3 unless exactly one
+  perl -e '
+    local $/; my ($g, $ff, $tf) = @ARGV;
+    open my $G, "<", $g or exit 4; my $s = <$G>;
+    open my $F, "<", $ff or exit 4; my $f = <$F>; chomp $f;
+    open my $T, "<", $tf or exit 4; my $t = <$T>; chomp $t;
+    my $i = index($s, $f); exit 3 if $i < 0 || index($s, $f, $i + 1) >= 0;
+    substr($s, $i, length $f) = $t; print $s;
+  ' "$2" "$3" "$4" > "$1"
+}
+cat > "$A536_TMP/p1f.txt" <<'P1F'
+  while ($w =~ /\G(?:\$\x27((?:[^\x27\\]|\\.)*)\x27|\$?\x27([^\x27]*)\x27|\$?"((?:[^"\\]|\\.)*)"|\\(.)|(.))/gcs) {
+P1F
+cat > "$A536_TMP/p1t.txt" <<'P1T'
+  while ($w =~ /\G(?:(?!)()|\x27([^\x27]*)\x27|"((?:[^"\\]|\\.)*)"|\\(.)|(.))/gcs) {
+P1T
+cat > "$A536_TMP/p2f.txt" <<'P2F'
+\\.|[^\s;&|<>()\x27"\\])++)/gcs) {
+P2F
+cat > "$A536_TMP/p2t.txt" <<'P2T'
+\\.|[^\s;&|<>()\x27"\\]){1,256}+)/gcs) {
+P2T
+cat > "$A536_TMP/p3af.txt" <<'P3AF'
+        $aend = $m + 1 if defined $m && defined $m2 && $m2 == $m - 1;
+P3AF
+cat > "$A536_TMP/p3bf.txt" <<'P3BF'
+        $aend = $m + 1 if defined $m;
+P3BF
+printf '        1;\n' > "$A536_TMP/p3t.txt"
+cat > "$A536_TMP/p4f.txt" <<'P4F'
+        if ($t < 0) { @pend = (); $pi = 0; last; }
+P4F
+cat > "$A536_TMP/p4t.txt" <<'P4T'
+        if ($t < 0) { $out .= region(substr($s, $from)); pos($s) = $n; @pend = (); $pi = 0; last; }
+P4T
+a536r2_plant() { # out plant-ids...
+  a5_o="$1"; shift; cp "$GUARD" "$a5_o.0"
+  for a5_p in "$@"; do
+    case "$a5_p" in
+      P1) a536_lit "$a5_o.1" "$a5_o.0" "$A536_TMP/p1f.txt" "$A536_TMP/p1t.txt" || return 3 ;;
+      P2) a536_lit "$a5_o.1" "$a5_o.0" "$A536_TMP/p2f.txt" "$A536_TMP/p2t.txt" || return 3 ;;
+      P3) a536_lit "$a5_o.1" "$a5_o.0" "$A536_TMP/p3af.txt" "$A536_TMP/p3t.txt" || return 3
+          mv "$a5_o.1" "$a5_o.0"
+          a536_lit "$a5_o.1" "$a5_o.0" "$A536_TMP/p3bf.txt" "$A536_TMP/p3t.txt" || return 3 ;;
+      P4) a536_lit "$a5_o.1" "$a5_o.0" "$A536_TMP/p4f.txt" "$A536_TMP/p4t.txt" || return 3 ;;
+    esac
+    mv "$a5_o.1" "$a5_o.0"
+  done
+  mv "$a5_o.0" "$a5_o"
+}
+A536R2_CELLS=$(( $(a536r2_cells | wc -l) * 2 ))
+# plant set | expected red cells — derived from the construct each plant reverts, counted in cells
+# (shape x act x caller): hd* shapes carry 4 acts, arith* shapes 3.
+while IFS='|' read -r a5_set a5_want a5_why; do
+  # shellcheck disable=SC2086 # the plant ids are one word each
+  if a536r2_plant "$A536_TMP/r2.sh" $a5_set; then
+    a5_got="$(a536r2_red "$A536_TMP/r2.sh")"
+    if [ "$a5_got" = "$a5_want" ]; then
+      pass=$((pass + 1)); printf 'ok    #536 r2 (calibration) plant %s: %s of %s cells RED — %s\n' "$a5_set" "$a5_got" "$A536R2_CELLS" "$a5_why"
+    else
+      fail=$((fail + 1)); printf 'FAIL  #536 r2 (calibration) plant %s: %s cells red, expected %s — %s\n' "$a5_set" "$a5_got" "$a5_want" "$a5_why"
+    fi
+  else
+    fail=$((fail + 1)); printf 'FAIL  #536 r2 (calibration) plant %s: an anchor is dead or duplicated\n' "$a5_set"
+  fi
+done <<'A536R2_PLANTS'
+P1 P2 P3 P4|56|all four reverted: the scanner reads the three constructs as c0d33be9 did
+P4|0|the unterminated rule alone reverted: the delimiter and arithmetic fixes still hold every cell
+P1|0|dequote alone reverted: $EOF is never found, and the unterminated rule re-reads the rest as shell
+P1 P4|24|dequote and the unterminated rule: the three $-quoted delimiters (3 shapes x 4 acts x 2)
+P2 P4|8|the 256 cap and the unterminated rule: the long delimiter (4 acts x 2)
+P3|6|arithmetic alone: only ((x=1<<2)) before a later line 2 — $[1<<2] reads its delimiter as 2], which no line equals, so it never terminates
+P3 P4|24|arithmetic and the unterminated rule: all four arithmetic shapes (4 x 3 acts x 2)
+A536R2_PLANTS
 rm -rf "$A536_TMP"
 
 rm -rf "$FEAT"

@@ -859,6 +859,21 @@ def selfcheck():
                DEFAULT_GUARD_TIMEOUT))
 
     blocking.extend(floor_blockers())
+    # perl is a FLOOR DEPENDENCY since #536: the guard reads every quoted span with it.
+    # Named here as a note and NOT a BLOCK, and the difference is the direction of the
+    # failure. jq's absence can fail OPEN, so it blocks; perl's absence fails CLOSED —
+    # every command carrying a quote is DENIED naming perl, and a quote-free command is
+    # still judged. A BLOCK would also refuse the prompt route, turning a degraded floor
+    # into a stopped session. What this line fixes is that the degradation was INVISIBLE
+    # to the one report that exists to explain it (#536 round-2 lens).
+    if shutil.which("perl") is None:
+        notes.append(
+            "FLOOR DEPENDENCY MISSING: perl is not on PATH — the guard reads quoted spans "
+            "with it, so every command carrying a quote is DENIED (fail closed) and only "
+            "quote-free commands are judged (#536)")
+    else:
+        notes.append("floor dependency: perl is on PATH — the guard reads quoted spans "
+                     "with it (#536)")
     if shutil.which("git") is None:
         notes.append("git is not on PATH — the trunk-push rule cannot resolve a branch")
     if shutil.which("gh") is None:
