@@ -180,7 +180,8 @@ partly repaid:
   — if that returns nothing, the posting instruction has not landed regardless of what `agents/
   agents-lead.md:4`'s `tools:` line says (that line tracks Corollary 1, a different, causally
   unrelated grant). Until the instruction exists, no diff touching ~~`hooks/**`, `agents/**`, `skills/**`,
-  `commands/**`, or `.claude/**`~~ **a hold-2 path (the class hold 2 below states, since #521)** can carry the marker, and ~~the boundary-class criterion above makes every
+  `commands/**`, or `.claude/**`~~ **a hold-2 path (the class hold 2 below states for the repository
+  under review, since 2026-09-26, #521)** can carry the marker, and ~~the boundary-class criterion above makes every
   such diff boundary class, unconditionally~~ **hold 2 above makes every such diff unmergeable by you,
   unconditionally** — not merely "when the marker is absent." *(Restated 2026-08-23: "boundary class"
   stopped being a hold the moment the gate gained the boundary class, so the criterion is now its own
@@ -1002,16 +1003,70 @@ not.
      at all: it is the one case where merging it means you ratified your own mandate.
   2. **A harness diff with no `agents-lead` verdict marker AT THE HEAD YOU ARE MERGING**
      (ADR-0002, record 0015's Corollary 2) — ~~a diff touching `hooks/**`, `agents/**`, `skills/**`,
-     `commands/**` or `.claude/**`~~ **a diff touching ANY path outside the exclusion list below
-     (#521)** requires an `<!-- harness-lead-verdict: … -->` comment on the PR
+     `commands/**` or `.claude/**`~~ **a diff touching a path in the class that applies to the
+     repository under review — the exclusion-list class in the plugin repository, the harness-path
+     list anywhere else (#521; both below)** requires an `<!-- harness-lead-verdict: … -->` comment on the PR
      **whose `commit:` line names the `headRefOid` you read for your own verdict**, before you may
      merge it. **This used to be
      phrased as "the diff is boundary class regardless"; that phrasing stopped being a hold the moment
      boundary became mergeable**, so it is restated here as its own blocker. It is a *missing reviewer*,
      not a class — the same shape as a missing gate, and you would not merge past one of those either.
 
-     **The class is EVERY PATH EXCEPT THE EXCLUSION LIST, and this paragraph is its canonical
-     statement (owner ruling 2026-09-26 on #521 — *«Tudo, menos docs»*).** The struck five-path list
+     **TWO CLASSES, ONE PER KIND OF REPOSITORY — decide which repository you are in FIRST.** Owner
+     ruling 2026-09-27 on #521, answering the lens's `ESCALATE` on #541 — *«Só no -skills»*: the
+     exclusion-list class below applies to **the plugin repository only**. This brief ships in the
+     plugin, so it reaches every repository that enables it, and there the exclusion-list class would
+     hold every product and content merge — measured on `tadeumendonca-io`'s 25 most recent merges, it
+     matched 22, including 15 product/content merges carrying no marker, on lanes the routing table
+     never dispatches the lens to.
+
+     **How you tell the two apart: does `.claude-plugin/plugin.json` exist at the repository root?**
+     Read it from the tree at BOTH the trunk and the head you are merging, one call each:
+
+     ```
+     git -C <repo> ls-tree --name-only origin/main -- .claude-plugin/plugin.json
+     git -C <repo> ls-tree --name-only <headRefOid> -- .claude-plugin/plugin.json
+     ```
+
+     - **Either call prints the path** → the **plugin repository** → the exclusion-list class.
+     - **Both print nothing and both exit 0** → a **consuming repository** → the harness-path list.
+     - **Either call fails** (a non-zero exit — an unreadable ref) → you have NOT classified the
+       repository. **Apply the exclusion-list class**, the wider one. An unreadable ref must never
+       select the narrower class.
+
+     *Why `ls-tree` and not `cat-file -e`:* `cat-file -e` exits 128 both when the file is absent and
+     when the ref is unreadable, so it cannot tell "consuming repository" from "could not look".
+     `ls-tree` exits 0 with no output for an absent path and 128 for a bad ref. *Why both refs:* a diff
+     that deletes the manifest is still judged as the plugin repository, and a diff that adds one to a
+     consuming repository is judged by the wider class — the two errors run toward more markers.
+     **Measured 2026-09-27:** `tadeumendonca-skills` → prints `.claude-plugin/plugin.json`, exit 0;
+     `tadeumendonca-io` → prints nothing, exit 0; either repository against `nosuchref` → exit 128.
+
+     **In a CONSUMING repository, the class is the harness-path list, and nothing else:**
+     `.claude/**` · `.codex/**` · `.github/**` · `AGENTS.md` · `CLAUDE.md`, **at any depth** — so
+     `apps/<unit>/CLAUDE.md` and `apps/<unit>/.claude/settings.json` are in it. The owner's list names
+     the paths; the depth is this brief's reading, chosen because Claude Code loads a nested
+     `CLAUDE.md` and a nested `.claude/settings.json` exactly as it loads the root ones, and it errs
+     toward more markers. **Any output means hold 2 applies; no output means it does not:**
+
+     ```
+     git -C <repo> fetch origin main "pull/<n>/head"
+     git -C <repo> diff --no-renames --name-only origin/main...<headRefOid> \
+       | grep -E '(^|/)(\.claude|\.codex|\.github)/|(^|/)(AGENTS|CLAUDE)\.md$'
+     ```
+
+     **This list is an ENUMERATION and it fails OPEN, which is the opposite of the plugin-repository
+     class and is accepted on the ruling.** A harness file a consuming repository adds under a new
+     name is not covered until this list names it. Product and content lanes there run without an
+     `agents-lead` marker, as the routing table already says. **It is not "product diffs are exempt":**
+     a product diff that edits `.github/workflows/` or `CLAUDE.md` needs the marker. Measured on the
+     same 25 `-io` merges: the consuming list matches 9; of the 15 product/content merges the
+     exclusion-list class held, **12 no longer match and 3 still do** — #667 (`CLAUDE.md`,
+     `apps/fed/CLAUDE.md`), #647 (`.github/workflows/deploy.yml`) and #645 (`.github/dependabot.yml`,
+     `.github/workflows/iac.yml`). Root-only and any-depth matching return the same 9 on that window.
+
+     **In the PLUGIN repository, the class is EVERY PATH EXCEPT THE EXCLUSION LIST, and this paragraph
+     is its canonical statement (owner ruling 2026-09-26 on #521 — *«Tudo, menos docs»*).** The struck five-path list
      above was five examples, not a class. Measured on sprint-04: `-skills` #517 and #518 changed the
      Codex permission floor's registration and adapter (`codex-hooks.json`,
      `scripts/codex-hook-adapter.py`) and matched none of the five, and `.codex/**`,
@@ -1021,9 +1076,13 @@ not.
      markers.
 
      **The exclusion list — nothing else is excluded:** `docs/**` · `powers/**` (generated from
-     `skills/`, gated by regeneration-and-diff) · `README.md` · `VERSION` and `.bumpversion.toml`
-     (the version files) · `LICENSE`. **Apply it with this selector. Any output means hold 2
-     applies; no output means it does not:**
+     `skills/`, gated by regeneration-and-diff) · `README.md` · `VERSION` · `.bumpversion.toml` ·
+     `LICENSE`. ~~(the version files)~~ **— struck 2026-09-27: `.bumpversion.toml` bumps FOUR files, and
+     this list excludes only two of them, `VERSION` and the config itself.** `.claude-plugin/plugin.json`
+     and `.codex-plugin/plugin.json` stay inside the class — a manifest is machinery, and the class
+     fails closed — and `powers/tadeumendonca-skills/plugin.json` is excluded by the `powers/` prefix,
+     not as a version file. **Apply it with this selector. Any output means hold 2 applies; no output
+     means it does not:**
 
      ```
      git -C <repo> fetch origin main "pull/<n>/head"
@@ -1031,18 +1090,23 @@ not.
        | grep -vE '^(docs/|powers/)|^(README\.md|VERSION|\.bumpversion\.toml|LICENSE)$'
      ```
 
-     **`--no-renames` is part of the selector, not tidiness.** Without it, a file MOVED from `hooks/`
+     **`--no-renames` is part of BOTH selectors, not tidiness.** Without it, a file MOVED from `hooks/`
      into `docs/` prints only its new name, which the filter excludes, so a machinery deletion reads
-     as a docs edit. With it, the deletion prints under the old path and the hold applies. **The
+     as a docs edit — and in a consuming repository a workflow moved out of `.github/` reads as an
+     edit to wherever it landed. With it, the deletion prints under the old path and the hold applies. **The
      range is the caller's; the filter is the reusable half.** Three dots read from the merge base,
      so a trunk that moved after the branch was cut does not leak other slices' paths into this
      diff. **Use a tree diff, never `gh pr view --json files`**, which pages at 100 and would
      classify a large harness diff as non-harness.
 
      **What this class does NOT decide.** It decides only whether the marker is REQUIRED; it narrows
-     neither of your lenses. And because `docs/**` is excluded, a diff to `docs/loop-mode.md` — the
-     mode record `commands/autonomy.md` reads, including `wip:` — needs no lens marker. That follows
-     from the ruling as given; it is named here so it reads as a known consequence, not an oversight.
+     neither of your lenses. And because `docs/**` is excluded in the plugin repository, two records
+     that machinery reads need no lens marker there: `docs/loop-mode.md` — the mode record
+     `commands/autonomy.md` reads, including `wip:` — and `docs/loop-cadence.md`, which
+     `hooks/scripts/cadence-notice.sh` (registered on `SessionStart`) parses for its interval and its
+     rites. That follows from the ruling as given; both are named here so they read as known
+     consequences, not oversights. The hook reports and denies nothing, so a wrong value there costs
+     a wrong notice, never a wrong refusal.
 
      **~~a comment on the PR before you may merge it~~ — the HEAD-SCOPING was added 2026-09-11
      (#385), and the struck phrase is kept because it is what this hold meant for four weeks.** It was

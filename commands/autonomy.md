@@ -340,15 +340,15 @@ Follow `/agents-configuration`. Nothing here relaxes it:
 
 - Plan first for anything non-trivial; the two leads consolidate **one** demand before the build.
 - Thin vertical slice, end to end, finished **through merge**. ~~before opening the next~~ **Struck
-  (#521): at `wip` above 1 a next slice may open while this one is in flight, each in its own
+  2026-09-26 (#521): at `wip` above 1 a next slice may open while this one is in flight, each in its own
   worktree.** **Where the owner composed the `loop` block as one batch, the slice is the batch** — one
   branch, one MR, commits still separated per issue — and the WIP count is measured against that unit,
   not against each Issue in it. ~~WIP=1 is satisfied either way, since a batch is one branch and one PR
-  by construction.~~ **Struck (#521): WIP=1 was reversed at #385; a batch counts as one unit against the
+  by construction.~~ **Struck 2026-09-26 (#521): WIP=1 was reversed at #385; a batch counts as one unit against the
   `wip:` bound.**
 - WIP is bounded by the `wip:` value in `docs/loop-mode.md` — read it there rather than trusting a
   restatement. The review gate stays serial at any value. ~~and note the guard enforcing it may lag the
-  rule (`product-lead` carries the caveat)~~ **Struck (#521): `wip-guard.sh` was deleted at #383, so
+  rule (`product-lead` carries the caveat)~~ **Struck 2026-09-26 (#521): `wip-guard.sh` was deleted at #383, so
   there is no guard to lag; nothing enforces the bound.**
 - Every gate green with real evidence, and the `quality-assurance` on every PR. It merges the safe
   class ~~and escalates the boundary class~~ **and the boundary class, escalating only the four holds

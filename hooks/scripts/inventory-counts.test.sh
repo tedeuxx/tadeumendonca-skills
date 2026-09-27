@@ -9674,6 +9674,7 @@ fi
 #   (a) the brief carries the filter literal and `--no-renames` — a drift check, nothing more;
 #   (b) the literal, RUN, excludes exactly the listed paths and keeps a machinery path, a lookalike
 #       and a never-seen top-level path. (b) is what stops a literal that is present and dead.
+#   (c) the same pair for the CONSUMING-repository class (2026-09-27), below.
 # WHAT THIS CANNOT SEE: whether the gate applies the selector, or which range it runs it over. Held by
 # the gate persona and by nothing here.
 H2_BRIEF="$ROOT/agents/quality-assurance.md"
@@ -9692,18 +9693,56 @@ fi
 h2_brief_re="$(grep -oE "grep -vE '\^\(docs/[^']+'" "$H2_BRIEF" | head -1 | sed "s/^grep -vE '//; s/'\$//")"
 h2_excluded="$(printf '%s\n' docs/adr/0002-roster-and-dev-loop.md powers/x/SKILL.md README.md VERSION \
   .bumpversion.toml LICENSE | grep -vE "${h2_brief_re:-^$}" || true)"
+# The kept set carries the five directories the struck list named (hooks/ agents/ skills/ commands/
+# .claude/), so the one co-edit the string half cannot see — adding one of THEM to the exclusions in
+# both the brief and H2_RE — still reddens here (#541 lens, advisory 3: before this, `hooks/` added to
+# the exclusions passed both halves).
 h2_kept="$(printf '%s\n' scripts/codex-hook-adapter.py codex-hooks.json .codex/config.toml AGENTS.md \
-  READMEx.md docs.md newtopdir/file | grep -vE "${h2_brief_re:-.}" | grep -c . || true)"
+  READMEx.md docs.md newtopdir/file hooks/x.sh agents/x.md skills/x/SKILL.md commands/x.md \
+  .claude/settings.json | grep -vE "${h2_brief_re:-.}" | grep -c . || true)"
 if [ -z "$h2_brief_re" ]; then
   bad "hold-2 class — no grep -vE '…' selector could be extracted from agents/quality-assurance.md, so the
       behaviour half has nothing to run. Absent, not clean."
 elif [ -n "$h2_excluded" ]; then
   bad "hold-2 class — the selector KEEPS a path it claims to exclude: $h2_excluded"
-elif [ "$h2_kept" -ne 7 ]; then
-  bad "hold-2 class — the selector kept $h2_kept of 7 machinery/lookalike/novel paths; a path it
+elif [ "$h2_kept" -ne 12 ]; then
+  bad "hold-2 class — the selector kept $h2_kept of 12 machinery/lookalike/novel paths; a path it
       drops is a diff that needs a marker and will not be asked for one. The class must fail CLOSED."
 else
-  ok "hold-2 class — the selector excludes the 6 listed paths and keeps 7 of 7 others, a never-seen top-level path included"
+  ok "hold-2 class — the selector excludes the 6 listed paths and keeps 12 of 12 others, the five original directories and a never-seen top-level path included"
+fi
+
+# (c) the CONSUMING-repository class (owner ruling 2026-09-27, «Só no -skills»): the exclusion list
+# above is the PLUGIN repository's; anywhere else hold 2 covers .claude/ .codex/ .github/ AGENTS.md
+# CLAUDE.md, at any depth. Same two halves: the literal and the repository test are WRITTEN, and the
+# literal extracted from the brief, RUN, keeps exactly the harness paths. Unlike the exclusion class
+# this one is an enumeration and fails OPEN by design (the ruling), so the behaviour half checks both
+# directions: every listed harness path matches, and no product path or lookalike does.
+H2C_RE='(^|/)(\.claude|\.codex|\.github)/|(^|/)(AGENTS|CLAUDE)\.md$'
+if ! grep -qF "grep -E '$H2C_RE'" "$H2_BRIEF"; then
+  bad "hold-2 consuming class — agents/quality-assurance.md does not carry the selector literal
+      grep -E '$H2C_RE'. Either the brief drifted or this arm did; they must move together (#521)."
+elif ! grep -qF -- "ls-tree --name-only origin/main -- .claude-plugin/plugin.json" "$H2_BRIEF"; then
+  bad "hold-2 consuming class — agents/quality-assurance.md lost the repository test (ls-tree for
+      .claude-plugin/plugin.json), so nothing says which of the two classes applies where."
+else
+  ok "hold-2 consuming class — agents/quality-assurance.md carries the harness-path selector and the repository test (a STRING check)"
+fi
+h2c_brief_re="$(grep -oE "grep -E '[^']*claude[^']*'" "$H2_BRIEF" | head -1 | sed "s/^grep -E '//; s/'\$//")"
+h2c_hit="$(printf '%s\n' .claude/settings.json .codex/config.toml .github/workflows/deploy.yml AGENTS.md \
+  CLAUDE.md apps/fed/CLAUDE.md apps/fed/.claude/settings.json | grep -E "${h2c_brief_re:-^$}" | grep -c . || true)"
+h2c_miss="$(printf '%s\n' apps/fed/src/x.ts iac/main.tf scripts/x.sh package.json docs/x.md README.md \
+  hooks/x.sh AGENTS.mdx CLAUDE.md.bak .githubx/y .claude-plugin/plugin.json | grep -E "${h2c_brief_re:-.}" || true)"
+if [ -z "$h2c_brief_re" ]; then
+  bad "hold-2 consuming class — no grep -E '…claude…' selector could be extracted from
+      agents/quality-assurance.md, so the behaviour half has nothing to run. Absent, not clean."
+elif [ "$h2c_hit" -ne 7 ]; then
+  bad "hold-2 consuming class — the selector matched $h2c_hit of 7 harness paths (root and nested); a
+      harness diff it misses in a consuming repository will not be asked for a marker."
+elif [ -n "$h2c_miss" ]; then
+  bad "hold-2 consuming class — the selector matches a product path or lookalike: $h2c_miss"
+else
+  ok "hold-2 consuming class — the selector matches 7 of 7 harness paths (nested included) and 0 of 11 product paths and lookalikes"
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"

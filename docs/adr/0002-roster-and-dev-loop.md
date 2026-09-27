@@ -3722,7 +3722,8 @@ gains: *a diff touching `hooks/**`, `agents/**`, `skills/**`, `commands/**` or `
 `agents-lead` verdict marker present on the PR before it may classify as safe or merge; absent that
 marker the diff is boundary class regardless of what else it does.* This closes a gap that existed
 independently of the grant — before it, nothing stopped a harness change merging with zero `agents-lead`
-involvement.
+involvement. *(→ the 2026-09-26 and 2026-09-27 amendments at the end of this record: the five paths
+are now read as examples of a class, and the class depends on the repository.)*
 
 **Corollary 3 (record 0015) — the durable verdict.** `agents-lead`'s output becomes an
 `<!-- harness-lead-verdict: … -->` comment following [ADR-0006](./0006-verification-and-its-artifacts.md)'s
@@ -5482,12 +5483,57 @@ marker on each was present only because the `loop` routing row happened to dispa
 - *Bad, accepted by the owner:* more markers are required. This includes diffs to `scripts/worklog*`,
   the #506 repair case that #522's carry-forward was written for. #522 still applies to a delta that
   touches only excluded paths.
-- *Bad, named:* `docs/loop-mode.md` is excluded, and it is the mode record `commands/autonomy.md`
-  reads. A diff to `wip:` needs no lens marker under this class.
+- *Bad, named:* two records machinery reads sit under the excluded `docs/**`. `docs/loop-mode.md` is
+  the mode record `commands/autonomy.md` reads, so a diff to `wip:` needs no lens marker under this
+  class; and `docs/loop-cadence.md` is parsed by `hooks/scripts/cadence-notice.sh`, registered on
+  `SessionStart`, for its interval and its rites. That hook reports and denies nothing, so a wrong value
+  costs a wrong notice.
 
 **What enforces it: the gate persona, as before.** No layer classifies a diff. The considered options
 of the 2026-09-11 amendment rejected a `PreToolUse` arm for hold 2 because it would read the PR's file
 list. That rejection stands unchanged under the wider class.
+
+## 2026-09-27 amendment — the exclusion-list class is the PLUGIN repository's; a consuming repository gets a harness-path list (#521)
+
+**Owner ruling, 2026-09-27, recorded on #521**, answering the `agents-lead` lens's `ESCALATE` on #541 —
+*«Só no -skills»*. The 2026-09-26 class applies to the plugin repository only. **In a consuming
+repository, Corollary 2 covers `.claude/**`, `.codex/**`, `.github/**`, `AGENTS.md` and `CLAUDE.md`,
+and nothing else.** Product and content lanes there keep running without an `agents-lead` marker. The
+canonical statement, both selectors and the test that tells the two repositories apart are in hold 2 of
+`agents/quality-assurance.md`; this amendment records the decision and does not restate them.
+
+**Why it had to be scoped.** Hold 2 lives in a brief the plugin ships, so the 2026-09-26 class reached
+every repository that enables the plugin. The lens classified `tadeumendonca-io`'s 25 most recent merges
+under it: 22 matched, including 15 of the window's 16 product and content merges, none of which carried a
+marker. The byte-shared routing table in both root briefs never dispatches the lens on those lanes, so
+the gate would have held them all.
+
+**How the gate tells the repositories apart: `.claude-plugin/plugin.json` at the root, read with
+`git ls-tree` at the trunk and at the head.** Either present → the plugin repository. `ls-tree`, not
+`cat-file -e`, because only `ls-tree` separates an absent file (exit 0, no output) from an unreadable
+ref (exit 128); an unreadable ref applies the wider class.
+
+**Consequences.**
+- *Good:* product and content lanes in a consuming repository merge as the routing table says. On the
+  same 25 `-io` merges the consuming list matches 9 rather than 22.
+- *Bad, accepted by the owner:* the consuming list is an ENUMERATION and fails open — the shape the
+  2026-09-26 amendment rejected for this repository. A harness file a consuming repository adds under
+  a new name is uncovered until the list names it.
+- *Named, not a defect:* the consuming list is a path list, not a lane rule. Three product merges in
+  that window still match it — `-io` #667 (`CLAUDE.md`), #647 and #645 (`.github/**`) — because they
+  edited files the owner's list names.
+- *A reading this record states rather than leaves implicit:* the gate brief matches the five names at
+  any depth, so a nested `CLAUDE.md` or `.claude/settings.json` is covered. The owner's ruling names the
+  paths and does not name a depth; any-depth errs toward more markers. On the measured window the two
+  readings return the same 9.
+
+**Rejected options, both offered with the one he chose.**
+- **Apply the 2026-09-26 class in both repositories.** Every `-io` product and content diff would need
+  an `agents-lead` pass, and the routing table in both root briefs would need a matching edit.
+- **Merge now and decide `-io` before the next plugin update.** A timing bet on `/plugin update`, not a
+  control.
+
+**What enforces it: the gate persona, as before.** No layer classifies a diff or a repository.
 
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now
