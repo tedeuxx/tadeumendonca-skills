@@ -9863,5 +9863,46 @@ else
   ok "#523 defect class — the falsifier section carries the enumerate-the-class rule, its three parts, the no-selector fallback and the examples-only-illustrate clause (a STRING check)"
 fi
 
+# ── #524: an install-time owner action is posted on the Issue before merge ─────────────────────
+# The rule lives INSIDE criterion 11 of agents/quality-assurance.md. The extraction runs from the
+# criterion's own opening line to ONE named heading, never to "the next `## `": criterion 11 now
+# carries a fenced code block, and a `## ` line inside a fence would end an any-heading range early
+# (the latent defect #544's verdict named in #523's arm). A sentinel proves the end heading was
+# reached, so a missing heading reads as "could not extract" rather than as a range run to EOF that
+# would still find the clauses if the rule moved further down. A STRING check: it cannot tell whether
+# the gate posted anything. That is held by the gate.
+OA_RAW="$(awk '/^11\. \*\*Reach — does this change get to the thing it exists for\?/{on=1}
+  on && /^### A finding blocks only if it names a criterion and a falsifier$/{print "__OA_END__"; exit}
+  on{print}' "$H2_BRIEF")"
+OA_SECTION="$(printf '%s' "$OA_RAW" | tr '\n' ' ' | tr -s '[:space:]' ' ')"
+oa_missing=""
+for oa_clause in \
+  'OWNER ACTION THAT TAKES EFFECT AT INSTALL, post it on each Issue the PR references, before you merge' \
+  'an act or check that only the owner can perform' \
+  'one line plus the link to your verdict comment' \
+  '`Refs #N` as well as a closing keyword' \
+  'The order is verdict, then Issue comment, then merge' \
+  'Considered and not adopted: the Release notes' \
+  'the Release stays silent at install time' \
+  'live #509 gap is not repaired by this rule'; do
+  case "$OA_SECTION" in
+    *"$oa_clause"*) ;;
+    *) oa_missing="${oa_missing}
+      - $oa_clause" ;;
+  esac
+done
+case "$OA_SECTION" in
+  *__OA_END__*) oa_extracted=1 ;;
+  *) oa_extracted=0 ;;
+esac
+if [ -z "$OA_RAW" ] || [ "$oa_extracted" -ne 1 ]; then
+  bad "#524 owner action — could not extract criterion 11 of agents/quality-assurance.md up to the
+      'A finding blocks only if it names a criterion and a falsifier' heading. Absent, not clean."
+elif [ -n "$oa_missing" ]; then
+  bad "#524 owner action — criterion 11 of agents/quality-assurance.md lost clause(s):$oa_missing"
+else
+  ok "#524 owner action — criterion 11 requires an install-time owner action on each referenced Issue before merge, names its selector, order and form, and records the Release-notes option as not adopted (a STRING check)"
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

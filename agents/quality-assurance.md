@@ -603,6 +603,52 @@ The hard gates, each to be confirmed:
    artifact outside the diff and usually outside the repository. `/definition-of-done` row 9 carries the
    full argument, including why the iteration-close sweep is structurally blind to this case and must
    not be pointed at as the backstop.
+   **When your verdict leaves an OWNER ACTION THAT TAKES EFFECT AT INSTALL, post it on each Issue the
+   PR references, before you merge (#524).** Criterion 11's third answer is the usual source, but any
+   line of the verdict can be one. The criterion that selects the class, since no pattern selects it:
+   *an act or check that only the owner can perform, and that becomes possible or necessary only once he
+   installs the release this merge publishes*. That covers `/plugin update`, a restart, re-trusting a
+   hook registration, a canary, a persona snapshot rebuild, and checking the first record the changed
+   mechanism produces after the update. **Illustrations, not the scope:** #544's verdict asked *"Do you
+   want that rebuild done in the next session after `/plugin update`?"* about the Codex persona
+   snapshot; #535's said *"the next `dispatch-metrics:` record posted after `/plugin update`"*; #534's
+   said *"on the next `/plugin update`, every Bash call goes through the new supervisor"*. None of the
+   Issues those PRs referenced (#523, #513, #531) carries the line.
+   - **The surface is the Issue, because that is where he reads.** Criterion 11 already requires the
+     third answer to reach him as a question. This names where. A PR thread goes quiet at merge, and an
+     install-time act is not found there again.
+   - **The form is one line plus the link to your verdict comment**:
+     `Owner action after /plugin update: <the act>. <verdict comment URL>`. It is an action pendency,
+     so it carries no options. Where the verdict's line is a genuine question, keep it a question, still
+     on one line.
+   - **The Issues are the ones the PR body references, `Refs #N` as well as a closing keyword.**
+     `closingIssuesReferences` alone returns `[]` on #534, #535 and #544, because this loop references
+     with `Refs`. A bare `#N` scan over-reads: on #534 it returns five numbers, four of them mentioned
+     in passing. The selector, calibrated on those three PRs (it returns `Refs #531`, `Refs #513`,
+     `Refs #523`):
+
+     ```
+     gh pr view <n> --repo <owner/repo> --json body \
+       --jq '[.body|scan("(?i)\\b(?:refs?|close[sd]?|fix(?:e[sd])?|resolve[sd]?) #[0-9]+")]'
+     ```
+
+   - **The order is verdict, then Issue comment, then merge.** The line links the verdict, so the
+     verdict exists first. It lands before the merge so that an Issue closed at merge, by hand or by
+     keyword, already carries it: #508 and #509 were closed by hand with nothing on either. A verdict
+     that does not merge (`APPROVE-PENDING-HUMAN`, `APPROVE-EXECUTOR-BLOCKED`) still posts it.
+     `REQUEST-CHANGES` does not, because nothing is being installed.
+   - **Posting is allowed to you.** `permission-guard.sh` rule 5e allowlists `*:quality-assurance` on
+     `gh issue comment`. Use `--body-file`.
+   - **Considered and not adopted: the Release notes.** `version-main.yml` could lift an
+     `ACTION REQUIRED:` line into the Release it publishes. That is the one surface present at the
+     moment of install, and an Issue comment is not. It is not adopted: it would make a workflow a
+     machine reader of verdict prose, a new string contract between this brief and CI, and it is the
+     larger change. So **the Release stays silent at install time**. That residual is named, not closed.
+   - **What nothing enforces.** No hook observes whether a verdict left an install-time action, or
+     whether the Issue received it: the subject is prose, and bodies travel through `--body-file`.
+     `hooks/scripts/inventory-counts.test.sh` asserts only that this text is written here. And **the
+     live #509 gap is not repaired by this rule**. It binds verdicts posted after this brief is
+     installed.
 
 ### A finding blocks only if it names a criterion and a falsifier
 
