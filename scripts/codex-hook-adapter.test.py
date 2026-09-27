@@ -153,6 +153,21 @@ check((p.stdout or "").strip() == "" and p.returncode == 0,
       "vocabulary (calibration) — a permitted act produces NO decision, so `block` is a "
       "real verdict rather than this adapter's only output")
 
+# ── 1b · #536 — the A1 quote mis-pairing reaches Codex as a refusal ──────────────────
+# The guard's `$bare` used to pair the apostrophe inside "it's" with the next single
+# quote, so the whole trunk push between them vanished and the guard said NOTHING — which
+# this adapter forwards as no decision. The shared guard now scans quotes the way the shell
+# does. This row pins it on the Codex route: the Issue's first reproducer, verbatim, must
+# come back as a block that names the trunk rather than the guard's time budget.
+A1 = "git commit -m \"it's\" && git push origin main && echo 'ok go'"
+p = run_adapter(codex_payload(A1))
+d = decision_of(p)
+check(d is not None and d.get("decision") == "block"
+      and "pushing to the trunk" in d.get("reason", "")
+      and "time budget" not in d.get("reason", ""),
+      "#536 A1 — an apostrophe commit chained to a trunk push is blocked on the trunk rule"
+      + ("" if d else " (NO DECISION: the mis-pairing is back)"))
+
 # ── 2 · identity — measured against the live guard, and the hazard is re-derived ──────
 # The naive mapping is the safe one. This is asserted by MEASURING both, not by trusting
 # the adapter's comment.

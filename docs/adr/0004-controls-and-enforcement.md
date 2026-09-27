@@ -7171,3 +7171,112 @@ real guard, not inside a Codex session.
 *Alters a previously-recorded decision*: the shipped command form in section 17.2 of the bridge
 document and the "whether that repaired registration launches" paragraph above. It touches the
 harness's own hook registration, which makes it boundary class.
+
+## Amendment (2026-09-27) — `$bare` is built by a quote scanner, and a legacy pass keeps every old denial (#536)
+
+**Deciders:** owner (filed #536 from the #534 lens finding A1 and admitted it to sprint-05 with
+priority), written and built by `agents-lead`.
+
+### The decision
+
+`permission-guard.sh` stops building `$bare`, and rule 3b's push view, with two regexes. It builds both
+with one left-to-right quote scanner, a perl program carried inside the guard. The scanner pairs
+quotes the way the shell does: `'…'` has no escapes, `"…"` and `$"…"` end at an unescaped `"`, `$'…'`
+at an unescaped `'`, and an unquoted `\x` opens nothing. A `#` at a word start opens a comment to the
+end of the line. `<<` and `<<-` queue a heredoc whose body runs to its terminator line. A comment and a
+heredoc body are **not dropped**. Each is collapsed by the pre-#536 regex pair run over that region
+alone, so a quote inside one cannot pair with a quote after it.
+
+When the first pass decides nothing and the new views differ from the pre-#536 views, the guard runs
+itself a second time on the pre-#536 views (`--legacy-view`, passed only by its own EXIT trap), and
+that answer is the answer. The second pass is the pre-#536 guard, line for line, except for the two
+view lines.
+
+perl is a new runtime dependency **of the guard**. A command with no quote never reaches it. A command
+with a quote, on a host with no perl or whose perl exits non-zero, is **denied**, naming perl.
+
+### Why — the measurement
+
+The regex pair ran the single-quote expression over the whole string and the double-quote expression
+after it, so a literal apostrophe was paired with the next real quote. Everything between collapsed.
+At `0ea8aad6` and `4bfbfe19`, from both callers, the guard gave no decision on
+`git commit -m "it's" && git push origin main && echo 'ok go'`, and on the same shape carrying a
+`+refspec`, a `:main`, a merge, a secret write, a `gh api` write and an issue create. No static entry
+backs up three of those. The #536 suite section pins 67 arms: 5 shapes × 2 callers × 7 acts, less the
+five designed orchestrator × issue cells, plus the force cell below for both callers. Every arm is red
+against a copy of the guard with the two old lines planted back.
+
+A fourth site was found while calibrating. Rule 3b's old view ran its word-only unquoting before any
+span was recognised, so `echo $'it\'s' && git push origin +feat/x && echo 'ok go'` lost the force.
+The Issue listed that shape as a negative control, and it was not one.
+
+### The corpus comparison
+
+Every distinct `Bash` command in `~/.claude/projects/**/*.jsonl` (44,227 commands), through the
+guard at `88fc667c` and through this one, with an empty `agent_type` and with
+`tadeumendonca-skills:tech-lead`:
+
+| caller | ALLOW -> ALLOW | ALLOW -> DENY | DENY -> DENY | DENY -> ALLOW |
+|---|---|---|---|---|
+| orchestrator (`""`) | 42,549 | 5 | 1,673 | **0** |
+| persona (`tech-lead`) | 42,410 | 5 | 1,812 | **0** |
+
+Measured 2026-09-27, 176,908 guard runs, every run exit 0, none answered by the time budget. The five
+ALLOW -> DENY are the same five commands for both callers. Two are real redirects that create a file
+(`git show … > <file>`, `cat … >> <file>`). The regex pair hid each one behind an apostrophe in an
+earlier `echo "…'s…"` or python body. Three are backticks inside a python string in a QUOTED heredoc
+body, which rule 8's older predicate denies. That over-block class is already pinned in the suite
+(`#497 kept: a bare $(…) in a quoted heredoc`); cross-boundary pairing had been hiding these three
+members of it. Seven DENY -> DENY rows per caller changed their reason and not their verdict. The
+command is in #536's PR.
+
+**Zero DENY -> ALLOW is a property of the construction, not a finding of the run.** The run confirms
+it. The second pass is what makes it hold. Without it, twelve commands per caller would have
+gone DENY -> ALLOW, every one an over-block where the old pairing exposed text inside a real quote.
+
+### Considered and rejected
+
+- **Leaving comments and heredoc bodies verbatim.** This was the first build. It turned 294 commands
+  per caller ALLOW -> DENY, nearly all `python3 - <<'PY'` edits whose string literals hold a `>` or a
+  `$(`.
+- **Scanning a region with the shell's grammar.** This was the second build. It still turned 15 per
+  caller, because python's `r'…\'…'` and `"""…"""` align differently under the shell's rules. A body is
+  data for whatever reads it. So the rule inside a region is the regex pair, which is what those bodies
+  were always read with.
+- **Replacing the old denials instead of keeping them.** Each of the twelve is an over-block.
+  But #536 asked that no DENY become an ALLOW, and removing an over-block is a decision it did not
+  take. With the second pass, that decision is one line if anyone takes it.
+- **A per-character bash loop, or awk.** The first is the latency class #534 spent four lens rounds
+  removing. The second has no portable linear way to index a string.
+
+### Consequences
+
+Good: the A1 class is closed for the command a comment or a heredoc precedes, and for every act the
+matrix names. The scanner is linear. The per-kind failure memory stops an unclosed quote from making
+the scan re-read its tail.
+
+Bad, stated rather than discovered:
+
+- **A1 written wholly INSIDE a heredoc body fed to a shell is still hidden.** Inside a body the regex
+  pair still reads quotes, as before. The suite pins this as silence (`#536 RESIDUAL`).
+- **perl is required for any quoted command.** On a host without it, those commands are refused.
+- **The over-blocks of the regex pair are kept.** The #497 `'it'\''s $(…)'` pin stays green for that
+  reason.
+- **The second pass costs a second run of the rules.** It runs only when the first pass allowed and
+  the views differ, which is 882 of the corpus's 30,747 quoted commands (2.9%), measured
+  2026-09-27. At worst it doubles a cost 3b already pays: 1.84 s for a 12,000-deep `a(` before an
+  `"it's" 'y z'`, against 0.89 s at `88fc667c`. The guard's time budget bounds both passes together.
+
+### What holds it
+
+`hooks/scripts/permission-guard.test.sh` section "#536". It holds the matrix, the controls, the
+calibration by planting the old lines (all arms red, all controls green, and each site red on its
+own), the legacy-pass calibration (the trap removed turns a kept over-block into an ALLOW), the
+missing-perl and failing-perl rows, and ten latency rows run with the budget bypassed.
+`scripts/codex-hook-adapter.test.py` section 1b pins the first reproducer through the Codex route.
+
+### Significance
+
+*Introduces a new dependency* (perl, in the guard). It also adds a second, narrower fail-closed
+branch to the contract that *Which layer carries a control* states as "the authoritative layer fails
+open", and to the guard's own header. It is boundary class: the irreversible floor.
