@@ -946,6 +946,84 @@ open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
 stale_fires 'a hooks/ -> docs/ rename refuses the carry' "$(run_hook)"
 teardown
 
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# #522 round 3 — WHICH COMMENTS ARE LENS MARKERS (advisories A1 and A2). The newest marker is the
+# last comment passing `lens_marker`: an envelope at column 0, outside a fence, in a body that does
+# not open with the gate's envelope. Every arm below uses one history, so only the comment set
+# differs:  c = hooks/ change (a marker here CARRIES to h: c -> h is docs-only)
+#           b = the commit before c (a marker here does NOT carry: b -> h holds c's hooks/ change)
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+view_bodies() { # head_sha · bodies... (each an OWNER comment, in posting order)
+  vh="$1"; shift
+  jq -n --arg h "$vh" '{headRefOid: $h,
+     comments: ($ARGS.positional | map({body: ., authorAssociation: "OWNER"}))}' \
+     --args "$@" > "$root/fix/view.json"
+}
+lens_body() { printf '<!-- harness-lead-verdict: %s -->\ncommit: %s' "$2" "$1"; }
+gate_body() { # commit-line sha (may be empty) -- quotes the lens envelope at column 0, as -skills#303 did
+  printf '<!-- gatekeeper-verdict: quality-assurance -->\nAPPROVE-AND-MERGE-BOUNDARY\nhead: 0000000000000000000000000000000000000000\nhold 2 reads:\n<!-- harness-lead-verdict: … -->\n%s' \
+    "${1:+commit: $1}"
+}
+round3_history() {
+  setup; plugin_repo; checkout_branch loop/x
+  b="$(commit_path hooks/scripts/x.sh)"
+  c="$(commit_path hooks/scripts/y.sh)"
+  h="$(commit_path docs/notes.md)"
+  open_pr 522 "$h"
+}
+
+echo '--- #522 r3 A1: a GATE VERDICT posted last, with no commit: line — the lens marker before it carries ---'
+# The 16-of-60 shape the lens measured: the published loose selector `test("harness-lead-verdict")`
+# picks this gate verdict as newest, finds no SHA, and refuses.
+round3_history
+view_bodies "$h" "$(lens_body "$c" closed)" "$(gate_body '')"
+stays_silent 'a gate verdict last (no commit: line) does not displace the newest lens marker' "$(run_hook)"
+teardown
+
+echo '--- #522 r3 A1: a gate verdict last whose commit: line would NOT carry — still silent ---'
+round3_history
+view_bodies "$h" "$(lens_body "$c" closed)" "$(gate_body "$b")"
+stays_silent 'a gate verdict last naming a non-carrying SHA does not govern the carry' "$(run_hook)"
+teardown
+
+echo '--- #522 r3 A1: a gate verdict last whose commit: line WOULD carry, over a non-carrying lens marker — fires ---'
+# The discriminating direction: a loose selector carries on the gate's SHA and goes silent.
+round3_history
+view_bodies "$h" "$(lens_body "$b" blocking)" "$(gate_body "$c")"
+stale_fires 'a gate verdict cannot carry a SHA in place of the lens' "$(run_hook)"
+teardown
+
+echo '--- #522 r3 A2: a ``` FENCED quote of a carrying marker, after a non-carrying one — fires ---'
+round3_history
+fenced="$(printf 'relaying the earlier marker:\n```\n%s\n```' "$(lens_body "$c" closed)")"
+view_bodies "$h" "$(lens_body "$c" closed)" "$(lens_body "$b" blocking)" "$fenced"
+stale_fires 'a marker quoted inside a ``` fence is not the newest marker' "$(run_hook)"
+teardown
+
+echo '--- #522 r3 A2: the same with a ~~~ fence, indented by three spaces — fires ---'
+round3_history
+fenced="$(printf 'relaying:\n   ~~~\n%s\n   ~~~' "$(lens_body "$c" closed)")"
+view_bodies "$h" "$(lens_body "$b" blocking)" "$fenced"
+stale_fires 'a marker quoted inside an indented ~~~ fence is not a marker' "$(run_hook)"
+teardown
+
+echo '--- #522 r3 A2 calibration: a fence that CLOSES — a real marker after it counts — silent ---'
+# Without this the fence limb could pass by treating every comment containing ``` as a quote.
+round3_history
+closed_fence="$(printf 'context:\n```\nsome log\n```\n%s' "$(lens_body "$c" closed)")"
+view_bodies "$h" "$(lens_body "$b" blocking)" "$closed_fence"
+stays_silent 'a marker after a closed fence is still a marker, and it carries' "$(run_hook)"
+teardown
+
+echo '--- #522 r3 A2: a fenced quote naming the HEAD does not make a stale PR fresh — fires ---'
+# The same predicate governs the stale arm: a relay quoting the head SHA in a fence is not a lens
+# marker at the head. b -> h does not carry, so only a false "fresh" could silence this.
+round3_history
+fenced="$(printf 'draft for the lens:\n```\n%s\n```' "$(lens_body "$h" closed)")"
+view_bodies "$h" "$(lens_body "$b" blocking)" "$fenced"
+stale_fires 'a fenced marker naming the head is not a fresh marker' "$(run_hook)"
+teardown
+
 echo
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

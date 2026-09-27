@@ -9758,5 +9758,35 @@ else
   ok "hold-2 consuming class — the selector matches 7 of 7 harness paths (nested included) and 0 of 11 product paths and lookalikes"
 fi
 
+# ── #522 round 3 (advisories A1, A2): ONE lens-marker predicate, in the hook and in hold 2 ──────
+# The carry rule's newest-marker selection is only as good as its definition of "a lens marker".
+# The hook defines it once (`LENS_MARKER_JQ`) and hold 2 publishes it for the gate. If the two
+# drift, the gate and the stale notice disagree about which comment is newest, and one of them
+# carries a SHA the other refuses. Compared with whitespace collapsed, because the brief indents
+# the text inside a list item. A STRING check: the behaviour is the zombie-loop-detect suite's.
+LMK_HOOK="$ROOT/hooks/scripts/zombie-loop-detect.sh"
+lmk_hook="$(sed -n "/^LENS_MARKER_JQ='def lens_marker/,/\.h);'\$/p" "$LMK_HOOK" \
+  | sed "s/^LENS_MARKER_JQ='//; s/'\$//" | tr '\n' ' ' | tr -s '[:space:]' ' ')"
+lmk_brief="$(sed -n "/--jq 'def lens_marker(\$lens; \$g):/,/\.h);\$/p" "$H2_BRIEF" \
+  | sed "s/^.*--jq '//" | tr '\n' ' ' | tr -s '[:space:]' ' ')"
+lmk_calls="$(grep -c 'select(lens_marker(' "$LMK_HOOK" || true)"
+if [ -z "$lmk_hook" ] || [ -z "$lmk_brief" ]; then
+  bad "#522 lens-marker predicate — could not extract the def from $( [ -z "$lmk_hook" ] && printf 'the hook' || printf 'hold 2' ).
+      Absent, not clean: nothing below compared anything."
+elif [ "$lmk_hook" != "$lmk_brief" ]; then
+  bad "#522 lens-marker predicate — hold 2 and zombie-loop-detect.sh publish DIFFERENT definitions of
+      a lens marker, so the gate and the stale notice can pick different newest markers.
+      hook : $lmk_hook
+      brief: $lmk_brief"
+elif ! grep -qF 'select(lens_marker("<!-- harness-lead-verdict"; "<!-- gatekeeper-verdict"))' "$H2_BRIEF"; then
+  bad "#522 lens-marker predicate — hold 2 defines lens_marker but its newest-marker command no longer
+      selects with it."
+elif [ "$lmk_calls" -ne 2 ]; then
+  bad "#522 lens-marker predicate — zombie-loop-detect.sh calls lens_marker at $lmk_calls sites, not 2
+      (the stale arm and the carry block); an arm selecting markers some other way has drifted."
+else
+  ok "#522 lens-marker predicate — hold 2 and zombie-loop-detect.sh carry the same lens_marker def, the brief's newest-marker command uses it, and the hook calls it at both marker arms (a STRING check)"
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

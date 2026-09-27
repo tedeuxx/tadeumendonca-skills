@@ -350,7 +350,8 @@ esac
 # WHAT IT STILL CANNOT SEE, the same blindness one notch narrower: a marker that does not open a
 # line (indented, or inside a blockquote) is invisible, and a comment that opens a line with the
 # lens envelope while opening its own body with neither envelope would still enter $m. Neither
-# occurs in 386 comments; neither is prevented.
+# occurs in 386 comments; neither is prevented. (A marker QUOTED inside a fenced code block no
+# longer enters $m since #522 round 3 — the fence limb of `lens_marker` below.)
 #
 # THE GATE-ENVELOPE LIMB IS DERIVED FROM `MARKER`, and it was two independently typed literals 91
 # lines apart until this line was written. The predicate was CORRECT either way at that head —
@@ -360,15 +361,35 @@ esac
 # stops excluding gate verdicts, which is #475 returning with this comment asserting it cannot.
 # `${MARKER%%:*}` strips from the first colon, so it expands byte-identically to the literal it
 # replaced (23 bytes, verified with `od -c`) and now MOVES WITH `MARKER` rather than beside it.
-harness_stale="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-verdict' --arg g "${MARKER%%:*}" '
+#
+# ── ONE PREDICATE, DEFINED ONCE, USED BY BOTH ARMS (#522 round 3, advisories A1 and A2) ─────────
+# `LENS_MARKER_JQ` below is the only definition of "a lens marker" in this hook. The stale arm and
+# the carry-forward block both call it, and hold 2 in agents/quality-assurance.md publishes the
+# SAME text for the gate, byte for byte (an inventory arm checks that). It adds a third limb to the
+# two above: a lens envelope at column 0 counts only OUTSIDE a fenced code block. A line whose
+# first characters (after at most three spaces) are ``` or ~~~ opens or closes a fence.
+# Why: a comment that QUOTES a marker in a fence — a relay, a gate discussing an earlier round —
+# otherwise became the "newest" marker, and its SHA governed the carry. Measured 2026-09-27 over
+# every PR comment carrying the literal and passing the author filter, both repositories: 505
+# comments (456 in -skills, 49 in -io), and the fence limb changes the verdict on ZERO of them.
+# `startswith` on the whole body was the other candidate and was NOT chosen: #475 measured it
+# dropping two genuine markers (-skills#305, #340), and in the newest-marker rule a dropped marker
+# is the fail-OPEN direction — the lens's latest word vanishes and an older closing one governs.
+# The author filter stays at each call site, because it reads the comment, not the body.
+LENS_MARKER_JQ='def lens_marker($lens; $g):
+  (startswith($g) | not)
+  and (reduce (split("\n")[]) as $l ({f: false, h: false};
+         if ($l | test("^ {0,3}(```|~~~)")) then .f = (.f | not)
+         elif (.f | not) and ($l | startswith($lens)) then .h = true
+         else . end) | .h);'
+harness_stale="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-verdict' --arg g "${MARKER%%:*}" "$LENS_MARKER_JQ"'
   (.headRefOid // "") as $h
   | if $h == "" then ""
     else [ .comments[]?
            | select((.authorAssociation // "") as $a
                     | ["OWNER","MEMBER","COLLABORATOR"] | index($a))
            | .body // ""
-           | select(startswith($g) | not)
-           | select(split("\n") | map(startswith($lens)) | any) ] as $m
+           | select(lens_marker($lens; $g)) ] as $m
          | if ($m | length) == 0 then ""
            elif ($m | map(select(contains($h))) | length) > 0 then ""
            else "stale" end
@@ -382,7 +403,8 @@ harness_stale="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-ve
 # words). Canonical statement, both classes, the repository test and the exact commands: hold 2.
 #
 # ONLY THE NEWEST LENS MARKER MAY CARRY. Comments arrive in posting order, so the newest is the
-# last one that passes the marker predicate above. An older marker never carries past a newer
+# last one that passes `lens_marker` above — the same predicate as the stale arm, never a looser
+# one. A gate verdict posted last is excluded by its envelope, and a fenced quote by the fence limb. An older marker never carries past a newer
 # one: a lens that blocked at a later commit is the lens's current word, and letting an earlier
 # closing marker stand in for it would carry a verdict the lens has since withdrawn. If the
 # newest marker does not carry, nothing does — no older marker is consulted.
@@ -422,13 +444,12 @@ harness_stale="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-ve
 # since the reviewed commit, and a merge from the trunk in that range shows up as the paths it
 # brought, which refuses the carry whenever they are in the class.
 if [ "$harness_stale" = "stale" ]; then
-  newest_sha="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-verdict' --arg g "${MARKER%%:*}" '
+  newest_sha="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-verdict' --arg g "${MARKER%%:*}" "$LENS_MARKER_JQ"'
     [ .comments[]?
       | select((.authorAssociation // "") as $a
                | ["OWNER","MEMBER","COLLABORATOR"] | index($a))
       | .body // ""
-      | select(startswith($g) | not)
-      | select(split("\n") | map(startswith($lens)) | any) ]
+      | select(lens_marker($lens; $g)) ]
     | last // ""
     | [capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")] | .[0].c // empty' 2>/dev/null || true)"
 

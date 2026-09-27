@@ -1005,7 +1005,8 @@ not.
      (ADR-0002, record 0015's Corollary 2) — ~~a diff touching `hooks/**`, `agents/**`, `skills/**`,
      `commands/**` or `.claude/**`~~ **a diff touching a path in the class that applies to the
      repository under review — the exclusion-list class in the plugin repository, the harness-path
-     list anywhere else (#521; both below)** requires an `<!-- harness-lead-verdict: … -->` comment on the PR
+     list anywhere else (#521; both below), and the UNION of both when you cannot classify the
+     repository (#522; the "Either call fails" bullet below)** requires an `<!-- harness-lead-verdict: … -->` comment on the PR
      **whose `commit:` line names the `headRefOid` you read for your own verdict** — **or, since
      2026-09-27 (#522), names an earlier commit of this PR from which the marker CARRIES FORWARD
      (the carry-forward rule below)** — before you may merge it. **This used to be
@@ -1146,9 +1147,49 @@ not.
      `the lens is CLOSED`, its open findings are the lens's word at this head, and you read them
      exactly as you would read them on a marker that named the head.
 
-     Take the full forty characters on the newest marker's `commit:` line as `<marker-sha>` — read
-     with `capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")`, the line pattern the corrected
-     limb below tests — and run, after the fetch above, three checks in order:
+     **WHICH COMMENTS ARE LENS MARKERS — select them with this, and with nothing looser (#522 round
+     3).** A comment is a lens marker when three things hold: its author association is `OWNER`,
+     `MEMBER` or `COLLABORATOR`; its body does NOT open with the gatekeeper envelope; and some line
+     OPENS with `<!-- harness-lead-verdict` at column 0 OUTSIDE a fenced code block. A line whose
+     first characters (after at most three spaces) are three backticks or three tildes opens or
+     closes a fence. The newest marker is the last comment that passes, in the order
+     `gh pr view --json comments` returns them, which is posting order. This command prints its
+     `<marker-sha>`, or nothing when the newest marker's `commit:` line has no full SHA:
+
+     ```
+     gh pr view <n> --repo <owner/repo> --json comments --jq 'def lens_marker($lens; $g):
+       (startswith($g) | not)
+       and (reduce (split("\n")[]) as $l ({f: false, h: false};
+              if ($l | test("^ {0,3}(```|~~~)")) then .f = (.f | not)
+              elif (.f | not) and ($l | startswith($lens)) then .h = true
+              else . end) | .h);
+     [ .comments[]
+       | select((.authorAssociation // "") as $a | ["OWNER","MEMBER","COLLABORATOR"] | index($a))
+       | .body // ""
+       | select(lens_marker("<!-- harness-lead-verdict"; "<!-- gatekeeper-verdict")) ]
+     | last // ""
+     | [capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")] | .[0].c // empty'
+     ```
+
+     **The `def` is the one `hooks/scripts/zombie-loop-detect.sh` runs for both of its marker arms,
+     word for word** (an inventory arm compares the two), so the gate and the stale notice cannot
+     disagree about which comment is newest. **Do NOT use `select(.body|test("harness-lead-verdict"))`
+     for this.** That selector is the counting instrument further down, and it also selects YOUR OWN
+     verdicts, because they quote the literal whenever they discuss hold 2. Measured 2026-09-27 over
+     the 60 most recent PRs of `tadeumendonca-skills`: on **16** of them the last comment it selects is
+     a gate verdict with no `commit:` line, so it yields no SHA and refuses a carry the lens marker
+     before it would grant. The command above yields a SHA on those 16. **Why the fence limb:** a
+     comment that quotes a marker inside a fence, such as a relay or a draft, is not the lens's word,
+     and without the limb its SHA would govern the carry. Over every PR comment carrying the literal
+     in both repositories (505 comments), the fence limb changes the answer on none, so it costs
+     nothing on the record and closes the case. **Why not "the body opens with the envelope":** #475
+     measured that form dropping two genuine markers (`-skills` #305 and #340). For the newest-marker
+     rule a dropped marker is the fail-open direction, because an older closing marker then governs.
+
+     Take the full forty characters on the newest marker's `commit:` line as `<marker-sha>` — the
+     command above prints it, with `capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")`, the
+     line pattern the corrected limb below tests — and run, after the fetch above, three checks in
+     order:
 
      ```
      git -C <repo> merge-base --is-ancestor <marker-sha> <headRefOid>          # must exit 0

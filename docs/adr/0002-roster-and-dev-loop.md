@@ -5561,7 +5561,16 @@ so:
   carried marker's open findings stand at the new head;
 - a path git quotes (`core.quotePath`, a non-ASCII or special-character name) is inside the class in
   both repositories. The consuming filter selects `^"` for the carry; the plugin filter already keeps
-  such a line.
+  such a line;
+- "a lens marker" has ONE definition, published in hold 2 and run by the `Stop` detector, compared
+  by an inventory arm: an author association of `OWNER`, `MEMBER` or `COLLABORATOR`, a body that does
+  not open with the gatekeeper envelope, and a line opening with the lens envelope at column 0
+  OUTSIDE a fenced code block. The looser `test("harness-lead-verdict")` also selects the gate's own
+  verdicts, and on 16 of the 60 most recent PRs its newest pick was a gate verdict with no `commit:`
+  line, which refuses a carry the lens marker before it would grant. The fence limb stops a quoted
+  marker (a relay, a draft) from becoming the newest; over 505 PR comments carrying the literal in
+  both repositories it changes no answer. "The body opens with the envelope" was rejected: #475
+  measured it dropping two genuine markers, and a dropped marker lets an older closing one govern.
 
 **A second correction the carry exposed, to the #521 amendment above.** #521 routed an unreadable
 repository test to "the wider class", meaning the exclusion list. That is false: the exclusion list
