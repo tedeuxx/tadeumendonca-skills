@@ -48,6 +48,13 @@
 #   arm 4b `touch hooks/scripts/zzznonce.sh && git add` it, list it in no rule     -> 1 failed
 #   arm 4b delete the `bash hooks/scripts/permission-guard.sh` allow               -> 1 failed
 #   arm 5  observed red before this suite was wired into a workflow at all
+#   arm 6  delete the ["git","push","origin",":main"] forbidden rule from the port  -> 1 failed
+#   arm 6  delete every `push -f` and `push origin main` base rule                  -> 2 failed
+#          (arm 6's vacuity guard, plus arm 2 -- those bases are settings.json denies)
+#
+# ARM 6 WAS ADDED TO THE SHARED BODY BY #531 IN THIS REPOSITORY FIRST. The sibling's copy does not
+# carry it until its own merge request syncs the body -- and when it does, it reddens there until that
+# port gains the same derived rules, which is the drift the arm exists to surface.
 #
 # ARM 4b's SECOND MUTATION IS THE ONE THAT MATTERS, and the first alone would have been a weaker
 # claim than it looks. Adding an unlisted file proves the arm reads the disk; deleting a listed rule
@@ -282,6 +289,43 @@ if [ "$wired" = "0" ]; then
   bad "arm 5 · no workflow under .github/workflows names $SELF — this suite runs nowhere"
 else
   ok "arm 5 · $SELF is named by $wired workflow file(s)"
+fi
+
+# --- ARM 6 · derived forcing/deleting spellings travel with their base rule (#531) -------------
+# Arm 2 checks the port against settings.json, and settings.json cannot name these: `:*` is a TOKEN
+# boundary, so `Bash(git push -f:*)` never matches `-fu`, and no deny entry is a prefix of
+# `git push origin :main`. The port CAN carry them as literals, so #531 added them — and this arm
+# keeps them paired. For every forbidden rule ending `"push", "-f"]` the same prefix must also be
+# forbidden with `-fu` and `-uf`; for every forbidden rule ending `"push", "origin", "main"]` the same
+# prefix must be forbidden with `:main` and `:refs/heads/main` (trunk deletion). Keyed on the BASE
+# rules rather than on paths, so it reads either repository's port. It proves the LIST, not the act:
+# `--force-with-lease=<ref>`, `+<ref>` and `-c …push=+…` cannot be literal prefixes at all, and are
+# held by the shared guard through the adapter, not here.
+derived_total=0
+derived_missing=0
+derived_list=""
+while IFS= read -r want; do
+  [ -n "$want" ] || continue
+  derived_total=$((derived_total + 1))
+  if ! printf '%s\n' "$corpus" | grep -Fxq "$want"; then
+    derived_missing=$((derived_missing + 1))
+    derived_list="$derived_list
+    $want"
+  fi
+done <<EOF
+$(printf '%s\n' "$corpus" | grep -F '"push", "-f"], decision="forbidden")' \
+  | sed -e 'p' -e 's/"-f"\]/"-uf"]/' | sed -e 's/"push", "-f"\]/"push", "-fu"]/')
+$(printf '%s\n' "$corpus" | grep -F '"push", "origin", "main"], decision="forbidden")' \
+  | sed -e 'p' -e 's/"origin", "main"\]/"origin", ":refs\/heads\/main"]/' \
+  | sed -e 's/"origin", "main"\]/"origin", ":main"]/')
+EOF
+
+if [ "$derived_total" -eq 0 ]; then
+  bad "arm 6 · no forbidden 'push -f' or 'push origin main' base rule — the arm would pass vacuously"
+elif [ "$derived_missing" -ne 0 ]; then
+  bad "arm 6 · $derived_missing of $derived_total derived forcing/deleting rule(s) are missing:$derived_list"
+else
+  ok "arm 6 · all $derived_total derived forcing/deleting rule(s) (-fu, -uf, :main, :refs/heads/main) sit beside their base"
 fi
 
 done_

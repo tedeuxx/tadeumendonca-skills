@@ -32,6 +32,16 @@
 # tracked, is run with `bash`, and is named here by NOTHING on purpose -- its absence from every
 # allow layer is what leaves a permission prompt standing where the deleted rule 11 milestone
 # verification used to be. Do not add an allow for it to quiet a gate; no gate asks for one.
+# #531 ADDED DERIVED FORBIDDEN RULES THAT HAVE NO settings.json SOURCE, and says which it could not.
+# For each of the four spellings: `push -fu`, `push -uf` (force in a short cluster) and
+# `push origin :main`, `push origin :refs/heads/main` (trunk DELETION). What a literal argv prefix
+# CANNOT carry, and stays with the shared guard through `scripts/codex-hook-adapter.py`:
+#   * `--force-with-lease=<ref>[:<sha>]` -- the value is fused into the flag's own token, and a
+#     prefix rule compares whole tokens, so no finite list names every <ref>;
+#   * `+<refspec>` and `-c remote.<r>.push=+...` -- same reason: the forcing `+` is inside a token
+#     whose remainder is a branch name or a config value;
+#   * any flag AFTER the refspec (`push origin feat/x --force...`) -- a prefix is anchored at argv[0].
+# Arm 6 of `hooks/scripts/codex-rules.test.sh` asserts the derived rules stay paired with their bases.
 # More restrictive matching rules win. Commands remain subject to AGENTS.md.
 prefix_rule(pattern=["actionlint"], decision="allow")
 prefix_rule(pattern=["awk"], decision="allow")
@@ -283,6 +293,10 @@ prefix_rule(pattern=["git", "-C", ".", "push", "--force"], decision="forbidden")
 prefix_rule(pattern=["git", "-C", ".", "push", "--force-with-lease"], decision="forbidden")
 prefix_rule(pattern=["git", "-C", ".", "push", "--tags"], decision="forbidden")
 prefix_rule(pattern=["git", "-C", ".", "push", "-f"], decision="forbidden")
+prefix_rule(pattern=["git", "-C", ".", "push", "-fu"], decision="forbidden")
+prefix_rule(pattern=["git", "-C", ".", "push", "-uf"], decision="forbidden")
+prefix_rule(pattern=["git", "-C", ".", "push", "origin", ":main"], decision="forbidden")
+prefix_rule(pattern=["git", "-C", ".", "push", "origin", ":refs/heads/main"], decision="forbidden")
 prefix_rule(pattern=["git", "-C", ".", "push", "origin", "HEAD:main"], decision="forbidden")
 prefix_rule(pattern=["git", "-C", ".", "push", "origin", "main"], decision="forbidden")
 prefix_rule(pattern=["git", "-C", ".", "reset", "--hard"], decision="forbidden")
@@ -293,6 +307,10 @@ prefix_rule(pattern=["git", "-C", "../tadeumendonca-io", "push", "--force"], dec
 prefix_rule(pattern=["git", "-C", "../tadeumendonca-io", "push", "--force-with-lease"], decision="forbidden")
 prefix_rule(pattern=["git", "-C", "../tadeumendonca-io", "push", "--tags"], decision="forbidden")
 prefix_rule(pattern=["git", "-C", "../tadeumendonca-io", "push", "-f"], decision="forbidden")
+prefix_rule(pattern=["git", "-C", "../tadeumendonca-io", "push", "-fu"], decision="forbidden")
+prefix_rule(pattern=["git", "-C", "../tadeumendonca-io", "push", "-uf"], decision="forbidden")
+prefix_rule(pattern=["git", "-C", "../tadeumendonca-io", "push", "origin", ":main"], decision="forbidden")
+prefix_rule(pattern=["git", "-C", "../tadeumendonca-io", "push", "origin", ":refs/heads/main"], decision="forbidden")
 prefix_rule(pattern=["git", "-C", "../tadeumendonca-io", "push", "origin", "HEAD:main"], decision="forbidden")
 prefix_rule(pattern=["git", "-C", "../tadeumendonca-io", "push", "origin", "main"], decision="forbidden")
 prefix_rule(pattern=["git", "-C", "../tadeumendonca-io", "reset", "--hard"], decision="forbidden")
@@ -303,6 +321,10 @@ prefix_rule(pattern=["git", "-C", "../tadeumendonca-skills", "push", "--force"],
 prefix_rule(pattern=["git", "-C", "../tadeumendonca-skills", "push", "--force-with-lease"], decision="forbidden")
 prefix_rule(pattern=["git", "-C", "../tadeumendonca-skills", "push", "--tags"], decision="forbidden")
 prefix_rule(pattern=["git", "-C", "../tadeumendonca-skills", "push", "-f"], decision="forbidden")
+prefix_rule(pattern=["git", "-C", "../tadeumendonca-skills", "push", "-fu"], decision="forbidden")
+prefix_rule(pattern=["git", "-C", "../tadeumendonca-skills", "push", "-uf"], decision="forbidden")
+prefix_rule(pattern=["git", "-C", "../tadeumendonca-skills", "push", "origin", ":main"], decision="forbidden")
+prefix_rule(pattern=["git", "-C", "../tadeumendonca-skills", "push", "origin", ":refs/heads/main"], decision="forbidden")
 prefix_rule(pattern=["git", "-C", "../tadeumendonca-skills", "push", "origin", "HEAD:main"], decision="forbidden")
 prefix_rule(pattern=["git", "-C", "../tadeumendonca-skills", "push", "origin", "main"], decision="forbidden")
 prefix_rule(pattern=["git", "-C", "../tadeumendonca-skills", "reset", "--hard"], decision="forbidden")
@@ -313,6 +335,10 @@ prefix_rule(pattern=["git", "push", "--force"], decision="forbidden")
 prefix_rule(pattern=["git", "push", "--force-with-lease"], decision="forbidden")
 prefix_rule(pattern=["git", "push", "--tags"], decision="forbidden")
 prefix_rule(pattern=["git", "push", "-f"], decision="forbidden")
+prefix_rule(pattern=["git", "push", "-fu"], decision="forbidden")
+prefix_rule(pattern=["git", "push", "-uf"], decision="forbidden")
+prefix_rule(pattern=["git", "push", "origin", ":main"], decision="forbidden")
+prefix_rule(pattern=["git", "push", "origin", ":refs/heads/main"], decision="forbidden")
 prefix_rule(pattern=["git", "push", "origin", "HEAD:main"], decision="forbidden")
 prefix_rule(pattern=["git", "push", "origin", "main"], decision="forbidden")
 prefix_rule(pattern=["git", "reset", "--hard"], decision="forbidden")
