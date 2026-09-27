@@ -1712,7 +1712,15 @@ echo "--- ANSI-C escape decoding is NOT covered, and these are the witnesses ---
 # never reads that file.
 check ALLOW "hex escape hides the MERGE GATE"  "bash -c \$'gh pr \\x6derge 145 --merge'"
 check ALLOW "hex escape hides rm -rf"          "bash -c \$'r\\x6d -rf /x'"
-check ALLOW "hex escape hides the trunk push"  "bash -c \$'git -C $FEAT push origin \\x6dain'"
+# ~~check ALLOW "hex escape hides the trunk push" …~~ — THE TRIPWIRE FIRED AT #531, AND IT FIRED FOR
+# THE REASON IT EXISTS: a widening of what reads a `git push` showed up as an arm someone had to look
+# at. It is FLIPPED, and what it now asserts is narrow on purpose. Rule 3b became an argv allowlist
+# and refuses any push token it cannot classify; `\x6dain` carries a backslash, so the push is denied
+# as UNCLASSIFIABLE. **Nothing decodes the escape** — the classifier never learns that `\x6dain` is
+# `main`, which is why the needle is 3b's "cannot classify" and NOT rule 7's trunk reason. The class
+# is still open one token over: an escape in the VERB (`pu\x73h`) is not a push to the classifier and
+# the other four witnesses below are untouched by #531.
+check_reason DENY "hex-escaped push token: 3b cannot classify it (not decoded)" "cannot classify" "bash -c \$'git -C $FEAT push origin \\x6dain'"
 # `\x6d` is not the last spelling, which is the whole reason the class came out of the floor rather
 # than out of the regex. Octal and plain concatenation need no escape decoding at all.
 check ALLOW "octal escape, same class"         "bash -c \$'gh pr \\155erge 145 --merge'"
@@ -1765,7 +1773,12 @@ echo "--- perl / ruby / eval: the hook is silent, but the floor now ASKS ---"
 # inverts; that is the limit of this suite, stated where the cases are.
 check ALLOW "perl -e: hook silent, floor asks"  "perl -e 'system(\"git push origin main\")'"
 check ALLOW "ruby -e: hook silent, floor asks"  "ruby -e 'system(\"git push origin main\")'"
-check ALLOW "eval: hook silent, floor asks"     "eval 'git push origin main'"
+# ~~check ALLOW "eval: hook silent, floor asks" "eval 'git push origin main'"~~ — INVERTED AT #531
+# round 2, deliberately and for the reason this block said would need looking at: rule 3b now unquotes
+# the one span after an `eval` and reads it, and any push found inside one is refused as "cannot
+# classify" (a force spelling answers first with the force reason). The hook is no longer silent on
+# eval; perl and ruby are unchanged, because nothing parses their languages.
+check_reason DENY "eval: 3b now reads the eval'd span (was hook-silent)" "cannot classify" "eval 'git push origin main'"
 
 echo "--- running a FILE is not a wrapper, and that is now load-bearing for the floor ---"
 # `bash script.sh` has no `-c`, so the unwrap does not fire and the hook stays silent — by design, and
@@ -1990,6 +2003,265 @@ check_from DENY "$TFEAT" "3b keeps: 'maintenance' is not 'main'" "git push origi
 # rewriting a pushed ref. Both are correct advice for their own act and wrong for the other's.
 check_reason DENY "7 answers the TRUNK force-push"     "pushing to the trunk" "git -C /some/repo push --force origin main"
 check_from_reason DENY "$TFEAT" "3b answers the NON-TRUNK force-push" "force-push" "git push origin feature-x --force"
+
+echo "--- #531: every forcing spelling the 162916b6 regex missed, one arm each ---"
+# EACH OF THESE DREW NO DECISION AT 162916b6, as orchestrator and as subagent (measured with PreToolUse
+# payloads before this slice's first edit), and the first one EXECUTED with no prompt on 2026-09-25.
+# Every arm asserts the REASON, from `$TFEAT` or behind an unresolvable `-C`, so rule 7's HEAD limb
+# cannot answer in 3b's place — the #453 lesson, applied from the start rather than after a red.
+#
+# CALIBRATION (reproduce it; do not trust these numbers):
+#   replant the 162916b6 3b block (delete the #531 classifier and its `case "$push_class"`, keep the
+#   legacy regex)            -> every arm in this block that asserts DENY via 3b reddens
+#   delete rule 7's `:main` limb                -> the two `:main`/`:refs/heads/main` arms redden
+#   restored                                    -> 0 failed
+# Measured at #531's build head, on a copy of the WHOLE worktree with the guard mutated and this
+# suite untouched: control 944 passed / 0 failed · replant 923 / 21 (all 21 are this slice's 3b DENY
+# arms, the hex witness above among them) · limb removed 940 / 4 (the four `:main` arms). The figures
+# move as the suite grows; the arm NAMES are the claim. COPY THE WHOLE TREE, NOT `hooks/scripts/`:
+# a directory-only copy fails 33 PARITY/CLAUDE-SHAPE arms in the unmutated control, because they
+# read `agents/` and `scripts/` relative to the root — the harness failing, not the guard.
+check_from_reason DENY "$TFEAT" "531/3b: --force-with-lease=x"                 "force-push rewrites" "git push --force-with-lease=x origin feat/x"
+check_from_reason DENY "$TFEAT" "531/3b: --force-with-lease=x:sha"             "force-push rewrites" "git push --force-with-lease=x:0123abc origin feat/x"
+check_from_reason DENY "$TFEAT" "531/3b: --force-with-lease=x AFTER the ref"   "force-push rewrites" "git push origin feat/x --force-with-lease=x"
+check_from_reason DENY "$TFEAT" "531/3b: --force-with-lease=x:sha AFTER the ref" "force-push rewrites" "git push origin feat/x --force-with-lease=x:0123abc"
+check_reason      DENY          "531/3b: -C <d> push --force-with-lease=x"      "force-push rewrites" "git -C /some/d push --force-with-lease=x origin feat/x"
+check_from_reason DENY "$TFEAT" "531/3b: +branch"                              "force-push rewrites" "git push origin +feat/x"
+check_from_reason DENY "$TFEAT" "531/3b: +HEAD:branch"                         "force-push rewrites" "git push origin +HEAD:feat/x"
+check_from_reason DENY "$TFEAT" "531/3b: +refs/heads/x"                        "force-push rewrites" "git push origin +refs/heads/x"
+check_from_reason DENY "$TFEAT" "531/3b: -fu"                                  "force-push rewrites" "git push -fu origin feat/x"
+check_from_reason DENY "$TFEAT" "531/3b: -uf"                                  "force-push rewrites" "git push -uf origin feat/x"
+check_from_reason DENY "$TFEAT" "531/3b: -c remote.o.push=+…"                  "'-c'/'--config-env'" "git -c remote.o.push=+refs/heads/feat/x:refs/heads/feat/x push o"
+# Caller-blind, like rule 7: the same spelling as the orchestrator (empty agent_type) and as a subagent.
+check_agent       DENY ""                                  "531/3b: orchestrator, --force-with-lease=x"   "git -C /some/d push --force-with-lease=x origin feat/x"
+check_agent       DENY "tadeumendonca-skills:developer"    "531/3b: subagent, --force-with-lease=x"       "git -C /some/d push --force-with-lease=x origin feat/x"
+check_agent       DENY "tadeumendonca-skills:agents-lead"  "531/3b: subagent, +branch behind -C"          "git -C /some/d push origin +feat/x"
+# Inside a wrapper: the classifier reads the unwrapped payload too.
+check_reason      DENY          "531/3b: bash -c wraps --force-with-lease=x"    "force-push rewrites" "bash -c 'git -C /some/d push --force-with-lease=x origin feat/x'"
+
+echo "--- #531: adjacent spellings the allowlist refuses as UNCLASSIFIABLE — two of them trunk holes ---"
+# Measured at 162916b6 alongside the Issue's list, and both drew no decision: a glob refspec that
+# includes the trunk, and an inline push.default=matching. Neither is a force; both can land on main.
+# Option B denies them by construction, which is the argument for B over widening the regex.
+check_from_reason DENY "$TFEAT" "531/3b: glob refspec (can sweep the trunk)"   "cannot classify"     "git push origin refs/heads/*:refs/heads/*"
+check_from_reason DENY "$TFEAT" "531/3b: -c push.default=matching"            "'-c'/'--config-env'" "git -c push.default=matching push"
+check_from_reason DENY "$TFEAT" "531/3b: --prune is not in the grammar"       "cannot classify"     "git push --prune origin feat/x"
+check_from_reason DENY "$TFEAT" "531/3b: a bare ':' pushes every matching ref" "cannot classify"     "git push origin :"
+
+echo "--- #531: rule 7 denies DELETING the trunk, with the trunk reason ---"
+check_from_reason DENY "$TFEAT" "531/r7: :main deletes the trunk"             "pushing to the trunk" "git push origin :main"
+check_from_reason DENY "$TFEAT" "531/r7: :refs/heads/main deletes the trunk"  "pushing to the trunk" "git push origin :refs/heads/main"
+check_agent       DENY "tadeumendonca-skills:developer" "531/r7: subagent, :main"                   "git -C /some/d push origin :main"
+check_agent       DENY ""                               "531/r7: orchestrator, :main"               "git -C /some/d push origin :main"
+
+echo "--- #531: the controls — ordinary pushes and a FEATURE-branch delete stay silent ---"
+# The ALLOW half is what keeps an allowlist honest: one that refuses the loop's own pushes is not a
+# fix. Feature-branch deletion stays allowed by the orchestrator's scope call on #531 (routine after
+# merge, and reparable); the owner may overrule it.
+check_from ALLOW "$TFEAT" "531/ctl: plain feature push"          "git push origin feat/x"
+check_from ALLOW "$TFEAT" "531/ctl: -u feature push"             "git push -u origin feat/x"
+check_from ALLOW "$TFEAT" "531/ctl: --dry-run"                   "git push --dry-run origin feat/x"
+check_from ALLOW "$TFEAT" "531/ctl: --delete a feature branch"   "git push origin --delete feat/x"
+check_from ALLOW "$TFEAT" "531/ctl: -d a feature branch"         "git push -d origin feat/x"
+check_from ALLOW "$TFEAT" "531/ctl: :feat/x deletes a feature"   "git push origin :feat/x"
+check_from ALLOW "$TFEAT" "531/ctl: the loop's own shape"        "git -C $TFEAT push -u origin loop/531-x"
+check_from ALLOW "$TFEAT" "531/ctl: add, commit, push"           "git add -A && git commit -m x && git push -u origin feat/x"
+check_from ALLOW "$TFEAT" "531/ctl: 2>&1 piped to tail"          "git push origin feat/x 2>&1 | tail -3"
+check_from ALLOW "$TFEAT" "531/ctl: -o push option"             "git push -o ci.skip origin feat/x"
+# A push followed on the NEXT LINE by another command: the classifier reads newlines as separators,
+# so the next line's flags are not push arguments. On a flattened view this arm would deny on --json.
+# Built through `check_agent` because `check_from`'s `jq -R` splits a multi-line command into two
+# payloads; `-C $TFEAT` keeps it hermetic instead of inheriting the runner's branch.
+check_agent ALLOW "" "531/ctl: next line is not a push arg" "git -C $TFEAT push origin feat/x
+gh pr view 1 --json title"
+# …and the calibration for it: the SAME two lines with a force flag on the second is still a deny,
+# because a newline is a separator, not a hiding place.
+check_agent DENY  "" "531/ctl: a force on the next line still denies" "git -C $TFEAT status
+git -C $TFEAT push -fu origin feat/x"
+
+echo "--- #531 round 2: a QUOTED or ESCAPED command name / subcommand no longer hides the push ---"
+# THE LENS'S CORPUS (PR #534 marker 5840666078). Every one of these drew NO DECISION at 162916b6 AND
+# at 4b66b789 — the view collapsed a quoted span to "" before tokenising, and the entry gate needed the
+# literal `push`. Asserted by REASON: the force spellings must be answered by the force reason, the
+# ones with nothing to read by "cannot classify".
+#
+# CALIBRATION (reproduce it; do not trust these numbers). Measured on a whole-tree copy, suite
+# untouched, control 976 passed / 0 failed:
+#   guard reverted to 4b66b789              -> 960 / 16: all of this block's DENY arms EXCEPT the
+#     `\git push --force` one (the kept 162916b6 raw regex already denied it — stated, not hidden),
+#     plus the two `531r2/trunk` arms that were ALLOW there and the inverted eval arm in the perl/ruby/eval block;
+#     `git push "--force"` reddens on REASON (it denied as "cannot classify", not as a force)
+#   `pv_obf_end` made a no-op (the mark)    -> 968 / 8: the seven `531r2/trunk` arms and the eval arm
+#     — i.e. the unquoting WITHOUT the mark is the nine-trunk-push hole, and these arms are its pin
+#   restored                                -> 976 / 0
+check_from_reason DENY "$TFEAT" "531r2: git \"push\" --force"                   "force-push rewrites" "git \"push\" --force origin feat/x"
+check_from_reason DENY "$TFEAT" "531r2: git 'push' -f"                          "force-push rewrites" "git 'push' -f origin feat/x"
+check_from_reason DENY "$TFEAT" "531r2: git p\\ush --force (escaped subcommand)" "cannot classify"    "git p\\ush --force origin feat/x"
+check_from_reason DENY "$TFEAT" "531r2: -C . \"push\" --force-with-lease=x"     "force-push rewrites" "git -C . \"push\" --force-with-lease=x origin feat/x"
+check_from_reason DENY "$TFEAT" "531r2: -C . pu''sh origin +feat/x"            "force-push rewrites" "git -C . pu''sh origin +feat/x"
+check_from_reason DENY "$TFEAT" "531r2: \\git push --force"                     "force-push rewrites" "\\git push --force origin feat/x"
+check_from_reason DENY "$TFEAT" "531r2: \"git\" push -fu"                       "force-push rewrites" "\"git\" push -fu origin feat/x"
+check_from_reason DENY "$TFEAT" "531r2: 'git' -C . push origin +feat/x"        "force-push rewrites" "'git' -C . push origin +feat/x"
+check_from_reason DENY "$TFEAT" "531r2: eval '… --force-with-lease=x …'"       "force-push rewrites" "eval 'git push --force-with-lease=x origin feat/x'"
+check_from_reason DENY "$TFEAT" "531r2: g\"\"it push -f (split name)"           "force-push rewrites" "g\"\"it push -f origin feat/x"
+check_from_reason DENY "$TFEAT" "531r2: git push \"--force\""                   "force-push rewrites" "git push \"--force\" origin feat/x"
+check_from_reason DENY "$TFEAT" "531r2: git \"\$SUB\" (expanded subcommand)"    "cannot classify"    "git \"\$SUB\" --force origin feat/x"
+check_agent       DENY "tadeumendonca-skills:developer" "531r2: subagent, git \"push\" --force" "git -C /some/d \"push\" --force origin feat/x"
+check_agent       DENY ""                               "531r2: orchestrator, \"git\" push -fu" "\"git\" -C /some/d push -fu origin feat/x"
+
+echo "--- #531 round 2: unquoting must NOT open a trunk push the collapsed view used to refuse ---"
+# THE FIRST FORM OF THIS REPAIR DELETED THE QUOTES AND TURNED EVERY ONE OF THESE FROM DENY TO ALLOW:
+# rule 7 reads its own collapsed view and never sees a quoted `main`, so the classifier was the only
+# layer refusing them. Measured against 4b66b789 before it shipped. A push the view had to unquote is
+# refused as "cannot classify" unless a force reason answers first — these arms pin that.
+check_from_reason DENY "$TFEAT" "531r2/trunk: origin \"main\""        "cannot classify" "git push origin \"main\""
+check_from_reason DENY "$TFEAT" "531r2/trunk: origin 'main'"          "cannot classify" "git push origin 'main'"
+check_from_reason DENY "$TFEAT" "531r2/trunk: origin \"HEAD:main\""   "cannot classify" "git push origin \"HEAD:main\""
+check_from_reason DENY "$TFEAT" "531r2/trunk: origin \":main\""       "cannot classify" "git push origin \":main\""
+check_from_reason DENY "$TFEAT" "531r2/trunk: origin ma''in"          "cannot classify" "git push origin ma''in"
+check_from_reason DENY "$TFEAT" "531r2/trunk: git \"push\" origin main (was ALLOW)" "cannot classify" "git \"push\" origin main"
+check_from_reason DENY "$TFEAT" "531r2/trunk: sudo \"git\" push origin main (was ALLOW)" "cannot classify" "sudo \"git\" push origin main"
+
+echo "--- #531 round 2: controls — message text, reads, and the loop's own pushes stay silent ---"
+check_from ALLOW "$TFEAT" "531r2/ctl: commit message quoting push --force"  "git commit -m \"docs: git 'push' --force-with-lease=x is a force\""
+check_from ALLOW "$TFEAT" "531r2/ctl: commit message with \"git\" push -fu"  "git -C /some/d commit -m '3b: git \"push\" -fu now denies'"
+check_from ALLOW "$TFEAT" "531r2/ctl: commit message with eval '…--force'"  "git commit -m \"eval 'git push --force'\""
+check_from ALLOW "$TFEAT" "531r2/ctl: git log --grep=push"                  "git log --grep=push"
+check_from ALLOW "$TFEAT" "531r2/ctl: git log --grep='push --force'"        "git -C . log --grep='push --force' --oneline"
+check_from ALLOW "$TFEAT" "531r2/ctl: grep git \"\$f\" is not an invocation" "grep -rn git \"\$DIR\""
+check_from ALLOW "$TFEAT" "531r2/ctl: echo \"git\" push prints a word"       "echo \"git\" push"
+check_from ALLOW "$TFEAT" "531r2/ctl: -C \"<dir>\" before a plain push"      "git -C \"$TFEAT\" push -u origin feat/x"
+check_from ALLOW "$TFEAT" "531r2/ctl: stash push -m \"wip\""                 "git -C . stash push -m \"wip\""
+check_from ALLOW "$TFEAT" "531r2/ctl: quoted -c on a non-push"              "git -c \"user.name=A B\" commit -m x"
+check_from ALLOW "$TFEAT" "531r2/ctl: add, commit \"…push…\", push"          "git add -A && git commit -m \"fix: 'push' quoting\" && git push -u origin feat/x"
+
+echo "--- #531 round 3 (A2): BRACE EXPANSION in a push is refused, not decoded ---"
+# The lens's A2 (PR #534 marker 5842274316): each drew NO DECISION at 4bfbfe19 — 3b turned `{`/`}`
+# into separators, cutting the `+` or the `main` out of the push, and rule 7 read the unexpanded text.
+# What bash runs: `{+,}feat/x` -> `+feat/x feat/x` (a FORCE); `HEAD:{m,}ain` -> `HEAD:main HEAD:ain`.
+# Rule 7 answers first (brace reason); 3b's GS mark is the second layer, and the only one for the
+# name/subcommand arms, which rule 7 cannot see. Calibration figures: see the PR body (#534), which
+# records the mutation runs; they are not restated here because they move with the suite.
+check_from_reason DENY "$TFEAT" "531r3/A2: origin {+,}feat/x (a force)"        "brace expansion" "git push origin {+,}feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A2: HEAD:{m,}ain (a trunk push)"        "brace expansion" "git push origin HEAD:{m,}ain"
+check_from_reason DENY "$TFEAT" "531r3/A2: feat/x:{main,} (a trunk push)"      "brace expansion" "git push origin feat/x:{main,}"
+check_from_reason DENY "$TFEAT" "531r3/A2: -C . HEAD:{m,}ain"                  "brace expansion" "git -C . push origin HEAD:{m,}ain"
+check_from_reason DENY "$TFEAT" "531r3/A2: -{f,u} (a force flag)"              "brace expansion" "git push -{f,u} origin feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A2: {\"+\",}feat/x (quoted member)"     "brace expansion" "git push origin {\"+\",}feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A2: nested feat/{a,{b,c}}"              "brace expansion" "git push origin feat/{a,{b,c}}"
+check_from_reason DENY "$TFEAT" "531r3/A2: sequence {a..c}"                    "brace expansion" "git push origin {a..c}"
+check_from_reason DENY "$TFEAT" "531r3/A2: subcommand p{u,}sh (3b only)"       "cannot classify" "git p{u,}sh origin feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A2: name {g,}it (3b only)"              "cannot classify" "{g,}it push origin feat/x"
+check_agent       DENY "tadeumendonca-skills:developer" "531r3/A2: subagent, {+,}feat/x" "git -C $TFEAT push origin {+,}feat/x"
+check_agent       DENY ""                               "531r3/A2: orchestrator, HEAD:{m,}ain" "git -C $TFEAT push origin HEAD:{m,}ain"
+echo "--- #531 round 3 (A2): controls — a brace that is not in a push stays silent ---"
+check_from ALLOW "$TFEAT" "531r3/A2ctl: echo {a,b}"                          "echo {a,b}"
+check_from ALLOW "$TFEAT" "531r3/A2ctl: echo {1..3}"                         "echo {1..3}"
+check_from ALLOW "$TFEAT" "531r3/A2ctl: mkdir -p d/{a,b}"                    "mkdir -p d/{a,b}"
+check_from ALLOW "$TFEAT" "531r3/A2ctl: \${x,y} is a parameter expansion"    "echo \${x,y} && git push -u origin feat/x"
+check_from ALLOW "$TFEAT" "531r3/A2ctl: brace AFTER the push's separator"    "git push -u origin feat/x && echo {a,b}"
+check_from ALLOW "$TFEAT" "531r3/A2ctl: group braces { …; }"                  "{ git push -u origin feat/x; }"
+check_from ALLOW "$TFEAT" "531r3/A2ctl: quoted brace in a commit message"    "git commit -m \"x {a,b}\" && git push -u origin feat/x"
+check_from ALLOW "$TFEAT" "531r3/A2ctl: quoted brace in a git format"        "git log --format='{a,b}'"
+
+echo "--- #531 round 3 (A3): a CASE-VARIANT or GLOB command name is git too ---"
+# The lens's A3: `GIT` resolves to /usr/bin/GIT on a case-insensitive filesystem (`GIT --version` ->
+# `git version 2.54.0`, measured) and the globs expand to /usr/bin/git. All drew NO DECISION at
+# 4bfbfe19. Rule 7 reads the folded `$bare7` (trunk-reason arms); 3b's scan state reads the same names
+# in command position and marks the invocation (the "cannot classify" arms).
+check_from_reason DENY "$TFEAT" "531r3/A3: GIT push --force"                   "force-push rewrites" "GIT push --force origin feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A3: GIT push origin main"               "pushing to the trunk" "GIT push origin main"
+check_from_reason DENY "$TFEAT" "531r3/A3: Git push origin main"               "pushing to the trunk" "Git push origin main"
+check_from_reason DENY "$TFEAT" "531r3/A3: /usr/bin/GIT push origin main"      "pushing to the trunk" "/usr/bin/GIT push origin main"
+check_from_reason DENY "$TFEAT" "531r3/A3: /usr/bin/gi[t] push origin main"    "pushing to the trunk" "/usr/bin/gi[t] push origin main"
+check_from_reason DENY "$TFEAT" "531r3/A3: /usr/bin/g?t push origin main"      "pushing to the trunk" "/usr/bin/g?t push origin main"
+check_from_reason DENY "$TFEAT" "531r3/A3: /usr/bin/gi[t] push --force"        "force-push rewrites" "/usr/bin/gi[t] push --force origin feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A3: /usr/bin/g?t push origin +feat/x"   "force-push rewrites" "/usr/bin/g?t push origin +feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A3: GIT push (no force, 3b mark)"       "cannot classify" "GIT push origin feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A3: g*t push (3b mark)"                 "cannot classify" "g*t push origin feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A3: \\GIT push"                         "cannot classify" "\\GIT push origin feat/x"
+check_from_reason DENY "$TFEAT" "531r3/A3: GIT -C <main> push, HEAD on main"   "HEAD is 'main'" "GIT -C $TMAIN push"
+check_agent       DENY "tadeumendonca-skills:developer" "531r3/A3: subagent, GIT push origin main" "GIT -C $TFEAT push origin main"
+check_agent       DENY ""                               "531r3/A3: orchestrator, g?t push origin main" "/usr/bin/g?t -C $TFEAT push origin main"
+echo "--- #531 round 3 (A3): controls — a glob or an upper-case word that is not a git name ---"
+check_from ALLOW "$TFEAT" "531r3/A3ctl: ls *.md"                             "ls *.md"
+check_from ALLOW "$TFEAT" "531r3/A3ctl: git add *.md && commit"              "git add *.md && git commit -m x"
+check_from ALLOW "$TFEAT" "531r3/A3ctl: [ -f x ] && push"                    "[ -f x ] && git push -u origin feat/x"
+check_from ALLOW "$TFEAT" "531r3/A3ctl: [[ -n \"\$x\" ]] && push"            "[[ -n \"\$x\" ]] && git push -u origin feat/x"
+check_from ALLOW "$TFEAT" "531r3/A3ctl: grep -rn GIT . (an argument)"        "grep -rn GIT ."
+check_from ALLOW "$TFEAT" "531r3/A3ctl: GIT status is not a push"           "GIT status"
+check_from ALLOW "$TFEAT" "531r3/A3ctl: git PUSH is not a push (git refuses)" "git PUSH origin feat/x"
+# The one ALLOW->DENY the transcript corpus found on the first form of this arm: a lone `*` bullet
+# at the start of a heredoc body line stands in command position, and `*` matches `git` as a
+# pattern. A pattern that matches ANY word names no program, so it is left.
+check_from ALLOW "$TFEAT" "531r3/A3ctl: heredoc '* \"new\"' bullet is not a git" "python3 - <<'PY'
+x = 1
+* \"new\" item
+PY"
+check_from ALLOW "$TFEAT" "531r3/A3ctl: heredoc \"* 'new item'\" bullet"  "python3 - <<'PY'
+* 'new item' x
+PY"
+check_from ALLOW "$TFEAT" "531r3/A3ctl: lone * before push in a heredoc"   "python3 - <<'PY'
+* push origin main
+PY"
+
+echo "--- #531 round 4 (B2): a ZSH glob group names git too — the Bash tool runs zsh ---"
+# The lens's round-3 B2 (PR #534 marker 5847119887): the Bash tool runs zsh 5.9, whose core globbing
+# has grouping and alternation — `/usr/bin/(git|zzq) --version` and `/usr/bin/g(i)t --version` print
+# git's version under the tool's own wrapper, measured. 3b turned `(`, `|`, `)` into separators, so
+# each of these drew NO DECISION at 9470fb6f. A glob group becomes a DELIMITED span: as a command
+# name it is rebuilt as the extglob it is (`g(i)t` -> `g@(i)t`) and matched against `git`; as a
+# subcommand or refspec it is a character the grammar refuses. Not decoded past that.
+check_from_reason DENY "$TFEAT" "531r4/B2: /usr/bin/(git|zzq) push --force"    "force-push rewrites" "/usr/bin/(git|zzq) push --force origin feat/x"
+check_from_reason DENY "$TFEAT" "531r4/B2: /usr/bin/g(i)t push origin main"    "cannot classify" "/usr/bin/g(i)t push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: /usr/bin/(git) push origin :main"   "cannot classify" "/usr/bin/(git) push origin :main"
+check_from_reason DENY "$TFEAT" "531r4/B2: right-glued (g)it"                  "cannot classify" "/usr/bin/(g)it push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: nested ((g)i)t"                     "cannot classify" "/usr/bin/((g)i)t push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: adjacent (g)(i)t"                   "cannot classify" "/usr/bin/(g)(i)t push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: pure nesting ((git))"               "cannot classify" "/usr/bin/((git)) push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: pure nesting g((i))t"               "cannot classify" "/usr/bin/g((i))t push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: case variant (G|x)(I)T"             "cannot classify" "/usr/bin/(G|x)(I)T push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: three alternations (g|h)(i|j)(t|u)" "cannot classify" "/usr/bin/(g|h)(i|j)(t|u) push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: twelve alternatives, git last"      "cannot classify" "/usr/bin/(a|b|c|d|e|f|g|h|i|j|k|git) push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: a / inside the group, refused"       "cannot classify" "env (/usr/bin/git) push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: subcommand pu(s)h"                  "cannot classify" "git pu(s)h origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: g(i)t pu(s)h (no literal git/push)" "cannot classify" "g(i)t pu(s)h origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: argument-position env (git)"        "cannot classify" "env (git) push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: argument-position command (git|x)"  "cannot classify" "command (git|zzq) push origin main"
+check_from_reason DENY "$TFEAT" "531r4/B2: sudo /usr/bin/(git) push -f"        "force-push rewrites" "sudo /usr/bin/(git) push -f origin feat/x"
+check_from_reason DENY "$TFEAT" "531r4/B2: inside bash -c"                     "cannot classify" "bash -c '/usr/bin/(git) push origin main'"
+check_agent       DENY "tadeumendonca-skills:developer" "531r4/B2: subagent, /usr/bin/(git|zzq) push --force" "/usr/bin/(git|zzq) -C $TFEAT push --force origin feat/x"
+check_agent       DENY ""                               "531r4/B2: orchestrator, /usr/bin/g(i)t push origin main" "/usr/bin/g(i)t -C $TFEAT push origin main"
+echo "--- #531 round 4 (B2): controls — a subshell, \$(…), <(…), () and prose are not glob groups ---"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: subshell (cd d && ls)"               "(cd /tmp && ls)"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: one-word subshell (true)"            "(true)"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: then (true) fi"                      "if true; then (true); fi"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: function f() { …; }"                 "f() { echo hi; }"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: process substitution <(…)"          "diff <(ls) <(ls -a)"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: arithmetic for ((…))"                "for ((i=0;i<3;i++)); do echo \$i; done"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: arithmetic ((i++)), then a push"     "((i++)); git -C . push -u origin feat/x"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: if ((x==1)); then …"                 "if ((x==1)); then echo y; fi"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: push, then a subshell"              "git -C . push -u origin feat/x && (cd /tmp && ls)"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: heredoc python calls"               "python3 - <<'PY'
+import os
+print(os.getcwd())
+x = len(y)
+PY"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: heredoc markdown link"              "cat <<'EOF'
+see [the PR](https://example.com/pr/1).
+EOF"
+# The corpus's own finding against the FIRST form of this mark, which replaced a group with A2's bare
+# GS: a GS in a command name reads as "maybe git" unconditionally, so a Python heredoc line OPENING
+# with a call — `samples[k].append(v)`, `for b in (d.get('m') or {}):` — became a git invocation and
+# 22 transcript commands went ALLOW -> DENY. The name is now matched, not assumed.
+check_from ALLOW "$TFEAT" "531r4/B2ctl: heredoc line opening with a call"    "python3 - <<'PY'
+samples[k].append(v)
+print(os.getcwd(), len(x))
+PY"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: heredoc for-loop over a call"       "python3 - <<'PY'
+for b in (d.get('m') or {}): print(b.get('x'), repr(c))
+PY"
+check_from ALLOW "$TFEAT" "531r4/B2ctl: a group that cannot name git"       "/usr/bin/(zzq) push --force-with-lease origin feat/x"
 
 # ── #453: the collision those nine arms were standing on, asserted instead of inherited ───────────
 #
@@ -2746,6 +3018,228 @@ if (( t1 - t0 <= 1 )); then
 else
   fail=$((fail + 1)); printf 'FAIL  #500 B1: N=2500 took %ss — the heredoc queue pop is no longer O(1)\n' "$((t1 - t0))"
 fi
+# #531 ROUND 4, B1 — THE SAME CLASS, ONE RULE LATER. Rule 7's glob fold (#531 round 3, A3) built its
+# output with `r7_out="$r7_out $r7_w"`, O(n²) in the word count, and it runs over every word whenever
+# the command carries `[`, `?` or `*`. A 51 KB markdown-table heredoc before a force push took 7.9 s at
+# 9470fb6f against 0.68 s at 4bfbfe19: past the 5 s hook timeout and the adapter's 4.0 s, so the DENY
+# became no decision. With an array it answers in about 1.3 s here. 51,051 characters is inside
+# SUBST_BUDGET, so the budget cannot end it early — this row times the fold itself.
+glob_table="$(printf 'cat <<%sEOF%s\n' "'" "'"; printf '| a | b* | [x] |\n%.0s' $(seq 3000); printf 'EOF\ngit -C . push --force origin feat/x')"
+t0=$SECONDS
+check_from_reason DENY "$TFEAT" "#531 B1: a 51 KB glob-dense heredoc before a force push still DENIES" \
+                  "force-push rewrites" "$glob_table"
+t1=$SECONDS
+if (( t1 - t0 <= 3 )); then
+  pass=$((pass + 1)); printf 'ok    TIME   #531 B1: N=3000 answered in %ss, inside the adapter'"'"'s 4.0 s\n' "$((t1 - t0))"
+else
+  fail=$((fail + 1)); printf 'FAIL  #531 B1: N=3000 took %ss — rule 7'"'"'s glob fold is no longer linear, and past 4.0 s the adapter abstains\n' "$((t1 - t0))"
+fi
+# THE SAME CLASS IN 3b's MARKS. The A2 brace mark was a `:a … ta` loop, one substitution per pass and
+# every pass a re-scan: a 12,000-deep nested brace before a force push took 22 s at 9470fb6f, and the
+# first form of the B2 glob-group mark took 45 s on a 12,000-deep `a(b(…))`. Both are now unrolled to
+# PV_MARK_PASSES `g` passes, linear in the text, with a fail-closed fallback past that depth.
+deep_brace="echo $(printf '{a,%.0s' $(seq 12000))z$(printf '}%.0s' $(seq 12000)) && git -C . push --force origin feat/x"
+deep_paren="echo $(printf 'a(%.0s' $(seq 12000))z$(printf ')%.0s' $(seq 12000)) && git -C . push --force origin feat/x"
+for deep in brace paren; do
+  if [ "$deep" = brace ]; then deep_cmd="$deep_brace"; else deep_cmd="$deep_paren"; fi
+  t0=$SECONDS
+  check_from DENY "$TFEAT" "#531 B1: a 12,000-deep nested $deep before a force push still DENIES" "$deep_cmd"
+  t1=$SECONDS
+  if (( t1 - t0 <= 3 )); then
+    pass=$((pass + 1)); printf 'ok    TIME   #531 B1: 12,000-deep %s answered in %ss\n' "$deep" "$((t1 - t0))"
+  else
+    fail=$((fail + 1)); printf 'FAIL  #531 B1: 12,000-deep %s took %ss — a 3b mark is looping per span again\n' "$deep" "$((t1 - t0))"
+  fi
+done
+# The bound's three sides. Within the bound a glued group is marked exactly and a subshell push after
+# it is untouched (each pass can collapse more than one level of a glued chain, so the bound is at
+# least PV_MARK_PASSES levels — 40 is past it for every spelling, measured). Past it, EVERY bracket
+# becomes a mark: a 40-deep `/usr/bin/((…(git)…))` — a glob zsh
+# runs as git — still denies (without the fallback its outer brackets became separators and the name
+# came apart), and so does a PLAIN push in a subshell that merely shares the command with a deep
+# group, because its own `(`/`)` become marks glued to `git` and to the refspec. That last
+# row is the over-block the bound buys, pinned so it is a decision rather than a discovery.
+deep40="$(printf '(%.0s' $(seq 40))"; deep40c="$(printf ')%.0s' $(seq 40))"
+check_from        ALLOW "$TFEAT" "#531 B1: a 3-deep glued group, then a subshell push" \
+                  "echo a(b(c(d))) && (git -C . push -u origin feat/x)"
+check_from_reason DENY  "$TFEAT" "#531 B1: a 40-deep glob name falls back, closed"   "cannot classify" \
+                  "/usr/bin/${deep40}git${deep40c} push origin main"
+check_from_reason DENY  "$TFEAT" "#531 B1: the fallback's over-block, pinned"        "cannot classify" \
+                  "echo a${deep40}z${deep40c} && (git -C . push -u origin feat/x)"
+# #531 ROUND 5, N1 — EXPONENTIAL, NOT QUADRATIC, AND IN THE NAME ARM. The B2 fix rebuilt a grouped
+# command name as an extglob (`g(i)t` -> `g@(i)t`) and matched it against `zzzz` and eight spellings of
+# `git`. Bash's extglob matcher backtracks exponentially on `@(…)` groups holding `*` or `?`, so at
+# fea9caeb `/usr/bin/(*|*)…×18q; git -C . push --force origin feat/x` (137 characters) drew no answer
+# in 60 s, and the heredoc form through the Codex adapter went SILENT at 4 s. The name arm now refuses
+# a grouped name carrying `*` or `?`, or more than four groups, WITHOUT matching it. These rows
+# run the guard under a hard 8 s alarm, because the unfixed guard does not terminate on its own and a
+# row that hangs the suite is not a red. Each must DENY, and inside 3 s.
+n1_row() { # n1_row <desc> <cmd>
+  n1_t0=$SECONDS
+  n1_out=$(printf '%s' "$2" | jq -R '{tool_input:{command:.}}' | (cd "$TFEAT" && perl -e 'alarm shift; exec @ARGV' 8 bash "$GUARD"))
+  n1_t1=$SECONDS
+  n1_got=$(verdict "$n1_out"); [ -n "$n1_out" ] || n1_got="NO-DECISION"
+  if [ "$n1_got" = DENY ] && (( n1_t1 - n1_t0 <= 3 )); then
+    pass=$((pass + 1)); printf 'ok    DENY   #531 N1: %s (%ss)\n' "$1" "$((n1_t1 - n1_t0))"
+  else
+    fail=$((fail + 1)); printf 'FAIL  #531 N1: %s — got %s in %ss; the extglob name match is exponential again\n' "$1" "$n1_got" "$((n1_t1 - n1_t0))"
+  fi
+}
+n1_g2="$(printf '(*|*)%.0s' $(seq 18))"
+n1_g3="$(printf '(*|?|*)%.0s' $(seq 16))"
+n1_e2="$(printf '(*|*)%.0s' $(seq 16))"
+n1_row "/usr/bin/(*|*)x18q before a force push"       "/usr/bin/${n1_g2}q; git -C . push --force origin feat/x"
+n1_row "/usr/bin/(*|?|*)x16q before a force push"     "/usr/bin/${n1_g3}q; git -C . push --force origin feat/x"
+n1_row "env (*|*)x16q before a force push"            "env ${n1_e2}q; git -C . push --force origin feat/x"
+n1_row "a heredoc body line (*|*)x16q, then a force push" \
+       "$(printf "cat <<'EOF'\nx/%sq\nEOF\ngit -C . push --force origin feat/x" "$n1_e2")"
+# `[` is NOT refused, and these two rows are why. A bracket is one character wide, so it adds no split
+# position: four groups of 200 `[!z]` alternatives before a trailing mismatch are still MATCHED, and
+# must answer inside the same bound. And refusing `[` turned four transcript heredocs whose body line
+# carries `if len(samples[short])<2: …` from ALLOW to DENY — the second row is that line, verbatim from
+# the corpus, and must stay silent.
+n1_br="([!z]$(printf '|[!z]%.0s' $(seq 199)))"
+n1_row "/usr/bin/([!z]|…×200)x4q before a force push (matched, not refused)" \
+       "/usr/bin/${n1_br}${n1_br}${n1_br}${n1_br}q; git -C . push --force origin feat/x"
+check_from ALLOW "$TFEAT" "#531 N1: a bracket in a grouped name is matched, so a heredoc line len(a[k]) stays silent" \
+           "$(printf "python3 - <<'PY'\n    if len(samples[short])<2: samples[short].append(blob[:260])\nPY")"
+# The cheap side stays exact: a literal-alternation name with few groups is still MATCHED, so
+# `g(i|x)t` is read as git (DENY) and `(ls|cat)x` is not (a plain push after it stays ALLOW).
+check_from_reason DENY  "$TFEAT" "#531 N1: a literal g(i|x)t is still matched as git"  "cannot classify" \
+                  "g(i|x)t push origin feat/x"
+check_from        ALLOW "$TFEAT" "#531 N1: a literal (ls|cat)x name is still matched, not git" \
+                  "(ls|cat)x README; git -C . push -u origin feat/x"
+# The price, pinned so it is a decision rather than a discovery — one row per half of the bound, so
+# removing either half reddens a row even though each half alone would keep the timed rows fast. A
+# grouped name with `*` or `?` in it, or with five groups, is refused WITHOUT being matched, so a push
+# through it denies although neither `(*|x)q` nor `(a|b)×5` can expand to git. Four literal groups
+# are still matched, and stay silent.
+check_from_reason DENY  "$TFEAT" "#531 N1 over-block: a glob inside a grouped name"   "cannot classify" \
+                  "(*|x)q push origin feat/x"
+check_from_reason DENY  "$TFEAT" "#531 N1 over-block: five literal groups in a name"  "cannot classify" \
+                  "(a|b)(a|b)(a|b)(a|b)(a|b) push origin feat/x"
+check_from        ALLOW "$TFEAT" "#531 N1: four literal groups are still matched, not git" \
+                  "(a|b)(a|b)(a|b)(a|b) push origin feat/x"
+# #531 ROUND 5 — THE ARM WAS NOT BOUNDED, ONLY ITS MATCH WAS. Bash 3.2's `${var//pat/}` costs roughly
+# the cube of the string's length, and 3b ran one on the whole token (the mark strip, the backslash
+# strip, the two group counts) before any bound was consulted, so one ~4,000-character space-free word
+# before a force push took 5-7 s at 2b2fb5d8 and the Codex adapter went SILENT. Two fixes, pinned
+# separately so removing either reddens a row:
+#   · THE LENGTH CHECK — each shape runs with the time budget BYPASSED (PERMISSION_GUARD_WORKER=1, the
+#     worker path), so only 3b's own bound can keep it inside 2 s; remove it and these go to 5-7 s.
+#   · THE SUPERVISED PATH — the same shape through the budget must DENY on its OWN reason (a force),
+#     never on the budget's: the budget is the backstop, not the fix.
+r5_row() { # r5_row <desc> <cmd>
+  r5_t0=$SECONDS
+  r5_out=$(printf '%s' "$2" | jq -Rs '{tool_input:{command:.}}' | (cd "$TFEAT" && PERMISSION_GUARD_WORKER=1 perl -e 'alarm shift; exec @ARGV' 8 bash "$GUARD"))
+  r5_t1=$SECONDS
+  r5_got=$(verdict "$r5_out"); [ -n "$r5_out" ] || r5_got="NO-DECISION"
+  if [ "$r5_got" = DENY ] && (( r5_t1 - r5_t0 <= 2 )); then
+    pass=$((pass + 1)); printf 'ok    DENY   #531 round 5 (length bound, no budget): %s (%ss)\n' "$1" "$((r5_t1 - r5_t0))"
+  else
+    fail=$((fail + 1)); printf 'FAIL  #531 round 5 (length bound, no budget): %s — got %s in %ss; a long token reaches a ${…//…} again\n' "$1" "$r5_got" "$((r5_t1 - r5_t0))"
+  fi
+  r5_out=$(printf '%s' "$2" | jq -Rs '{tool_input:{command:.}}' | (cd "$TFEAT" && perl -e 'alarm shift; exec @ARGV' 8 bash "$GUARD"))
+  r5_reason=$(printf '%s' "$r5_out" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""' 2>/dev/null)
+  case "$r5_reason" in
+    *"time budget"*|"") fail=$((fail + 1)); printf 'FAIL  #531 round 5 (supervised): %s — reason %.60s…; the budget answered, not the rule\n' "$1" "$r5_reason" ;;
+    *) pass=$((pass + 1)); printf 'ok    DENY   #531 round 5 (supervised, the rule answers, not the budget): %s\n' "$1" ;;
+  esac
+}
+r5_f="git -C . push --force origin feat/x"
+r5_a4000="$(printf '%*s' 4000 '' | tr ' ' a)"
+r5_a900="$(printf '%*s' 900 '' | tr ' ' a)"
+r5_az="$(printf 'a-z%.0s' $(seq 1000))"; r5_q="$(printf '%*s' 1000 '' | tr ' ' q)"
+r5_row "S1 a heredoc line print(a x4000)"               "$(printf "python3 - <<'PY'\nprint(%s)\nPY\n%s" "$r5_a4000" "$r5_f")"
+r5_row "S2 a grouped name carrying * (the refused path)" "/usr/bin/(${r5_a4000}|*)q; $r5_f"
+r5_row "S3 four literal groups x900 (inside the cap)"    "/usr/bin/(${r5_a900}|z)(${r5_a900}|z)(${r5_a900}|z)(${r5_a900}|z)q; $r5_f"
+r5_row "S4 bracket groups x1000 (inside the cap)"        "/usr/bin/([${r5_az}]|z)([!${r5_q}]|z)q; $r5_f"
+r5_row "S5 echo a'' x3000 (the mark strip, argument position)" "echo $(printf "a''%.0s" $(seq 3000)); $r5_f"
+r5_row "S6 \\a\\ x3000 (the backslash strip)"          "\\$(printf 'a\\%.0s' $(seq 3000)); $r5_f"
+# The price of the bound, pinned so it is a decision: a long word in COMMAND position opens a git
+# invocation marked obfuscated, so a push read through it denies — and a long word in ARGUMENT position
+# with no backslash, mark or `/git` in it is left alone, so a plain push after it stays silent.
+check_from_reason DENY  "$TFEAT" "#531 round 5 over-block: a long command-position word read as maybe-git" "cannot classify" \
+                  "x${r5_a900} push origin feat/x"
+check_from        ALLOW "$TFEAT" "#531 round 5: a long argument word is not a git invocation" \
+                  "echo ${r5_a900}; git -C . push -u origin feat/x"
+check_from_reason DENY  "$TFEAT" "#531 round 5: a long marked word after git may be push" "may be 'push'" \
+                  "git pu$(printf "''%.0s" $(seq 300))sh origin feat/x"
+check_from_reason DENY  "$TFEAT" "#531 round 5: a short marked push is still stripped and read (the short path is unchanged)" \
+                  "were quoted or escaped" "git pu''sh -u origin feat/x"
+# THE TIME BUDGET — the backstop for the slow path nobody has found yet. A real one first: a heredoc of
+# 1,000 grouped lines each just under the bound costs ~4 s with the budget bypassed on this machine —
+# past the Codex adapter's 4.0 s — because the per-token cost is small and additive. Through the
+# supervisor it must still be a DENY, inside the alarm. The threshold is 4 because `$SECONDS` is whole
+# seconds and the budget lands at ~3.03 s, so 3 would flake on the phase; this row pins "a DENY, not
+# silence", and the synthetic rows below are what pin the budget itself.
+r5_sub="x/($(printf '%*s' 248 '' | tr ' ' a)|z)q"
+r5_agg="$(printf "cat <<'EOF'\n"; for _ in $(seq 1000); do printf '%s\n' "$r5_sub"; done; printf 'EOF\n%s' "$r5_f")"
+r5_t0=$SECONDS
+r5_out=$(printf '%s' "$r5_agg" | jq -Rs '{tool_input:{command:.}}' | (cd "$TFEAT" && perl -e 'alarm shift; exec @ARGV' 8 bash "$GUARD"))
+r5_t1=$SECONDS
+if [ "$(verdict "$r5_out")" = DENY ] && (( r5_t1 - r5_t0 <= 4 )); then
+  pass=$((pass + 1)); printf 'ok    DENY   #531 round 5: 1,000 sub-bound grouped lines, then a force push (%ss)\n' "$((r5_t1 - r5_t0))"
+else
+  fail=$((fail + 1)); printf 'FAIL  #531 round 5: 1,000 sub-bound grouped lines — got %s in %ss\n' "$(verdict "$r5_out")" "$((r5_t1 - r5_t0))"
+fi
+# And a SYNTHETIC one, which does not depend on this machine's speed: the suite-only stall knob makes
+# the worker sleep past a 1 s budget on a command that is otherwise ALLOW. It must come back a DENY
+# carrying the budget's own reason — the proof that a hang becomes a DENY and never silence.
+r5_budget_row() { # r5_budget_row WANT <needle|""> <budget> <stall> <desc>
+  r5_t0=$SECONDS
+  r5_out=$(printf '%s' '{"tool_input":{"command":"ls -la"}}' | (cd "$TFEAT" && PERMISSION_GUARD_BUDGET="$3" PERMISSION_GUARD_TEST_STALL="$4" perl -e 'alarm shift; exec @ARGV' 8 bash "$GUARD"))
+  r5_t1=$SECONDS
+  r5_got=$(verdict "$r5_out")
+  r5_reason=$(printf '%s' "$r5_out" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""' 2>/dev/null)
+  # A DENY must also arrive within one second of the budget: the killer takes the worker's DESCENDANTS
+  # too (the stall is a child `sleep`), and one left alive holds the worker's stdout open, so the
+  # answer would wait for it — measured: with the descendant kill removed, the 1 s row took 3 s.
+  r5_lim=3; case "$3" in 1|2) r5_lim="$3" ;; esac; r5_lim=$((r5_lim + 1))
+  if [ "$r5_got" = "$1" ] && { [ -z "$2" ] || printf '%s' "$r5_reason" | grep -qF "$2"; } \
+     && { [ "$1" != DENY ] || (( r5_t1 - r5_t0 <= r5_lim )); }; then
+    pass=$((pass + 1)); printf 'ok    %-6s #531 round 5 budget: %s (%ss)\n' "$r5_got" "$5" "$((r5_t1 - r5_t0))"
+  else
+    fail=$((fail + 1)); printf 'FAIL  #531 round 5 budget: %s — got %s in %ss, reason %.80s\n' "$5" "$r5_got" "$((r5_t1 - r5_t0))" "$r5_reason"
+  fi
+}
+r5_budget_row DENY  "1-second time budget" 1  3 "a worker stalled past a 1 s budget is a DENY naming the budget"
+r5_budget_row ALLOW ""                     1  "" "the same benign command with no stall is still ALLOW (the budget adds no verdict)"
+r5_budget_row DENY  "3-second time budget" 9  4 "a budget of 9 is IGNORED — the knob can only lower it, so a 4 s stall hits 3 s"
+r5_budget_row ALLOW ""                     x  2 "a malformed budget is ignored too: a 2 s stall under the 3 s default is still ALLOW"
+# #534 round 7: a worker that exits NON-ZERO is a DENY, never a relayed failure. Before this, a worker
+# killed by SEGV/TERM or failing on a missing binary (127) passed its partial body and its status
+# through, which is NO decision. The crash is made deterministic with a fake `sleep` first on PATH: on
+# the stall value 7 it kills its PARENT (the worker, which runs the knob's sleep as a direct child) with
+# the given signal, or exits 127 as if absent; on any other value it runs the real `sleep`, so the
+# supervisor's own killer is untouched. Each row asserts DENY, the failure's own reason, the status it
+# names, AND the supervisor's rc 0 — a relay of the crash would carry the worker's status instead.
+R7_SLEEP_DIR="$(mktemp -d)"
+r7_real_sleep="$(command -v sleep)"
+cat > "$R7_SLEEP_DIR/sleep" <<STUB
+#!/bin/sh
+if [ "\$1" = 7 ]; then
+  case "\${R7_MODE:-}" in 127) exit 127 ;; *) kill -"\$R7_MODE" "\$PPID"; exit 0 ;; esac
+fi
+exec "$r7_real_sleep" "\$@"
+STUB
+chmod +x "$R7_SLEEP_DIR/sleep"
+r7_fail_row() { # r7_fail_row <mode> <status the reason must name> <desc>
+  r7_out=$(printf '%s' '{"tool_input":{"command":"ls -la"}}' | (cd "$TFEAT" && R7_MODE="$1" PATH="$R7_SLEEP_DIR:$PATH" PERMISSION_GUARD_TEST_STALL=7 perl -e 'alarm shift; exec @ARGV' 8 bash "$GUARD"))
+  r7_rc=$?
+  r7_got=$(verdict "$r7_out")
+  r7_reason=$(printf '%s' "$r7_out" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""' 2>/dev/null)
+  if [ "$r7_got" = DENY ] && [ "$r7_rc" = 0 ] \
+     && printf '%s' "$r7_reason" | grep -qF "worker exited with status $2)"; then
+    pass=$((pass + 1)); printf 'ok    DENY   #534 round 7 worker failure: %s\n' "$3"
+  else
+    fail=$((fail + 1)); printf 'FAIL  #534 round 7 worker failure: %s — got %s rc=%s, reason %.80s\n' "$3" "$r7_got" "$r7_rc" "$r7_reason"
+  fi
+}
+r7_fail_row SEGV 139 "a worker killed by SIGSEGV is a DENY naming status 139, not a relayed crash"
+r7_fail_row TERM 143 "a worker killed by SIGTERM is a DENY naming status 143"
+r7_fail_row 127  127 "the stall knob with no usable sleep (worker exits 127) is a DENY, not silence"
+rm -rf "$R7_SLEEP_DIR"
 big_over="$(printf '%*s' 70000 '' | tr ' ' '$')"
 check_reason DENY "#500 F4: past the budget the answer is a DENY with its own reason, never silence" \
               "too large for this guard to verify" "printf %s $big_over '\$(date)'"

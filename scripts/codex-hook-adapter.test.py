@@ -1190,6 +1190,14 @@ FLOOR = [
     ("git push origin main", "a trunk push"),
     ("rm -rf /tmp/anything", "a recursive force delete"),
     ("gh secret set FOO", "a secret write"),
+    # #531: the forcing spellings the 162916b6 guard missed, and trunk deletion. The guard is
+    # shared, so the adapter needs no policy of its own; these prove the new refusals are plain
+    # floor denies that the Codex route forwards (not convenience rules it may decline to ask for).
+    ("git push --for" + "ce-with-lease=x origin feat/x", "a force-push via --force-with-lease=<ref> (#531)"),
+    ("git push origin +" + "feat/x", "a force-push via a '+' refspec (#531)"),
+    ("git push -f" + "u origin feat/x", "a force-push via the -fu cluster (#531)"),
+    ("git -c remote.o.push=+" + "refs/heads/x:refs/heads/x push o", "an inline -c push refspec (#531)"),
+    ("git push origin :" + "main", "a trunk DELETION (#531)"),
 ]
 # A floor act whose matching token is MANUFACTURED by a substitution. This is the class
 # the blocked round made reachable, and it is asserted through the ADAPTER rather than
@@ -1230,6 +1238,66 @@ d = decision_of(_p)
 check(d is not None and d["decision"] == "block",
       "#500 — a 24 KB input (4,000 heredoc openers + the QA fixture) is BLOCKED through the adapter "
       "in %.2fs, not abstained on at its 4.0 s timeout" % _dt)
+
+# #531 round 5, N1: the guard's grouped-name arm rebuilt `g(i)t` as the extglob `g@(i)t`, and
+# bash backtracks EXPONENTIALLY on `@(…)` groups holding `*` or `?`. At fea9caeb each of these
+# ~120-160 character commands made this adapter abstain at its 4.0 s budget, so a force-push DENY
+# became no decision on the Codex route. Asserted from a `feat/x` checkout so no trunk rule answers
+# first; `None` is the abstain, so the arm needs no clock of its own, and the time is reported.
+_n1_cwd = tempfile.mkdtemp()
+subprocess.run(["git", "init", "-q", "-b", "feat/x", _n1_cwd], check=True)
+_n1_force = "git -C . push --for" + "ce origin feat/x"
+for _cmd, _label in (
+    ("/usr/bin/" + "(*|*)" * 18 + "q; " + _n1_force, "/usr/bin/(*|*)x18q"),
+    ("/usr/bin/" + "(*|?|*)" * 16 + "q; " + _n1_force, "/usr/bin/(*|?|*)x16q"),
+    ("env " + "(*|*)" * 16 + "q; " + _n1_force, "env (*|*)x16q"),
+    ("cat <<'EOF'\nx/" + "(*|*)" * 16 + "q\nEOF\n" + _n1_force, "a heredoc body line (*|*)x16q"),
+):
+    _t = time.time()
+    d = decision_of(run_adapter(codex_payload(_cmd, cwd=_n1_cwd), cwd=_n1_cwd))
+    _dt = time.time() - _t
+    check(d is not None and d["decision"] == "block" and _dt < 3.0,
+          "#531 N1 — %s before a force push is BLOCKED through the adapter in %.2fs, not "
+          "abstained on at its 4.0 s timeout" % (_label, _dt))
+
+# #531 round 5: the N1 bound held for the extglob MATCH, not for the arm — 3b ran bash 3.2's roughly
+# cubic `${var//pat/}` on the whole token first, so one ~4,000-character space-free word before a
+# force push took 5-7 s in the guard and this adapter went SILENT at 4.0 s. The lens's six shapes,
+# through the adapter, must be BLOCKED well inside its budget.
+_r5 = (
+    ("python3 - <<'PY'\nprint(" + "a" * 4000 + ")\nPY\n" + _n1_force, "S1 heredoc print(a x4000)"),
+    ("/usr/bin/(" + "a" * 4000 + "|*)q; " + _n1_force, "S2 grouped name carrying *"),
+    ("/usr/bin/" + ("(" + "a" * 900 + "|z)") * 4 + "q; " + _n1_force, "S3 four literal groups x900"),
+    ("/usr/bin/([" + "a-z" * 1000 + "]|z)([!" + "q" * 1000 + "]|z)q; " + _n1_force, "S4 bracket groups x1000"),
+    ("echo " + "a''" * 3000 + "; " + _n1_force, "S5 echo a'' x3000"),
+    ("\\" + "a\\" * 3000 + "; " + _n1_force, "S6 \\a\\ x3000"),
+)
+for _cmd, _label in _r5:
+    _t = time.time()
+    d = decision_of(run_adapter(codex_payload(_cmd, cwd=_n1_cwd), cwd=_n1_cwd))
+    _dt = time.time() - _t
+    check(d is not None and d["decision"] == "block" and _dt < 3.0,
+          "#531 round 5 — %s before a force push is BLOCKED through the adapter in %.2fs, not "
+          "abstained on at its 4.0 s timeout" % (_label, _dt))
+
+# #531 round 5, the BACKSTOP: the guard holds its own time budget, shorter than this adapter's, so
+# a slow path nobody has found yet reaches this adapter as a DENY rather than as its timeout's
+# abstain. Synthetic, so it does not depend on this machine's speed: the suite-only knobs lower the
+# budget to 1 s and stall the worker 3 s on a command that is otherwise allowed.
+_t = time.time()
+_p = run_adapter(codex_payload("ls -la", cwd=_n1_cwd), cwd=_n1_cwd,
+                 env={"PERMISSION_GUARD_BUDGET": "1", "PERMISSION_GUARD_TEST_STALL": "3"})
+_dt = time.time() - _t
+d = decision_of(_p)
+check(d is not None and d["decision"] == "block" and "time budget" in d.get("reason", "")
+      and _dt < 3.0,
+      "#531 round 5 — a guard stalled past its own 1 s budget is BLOCKED through the adapter "
+      "with the budget's reason in %.2fs, never abstained on" % _dt)
+_p = run_adapter(codex_payload("ls -la", cwd=_n1_cwd), cwd=_n1_cwd,
+                 env={"PERMISSION_GUARD_BUDGET": "1"})
+check(decision_of(_p) is None or decision_of(_p).get("decision") != "block",
+      "#531 round 5 — the same command with no stall is NOT blocked (the budget adds no verdict)")
+shutil.rmtree(_n1_cwd, ignore_errors=True)
 
 for command, label in FLOOR + MANUFACTURED:
     d = decision_of(run_adapter(codex_payload(command)))
