@@ -330,9 +330,12 @@ esac
 # closest. Re-derived 2026-09-20 by feeding this jq a control pair: a stale marker alone returns
 # "stale"; the same marker plus a gate verdict quoting the literal returns "".
 #
-# The predicate is now two limbs: the envelope OPENS A LINE, and the comment does not itself open
-# with the gate's envelope. Both were measured rather than reasoned, over every PR comment in BOTH
-# repositories carrying the literal and passing the author filter (386: 350 in -skills, 36 in -io):
+# #475 made the predicate two limbs: the envelope OPENS A LINE, and the comment does not itself
+# open with the gate's envelope. ~~The predicate is now two limbs~~ — struck at #522 round 5: it is
+# FOUR limbs since #522: these two, the fence limb (round 3) and the author association (round 4),
+# all inside `LENS_MARKER_JQ` further down. The two #475 limbs were measured rather than reasoned,
+# over every PR comment in BOTH repositories carrying the literal and passing the author filter
+# (386: 350 in -skills, 36 in -io):
 #
 #   contains          (the defect)  386 matched — 139 are NOT markers (137 gate verdicts, 2 notes)
 #   startswith on the whole body    245 matched — drops 2 GENUINE markers, because a marker is not
@@ -427,6 +430,21 @@ harness_stale="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-ve
 #     not in this clone — the head was pushed from elsewhere and never fetched here) both refuse.
 #     This hook does NOT fetch: a `Stop` hook mutating refs on every turn end is a cost nobody
 #     asked for, and the refusal it causes is the pre-#522 notice, not a new false one.
+#   - `git merge-base --is-ancestor <marker> origin/main` must exit 1: the marked commit is NOT on
+#     the trunk (#522 round 5, the gate's P-A). Exit 0 refuses, and exit 128 (no `origin/main` in
+#     this clone, or an unreadable object) refuses. Without it, a marker naming a PRE-BRANCH trunk
+#     commit passes the check above, because every trunk commit before the branch point is an
+#     ancestor of the head, and the delta is then measured from a commit the lens never read on
+#     this PR. Planted: trunk X -> M changes hooks/a.sh, the PR restores X's content, a marker
+#     names X. The X -> head delta is empty, and the carry was granted over a hooks/ diff nobody
+#     reviewed. Together the two ancestry checks mean "reachable from the head and not from the
+#     trunk", which is exactly the commit set `git rev-list origin/main..<head>` lists: the PR's
+#     own commits. The rev-list form was NOT used. Piped into a membership test, a failed rev-list
+#     prints nothing and reads as "absent", and here absent is the answer that carries: the
+#     fail-open shape the separate diff check below exists to close. `--is-ancestor` tells "no" (1)
+#     from "error" (128). It reads the LOCAL `origin/main`, so a trunk commit newer than this
+#     clone's ref is not seen as on the trunk. This hook does not fetch (above), so that stays a
+#     named residual here; the gate fetches `main` before it runs the same check.
 #   - `git diff --no-renames --name-only <marker> <head>` must exit 0, checked on its own before
 #     any filter. `--is-ancestor` exiting 0 does NOT make this redundant: it reads the COMMIT
 #     graph, and the diff reads TREES. Measured: with the loose tree object of the head's `docs/`
@@ -439,6 +457,9 @@ harness_stale="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-ve
 #     the exclusion list drops `docs/**` and `powers/**`, so a consuming-class path such as
 #     `docs/CLAUDE.md` was excluded under it and carried. Neither class is a superset of the other,
 #     so an unclassified repository has no filter it can safely apply, and it carries nothing.
+#     Since round 5 a MISSING `origin/main` refuses one step earlier, at the not-on-trunk check; this
+#     refusal is still reached when the ref resolves and its tree does not, and the suite plants
+#     exactly that (a deleted root tree) so each refusal is tested on its own.
 #   - a path git QUOTES is inside the class, in both repositories. `git diff --name-only` wraps a
 #     non-ASCII or special-character name in double quotes (`core.quotePath`, default true), so the
 #     line starts with `"` and no path pattern anchored at `^` or `/` sees it. The plugin filter
@@ -460,8 +481,13 @@ if [ "$harness_stale" = "stale" ]; then
     | [capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")] | .[0].c // empty' 2>/dev/null || true)"
 
   carry_class=""
+  on_trunk_rc=""
   if [ -n "$newest_sha" ] \
      && git -C "$cwd" merge-base --is-ancestor "$newest_sha" "$head_sha" >/dev/null 2>&1; then
+    git -C "$cwd" merge-base --is-ancestor "$newest_sha" origin/main >/dev/null 2>&1
+    on_trunk_rc=$?
+  fi
+  if [ "$on_trunk_rc" = "1" ]; then       # exit 1 ONLY: 0 (on the trunk) and 128 (unreadable) refuse
     trunk_has="$(git -C "$cwd" ls-tree --name-only origin/main -- .claude-plugin/plugin.json 2>/dev/null)"
     trunk_rc=$?
     head_has="$(git -C "$cwd" ls-tree --name-only "$head_sha" -- .claude-plugin/plugin.json 2>/dev/null)"
@@ -535,7 +561,8 @@ if [ -n "$harness_stale" ]; then
 ${head_sha}): the PR carries at least one '<!-- harness-lead-verdict: ... -->' comment, NOT ONE
 of them names the current head, and the NEWEST one does not carry forward (#522; only the newest
 may) — either its 'commit:' line holds no full 40-character SHA, that SHA is not an ancestor of the
-head in this clone, the repository could not be classified (an unreadable origin/main or head), the
+head in this clone, that SHA is on origin/main (a trunk commit, not one of this PR's own) or
+origin/main is unreadable, the repository could not be classified (an unreadable origin/main or head), the
 tree delta from it to the head could not be read, or that delta touches a path in hold 2's class.
 
 This is the #385 arm of zombie-loop-detect.sh, and it is DETECTION ONLY — it holds nothing, denies

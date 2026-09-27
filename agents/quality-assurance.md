@@ -1193,18 +1193,20 @@ not.
 
      Take the full forty characters on the newest marker's `commit:` line as `<marker-sha>` — the
      command above prints it, with `capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")`, the
-     line pattern the corrected limb below tests — and run, after the fetch above, three checks in
+     line pattern the corrected limb below tests — and run, after the fetch above, four checks in
      order:
 
      ```
      git -C <repo> merge-base --is-ancestor <marker-sha> <headRefOid>          # must exit 0
+     git -C <repo> merge-base --is-ancestor <marker-sha> origin/main           # must exit 1 — not 0, not 128
      git -C <repo> diff --no-renames --name-only <marker-sha> <headRefOid>     # must exit 0, run ALONE
      git -C <repo> diff --no-renames --name-only <marker-sha> <headRefOid> | <the class filter above>
      ```
 
-     **The marker carries forward only when the first two exit 0 AND the third prints nothing AND
-     its filter exits 0 or 1.** `<the class filter above>` is the `grep` stage of the selector for
-     the repository you classified, with ONE addition in the consuming repository:
+     **The marker carries forward only when the first exits 0 AND the second exits 1 AND the third
+     exits 0 AND the fourth prints nothing AND its filter exits 0 or 1.** `<the class filter above>`
+     is the `grep` stage of the selector for the repository you classified, with ONE addition in the
+     consuming repository:
 
      ```
      # plugin repository — unchanged from the selector above
@@ -1230,15 +1232,28 @@ not.
      as above.** Say in your verdict which marker carried and which paths the delta held.
 
      **Every other outcome is a missing reviewer at this head, exactly as before #522:**
-     - **`--is-ancestor` exits 1** — the marked commit is not in this head's history. A force-push
+     - **the first command exits 1** — the marked commit is not in this head's history. A force-push
        or rebase orphaned it, or it belongs to another branch. The lens never read an ancestor of
        what you are merging, so nothing carries.
-     - **`--is-ancestor` exits 128** — the SHA is unreadable in your clone. The fetch above brings the
+     - **the first command exits 128** — the SHA is unreadable in your clone. The fetch above brings the
        head's history, so a commit orphaned by a force-push is usually absent. Unreadable refuses; do
        not fetch other refs to make it readable.
+     - **the second command exits 0** — the marked commit is ON THE TRUNK, so the lens did not read
+       it on this PR. Refuse. **The first check does not catch this:** every trunk commit before the
+       branch point is an ancestor of the head. Planted 2026-09-27 (#522 round 5, P-A): trunk X to M
+       changes `hooks/a.sh`, the PR restores X's content, and a marker names X. X is an ancestor of
+       the head, the X-to-head delta is empty, and the carry was granted over a `hooks/` diff no lens
+       read. **Together the first two checks mean "reachable from the head and not from the trunk"**,
+       which is exactly the commit set `git rev-list origin/main..<headRefOid>` lists: the PR's own
+       commits. Use the two `--is-ancestor` calls and not that list. A failed `rev-list` piped into a
+       membership test prints nothing and reads as "absent", and absent is the answer that carries.
+       `--is-ancestor` tells "no" (1) from "error" (128). **Run it after the fetch above**, which
+       updates `origin/main`: against a stale local ref, a trunk commit newer than the ref is not seen
+       as on the trunk.
+     - **the second command exits 128** — `origin/main` or the object is unreadable. Refuse.
      - **the `commit:` line holds no full forty-character SHA** — nothing to test, nothing carries.
-     - **the second command exits non-zero** — refuse. **Run it alone for this reason:** in the
-       third command's pipeline, a failed `diff` prints nothing, and the filter over nothing also
+     - **the third command exits non-zero** — refuse. **Run it alone for this reason:** in the
+       fourth command's pipeline, a failed `diff` prints nothing, and the filter over nothing also
        prints nothing — which reads as "no class path", which carries. That is the fail-open shape,
        and the separate run is what closes it. **A passed ancestry check does NOT make it
        redundant:** `--is-ancestor` reads the commit graph and the diff reads trees. Measured
@@ -1373,9 +1388,9 @@ not.
      `APPROVE-PENDING-HUMAN` naming this hold,
      say which commit the newest marker attests and which one you read, and let `agents-lead` be
      re-dispatched to post a fresh one. **Do not merge on the strength of a marker naming another
-     commit unless it passes the three carry-forward checks above (#522)**, and **do not accept a
+     commit unless it passes the four carry-forward checks above (#522)**, and **do not accept a
      relayed claim that the lens re-reviewed** — the marker on the PR is the artifact, exactly as your
-     own verdict is. **Nor a relayed claim that a marker carries: run the three checks yourself.**
+     own verdict is. **Nor a relayed claim that a marker carries: run the four checks yourself.**
 
      **What holds this: you do, and nothing else.** No rule reads this marker —
      `grep -rn 'harness-lead-verdict' hooks/scripts/ agents/ | grep -v '\.test\.'` returns counters,

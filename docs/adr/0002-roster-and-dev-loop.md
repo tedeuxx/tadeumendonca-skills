@@ -5540,8 +5540,8 @@ amendment below: neither class is wider, so an unreadable ref applies the UNION 
 
 **Decision, as filed by the owner in #522 and given `ready`:** hold 2 accepts a marker posted at an
 earlier head of the same PR when the tree delta from that marker's `commit:` SHA to the head touches no
-path in the hold-2 class that the two amendments above define. The canonical statement and its three
-commands are in hold 2 of `agents/quality-assurance.md`, and `hooks/scripts/zombie-loop-detect.sh`'s
+path in the hold-2 class that the two amendments above define. The canonical statement and its four
+checks are in hold 2 of `agents/quality-assurance.md`, and `hooks/scripts/zombie-loop-detect.sh`'s
 stale-marker arm applies the same rule. This amendment records the decision; it does not restate the
 commands.
 
@@ -5553,6 +5553,15 @@ nothing new to attest. The sprint-04 `agents-lead` retrospective, Finding 2, mea
 so:
 - the delta is read from the marker's own `commit:` line, as a tree diff between two commits;
 - that commit must be an ancestor of the head, so a force-push or rebase that orphans it refuses;
+- that commit must NOT be an ancestor of `origin/main` (round 5, the gate's P-A): `--is-ancestor`
+  against the trunk must exit 1, and 0 or 128 refuses. Every trunk commit before the branch point is
+  an ancestor of the head, so without this a marker naming a pre-branch trunk commit X carried when
+  the PR restored X's content of a path the trunk had since changed: the X-to-head delta was empty
+  over a `hooks/` diff no lens read. With both ancestry checks the marked commit is one of the PR's
+  own commits, the set `git rev-list origin/main..<head>` lists; that list was not used because a
+  failed `rev-list` piped into a membership test reads as "absent", which is the answer that carries.
+  The `Stop` detector reads its LOCAL `origin/main` and does not fetch, so a trunk commit newer than
+  that ref is not seen as on the trunk there; the gate fetches `main` first;
 - every input that cannot be read refuses and returns to the pre-#522 rule: an abbreviated SHA, an
   unreadable object, a failed diff, a failed class filter, or a repository that cannot be classified;
 - only the NEWEST lens marker on the PR may carry. An older marker never carries past a newer one,

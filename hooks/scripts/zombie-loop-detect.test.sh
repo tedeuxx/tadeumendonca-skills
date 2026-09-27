@@ -855,7 +855,8 @@ teardown
 
 echo '--- #522: an UNCLASSIFIABLE repository (no origin/main) refuses the carry — scripts/ delta ---'
 # Same history as the consuming-repository carry above, minus the origin/main ref. `ls-tree` on
-# the missing ref fails, and an unclassified repository carries nothing.
+# the missing ref fails, and an unclassified repository carries nothing. (Since round 5 the
+# not-on-trunk check exits 128 on the missing ref first; the r5 arm below isolates classification.)
 setup; checkout_branch loop/x
 m="$(commit_path .github/workflows/ci.yml)"
 h="$(commit_path scripts/build.sh)"
@@ -871,6 +872,27 @@ m="$(commit_path hooks/scripts/x.sh)"
 h="$(commit_path docs/notes.md)"
 open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
 stale_fires 'an unreadable origin/main refuses a docs-only delta' "$(run_hook)"
+teardown
+
+echo '--- #522 r5: an UNCLASSIFIABLE repository with a READABLE origin/main ref refuses — docs-only delta ---'
+# Since round 5 the two arms above refuse TWICE: with no origin/main, the not-on-trunk check exits
+# 128 before the repository is classified. So neither arm isolates the classification refusal any
+# more, and replacing it with "select a class" left the suite green. This fixture separates them:
+# origin/main's ROOT TREE is deleted, so the commit graph answers (--is-ancestor exits 1, the
+# marker is not on the trunk) while `ls-tree origin/main` exits 128. The guard asserts that shape.
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+h="$(commit_path docs/notes.md)"
+t="$(git -C "$repo" rev-parse 'origin/main^{tree}')"
+rm -f "$repo/.git/objects/${t:0:2}/${t:2}"
+ot=0; git -C "$repo" merge-base --is-ancestor "$m" origin/main 2>/dev/null || ot=$?
+lt=0; git -C "$repo" ls-tree --name-only origin/main >/dev/null 2>&1 || lt=$?
+if [ "$ot" -eq 1 ] && [ "$lt" -ne 0 ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+  stale_fires 'an unreadable trunk tree refuses the carry although the marker is off the trunk' "$(run_hook)"
+else
+  bad 'unreadable-trunk-tree fixture' "expected not-on-trunk 1 and ls-tree non-zero, got $ot and $lt"
+fi
 teardown
 
 echo '--- #522: a QUOTED harness path in a CONSUMING repository refuses the carry ---'
@@ -944,6 +966,30 @@ git -C "$repo" commit -q -m 'move x.sh into docs'
 h="$(git -C "$repo" rev-parse HEAD)"
 open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
 stale_fires 'a hooks/ -> docs/ rename refuses the carry' "$(run_hook)"
+teardown
+
+echo '--- #522 r5: a marker naming a PRE-BRANCH TRUNK commit refuses (the gate'"'"'s P-A) ---'
+# Trunk X -> M changes hooks/scripts/a.sh; the PR, cut from M, restores X's content; a marker names
+# X. X is an ancestor of the head and the X -> head tree delta is EMPTY, so every earlier check
+# passes and only "the marked commit is not on the trunk" can refuse. The guard asserts that shape,
+# so the arm cannot pass because some other check happened to fire.
+setup; plugin_repo
+x="$(commit_path hooks/scripts/a.sh)"
+commit_path hooks/scripts/a.sh >/dev/null
+git -C "$repo" update-ref refs/remotes/origin/main HEAD
+checkout_branch loop/x
+git -C "$repo" checkout -q "$x" -- hooks/scripts/a.sh
+git -C "$repo" commit -q -m 'restore a.sh to its pre-branch content'
+h="$(git -C "$repo" rev-parse HEAD)"
+ia=0; git -C "$repo" merge-base --is-ancestor "$x" "$h" 2>/dev/null || ia=$?
+ot=0; git -C "$repo" merge-base --is-ancestor "$x" origin/main 2>/dev/null || ot=$?
+dl="$(git -C "$repo" diff --no-renames --name-only "$x" "$h")"
+if [ "$ia" -eq 0 ] && [ "$ot" -eq 0 ] && [ -z "$dl" ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$x"
+  stale_fires 'a marker on a pre-branch trunk commit refuses although its delta is empty' "$(run_hook)"
+else
+  bad 'P-A fixture' "expected ancestor 0, on-trunk 0 and an empty delta, got $ia, $ot and '$dl'"
+fi
 teardown
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════
