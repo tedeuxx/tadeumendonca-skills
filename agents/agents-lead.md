@@ -373,6 +373,13 @@ what already happens rather than proposing it — measured on PR #348, which car
 second and third opening *"re-reviewed at fe66f85"* and *"re-reviewed at 9489a3f"* after the gate moved
 the head twice.
 
+**Since 2026-09-27 (#522) a moved head does not always need you.** Hold 2 lets the gate carry your
+marker forward when its commit is an ancestor of the new head and the tree delta since it touches no
+hold-2 path. The gate runs that check, not you, and whether to re-dispatch you is the orchestrator's
+call. **When you ARE dispatched at a moved head, the rule above is unchanged**: post a fresh marker
+at the head you read. Keep the `commit:` line at the full forty characters, because an abbreviated
+one cannot carry forward.
+
 Get the SHA with `git -C <repo> rev-parse HEAD` (or the specific commit you reviewed) and put it in the
 marker, exactly as `quality-assurance` puts the `headRefOid` it read in its own (ADR-0006). **Reference
 the commit you actually read, not "the PR head" as a phrase** — even on a PR, what you stress-tested may

@@ -710,6 +710,159 @@ else
 fi
 teardown
 
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# #522 — CARRY-FORWARD. A stale marker is NOT reported when the tree delta from its own `commit:`
+# SHA to the head touches no hold-2 path (hold 2 in agents/quality-assurance.md). Every refusal
+# below is asserted as the notice FIRING, because the carry fails closed to the pre-#522 notice.
+#
+# These cases need REAL commit SHAs, so they build history in the fixture repository; the fake
+# heads above ("headaaa", "oldbbb") hold no 40-character SHA and never reach the carry block,
+# which is why every earlier arm is unchanged by it.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+commit_path() { # path -> prints the new HEAD sha
+  mkdir -p "$repo/$(dirname "$1")"
+  printf '%s\n' "$RANDOM$RANDOM" >> "$repo/$1"
+  git -C "$repo" add -- "$1"
+  git -C "$repo" commit -q -m "touch $1"
+  git -C "$repo" rev-parse HEAD
+}
+
+plugin_repo() { # the plugin repository: manifest at the root, and an origin/main ref
+  commit_path .claude-plugin/plugin.json >/dev/null
+  git -C "$repo" update-ref refs/remotes/origin/main HEAD
+}
+
+consuming_repo() { # no manifest, and an origin/main ref, so ls-tree classifies cleanly
+  git -C "$repo" update-ref refs/remotes/origin/main HEAD
+}
+
+stale_fires() { # label · output
+  case "$2" in
+    *'STALE agents-lead verdict marker'*) ok "$1" ;;
+    *) bad "$1" "expected the stale notice, got: ${2:-<silence>}" ;;
+  esac
+}
+
+stays_silent() { # label · output
+  case "$2" in
+    *'STALE agents-lead verdict marker'*) bad "$1" "got: $2" ;;
+    *) ok "$1" ;;
+  esac
+}
+
+echo '--- #522: a docs-only delta since the marker carries it forward — silent ---'
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+h="$(commit_path docs/notes.md)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stays_silent 'a delta touching only docs/** carries the marker forward' "$(run_hook)"
+teardown
+
+echo '--- #522: the SAME history with a hold-2 path planted in the delta — fires ---'
+# The discriminating pair for the case above: one path differs, and the verdict flips.
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+commit_path docs/notes.md >/dev/null
+h="$(commit_path hooks/scripts/x.sh)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'a hold-2 path in the delta refuses the carry' "$(run_hook)"
+teardown
+
+echo '--- #522: the #506 shape — scripts/ is inside the plugin-repository class, so it does NOT carry ---'
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path scripts/worklog.py)"
+commit_path docs/worklog/README.md >/dev/null
+h="$(commit_path scripts/worklog.test.py)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'a delta touching scripts/ refuses the carry in the plugin repository' "$(run_hook)"
+teardown
+
+echo '--- #522: an empty tree delta carries — silent ---'
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+git -C "$repo" commit -q --allow-empty -m 'empty'
+h="$(git -C "$repo" rev-parse HEAD)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stays_silent 'an empty delta carries the marker forward' "$(run_hook)"
+teardown
+
+echo '--- #522: an ORPHANED marker (force-push / rebase) refuses even with a docs-only delta ---'
+# The marked commit is on a history the head does not contain. The tree delta between the two is
+# docs-only, so ONLY the ancestry check can refuse this — that is what makes the case discriminate.
+setup; plugin_repo; checkout_branch loop/x
+commit_path hooks/scripts/x.sh >/dev/null
+git -C "$repo" checkout -q -b orphaned
+m="$(commit_path docs/old.md)"
+git -C "$repo" checkout -q loop/x
+h="$(commit_path docs/new.md)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'a marked commit that is not an ancestor of the head refuses the carry' "$(run_hook)"
+teardown
+
+echo '--- #522: a marker SHA this clone cannot read refuses — silent would be fail-open ---'
+setup; plugin_repo; checkout_branch loop/x
+commit_path hooks/scripts/x.sh >/dev/null
+h="$(commit_path docs/notes.md)"
+open_pr 522 "$h"; view_with_harness_markers "$h" 0123456789abcdef0123456789abcdef01234567
+stale_fires 'an unreadable marker SHA refuses the carry' "$(run_hook)"
+teardown
+
+echo '--- #522: an ABBREVIATED commit: line refuses, even where the full SHA would carry ---'
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+h="$(commit_path docs/notes.md)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "${m:0:12}"
+stale_fires 'an abbreviated commit: line carries nothing' "$(run_hook)"
+teardown
+
+echo '--- #522: markup around the full SHA is tolerated, as in hold 2 — silent ---'
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+h="$(commit_path README.md)"
+open_pr 522 "$h"
+jq -n --arg h "$h" --arg m "$m" '{headRefOid:$h, comments:[{authorAssociation:"OWNER",
+  body:("<!-- harness-lead-verdict: reviewed -->\ncommit: `" + $m + "`")}]}' > "$root/fix/view.json"
+stays_silent 'a backticked full SHA on the commit: line carries' "$(run_hook)"
+teardown
+
+echo '--- #522: one carrying marker is enough — silent with a non-carrying one beside it ---'
+setup; plugin_repo; checkout_branch loop/x
+m1="$(commit_path hooks/scripts/x.sh)"
+m2="$(commit_path hooks/scripts/y.sh)"
+h="$(commit_path docs/notes.md)"
+git -C "$repo" checkout -q -b orphaned2 "$m1"
+mo="$(commit_path docs/other.md)"
+git -C "$repo" checkout -q loop/x
+open_pr 522 "$h"; view_with_harness_markers "$h" "$mo" "$m1" "$m2"
+stays_silent 'the newest marker carries even though an older one does not' "$(run_hook)"
+teardown
+
+echo '--- #522: a CONSUMING repository uses the harness-path list — scripts/ carries there ---'
+setup; consuming_repo; checkout_branch loop/x
+m="$(commit_path .github/workflows/ci.yml)"
+h="$(commit_path scripts/build.sh)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stays_silent 'a consuming-repository delta outside the harness-path list carries' "$(run_hook)"
+teardown
+
+echo '--- #522: and a harness path in a consuming repository refuses, at any depth ---'
+setup; consuming_repo; checkout_branch loop/x
+m="$(commit_path scripts/build.sh)"
+h="$(commit_path apps/fed/CLAUDE.md)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'a nested CLAUDE.md in the delta refuses the carry in a consuming repository' "$(run_hook)"
+teardown
+
+echo '--- #522: an UNCLASSIFIABLE repository (no origin/main) takes the wider class — refuses ---'
+# Same history as the consuming-repository carry above, minus the origin/main ref. `ls-tree` on
+# the missing ref fails, so the plugin-repository class applies and scripts/ is inside it.
+setup; checkout_branch loop/x
+m="$(commit_path .github/workflows/ci.yml)"
+h="$(commit_path scripts/build.sh)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'an unreadable origin/main selects the wider class and refuses the carry' "$(run_hook)"
+teardown
+
 echo
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

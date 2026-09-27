@@ -1006,8 +1006,9 @@ not.
      `commands/**` or `.claude/**`~~ **a diff touching a path in the class that applies to the
      repository under review — the exclusion-list class in the plugin repository, the harness-path
      list anywhere else (#521; both below)** requires an `<!-- harness-lead-verdict: … -->` comment on the PR
-     **whose `commit:` line names the `headRefOid` you read for your own verdict**, before you may
-     merge it. **This used to be
+     **whose `commit:` line names the `headRefOid` you read for your own verdict** — **or, since
+     2026-09-27 (#522), names an earlier commit of this PR from which the marker CARRIES FORWARD
+     (the carry-forward rule below)** — before you may merge it. **This used to be
      phrased as "the diff is boundary class regardless"; that phrasing stopped being a hold the moment
      boundary became mergeable**, so it is restated here as its own blocker. It is a *missing reviewer*,
      not a class — the same shape as a missing gate, and you would not merge past one of those either.
@@ -1115,6 +1116,71 @@ not.
      consequences, not oversights. The hook reports and denies nothing, so a wrong value there costs
      a wrong notice, never a wrong refusal.
 
+     **CARRY-FORWARD (#522, 2026-09-27) — a marker posted at an EARLIER head of this PR satisfies
+     hold 2 when the tree delta from its own `commit:` SHA to the `headRefOid` touches no path in the
+     class above.** A lens round that would attest nothing new is not owed. The rule reuses the class
+     you already selected; only the RANGE changes. For each lens marker on the PR, take the full
+     forty characters on its `commit:` line as `<marker-sha>` — read with
+     `capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")`, the line pattern the corrected limb
+     below tests — and run, after the fetch above, three checks in order:
+
+     ```
+     git -C <repo> merge-base --is-ancestor <marker-sha> <headRefOid>          # must exit 0
+     git -C <repo> diff --no-renames --name-only <marker-sha> <headRefOid>     # must exit 0, run ALONE
+     git -C <repo> diff --no-renames --name-only <marker-sha> <headRefOid> | <the class filter above>
+     ```
+
+     **The marker carries forward only when the first two exit 0 AND the third prints nothing.**
+     `<the class filter above>` is the `grep` stage of the selector for the repository you
+     classified — `grep -vE` in the plugin repository, `grep -E` in a consuming one — unchanged.
+     One carrying marker is enough; say in your verdict which marker carried and which paths the
+     delta held.
+
+     **Every other outcome is a missing reviewer at this head, exactly as before #522:**
+     - **`--is-ancestor` exits 1** — the marked commit is not in this head's history. A force-push
+       or rebase orphaned it, or it belongs to another branch. The lens never read an ancestor of
+       what you are merging, so nothing carries.
+     - **`--is-ancestor` exits 128** — the SHA is unreadable in your clone. The fetch above brings the
+       head's history, so a commit orphaned by a force-push is usually absent. Unreadable refuses; do
+       not fetch other refs to make it readable.
+     - **the `commit:` line holds no full forty-character SHA** — nothing to test, nothing carries.
+     - **the second command exits non-zero** — refuse. **Run it alone for this reason:** in the
+       third command's pipeline, a failed `diff` prints nothing, and the filter over nothing also
+       prints nothing — which reads as "no class path", which carries. That is the fail-open shape,
+       and the separate run is what closes it.
+
+     **Why two commits and not `origin/main...<headRefOid>`.** The question is what changed since
+     the reviewed commit, not since the branch was cut. With the ancestry check passed, `<marker-sha>
+     <headRefOid>`, `<marker-sha>..<headRefOid>` and `<marker-sha>...<headRefOid>` return the same
+     tree diff. A merge from the trunk inside that range shows up as the paths it brought in. When
+     any of them is in the class, the carry refuses, and it should: the composition is new, and no
+     lens has read it.
+
+     **What carry-forward does NOT change.** It narrows neither of your lenses and does not
+     change which diffs owe a marker. Every carried delta is still reviewed by you under both
+     lenses. **It loosens what hold 2 requires, so the diff that introduced it is under hold 1**, and
+     the owner merges it. When the lens was re-dispatched anyway and posted at the head, apply the
+     ordinary rule; carry-forward is only for the case where no marker names the head.
+     `hooks/scripts/zombie-loop-detect.sh`'s stale-marker arm applies the same rule, so a
+     carried-forward PR raises no stale notice. It reports and denies nothing, and it does not fetch,
+     so a head it cannot read locally still produces the notice.
+
+     **The case #522 was filed on no longer qualifies, and that is expected.** Its three repair
+     rounds on `-skills` #506 touched `scripts/worklog*` and `scripts/fixtures/worklog/**` beside
+     `docs/worklog/**`. #521 put `scripts/` inside the plugin-repository class, so none of them
+     carries. Measured 2026-09-27 on the round between its second and third markers:
+
+     ```
+     git -C <repo> fetch origin pull/506/head
+     git -C <repo> diff --no-renames --name-only 1762f0912fb8160ab6e8a2cfa97c2dde0fa300b5 \
+       26e7eebf6d7c81bd2a3fa0e357e22e7ba8b20602 \
+       | grep -vE '^(docs/|powers/)|^(README\.md|VERSION|\.bumpversion\.toml|LICENSE)$'
+     # -> scripts/fixtures/worklog/published-5804402298.md  (…and three more under scripts/)
+     ```
+
+     The rule pays on repairs that touch only excluded paths, such as the prose of a
+     `docs/adr/` record or `README.md`, on a PR whose earlier commits owed the marker.
+
      **~~a comment on the PR before you may merge it~~ — the HEAD-SCOPING was added 2026-09-11
      (#385), and the struck phrase is kept because it is what this hold meant for four weeks.** It was
      a **presence** check: any marker, at any commit, cleared it. **Measured at head on the most recent
@@ -1195,19 +1261,23 @@ not.
      **Nothing about hold 2 loosens here.** The hold is what it was on 2026-09-11 — a marker whose
      `commit:` line names the `headRefOid` you read — and the sentence was already right. What
      changed is the command beside it, which did not implement it. A marker you cannot match under
-     the corrected form is still a missing reviewer at this head.
+     the corrected form ~~is still a missing reviewer at this head~~ **is a missing reviewer at this
+     head unless it carries forward (#522, the rule above) — struck 2026-09-27 because the
+     unqualified sentence contradicts that rule.**
 
      **You already hold the payload this needs.** ADR-0006 makes you read `headRefOid` for your own
      verdict; this is the same `$h`, compared against the marker's own `commit:` line, on the same response. **It is not an
      expansion of your authority** and does not trip hold 1 — it makes an existing hold stricter,
      which is the direction hold 1 exists to protect.
 
-     **What to do when it fails, and it is NOT a `REQUEST-CHANGES`.** A stale marker is a missing
-     reviewer at this head, not a defect in the diff. Return `APPROVE-PENDING-HUMAN` naming this hold,
+     **What to do when it fails, and it is NOT a `REQUEST-CHANGES`.** A stale marker **that does not
+     carry forward** is a missing reviewer at this head, not a defect in the diff. Return
+     `APPROVE-PENDING-HUMAN` naming this hold,
      say which commit the newest marker attests and which one you read, and let `agents-lead` be
      re-dispatched to post a fresh one. **Do not merge on the strength of a marker naming another
-     commit, and do not accept a relayed claim that the lens re-reviewed** — the marker on the PR is
-     the artifact, exactly as your own verdict is.
+     commit unless it passes the three carry-forward checks above (#522)**, and **do not accept a
+     relayed claim that the lens re-reviewed** — the marker on the PR is the artifact, exactly as your
+     own verdict is. **Nor a relayed claim that a marker carries: run the three checks yourself.**
 
      **What holds this: you do, and nothing else.** No rule reads this marker —
      `grep -rn 'harness-lead-verdict' hooks/scripts/ agents/ | grep -v '\.test\.'` returns counters,

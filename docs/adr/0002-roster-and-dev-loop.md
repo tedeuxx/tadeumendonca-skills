@@ -5535,6 +5535,46 @@ ref (exit 128); an unreadable ref applies the wider class.
 
 **What enforces it: the gate persona, as before.** No layer classifies a diff or a repository.
 
+## 2026-09-27 amendment — a lens marker carries forward across a delta that owes no marker (#522)
+
+**Decision, as filed by the owner in #522 and given `ready`:** hold 2 accepts a marker posted at an
+earlier head of the same PR when the tree delta from that marker's `commit:` SHA to the head touches no
+path in the hold-2 class that the two amendments above define. The canonical statement and its three
+commands are in hold 2 of `agents/quality-assurance.md`, and `hooks/scripts/zombie-loop-detect.sh`'s
+stale-marker arm applies the same rule. This amendment records the decision; it does not restate the
+commands.
+
+**Why.** Head-scoping (#385) cost one lens round per repair round, even when a repair gave the lens
+nothing new to attest. The sprint-04 `agents-lead` retrospective, Finding 2, measured it on `-skills`
+#506.
+
+**What keeps it safe.** Head-scoping exists because a stale marker once attested diffs nobody reviewed,
+so:
+- the delta is read from the marker's own `commit:` line, as a tree diff between two commits;
+- that commit must be an ancestor of the head, so a force-push or rebase that orphans it refuses;
+- every input that cannot be read refuses and returns to the pre-#522 rule: an abbreviated SHA, an
+  unreadable object, a failed diff, or a repository that cannot be classified.
+
+**Consequences.**
+- *Good:* a repair confined to excluded paths — prose in `docs/`, `README.md` — no longer needs a
+  fresh lens pass on a PR that owed one earlier.
+- *Bad, and the one to know first:* **the motivating case no longer qualifies.** #506's repairs touched
+  `scripts/`, which #521 put inside the class, so the rule would not have saved any of its three rounds.
+  The rule is worth what remains after #521, not what #522 was filed on.
+- *Bad, accepted:* hold 2 is looser than it was, so this change falls under hold 1 and the owner
+  merges it.
+- *Named residual:* the byte-shared `loop-mode-contract` block in `CLAUDE.md` still says hold 2
+  requires a marker "naming the head being merged". That now overstates the requirement. It errs
+  toward more markers, never fewer, and it is left for a two-repository batch rather than edited in
+  one repository.
+
+**Rejected option.** *Carry forward from the branch point, `origin/main...<head>`.* That range answers
+"what did this branch change", not "what changed since the lens read it", so it cannot tell a reviewed
+commit from an unreviewed one.
+
+**What enforces it: the gate persona.** The `Stop` detector only reports, one turn late. It does not
+fetch, so a head it cannot read locally still produces its notice.
+
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now
   [ADR-0020](./0020-an-adr-earns-its-place-by-explaining-the-current-codebase.md) · the DoD is

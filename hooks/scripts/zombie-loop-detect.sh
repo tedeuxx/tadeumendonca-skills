@@ -110,6 +110,13 @@
 # sidesteps the question entirely: it fires only when a marker is PRESENT and stale, so a diff
 # that carries no marker is invisible to it and no misclassification is possible.
 #
+# SINCE #522 IT CLASSIFIES ONE THING, and only after a marker is already present and stale: the
+# delta from that marker's own `commit:` SHA to the head, which hold 2 now lets carry the marker
+# forward when it touches no hold-2 path. That is a LOCAL tree diff between two commits, not the
+# PR's file list, so the pagination argument above does not reach it; and every input it cannot
+# read fails toward the notice firing, which is the pre-#522 behaviour. Whether a marker is OWED
+# at all is still not this hook's question. The block is next to `harness_stale` below.
+#
 # ── DEBOUNCE, AND WHERE THE MARKER FILE LIVES ───────────────────────────────────────────────────
 # Fire at most once per (pr_number, headRefOid) per session — a parked PR the owner is reading
 # must not nag on every subsequent turn end, which is the shape that gets routed around within a
@@ -304,6 +311,9 @@ esac
 #   a marker names the head   -> "" (silent). The lens re-posted, which is the documented practice.
 #   markers exist, none fresh -> "stale". Hold 2 would be satisfied by presence, and every marker
 #                                on the PR attests a commit the PR no longer points at.
+#                                SINCE #522 the carry-forward block below can turn this back into
+#                                "" (silent), and only when a marker's delta to the head touches no
+#                                hold-2 path.
 #
 # `select(contains($h))` matches the FULL 40-character head SHA anywhere in the body, which is the
 # same containment test rule 7c and session-wip.sh already use for the gate's marker — the marker
@@ -364,6 +374,73 @@ harness_stale="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-ve
            else "stale" end
     end' 2>/dev/null || true)"
 
+# ── CARRY-FORWARD (#522): a stale marker whose delta to the head touches no hold-2 path ────────
+# Hold 2 in agents/quality-assurance.md lets the gate accept a marker posted at an EARLIER head of
+# the same PR when the tree delta from that marker's own `commit:` SHA to the head touches no path
+# in the hold-2 class. This arm applies the SAME rule, so a carried-forward PR is not reported as
+# stale — a detector that fires on every such PR at every Stop is one nobody believes (#522's own
+# words). Canonical statement, both classes, the repository test and the exact commands: hold 2.
+#
+# EVERY STEP FAILS CLOSED TO "still stale", i.e. toward the notice firing. That is the direction
+# today's behaviour already has, so an unreadable input can only reproduce the pre-#522 notice and
+# never suppress one:
+#   - the `commit:` line must carry the FULL forty characters, read with the same line-anchored
+#     capture hold 2 uses. An abbreviated or missing SHA carries nothing.
+#   - `git merge-base --is-ancestor <marker> <head>` must exit 0. Exit 1 (a force-push or rebase
+#     orphaned the marked commit, or it belongs to another history) and exit 128 (the object is
+#     not in this clone — the head was pushed from elsewhere and never fetched here) both refuse.
+#     This hook does NOT fetch: a `Stop` hook mutating refs on every turn end is a cost nobody
+#     asked for, and the refusal it causes is the pre-#522 notice, not a new false one.
+#   - `git diff --no-renames --name-only <marker> <head>` must exit 0. Its status is checked on
+#     its own, before any filter, because an empty stdout from a FAILED diff piped into a filter
+#     reads exactly like an empty delta, which would carry — the fail-open shape.
+#   - the repository is classified with `ls-tree` at `origin/main` and at the head, as hold 2 does.
+#     Either call failing (no `origin/main` ref in this clone, an unreadable head) selects the
+#     plugin-repository class, the wider one.
+# It is a TREE diff between two commits, never `origin/main...<head>`: the question is what changed
+# since the reviewed commit, and a merge from the trunk in that range shows up as the paths it
+# brought, which refuses the carry whenever they are in the class.
+if [ "$harness_stale" = "stale" ]; then
+  marker_shas="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-verdict' --arg g "${MARKER%%:*}" '
+    [ .comments[]?
+      | select((.authorAssociation // "") as $a
+               | ["OWNER","MEMBER","COLLABORATOR"] | index($a))
+      | .body // ""
+      | select(startswith($g) | not)
+      | select(split("\n") | map(startswith($lens)) | any)
+      | [capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")] | .[0].c // empty ]
+    | unique | .[]' 2>/dev/null || true)"
+
+  repo_class=""
+  for msha in $marker_shas; do
+    git -C "$cwd" merge-base --is-ancestor "$msha" "$head_sha" >/dev/null 2>&1 || continue
+    delta="$(git -C "$cwd" diff --no-renames --name-only "$msha" "$head_sha" 2>/dev/null)"
+    [ $? -eq 0 ] || continue
+    if [ -z "$repo_class" ]; then
+      trunk_has="$(git -C "$cwd" ls-tree --name-only origin/main -- .claude-plugin/plugin.json 2>/dev/null)"
+      trunk_rc=$?
+      head_has="$(git -C "$cwd" ls-tree --name-only "$head_sha" -- .claude-plugin/plugin.json 2>/dev/null)"
+      head_rc=$?
+      if [ "$trunk_rc" -ne 0 ] || [ "$head_rc" -ne 0 ] || [ -n "$trunk_has" ] || [ -n "$head_has" ]; then
+        repo_class="plugin"
+      else
+        repo_class="consuming"
+      fi
+    fi
+    if [ "$repo_class" = "plugin" ]; then
+      in_class="$(printf '%s\n' "$delta" | grep -v '^$' \
+        | grep -vE '^(docs/|powers/)|^(README\.md|VERSION|\.bumpversion\.toml|LICENSE)$')"
+    else
+      in_class="$(printf '%s\n' "$delta" | grep -v '^$' \
+        | grep -E '(^|/)(\.claude|\.codex|\.github)/|(^|/)(AGENTS|CLAUDE)\.md$')"
+    fi
+    if [ -z "$in_class" ]; then
+      harness_stale=""
+      break
+    fi
+  done
+fi
+
 # ── per-signal suppression, applied AFTER both signals are computed ────────────────────────────
 # This is where the debounce actually takes effect now. Reaching here means at least one signal was
 # unreported, so the payload was fetched; each signal is then dropped individually if its OWN key is
@@ -402,15 +479,18 @@ if [ -n "$harness_stale" ]; then
   context="${context}${context:+
 
 }Turn ended with a STALE agents-lead verdict marker on PR #${pr_number} (branch ${branch}, head
-${head_sha}): the PR carries at least one '<!-- harness-lead-verdict: ... -->' comment and NOT ONE
-of them names the current head.
+${head_sha}): the PR carries at least one '<!-- harness-lead-verdict: ... -->' comment, NOT ONE
+of them names the current head, and none carries forward (#522) — for every marker, either its
+'commit:' line holds no full 40-character SHA, that SHA is not an ancestor of the head in this
+clone, or the tree delta from it to the head touches a path in hold 2's class.
 
 This is the #385 arm of zombie-loop-detect.sh, and it is DETECTION ONLY — it holds nothing, denies
 nothing, and this hook never blocks. It says what it can see: a marker exists, so a harness lens
 ran at some point, and every marker on this PR attests a commit the PR no longer points at.
 
 Why that matters: 'agents/quality-assurance.md' hold 2 requires a marker on the PR before a
-harness diff may be merged, and since #385 it requires one that names the head being merged. Until
+harness diff may be merged, and since #385 it requires one that names the head being merged — or,
+since #522, one whose delta to that head touches no hold-2 path. Until
 #385 it was satisfied by PRESENCE, so a stale marker cleared the hold while attesting a diff
 nobody reviewed. NOTHING MECHANICAL ENFORCES THE HEAD-SCOPING — no rule reads this marker, rule 7c
 head-scopes only the gatekeeper's. This notice is the only observation of it that exists.
