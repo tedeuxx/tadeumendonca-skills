@@ -1021,9 +1021,11 @@ not.
      never dispatches the lens to.
 
      **How you tell the two apart: does `.claude-plugin/plugin.json` exist at the repository root?**
-     Read it from the tree at BOTH the trunk and the head you are merging, one call each:
+     **Fetch FIRST**, then read it from the tree at BOTH the trunk and the head you are merging, one
+     call each:
 
      ```
+     git -C <repo> fetch origin main "pull/<n>/head"
      git -C <repo> ls-tree --name-only origin/main -- .claude-plugin/plugin.json
      git -C <repo> ls-tree --name-only <headRefOid> -- .claude-plugin/plugin.json
      ```
@@ -1042,6 +1044,12 @@ not.
      **Measured 2026-09-27:** `tadeumendonca-skills` → prints `.claude-plugin/plugin.json`, exit 0;
      `tadeumendonca-io` → prints nothing, exit 0; either repository against `nosuchref` → exit 128.
 
+     *Why the fetch comes before the test and not inside the selectors below:* a `<headRefOid>`
+     your clone has never fetched is an unreadable ref, so without the fetch the head call exits 128
+     and the rule above applies the wider class. In a consuming repository that turns every product
+     merge into a hold 2 it does not owe, which ends in a false `APPROVE-PENDING-HUMAN`. Run the fetch
+     once, here. Both selectors below read the refs it fetched.
+
      **In a CONSUMING repository, the class is the harness-path list, and nothing else:**
      `.claude/**` · `.codex/**` · `.github/**` · `AGENTS.md` · `CLAUDE.md`, **at any depth** — so
      `apps/<unit>/CLAUDE.md` and `apps/<unit>/.claude/settings.json` are in it. The owner's list names
@@ -1050,7 +1058,6 @@ not.
      brief's reading (not measured), the project settings of a session started in that directory — and because it errs toward more markers. **Any output means hold 2 applies; no output means it does not:**
 
      ```
-     git -C <repo> fetch origin main "pull/<n>/head"
      git -C <repo> diff --no-renames --name-only origin/main...<headRefOid> \
        | grep -E '(^|/)(\.claude|\.codex|\.github)/|(^|/)(AGENTS|CLAUDE)\.md$'
      ```
@@ -1085,7 +1092,6 @@ not.
      means it does not:**
 
      ```
-     git -C <repo> fetch origin main "pull/<n>/head"
      git -C <repo> diff --no-renames --name-only origin/main...<headRefOid> \
        | grep -vE '^(docs/|powers/)|^(README\.md|VERSION|\.bumpversion\.toml|LICENSE)$'
      ```

@@ -9725,8 +9725,17 @@ if ! grep -qF "grep -E '$H2C_RE'" "$H2_BRIEF"; then
 elif ! grep -qF -- "ls-tree --name-only origin/main -- .claude-plugin/plugin.json" "$H2_BRIEF"; then
   bad "hold-2 consuming class — agents/quality-assurance.md lost the repository test (ls-tree for
       .claude-plugin/plugin.json), so nothing says which of the two classes applies where."
+# The test reads TWO refs and routes a failure to the WIDER class (#541 lens round 2, advisory A2):
+# pinning only the trunk call let the head call, or the unreadable-ref rule, vanish with this green.
+elif ! grep -qF -- "ls-tree --name-only <headRefOid> -- .claude-plugin/plugin.json" "$H2_BRIEF"; then
+  bad "hold-2 consuming class — agents/quality-assurance.md lost the HEAD half of the repository test
+      (ls-tree at <headRefOid>), so a diff that adds or deletes the manifest is judged at the trunk only."
+elif ! grep -qF -- "**Apply the exclusion-list class**, the wider one." "$H2_BRIEF" \
+  || ! grep -qF -- "An unreadable ref must never" "$H2_BRIEF"; then
+  bad "hold-2 consuming class — agents/quality-assurance.md no longer routes an unreadable ref to the
+      WIDER (exclusion-list) class, so a failed read could select the narrower one and drop a hold."
 else
-  ok "hold-2 consuming class — agents/quality-assurance.md carries the harness-path selector and the repository test (a STRING check)"
+  ok "hold-2 consuming class — agents/quality-assurance.md carries the harness-path selector and the repository test, both refs and the unreadable-to-wider rule (a STRING check)"
 fi
 h2c_brief_re="$(grep -oE "grep -E '[^']*claude[^']*'" "$H2_BRIEF" | head -1 | sed "s/^grep -E '//; s/'\$//")"
 h2c_hit="$(printf '%s\n' .claude/settings.json .codex/config.toml .github/workflows/deploy.yml AGENTS.md \
