@@ -9869,8 +9869,11 @@ fi
 # carries a fenced code block, and a `## ` line inside a fence would end an any-heading range early
 # (the latent defect #544's verdict named in #523's arm). A sentinel proves the end heading was
 # reached, so a missing heading reads as "could not extract" rather than as a range run to EOF that
-# would still find the clauses if the rule moved further down. A STRING check: it cannot tell whether
-# the gate posted anything. That is held by the gate.
+# would still find the clauses if the rule moved further down. The SELECTOR is pinned verbatim, not
+# only the clause about it: its line-start anchor is what stops it reading keyword references out of
+# evidence prose, and an un-anchored scan returned four Issues on the PR that published it, three of
+# them unrelated. A STRING check: it cannot tell whether the gate posted anything, or whether the
+# selector still returns the right Issues. That is held by the gate.
 OA_RAW="$(awk '/^11\. \*\*Reach — does this change get to the thing it exists for\?/{on=1}
   on && /^### A finding blocks only if it names a criterion and a falsifier$/{print "__OA_END__"; exit}
   on{print}' "$H2_BRIEF")"
@@ -9881,6 +9884,12 @@ for oa_clause in \
   'an act or check that only the owner can perform' \
   'one line plus the link to your verdict comment' \
   '`Refs #N` as well as a closing keyword' \
+  'the boundary literal'"'"'s *"what the owner should look at live"* sentence' \
+  'gh pr view <n> --repo <owner/repo> --json body,closingIssuesReferences' \
+  'scan("(?im)^(?:refs?|close[sd]?|fix(?:e[sd])?|resolve[sd]?) #([0-9]+)")' \
+  '+ [.closingIssuesReferences[].number])|unique' \
+  'An EMPTY result is not "no Issue"' \
+  'On empty, read the body and name the Issue yourself, or say in the verdict that the PR references none.' \
   'The order is verdict, then Issue comment, then merge' \
   'Considered and not adopted: the Release notes' \
   'the Release stays silent at install time' \

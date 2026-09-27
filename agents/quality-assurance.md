@@ -604,8 +604,9 @@ The hard gates, each to be confirmed:
    full argument, including why the iteration-close sweep is structurally blind to this case and must
    not be pointed at as the backstop.
    **When your verdict leaves an OWNER ACTION THAT TAKES EFFECT AT INSTALL, post it on each Issue the
-   PR references, before you merge (#524).** Criterion 11's third answer is the usual source, but any
-   line of the verdict can be one. The criterion that selects the class, since no pattern selects it:
+   PR references, before you merge (#524).** Two lines of a verdict produce one, and neither alone
+   covers the class: **criterion 11's third answer** (#544's) and **the boundary literal's *"what the
+   owner should look at live"* sentence** (#534's and #535's). Any other line can be one too. The criterion that selects the class, since no pattern selects it:
    *an act or check that only the owner can perform, and that becomes possible or necessary only once he
    installs the release this merge publishes*. That covers `/plugin update`, a restart, re-trusting a
    hook registration, a canary, a persona snapshot rebuild, and checking the first record the changed
@@ -624,13 +625,27 @@ The hard gates, each to be confirmed:
    - **The Issues are the ones the PR body references, `Refs #N` as well as a closing keyword.**
      `closingIssuesReferences` alone returns `[]` on #534, #535 and #544, because this loop references
      with `Refs`. A bare `#N` scan over-reads: on #534 it returns five numbers, four of them mentioned
-     in passing. The selector, calibrated on those three PRs (it returns `Refs #531`, `Refs #513`,
-     `Refs #523`):
+     in passing. **So does a keyword scan that is not anchored to a line start**: on the PR that
+     published this rule it returned `Refs #524` and also `Refs #531`, `Refs #513` and `Refs #523`,
+     which sit in the evidence prose, so a gate following it would have posted on three unrelated
+     closed Issues. The selector is anchored to a line start, and it is unioned with the forge's own
+     closing set to catch a closing keyword written mid-sentence:
 
      ```
-     gh pr view <n> --repo <owner/repo> --json body \
-       --jq '[.body|scan("(?i)\\b(?:refs?|close[sd]?|fix(?:e[sd])?|resolve[sd]?) #[0-9]+")]'
+     gh pr view <n> --repo <owner/repo> --json body,closingIssuesReferences \
+       --jq '([.body|scan("(?im)^(?:refs?|close[sd]?|fix(?:e[sd])?|resolve[sd]?) #([0-9]+)")[]|tonumber]
+             + [.closingIssuesReferences[].number])|unique'
      ```
+
+     Measured 2026-09-27, it returns exactly one Issue on each of #530, #532, #534, #535, #539, #540,
+     #541, #542, #544 and #545, and `[462,463,464]` on #467. **The union half is present and not yet
+     exercised**: across the 120 most recent PRs, no forge closing reference is missed by the anchored
+     scan, so the mid-sentence case it exists for has not occurred here.
+   - **An EMPTY result is not "no Issue", and it is the direction this selector errs in.** Over those
+     120 PRs the anchored form finds nothing on six whose only reference sits mid-line, for example
+     #486's *"… left out of its spend. `Refs #455`."* An empty selector posts nowhere, and nobody sees
+     a line that was never posted. **On empty, read the body and name the Issue yourself, or say in
+     the verdict that the PR references none.** Either answer is visible. Silence is not.
 
    - **The order is verdict, then Issue comment, then merge.** The line links the verdict, so the
      verdict exists first. It lands before the merge so that an Issue closed at merge, by hand or by
