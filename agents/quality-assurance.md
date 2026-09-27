@@ -1016,7 +1016,7 @@ not.
      ruling 2026-09-27 on #521, answering the lens's `ESCALATE` on #541 — *«Só no -skills»*: the
      exclusion-list class below applies to **the plugin repository only**. This brief ships in the
      plugin, so it reaches every repository that enables it, and there the exclusion-list class would
-     hold every product and content merge — measured on `tadeumendonca-io`'s 25 most recent merges, it
+     hold nearly every product and content merge — measured on `tadeumendonca-io`'s 25 most recent merges, it
      matched 22, including 15 product/content merges carrying no marker, on lanes the routing table
      never dispatches the lens to.
 
@@ -1045,9 +1045,9 @@ not.
      **In a CONSUMING repository, the class is the harness-path list, and nothing else:**
      `.claude/**` · `.codex/**` · `.github/**` · `AGENTS.md` · `CLAUDE.md`, **at any depth** — so
      `apps/<unit>/CLAUDE.md` and `apps/<unit>/.claude/settings.json` are in it. The owner's list names
-     the paths; the depth is this brief's reading, chosen because Claude Code loads a nested
-     `CLAUDE.md` and a nested `.claude/settings.json` exactly as it loads the root ones, and it errs
-     toward more markers. **Any output means hold 2 applies; no output means it does not:**
+     the paths; the depth is this brief's reading, chosen because both are read by the harness where they sit — Claude Code reads a nested
+     `CLAUDE.md` when it works in that subtree, and a nested `.claude/settings.json` is, by this
+     brief's reading (not measured), the project settings of a session started in that directory — and because it errs toward more markers. **Any output means hold 2 applies; no output means it does not:**
 
      ```
      git -C <repo> fetch origin main "pull/<n>/head"
@@ -1061,7 +1061,7 @@ not.
      `agents-lead` marker, as the routing table already says. **It is not "product diffs are exempt":**
      a product diff that edits `.github/workflows/` or `CLAUDE.md` needs the marker. Measured on the
      same 25 `-io` merges: the consuming list matches 9; of the 15 product/content merges the
-     exclusion-list class held, **12 no longer match and 3 still do** — #667 (`CLAUDE.md`,
+     exclusion-list class held, **12 no longer match and 3 still do** — `-io` #667 (`CLAUDE.md`,
      `apps/fed/CLAUDE.md`), #647 (`.github/workflows/deploy.yml`) and #645 (`.github/dependabot.yml`,
      `.github/workflows/iac.yml`). Root-only and any-depth matching return the same 9 on that window.
 
