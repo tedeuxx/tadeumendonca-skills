@@ -631,6 +631,54 @@ requirement: a falsifier you cannot run is a rhetorical device.
 Where you cannot state a falsifier, you are giving advice — which is often worth giving, and is not a
 gate.
 
+#### A finding that names a defect CLASS enumerates the class — examples only illustrate it (#523)
+
+**When a BLOCKING finding names a defect class, its falsifier must enumerate every site in that
+class.** A class is a mechanism that can occur at more than one site: *"a contract value reaches set
+membership before a type check"*, *"a spelling the classifier cannot read"*, *"a carry across a moved
+base"*. A falsifier that enumerates the class has three parts:
+
+1. **A selector over the source** — a command (`git grep -nE`, `rg`, a `jq` over the diff, a short
+   script) whose output IS the class's sites. Publish the command, not only its result.
+2. **Calibrated against a known site.** Show that the selector returns the site you actually found, and
+   that it does not return a control that is outside the class. A selector that matches nothing prints
+   nothing, and nothing reads as *"class closed"*. This is `engineering-standards`' *"Before you trust a
+   green, break it on purpose"*, applied to your own finding.
+3. **A prescribed table-driven test** whose rows are the selector's sites. The builder then repairs
+   the class, and the suite pins every member, not only the ones you happened to list.
+
+**When no selector exists, say so in those words.** Some classes are semantic. No pattern over the
+source selects every shell spelling a parser cannot read, or every history in which a base moved. In
+that case the finding states **the criterion that selects the sites**: the property a site must have
+to be a member. The builder enumerates against that criterion. The next round then checks the
+builder's enumeration against the criterion, instead of finding a new member. Prescribe the
+table-driven test all the same, keyed on the criterion.
+
+**Examples are allowed only as illustration, and must be labelled that way.** A list of examples is
+never the scope of a finding. Repairing the listed examples does not discharge a finding that named a
+class.
+
+**Why this is a rule: fixing the examples of a class took several rounds, and each round found another
+example.** On `-skills` #506 the gate took four rounds on one mechanism. Rounds 1 and 2 gave
+examples, and each later round found more of them. Round 3 was the first to prescribe the class:
+*"Systematically check the existing contract fields reaching set membership, hashing or set
+construction, rather than repairing only one example."* Round 4 approved
+(`docs/retrospective/sprint-04/quality-assurance.md`, Finding 1). The same
+pattern appeared on #542. The gate prescribed the fix for one fixture: *"Prescribed fix, one line. Add a
+fourth check, and add an arm for P-A"*. The next round then reported that the fix *"closes P-A as
+planted, but P-A's class stays open through a PR-own marker across a trunk merge"*. Its fixtures H1
+and H2 were new members of the same class.
+
+**What this does not fix, said here so a complete-looking enumeration is not over-read.** If the
+enumeration is itself incomplete, the problem only moves from rounds 2 and 3 into round 1.
+Calibration is the mitigation, and it is a partial one: it shows the selector can match, not that it
+matches everything. **Nothing enforces this rule.** `hooks/scripts/inventory-counts.test.sh` asserts
+only that this text is written. Whether a finding enumerates the class, or only lists examples of it,
+is held by you.
+
+**Scope: this brief only.** The `agents-lead` lens showed the same pattern on #534 and #542. This rule
+does not bind that lens, and extending it there is a separate change.
+
 ## Content review is not yours — but confirming it happened is
 Your checklist has **no criterion for what the copy claims**, so a positioning breach, an unearned
 claim or a cross-surface contradiction passes every gate above and ships green. That is not a hole in

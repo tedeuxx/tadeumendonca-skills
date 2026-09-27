@@ -9832,5 +9832,36 @@ else
   ok "#522 base check — hold 2 and zombie-loop-detect.sh both refuse a carry when the PR's merge-base with origin/main moved (a STRING check)"
 fi
 
+# ── #523: a blocking finding that names a defect CLASS enumerates it ───────────────────────────
+# The rule lives in agents/quality-assurance.md, under "A finding blocks only if it names a
+# criterion and a falsifier". Each clause is read INSIDE that section, from its heading to the next
+# `## ` heading, so moving the rule elsewhere reddens as well as deleting it. A STRING check: it
+# cannot tell whether a verdict enumerates a class or lists examples of one. That is held by the gate.
+DC_SECTION="$(awk '/^### A finding blocks only if it names a criterion and a falsifier$/{on=1; next}
+  on && /^## /{on=0} on{print}' "$H2_BRIEF" | tr '\n' ' ' | tr -s '[:space:]' ' ')"
+dc_missing=""
+for dc_clause in \
+  'its falsifier must enumerate every site in that class' \
+  'A selector over the source' \
+  'Calibrated against a known site' \
+  'A prescribed table-driven test' \
+  'When no selector exists, say so in those words' \
+  'the criterion that selects the sites' \
+  'Examples are allowed only as illustration'; do
+  case "$DC_SECTION" in
+    *"$dc_clause"*) ;;
+    *) dc_missing="${dc_missing}
+      - $dc_clause" ;;
+  esac
+done
+if [ -z "$DC_SECTION" ]; then
+  bad "#523 defect class — could not extract the 'A finding blocks only if it names a criterion and a
+      falsifier' section from agents/quality-assurance.md. Absent, not clean."
+elif [ -n "$dc_missing" ]; then
+  bad "#523 defect class — the falsifier section of agents/quality-assurance.md lost clause(s):$dc_missing"
+else
+  ok "#523 defect class — the falsifier section carries the enumerate-the-class rule, its three parts, the no-selector fallback and the examples-only-illustrate clause (a STRING check)"
+fi
+
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]
