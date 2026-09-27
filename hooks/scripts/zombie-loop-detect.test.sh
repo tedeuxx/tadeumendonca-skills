@@ -825,7 +825,7 @@ jq -n --arg h "$h" --arg m "$m" '{headRefOid:$h, comments:[{authorAssociation:"O
 stays_silent 'a backticked full SHA on the commit: line carries' "$(run_hook)"
 teardown
 
-echo '--- #522: one carrying marker is enough — silent with a non-carrying one beside it ---'
+echo '--- #522: the NEWEST marker carries — silent, older non-carrying markers are not consulted ---'
 setup; plugin_repo; checkout_branch loop/x
 m1="$(commit_path hooks/scripts/x.sh)"
 m2="$(commit_path hooks/scripts/y.sh)"
@@ -853,14 +853,97 @@ open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
 stale_fires 'a nested CLAUDE.md in the delta refuses the carry in a consuming repository' "$(run_hook)"
 teardown
 
-echo '--- #522: an UNCLASSIFIABLE repository (no origin/main) takes the wider class — refuses ---'
+echo '--- #522: an UNCLASSIFIABLE repository (no origin/main) refuses the carry — scripts/ delta ---'
 # Same history as the consuming-repository carry above, minus the origin/main ref. `ls-tree` on
-# the missing ref fails, so the plugin-repository class applies and scripts/ is inside it.
+# the missing ref fails, and an unclassified repository carries nothing.
 setup; checkout_branch loop/x
 m="$(commit_path .github/workflows/ci.yml)"
 h="$(commit_path scripts/build.sh)"
 open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
-stale_fires 'an unreadable origin/main selects the wider class and refuses the carry' "$(run_hook)"
+stale_fires 'an unreadable origin/main refuses the carry (scripts/ delta)' "$(run_hook)"
+teardown
+
+echo '--- #522: an UNCLASSIFIABLE repository refuses even a DOCS-ONLY delta ---'
+# The discriminating case for the refusal: under the old "wider class" rule this carried, because
+# docs/** is excluded from the plugin-repository class. It must refuse, whatever the delta holds.
+setup; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+h="$(commit_path docs/notes.md)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'an unreadable origin/main refuses a docs-only delta' "$(run_hook)"
+teardown
+
+echo '--- #522: a QUOTED harness path in a CONSUMING repository refuses the carry ---'
+# git quotes a non-ASCII name, so the line starts with a double quote and no ^- or /-anchored
+# pattern sees ".claude/". core.quotePath is pinned so the arm does not depend on user config.
+setup; consuming_repo; checkout_branch loop/x
+git -C "$repo" config core.quotePath true
+m="$(commit_path scripts/build.sh)"
+h="$(commit_path ".claude/agents/caf$(printf '\303\251').md")"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'a quoted .claude/ path refuses the carry in a consuming repository' "$(run_hook)"
+teardown
+
+echo '--- #522: a QUOTED path in the PLUGIN repository is inside the class — refuses ---'
+setup; plugin_repo; checkout_branch loop/x
+git -C "$repo" config core.quotePath true
+m="$(commit_path hooks/scripts/x.sh)"
+h="$(commit_path "skills/caf$(printf '\303\251')/SKILL.md")"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'a quoted skills/ path refuses the carry in the plugin repository' "$(run_hook)"
+teardown
+
+echo '--- #522: the NEWEST marker governs — an older closing marker does not carry past a newer one ---'
+# Older marker at A carries on its own: A -> head is docs-only, because B's hooks change is
+# reverted. The newer marker at B is the lens's current word, and B -> head touches hooks/.
+setup; plugin_repo; checkout_branch loop/x
+a="$(commit_path hooks/scripts/x.sh)"
+b="$(commit_path hooks/scripts/x.sh)"
+git -C "$repo" revert --no-edit HEAD >/dev/null 2>&1
+h="$(commit_path docs/notes.md)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$a" "$b"
+stale_fires 'an older carrying marker does not carry past a newer non-carrying one' "$(run_hook)"
+teardown
+
+echo '--- #522: a MISSING TREE OBJECT — --is-ancestor exits 0, the diff exits 128 — refuses ---'
+# The commit graph is intact, so the ancestry check passes; the diff reads trees and fails. Only
+# the diff's own status check can refuse this. Guarded, so the arm cannot pass vacuously.
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+h="$(commit_path docs/notes.md)"
+t="$(git -C "$repo" rev-parse "$h:docs")"
+rm -f "$repo/.git/objects/${t:0:2}/${t:2}"
+ia=0; git -C "$repo" merge-base --is-ancestor "$m" "$h" 2>/dev/null || ia=$?
+df=0; git -C "$repo" diff --no-renames --name-only "$m" "$h" >/dev/null 2>&1 || df=$?
+if [ "$ia" -eq 0 ] && [ "$df" -ne 0 ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+  stale_fires 'an unreadable delta refuses the carry although the ancestry check passes' "$(run_hook)"
+else
+  bad 'missing-tree-object fixture' "expected is-ancestor 0 and diff non-zero, got $ia and $df"
+fi
+teardown
+
+echo '--- #522: a FAILING class filter refuses — its silence must not read as an empty delta ---'
+# The carry filter is the hook's only grep, so a stub that prints nothing and exits 2 isolates it.
+# The delta is docs-only, which carries with a working grep (the first #522 arm).
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+h="$(commit_path docs/notes.md)"
+printf '#!/bin/sh\nexit 2\n' > "$root/bin/grep"; chmod +x "$root/bin/grep"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'a class filter that errors refuses the carry' "$(run_hook)"
+teardown
+
+echo '--- #522: a RENAME from hooks/ into docs/ refuses — --no-renames is load-bearing ---'
+# Without --no-renames the delta prints only docs/x.sh, which the plugin filter excludes.
+setup; plugin_repo; checkout_branch loop/x
+m="$(commit_path hooks/scripts/x.sh)"
+mkdir -p "$repo/docs"
+git -C "$repo" mv hooks/scripts/x.sh docs/x.sh
+git -C "$repo" commit -q -m 'move x.sh into docs'
+h="$(git -C "$repo" rev-parse HEAD)"
+open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+stale_fires 'a hooks/ -> docs/ rename refuses the carry' "$(run_hook)"
 teardown
 
 echo

@@ -111,7 +111,7 @@
 # that carries no marker is invisible to it and no misclassification is possible.
 #
 # SINCE #522 IT CLASSIFIES ONE THING, and only after a marker is already present and stale: the
-# delta from that marker's own `commit:` SHA to the head, which hold 2 now lets carry the marker
+# delta from the NEWEST marker's own `commit:` SHA to the head, which hold 2 now lets carry the marker
 # forward when it touches no hold-2 path. That is a LOCAL tree diff between two commits, not the
 # PR's file list, so the pagination argument above does not reach it; and every input it cannot
 # read fails toward the notice firing, which is the pre-#522 behaviour. Whether a marker is OWED
@@ -312,8 +312,8 @@ esac
 #   markers exist, none fresh -> "stale". Hold 2 would be satisfied by presence, and every marker
 #                                on the PR attests a commit the PR no longer points at.
 #                                SINCE #522 the carry-forward block below can turn this back into
-#                                "" (silent), and only when a marker's delta to the head touches no
-#                                hold-2 path.
+#                                "" (silent), and only when the NEWEST marker's delta to the head
+#                                touches no hold-2 path.
 #
 # `select(contains($h))` matches the FULL 40-character head SHA anywhere in the body, which is the
 # same containment test rule 7c and session-wip.sh already use for the gate's marker — the marker
@@ -381,64 +381,90 @@ harness_stale="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-ve
 # stale — a detector that fires on every such PR at every Stop is one nobody believes (#522's own
 # words). Canonical statement, both classes, the repository test and the exact commands: hold 2.
 #
+# ONLY THE NEWEST LENS MARKER MAY CARRY. Comments arrive in posting order, so the newest is the
+# last one that passes the marker predicate above. An older marker never carries past a newer
+# one: a lens that blocked at a later commit is the lens's current word, and letting an earlier
+# closing marker stand in for it would carry a verdict the lens has since withdrawn. If the
+# newest marker does not carry, nothing does — no older marker is consulted.
+#
 # EVERY STEP FAILS CLOSED TO "still stale", i.e. toward the notice firing. That is the direction
 # today's behaviour already has, so an unreadable input can only reproduce the pre-#522 notice and
 # never suppress one:
-#   - the `commit:` line must carry the FULL forty characters, read with the same line-anchored
-#     capture hold 2 uses. An abbreviated or missing SHA carries nothing.
+#   - the newest marker's `commit:` line must carry the FULL forty characters, read with the same
+#     line-anchored capture hold 2 uses. An abbreviated or missing SHA carries nothing.
 #   - `git merge-base --is-ancestor <marker> <head>` must exit 0. Exit 1 (a force-push or rebase
 #     orphaned the marked commit, or it belongs to another history) and exit 128 (the object is
 #     not in this clone — the head was pushed from elsewhere and never fetched here) both refuse.
 #     This hook does NOT fetch: a `Stop` hook mutating refs on every turn end is a cost nobody
 #     asked for, and the refusal it causes is the pre-#522 notice, not a new false one.
-#   - `git diff --no-renames --name-only <marker> <head>` must exit 0. Its status is checked on
-#     its own, before any filter, because an empty stdout from a FAILED diff piped into a filter
-#     reads exactly like an empty delta, which would carry — the fail-open shape.
+#   - `git diff --no-renames --name-only <marker> <head>` must exit 0, checked on its own before
+#     any filter. `--is-ancestor` exiting 0 does NOT make this redundant: it reads the COMMIT
+#     graph, and the diff reads TREES. Measured: with the loose tree object of the head's `docs/`
+#     subtree deleted, `--is-ancestor` exits 0 and the diff exits 128. Piped straight into the
+#     filter, that failed diff prints nothing and the filter prints nothing — which reads as an
+#     empty delta and carries, the fail-open shape. The separate status check is what refuses it.
 #   - the repository is classified with `ls-tree` at `origin/main` and at the head, as hold 2 does.
-#     Either call failing (no `origin/main` ref in this clone, an unreadable head) selects the
-#     plugin-repository class, the wider one.
+#     EITHER CALL FAILING (no `origin/main` ref in this clone, an unreadable head) REFUSES THE
+#     CARRY. It used to select the plugin-repository class as "the wider one", and that was false:
+#     the exclusion list drops `docs/**` and `powers/**`, so a consuming-class path such as
+#     `docs/CLAUDE.md` was excluded under it and carried. Neither class is a superset of the other,
+#     so an unclassified repository has no filter it can safely apply, and it carries nothing.
+#   - a path git QUOTES is inside the class, in both repositories. `git diff --name-only` wraps a
+#     non-ASCII or special-character name in double quotes (`core.quotePath`, default true), so the
+#     line starts with `"` and no path pattern anchored at `^` or `/` sees it. The plugin filter
+#     already keeps such a line — no exclusion begins with `"` — and the consuming filter now
+#     selects `^"` explicitly. Measured before the fix: `.claude/agents/café.md` in a consuming
+#     repository carried.
+#   - the filter's own exit status is checked: `grep` exits 1 for "nothing matched", which is the
+#     carry, and 2 for an error, which refuses. A filter that failed prints nothing, which would
+#     otherwise read as a carry.
 # It is a TREE diff between two commits, never `origin/main...<head>`: the question is what changed
 # since the reviewed commit, and a merge from the trunk in that range shows up as the paths it
 # brought, which refuses the carry whenever they are in the class.
 if [ "$harness_stale" = "stale" ]; then
-  marker_shas="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-verdict' --arg g "${MARKER%%:*}" '
+  newest_sha="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-verdict' --arg g "${MARKER%%:*}" '
     [ .comments[]?
       | select((.authorAssociation // "") as $a
                | ["OWNER","MEMBER","COLLABORATOR"] | index($a))
       | .body // ""
       | select(startswith($g) | not)
-      | select(split("\n") | map(startswith($lens)) | any)
-      | [capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")] | .[0].c // empty ]
-    | unique | .[]' 2>/dev/null || true)"
+      | select(split("\n") | map(startswith($lens)) | any) ]
+    | last // ""
+    | [capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")] | .[0].c // empty' 2>/dev/null || true)"
 
-  repo_class=""
-  for msha in $marker_shas; do
-    git -C "$cwd" merge-base --is-ancestor "$msha" "$head_sha" >/dev/null 2>&1 || continue
-    delta="$(git -C "$cwd" diff --no-renames --name-only "$msha" "$head_sha" 2>/dev/null)"
-    [ $? -eq 0 ] || continue
-    if [ -z "$repo_class" ]; then
-      trunk_has="$(git -C "$cwd" ls-tree --name-only origin/main -- .claude-plugin/plugin.json 2>/dev/null)"
-      trunk_rc=$?
-      head_has="$(git -C "$cwd" ls-tree --name-only "$head_sha" -- .claude-plugin/plugin.json 2>/dev/null)"
-      head_rc=$?
-      if [ "$trunk_rc" -ne 0 ] || [ "$head_rc" -ne 0 ] || [ -n "$trunk_has" ] || [ -n "$head_has" ]; then
-        repo_class="plugin"
+  carry_class=""
+  if [ -n "$newest_sha" ] \
+     && git -C "$cwd" merge-base --is-ancestor "$newest_sha" "$head_sha" >/dev/null 2>&1; then
+    trunk_has="$(git -C "$cwd" ls-tree --name-only origin/main -- .claude-plugin/plugin.json 2>/dev/null)"
+    trunk_rc=$?
+    head_has="$(git -C "$cwd" ls-tree --name-only "$head_sha" -- .claude-plugin/plugin.json 2>/dev/null)"
+    head_rc=$?
+    if [ "$trunk_rc" -ne 0 ] || [ "$head_rc" -ne 0 ]; then
+      carry_class=""                      # unclassifiable: refuse
+    elif [ -n "$trunk_has" ] || [ -n "$head_has" ]; then
+      carry_class="plugin"
+    else
+      carry_class="consuming"
+    fi
+  fi
+
+  if [ -n "$carry_class" ]; then
+    delta="$(git -C "$cwd" diff --no-renames --name-only "$newest_sha" "$head_sha" 2>/dev/null)"
+    diff_rc=$?
+    if [ "$diff_rc" -eq 0 ]; then
+      if [ "$carry_class" = "plugin" ]; then
+        in_class="$(printf '%s\n' "$delta" \
+          | grep -vE '^$|^(docs/|powers/)|^(README\.md|VERSION|\.bumpversion\.toml|LICENSE)$')"
       else
-        repo_class="consuming"
+        in_class="$(printf '%s\n' "$delta" \
+          | grep -E '^"|(^|/)(\.claude|\.codex|\.github)/|(^|/)(AGENTS|CLAUDE)\.md$')"
+      fi
+      filter_rc=$?
+      if [ "$filter_rc" -le 1 ] && [ -z "$in_class" ]; then
+        harness_stale=""
       fi
     fi
-    if [ "$repo_class" = "plugin" ]; then
-      in_class="$(printf '%s\n' "$delta" | grep -v '^$' \
-        | grep -vE '^(docs/|powers/)|^(README\.md|VERSION|\.bumpversion\.toml|LICENSE)$')"
-    else
-      in_class="$(printf '%s\n' "$delta" | grep -v '^$' \
-        | grep -E '(^|/)(\.claude|\.codex|\.github)/|(^|/)(AGENTS|CLAUDE)\.md$')"
-    fi
-    if [ -z "$in_class" ]; then
-      harness_stale=""
-      break
-    fi
-  done
+  fi
 fi
 
 # ── per-signal suppression, applied AFTER both signals are computed ────────────────────────────
@@ -480,9 +506,10 @@ if [ -n "$harness_stale" ]; then
 
 }Turn ended with a STALE agents-lead verdict marker on PR #${pr_number} (branch ${branch}, head
 ${head_sha}): the PR carries at least one '<!-- harness-lead-verdict: ... -->' comment, NOT ONE
-of them names the current head, and none carries forward (#522) — for every marker, either its
-'commit:' line holds no full 40-character SHA, that SHA is not an ancestor of the head in this
-clone, or the tree delta from it to the head touches a path in hold 2's class.
+of them names the current head, and the NEWEST one does not carry forward (#522; only the newest
+may) — either its 'commit:' line holds no full 40-character SHA, that SHA is not an ancestor of the
+head in this clone, the repository could not be classified (an unreadable origin/main or head), the
+tree delta from it to the head could not be read, or that delta touches a path in hold 2's class.
 
 This is the #385 arm of zombie-loop-detect.sh, and it is DETECTION ONLY — it holds nothing, denies
 nothing, and this hook never blocks. It says what it can see: a marker exists, so a harness lens

@@ -5511,7 +5511,8 @@ the gate would have held them all.
 **How the gate tells the repositories apart: `.claude-plugin/plugin.json` at the root, read with
 `git ls-tree` at the trunk and at the head.** Either present → the plugin repository. `ls-tree`, not
 `cat-file -e`, because only `ls-tree` separates an absent file (exit 0, no output) from an unreadable
-ref (exit 128); an unreadable ref applies the wider class.
+ref (exit 128); ~~an unreadable ref applies the wider class~~ **— struck 2026-09-27 by the #522
+amendment below: neither class is wider, so an unreadable ref applies the UNION of both.**
 
 **Consequences.**
 - *Good:* product and content lanes in a consuming repository merge as the routing table says. On the
@@ -5553,7 +5554,22 @@ so:
 - the delta is read from the marker's own `commit:` line, as a tree diff between two commits;
 - that commit must be an ancestor of the head, so a force-push or rebase that orphans it refuses;
 - every input that cannot be read refuses and returns to the pre-#522 rule: an abbreviated SHA, an
-  unreadable object, a failed diff, or a repository that cannot be classified.
+  unreadable object, a failed diff, a failed class filter, or a repository that cannot be classified;
+- only the NEWEST lens marker on the PR may carry. An older marker never carries past a newer one,
+  because the newest is the lens's current word; if it blocked at a later commit, an earlier closing
+  marker is a verdict the lens has withdrawn. Carrying moves the attestation, never the content: a
+  carried marker's open findings stand at the new head;
+- a path git quotes (`core.quotePath`, a non-ASCII or special-character name) is inside the class in
+  both repositories. The consuming filter selects `^"` for the carry; the plugin filter already keeps
+  such a line.
+
+**A second correction the carry exposed, to the #521 amendment above.** #521 routed an unreadable
+repository test to "the wider class", meaning the exclusion list. That is false: the exclusion list
+drops `docs/**` and `powers/**`, so `docs/CLAUDE.md` is in the consuming class and outside it. Neither
+class is a superset of the other. **For the owed decision an unreadable test now applies the UNION of
+both classes**, the only filter that covers every path either covers; **for carry-forward it refuses**,
+because no filter is safe for a delta whose repository is unknown. The phrase in the #521 amendment is
+struck in place.
 
 **Consequences.**
 - *Good:* a repair confined to excluded paths — prose in `docs/`, `README.md` — no longer needs a
@@ -5563,10 +5579,15 @@ so:
   The rule is worth what remains after #521, not what #522 was filed on.
 - *Bad, accepted:* hold 2 is looser than it was, so this change falls under hold 1 and the owner
   merges it.
-- *Named residual:* the byte-shared `loop-mode-contract` block in `CLAUDE.md` still says hold 2
-  requires a marker "naming the head being merged". That now overstates the requirement. It errs
-  toward more markers, never fewer, and it is left for a two-repository batch rather than edited in
-  one repository.
+- *Named residual:* the byte-shared `loop-mode-contract` block in `CLAUDE.md` overstates the
+  requirement in TWO sentences, and `tadeumendonca-io`'s copy carries the same two: the prose that
+  hold 2 "now requires a marker naming the head being merged", and the table row "the `agents-lead`
+  marker names the head being merged". Both err toward more markers, never fewer, and they are left
+  for a two-repository batch rather than edited in one repository.
+- *Named residual:* hold 2's owed-decision selector for a consuming repository (#521) still misses a
+  QUOTED harness path — a non-ASCII `.claude/` name owes a marker there and the selector does not
+  ask for one. Only the carry filter gained `^"` here; the owed selector is #521's and is left as it
+  merged.
 
 **Rejected option.** *Carry forward from the branch point, `origin/main...<head>`.* That range answers
 "what did this branch change", not "what changed since the lens read it", so it cannot tell a reviewed

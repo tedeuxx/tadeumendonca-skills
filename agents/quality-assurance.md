@@ -1034,21 +1034,34 @@ not.
      - **Either call prints the path** → the **plugin repository** → the exclusion-list class.
      - **Both print nothing and both exit 0** → a **consuming repository** → the harness-path list.
      - **Either call fails** (a non-zero exit — an unreadable ref) → you have NOT classified the
-       repository. **Apply the exclusion-list class**, the wider one. An unreadable ref must never
-       select the narrower class.
+       repository. ~~**Apply the exclusion-list class**, the wider one. An unreadable ref must never
+       select the narrower class.~~ **Struck 2026-09-27 (#522): neither class is the wider one.** The
+       exclusion list drops `docs/**` and `powers/**`, while the harness-path list matches
+       `CLAUDE.md`, `AGENTS.md`, `.claude/`, `.codex/` and `.github/` at any depth, so
+       `docs/CLAUDE.md` is in the consuming class and outside the exclusion-list class. **Apply the
+       UNION of both classes: run both selectors below, and hold 2 applies when EITHER prints
+       anything.** The union is the only filter that covers every path either class covers, so an
+       unclassified repository can never owe fewer markers than it would once classified. It costs
+       more markers in exactly this case, and the fetch that precedes the test makes the case rare.
+       **For carry-forward an unclassified repository is simpler: nothing carries** (the carry rule
+       below).
 
      *Why `ls-tree` and not `cat-file -e`:* `cat-file -e` exits 128 both when the file is absent and
      when the ref is unreadable, so it cannot tell "consuming repository" from "could not look".
      `ls-tree` exits 0 with no output for an absent path and 128 for a bad ref. *Why both refs:* a diff
      that deletes the manifest is still judged as the plugin repository, and a diff that adds one to a
-     consuming repository is judged by the wider class — the two errors run toward more markers.
+     consuming repository is judged ~~by the wider class~~ **as the plugin repository too (struck
+     2026-09-27, #522: the exclusion-list class is not wider than the harness-path list, only
+     different)** — so a diff that moves the manifest is judged by the class that fails closed on new
+     paths.
      **Measured 2026-09-27:** `tadeumendonca-skills` → prints `.claude-plugin/plugin.json`, exit 0;
      `tadeumendonca-io` → prints nothing, exit 0; either repository against `nosuchref` → exit 128.
 
      *Why the fetch comes before the test and not inside the selectors below:* a `<headRefOid>`
      your clone has never fetched is an unreadable ref, so without the fetch the head call exits 128
-     and the rule above applies the wider class. In a consuming repository that turns every product
-     merge that touches a path outside the exclusion list into a hold 2 it does not owe, which ends
+     and the rule above applies ~~the wider class~~ **the union of both classes (#522)**. In a
+     consuming repository that turns every product merge that touches a path outside the exclusion
+     list into a hold 2 it does not owe, which ends
      in a false `APPROVE-PENDING-HUMAN`. Run the fetch
      once, here. Both selectors below read the refs it fetched.
 
@@ -1119,10 +1132,23 @@ not.
      **CARRY-FORWARD (#522, 2026-09-27) — a marker posted at an EARLIER head of this PR satisfies
      hold 2 when the tree delta from its own `commit:` SHA to the `headRefOid` touches no path in the
      class above.** A lens round that would attest nothing new is not owed. The rule reuses the class
-     you already selected; only the RANGE changes. For each lens marker on the PR, take the full
-     forty characters on its `commit:` line as `<marker-sha>` — read with
-     `capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")`, the line pattern the corrected limb
-     below tests — and run, after the fetch above, three checks in order:
+     you already selected; only the RANGE changes. **Carry-forward requires a CLASSIFIED repository:
+     when either `ls-tree` call above failed, nothing carries** — neither class is a superset of the
+     other, so there is no filter an unclassified repository can safely apply to a delta.
+
+     **ONLY THE NEWEST LENS MARKER ON THE PR MAY CARRY.** Newest means last posted, among the
+     comments that are lens markers. **An older marker never carries past a newer one**, and when
+     the newest does not carry, no older marker is consulted. The reason is what a marker is: the
+     newest one is the lens's current word on this PR. If it blocked at a later commit, an earlier
+     marker that closed is a verdict the lens has since withdrawn, and carrying it would clear hold 2
+     with a review the lens no longer stands behind. **Carrying moves the ATTESTATION, never the
+     CONTENT:** a carried marker brings its findings with it. If it does not say
+     `the lens is CLOSED`, its open findings are the lens's word at this head, and you read them
+     exactly as you would read them on a marker that named the head.
+
+     Take the full forty characters on the newest marker's `commit:` line as `<marker-sha>` — read
+     with `capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")`, the line pattern the corrected
+     limb below tests — and run, after the fetch above, three checks in order:
 
      ```
      git -C <repo> merge-base --is-ancestor <marker-sha> <headRefOid>          # must exit 0
@@ -1130,11 +1156,32 @@ not.
      git -C <repo> diff --no-renames --name-only <marker-sha> <headRefOid> | <the class filter above>
      ```
 
-     **The marker carries forward only when the first two exit 0 AND the third prints nothing.**
-     `<the class filter above>` is the `grep` stage of the selector for the repository you
-     classified — `grep -vE` in the plugin repository, `grep -E` in a consuming one — unchanged.
-     One carrying marker is enough; say in your verdict which marker carried and which paths the
-     delta held.
+     **The marker carries forward only when the first two exit 0 AND the third prints nothing AND
+     its filter exits 0 or 1.** `<the class filter above>` is the `grep` stage of the selector for
+     the repository you classified, with ONE addition in the consuming repository:
+
+     ```
+     # plugin repository — unchanged from the selector above
+     grep -vE '^(docs/|powers/)|^(README\.md|VERSION|\.bumpversion\.toml|LICENSE)$'
+     # consuming repository — the selector above, plus ^" (a QUOTED path is inside the class)
+     grep -E '^"|(^|/)(\.claude|\.codex|\.github)/|(^|/)(AGENTS|CLAUDE)\.md$'
+     ```
+
+     **Why `^"`.** `git diff --name-only` wraps a non-ASCII or special-character path in double
+     quotes (`core.quotePath` defaults to true), so the line starts with `"` and no pattern anchored
+     at `^` or `/` sees `.claude/` inside it. Measured 2026-09-27: `.claude/agents/café.md`,
+     `.github/workflows/dé.yml` and `apps/café/CLAUDE.md` each carried a consuming-repository marker
+     before this line. **A quoted path never carries, in either repository:** the plugin filter
+     already keeps it, because no exclusion begins with `"`. **The owed-decision selector for a
+     consuming repository, above, does NOT carry `^"`** — it is #521's and is left as it merged — so it
+     does not ask for a marker on a quoted harness path. When a consuming-repository diff lists a
+     quoted path, read it: a quoted `.claude/`, `.codex/`, `.github/`, `AGENTS.md` or `CLAUDE.md`
+     path owes the marker whatever that selector printed. **Why the filter's exit status:** `grep`
+     exits 1 for "nothing matched", which is the carry, and 2 for an error, which prints nothing too
+     and must refuse.
+
+     ~~One carrying marker is enough~~ **— struck 2026-09-27 (#522): only the newest marker may carry,
+     as above.** Say in your verdict which marker carried and which paths the delta held.
 
      **Every other outcome is a missing reviewer at this head, exactly as before #522:**
      - **`--is-ancestor` exits 1** — the marked commit is not in this head's history. A force-push
@@ -1147,7 +1194,12 @@ not.
      - **the second command exits non-zero** — refuse. **Run it alone for this reason:** in the
        third command's pipeline, a failed `diff` prints nothing, and the filter over nothing also
        prints nothing — which reads as "no class path", which carries. That is the fail-open shape,
-       and the separate run is what closes it.
+       and the separate run is what closes it. **A passed ancestry check does NOT make it
+       redundant:** `--is-ancestor` reads the commit graph and the diff reads trees. Measured
+       2026-09-27: with the loose tree object of the head's `docs/` subtree deleted, `--is-ancestor`
+       exits 0 and the diff exits 128.
+     - **the repository is unclassified** (either `ls-tree` call failed) — refuse, as above.
+     - **the newest marker does not carry** — refuse, even when an older marker would.
 
      **Why two commits and not `origin/main...<headRefOid>`.** The question is what changed since
      the reviewed commit, not since the branch was cut. With the ancestry check passed, `<marker-sha>

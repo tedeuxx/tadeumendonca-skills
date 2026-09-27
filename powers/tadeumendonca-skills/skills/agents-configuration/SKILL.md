@@ -1082,7 +1082,8 @@ on every dispatch** — a persona that read *"presence check"* would believe hol
 marker. **Hold 2 is HEAD-SCOPED now:** `agents/quality-assurance.md` requires a marker whose `commit:`
 line names the `headRefOid` the gate read for its own verdict. **Since 2026-09-27 (#522) an earlier
 marker of the same PR also satisfies it when its commit is an ancestor of the head and the tree delta
-from it touches no hold-2 path.** Anything the gate cannot read refuses. The rule and its commands
+from it touches no hold-2 path.** Only the newest lens marker may carry, and anything the gate
+cannot read refuses — an unclassifiable repository included. The rule and its commands
 are in hold 2; this sentence only keeps the preload from overstating the requirement.
 
 **The repair is NOT the one this paragraph predicted, and the difference is the finding.** It said the

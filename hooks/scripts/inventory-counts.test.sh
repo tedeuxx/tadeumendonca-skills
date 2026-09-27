@@ -9725,17 +9725,21 @@ if ! grep -qF "grep -E '$H2C_RE'" "$H2_BRIEF"; then
 elif ! grep -qF -- "ls-tree --name-only origin/main -- .claude-plugin/plugin.json" "$H2_BRIEF"; then
   bad "hold-2 consuming class — agents/quality-assurance.md lost the repository test (ls-tree for
       .claude-plugin/plugin.json), so nothing says which of the two classes applies where."
-# The test reads TWO refs and routes a failure to the WIDER class (#541 lens round 2, advisory A2):
-# pinning only the trunk call let the head call, or the unreadable-ref rule, vanish with this green.
+# The test reads TWO refs (#541 lens round 2, advisory A2): pinning only the trunk call let the head
+# call, or the unreadable-ref rule, vanish with this green.
+# The unreadable-ref rule was "apply the exclusion-list class, the wider one" until #522, and that was
+# false: the exclusion list drops docs/** and powers/**, so docs/CLAUDE.md is in the consuming class
+# and outside it. Neither class is wider. The rule is now the UNION for the owed decision, and NO
+# CARRY for carry-forward; both are pinned, and the struck sentence is no longer what this arm reads.
 elif ! grep -qF -- "ls-tree --name-only <headRefOid> -- .claude-plugin/plugin.json" "$H2_BRIEF"; then
   bad "hold-2 consuming class — agents/quality-assurance.md lost the HEAD half of the repository test
       (ls-tree at <headRefOid>), so a diff that adds or deletes the manifest is judged at the trunk only."
-elif ! grep -qF -- "**Apply the exclusion-list class**, the wider one." "$H2_BRIEF" \
-  || ! grep -qF -- "An unreadable ref must never" "$H2_BRIEF"; then
+elif ! grep -qF -- "UNION of both classes: run both selectors below, and hold 2 applies when EITHER prints" "$H2_BRIEF" \
+  || ! grep -qF -- 'when either `ls-tree` call above failed, nothing carries' "$H2_BRIEF"; then
   bad "hold-2 consuming class — agents/quality-assurance.md no longer routes an unreadable ref to the
-      WIDER (exclusion-list) class, so a failed read could select the narrower one and drop a hold."
+      UNION of both classes, or no longer refuses a carry when the repository is unclassified (#522)."
 else
-  ok "hold-2 consuming class — agents/quality-assurance.md carries the harness-path selector and the repository test, both refs and the unreadable-to-wider rule (a STRING check)"
+  ok "hold-2 consuming class — agents/quality-assurance.md carries the harness-path selector and the repository test, both refs, the unreadable-to-union rule and the unclassified-refuses-carry rule (a STRING check)"
 fi
 h2c_brief_re="$(grep -oE "grep -E '[^']*claude[^']*'" "$H2_BRIEF" | head -1 | sed "s/^grep -E '//; s/'\$//")"
 h2c_hit="$(printf '%s\n' .claude/settings.json .codex/config.toml .github/workflows/deploy.yml AGENTS.md \
