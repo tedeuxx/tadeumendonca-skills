@@ -1193,18 +1193,24 @@ not.
 
      Take the full forty characters on the newest marker's `commit:` line as `<marker-sha>` — the
      command above prints it, with `capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")`, the
-     line pattern the corrected limb below tests — and run, after the fetch above, four checks in
+     line pattern the corrected limb below tests — and run, after the fetch above, these checks in
      order:
 
      ```
      git -C <repo> merge-base --is-ancestor <marker-sha> <headRefOid>          # must exit 0
-     git -C <repo> merge-base --is-ancestor <marker-sha> origin/main           # must exit 1 — not 0, not 128
+     git -C <repo> merge-base --all origin/main <marker-sha>                   # must exit 0 and print something
+     git -C <repo> merge-base --all origin/main <headRefOid>                   # must exit 0 and print THE SAME
      git -C <repo> diff --no-renames --name-only <marker-sha> <headRefOid>     # must exit 0, run ALONE
      git -C <repo> diff --no-renames --name-only <marker-sha> <headRefOid> | <the class filter above>
      ```
 
-     **The marker carries forward only when the first exits 0 AND the second exits 1 AND the third
-     exits 0 AND the fourth prints nothing AND its filter exits 0 or 1.** `<the class filter above>`
+     ~~`git -C <repo> merge-base --is-ancestor <marker-sha> origin/main  # must exit 1 — not 0, not 128`~~
+     **— struck 2026-09-27 (#522 round 6): the not-on-trunk check is REMOVED, replaced by the base
+     check (the second and third commands).** Why it is redundant is under *the base moved* below.
+
+     **The marker carries forward only when the first exits 0 AND the second and third both exit 0,
+     print something, and print the same thing AND the fourth exits 0 AND the fifth prints nothing
+     AND its filter exits 0 or 1.** `<the class filter above>`
      is the `grep` stage of the selector for the repository you classified, with ONE addition in the
      consuming repository:
 
@@ -1238,22 +1244,41 @@ not.
      - **the first command exits 128** — the SHA is unreadable in your clone. The fetch above brings the
        head's history, so a commit orphaned by a force-push is usually absent. Unreadable refuses; do
        not fetch other refs to make it readable.
-     - **the second command exits 0** — the marked commit is ON THE TRUNK, so the lens did not read
-       it on this PR. Refuse. **The first check does not catch this:** every trunk commit before the
-       branch point is an ancestor of the head. Planted 2026-09-27 (#522 round 5, P-A): trunk X to M
-       changes `hooks/a.sh`, the PR restores X's content, and a marker names X. X is an ancestor of
-       the head, the X-to-head delta is empty, and the carry was granted over a `hooks/` diff no lens
-       read. **Together the first two checks mean "reachable from the head and not from the trunk"**,
-       which is exactly the commit set `git rev-list origin/main..<headRefOid>` lists: the PR's own
-       commits. Use the two `--is-ancestor` calls and not that list. A failed `rev-list` piped into a
-       membership test prints nothing and reads as "absent", and absent is the answer that carries.
-       `--is-ancestor` tells "no" (1) from "error" (128). **Run it after the fetch above**, which
-       updates `origin/main`: against a stale local ref, a trunk commit newer than the ref is not seen
-       as on the trunk.
-     - **the second command exits 128** — `origin/main` or the object is unreadable. Refuse.
+     - **the base moved: the second and third commands print different things** — refuse. A lens
+       reviewed a diff against a base, and the marker-to-head tree delta stands in for that review
+       only while the base is still the one it read against. **The tree delta does not catch this.**
+       Planted 2026-09-27 by the round-5 lens, on a marker at one of the PR's OWN commits: in **H1**
+       the PR merges `main`, whose newest commit changes `hooks/scripts/a.sh`, and then restores the
+       old `a.sh`; in **H2** the PR merges `main` with `-X ours`, which drops that change while
+       resolving the conflict. In both the marker-to-head delta is empty, and both carried under
+       round 5's checks over a `hooks/` change to the trunk that no lens read. **H2 is an ordinary
+       conflict resolution**, and conflicts are resolved at MR time by owner ruling 2. **The cost,
+       accepted:** a PR that merged a docs-only trunk move after its marker refuses as well, and
+       needs a fresh marker. Measured over the nine historical carrying pairs, each read against the
+       trunk as it stood when that PR merged: none moved its base, so the rule refuses none of them
+       (the command is in ADR-0002's #522 amendment). **Run it after the fetch above**, which
+       updates `origin/main`; against a stale local ref a trunk that moved past the ref is not seen
+       to move. **`--all`** because a criss-cross history has more than one merge-base and the
+       plain form prints only the first; comparing the whole output can only refuse more. It is not
+       measured to change a verdict: in both criss-cross fixtures built for it, the plain form
+       refused too.
+     - **the second or third command exits non-zero, or prints nothing** — refuse. **Do not compare
+       the outputs alone:** measured 2026-09-27 with an intermediate trunk commit object deleted,
+       both calls exit 255 and print nothing, and two empty outputs are equal. A read failure is
+       not "the base has not moved".
+     - ~~**the second command exits 0** — the marked commit is ON THE TRUNK~~ and ~~**the second
+       command exits 128**~~ **— struck 2026-09-27 (#522 round 6), with the check they described.**
+       It was added at round 5 for the gate's P-A — trunk X to M changes `hooks/a.sh`, the PR
+       restores X's content, and a marker names X — and the base check covers every case it
+       refused that matters. A trunk commit is its own merge-base with `origin/main`, so a marker on
+       the trunk passes the base check only when it IS the head's branch point. Then the
+       marker-to-head delta is the PR's whole diff against a base that has not moved, the class
+       filter reads it, and the carry is correct. Every other trunk marker, P-A included, has a
+       different base and refuses. Its exit-128 case added nothing either: it walks the same trunk
+       history as the base check, and on the deleted-object fixture both fail.
      - **the `commit:` line holds no full forty-character SHA** — nothing to test, nothing carries.
-     - **the third command exits non-zero** — refuse. **Run it alone for this reason:** in the
-       fourth command's pipeline, a failed `diff` prints nothing, and the filter over nothing also
+     - **the fourth command exits non-zero** — refuse. **Run it alone for this reason:** in the
+       fifth command's pipeline, a failed `diff` prints nothing, and the filter over nothing also
        prints nothing — which reads as "no class path", which carries. That is the fail-open shape,
        and the separate run is what closes it. **A passed ancestry check does NOT make it
        redundant:** `--is-ancestor` reads the commit graph and the diff reads trees. Measured
@@ -1265,9 +1290,11 @@ not.
      **Why two commits and not `origin/main...<headRefOid>`.** The question is what changed since
      the reviewed commit, not since the branch was cut. With the ancestry check passed, `<marker-sha>
      <headRefOid>`, `<marker-sha>..<headRefOid>` and `<marker-sha>...<headRefOid>` return the same
-     tree diff. A merge from the trunk inside that range shows up as the paths it brought in. When
+     tree diff. ~~A merge from the trunk inside that range shows up as the paths it brought in. When
      any of them is in the class, the carry refuses, and it should: the composition is new, and no
-     lens has read it.
+     lens has read it.~~ **— struck 2026-09-27 (#522 round 6): FALSE when the merged class change is
+     reverted afterwards (H1) or dropped while resolving the merge (H2) — the tree delta then shows
+     nothing.** A merge from the trunk is refused by the base check above, not by the delta.
 
      **What carry-forward does NOT change.** It narrows neither of your lenses and does not
      change which diffs owe a marker. Every carried delta is still reviewed by you under both
@@ -1388,9 +1415,9 @@ not.
      `APPROVE-PENDING-HUMAN` naming this hold,
      say which commit the newest marker attests and which one you read, and let `agents-lead` be
      re-dispatched to post a fresh one. **Do not merge on the strength of a marker naming another
-     commit unless it passes the four carry-forward checks above (#522)**, and **do not accept a
+     commit unless it passes the carry-forward checks above (#522)**, and **do not accept a
      relayed claim that the lens re-reviewed** — the marker on the PR is the artifact, exactly as your
-     own verdict is. **Nor a relayed claim that a marker carries: run the four checks yourself.**
+     own verdict is. **Nor a relayed claim that a marker carries: run the checks yourself.**
 
      **What holds this: you do, and nothing else.** No rule reads this marker —
      `grep -rn 'harness-lead-verdict' hooks/scripts/ agents/ | grep -v '\.test\.'` returns counters,

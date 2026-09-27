@@ -9815,17 +9815,21 @@ else
   ok "#522 lens-marker call sites — the hook's two programs and hold 2's command select with lens_marker alone; no author filter sits beside the def"
 fi
 
-# ── #522 round 5 (the gate's P-A): the marked commit must NOT be on the trunk ─────────────────
-# The behaviour is the zombie-loop-detect suite's P-A arm, and it covers the HOOK only. Hold 2 is
-# prose the gate runs by hand, so nothing but this STRING check notices the check leaving the brief.
-if ! grep -qF -- 'merge-base --is-ancestor <marker-sha> origin/main           # must exit 1' "$H2_BRIEF"; then
-  bad "#522 not-on-trunk check — hold 2 no longer publishes 'git merge-base --is-ancestor <marker-sha>
-      origin/main' as a check that must exit 1, so a marker on a pre-branch trunk commit carries (P-A)."
-elif ! grep -qF -- 'merge-base --is-ancestor "$newest_sha" origin/main' "$ROOT/hooks/scripts/zombie-loop-detect.sh"; then
-  bad "#522 not-on-trunk check — zombie-loop-detect.sh's carry block no longer tests the marker against
-      origin/main, so it disagrees with hold 2."
+# ── #522 round 6: the PR's BASE must not have moved since the marked commit ───────────────────
+# Replaces round 5's not-on-trunk string arm (that check was removed, subsumed by this one). The
+# behaviour is the zombie-loop-detect suite's H1 / H2 / base-moved arms, and it covers the HOOK
+# only. Hold 2 is prose the gate runs by hand, so nothing but this STRING check notices the base
+# check leaving the brief.
+if ! grep -qF -- 'merge-base --all origin/main <marker-sha>                   # must exit 0 and print something' "$H2_BRIEF" \
+   || ! grep -qF -- 'merge-base --all origin/main <headRefOid>                   # must exit 0 and print THE SAME' "$H2_BRIEF"; then
+  bad "#522 base check — hold 2 no longer publishes both 'git merge-base --all origin/main' calls (marker
+      and head) that must read and agree, so a PR whose base moved carries (H1/H2)."
+elif ! grep -qF -- 'merge-base --all origin/main "$newest_sha"' "$ROOT/hooks/scripts/zombie-loop-detect.sh" \
+   || ! grep -qF -- 'merge-base --all origin/main "$head_sha"' "$ROOT/hooks/scripts/zombie-loop-detect.sh"; then
+  bad "#522 base check — zombie-loop-detect.sh's carry block no longer compares the marker's and the
+      head's merge-base with origin/main, so it disagrees with hold 2."
 else
-  ok "#522 not-on-trunk check — hold 2 and zombie-loop-detect.sh both refuse a carry from a commit on origin/main (a STRING check)"
+  ok "#522 base check — hold 2 and zombie-loop-detect.sh both refuse a carry when the PR's merge-base with origin/main moved (a STRING check)"
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"

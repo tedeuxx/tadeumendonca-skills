@@ -855,8 +855,8 @@ teardown
 
 echo '--- #522: an UNCLASSIFIABLE repository (no origin/main) refuses the carry — scripts/ delta ---'
 # Same history as the consuming-repository carry above, minus the origin/main ref. `ls-tree` on
-# the missing ref fails, and an unclassified repository carries nothing. (Since round 5 the
-# not-on-trunk check exits 128 on the missing ref first; the r5 arm below isolates classification.)
+# the missing ref fails, and an unclassified repository carries nothing. (Since round 6 the base
+# check's merge-base fails on the missing ref first; the r5 arm below isolates classification.)
 setup; checkout_branch loop/x
 m="$(commit_path .github/workflows/ci.yml)"
 h="$(commit_path scripts/build.sh)"
@@ -875,23 +875,25 @@ stale_fires 'an unreadable origin/main refuses a docs-only delta' "$(run_hook)"
 teardown
 
 echo '--- #522 r5: an UNCLASSIFIABLE repository with a READABLE origin/main ref refuses — docs-only delta ---'
-# Since round 5 the two arms above refuse TWICE: with no origin/main, the not-on-trunk check exits
-# 128 before the repository is classified. So neither arm isolates the classification refusal any
-# more, and replacing it with "select a class" left the suite green. This fixture separates them:
-# origin/main's ROOT TREE is deleted, so the commit graph answers (--is-ancestor exits 1, the
-# marker is not on the trunk) while `ls-tree origin/main` exits 128. The guard asserts that shape.
+# The two arms above refuse TWICE: with no origin/main, the base check's merge-base fails before
+# the repository is classified (round 5's not-on-trunk check did the same, and round 6 replaced
+# it). So neither arm isolates the classification refusal, and replacing it with "select a class"
+# left the suite green. This fixture separates them: origin/main's ROOT TREE is deleted, so the
+# commit graph answers (both merge-bases read, and they are equal: the base has not moved) while
+# `ls-tree origin/main` exits 128. The guard asserts that shape.
 setup; plugin_repo; checkout_branch loop/x
 m="$(commit_path hooks/scripts/x.sh)"
 h="$(commit_path docs/notes.md)"
 t="$(git -C "$repo" rev-parse 'origin/main^{tree}')"
 rm -f "$repo/.git/objects/${t:0:2}/${t:2}"
-ot=0; git -C "$repo" merge-base --is-ancestor "$m" origin/main 2>/dev/null || ot=$?
+bm=0; mbm="$(git -C "$repo" merge-base --all origin/main "$m" 2>/dev/null)" || bm=$?
+bh=0; mbh="$(git -C "$repo" merge-base --all origin/main "$h" 2>/dev/null)" || bh=$?
 lt=0; git -C "$repo" ls-tree --name-only origin/main >/dev/null 2>&1 || lt=$?
-if [ "$ot" -eq 1 ] && [ "$lt" -ne 0 ]; then
+if [ "$bm" -eq 0 ] && [ "$bh" -eq 0 ] && [ -n "$mbm" ] && [ "$mbm" = "$mbh" ] && [ "$lt" -ne 0 ]; then
   open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
-  stale_fires 'an unreadable trunk tree refuses the carry although the marker is off the trunk' "$(run_hook)"
+  stale_fires 'an unreadable trunk tree refuses the carry although the base has not moved' "$(run_hook)"
 else
-  bad 'unreadable-trunk-tree fixture' "expected not-on-trunk 1 and ls-tree non-zero, got $ot and $lt"
+  bad 'unreadable-trunk-tree fixture' "expected equal readable merge-bases and ls-tree non-zero, got $bm/$bh '${mbm:0:8}' '${mbh:0:8}' and $lt"
 fi
 teardown
 
@@ -971,8 +973,9 @@ teardown
 echo '--- #522 r5: a marker naming a PRE-BRANCH TRUNK commit refuses (the gate'"'"'s P-A) ---'
 # Trunk X -> M changes hooks/scripts/a.sh; the PR, cut from M, restores X's content; a marker names
 # X. X is an ancestor of the head and the X -> head tree delta is EMPTY, so every earlier check
-# passes and only "the marked commit is not on the trunk" can refuse. The guard asserts that shape,
-# so the arm cannot pass because some other check happened to fire.
+# passes. Round 5 refused it with a not-on-trunk check; since round 6 the base check refuses it:
+# X's merge-base with origin/main is X itself, the head's is M. The guard asserts that shape, so
+# the arm cannot pass because some other check happened to fire.
 setup; plugin_repo
 x="$(commit_path hooks/scripts/a.sh)"
 commit_path hooks/scripts/a.sh >/dev/null
@@ -984,11 +987,128 @@ h="$(git -C "$repo" rev-parse HEAD)"
 ia=0; git -C "$repo" merge-base --is-ancestor "$x" "$h" 2>/dev/null || ia=$?
 ot=0; git -C "$repo" merge-base --is-ancestor "$x" origin/main 2>/dev/null || ot=$?
 dl="$(git -C "$repo" diff --no-renames --name-only "$x" "$h")"
-if [ "$ia" -eq 0 ] && [ "$ot" -eq 0 ] && [ -z "$dl" ]; then
+mbx="$(git -C "$repo" merge-base --all origin/main "$x")"; mbh="$(git -C "$repo" merge-base --all origin/main "$h")"
+if [ "$ia" -eq 0 ] && [ "$ot" -eq 0 ] && [ -z "$dl" ] && [ -n "$mbx" ] && [ "$mbx" != "$mbh" ]; then
   open_pr 522 "$h"; view_with_harness_markers "$h" "$x"
   stale_fires 'a marker on a pre-branch trunk commit refuses although its delta is empty' "$(run_hook)"
 else
-  bad 'P-A fixture' "expected ancestor 0, on-trunk 0 and an empty delta, got $ia, $ot and '$dl'"
+  bad 'P-A fixture' "expected ancestor 0, on-trunk 0, an empty delta and differing bases, got $ia, $ot, '$dl', '${mbx:0:8}' vs '${mbh:0:8}'"
+fi
+teardown
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# #522 round 6 — THE BASE MUST NOT HAVE MOVED. The round-5 lens's B1: a stale marker on one of the
+# PR's OWN commits still carried a trunk hooks/ change no lens read, once the PR merged main and
+# then either restored the old file (H1) or resolved the merge with `-X ours` (H2). In both the
+# marker -> head tree delta is EMPTY, so only the base check can refuse. Each guard asserts that
+# the delta is class-free and the two merge-bases differ (or fail), so no arm passes because some
+# other check fired. `bases_differ` prints "y" only when both merge-bases READ and differ.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+bases_differ() { # marker · head
+  local a b
+  a="$(git -C "$repo" merge-base --all origin/main "$1" 2>/dev/null)" || { echo err; return; }
+  b="$(git -C "$repo" merge-base --all origin/main "$2" 2>/dev/null)" || { echo err; return; }
+  [ -n "$a" ] && [ -n "$b" ] && [ "$a" != "$b" ] && echo y || echo n
+}
+class_free_delta() { # marker · head -> prints the plugin-class paths in the delta (empty = class-free)
+  git -C "$repo" diff --no-renames --name-only "$1" "$2" \
+    | grep -vE '^$|^(docs/|powers/)|^(README\.md|VERSION|\.bumpversion\.toml|LICENSE)$'
+}
+
+echo '--- #522 r6 H1: the PR merges main (a hooks/ change), then RESTORES the old file — fires ---'
+setup; plugin_repo
+x="$(commit_path hooks/scripts/a.sh)"; git -C "$repo" update-ref refs/remotes/origin/main HEAD
+checkout_branch loop/x; p1="$(commit_path docs/notes.md)"
+git -C "$repo" checkout -q main; commit_path hooks/scripts/a.sh >/dev/null
+git -C "$repo" update-ref refs/remotes/origin/main HEAD
+git -C "$repo" checkout -q loop/x; git -C "$repo" merge -q --no-edit main
+git -C "$repo" checkout -q "$x" -- hooks/scripts/a.sh; git -C "$repo" commit -q -m 'restore a.sh'
+h="$(git -C "$repo" rev-parse HEAD)"
+dl="$(git -C "$repo" diff --no-renames --name-only "$p1" "$h")"; bd="$(bases_differ "$p1" "$h")"
+if [ -z "$dl" ] && [ "$bd" = y ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$p1"
+  stale_fires 'a PR-own marker refuses once a merged trunk hooks/ change is restored away (H1)' "$(run_hook)"
+else
+  bad 'H1 fixture' "expected an empty delta and differing bases, got '$dl' and $bd"
+fi
+teardown
+
+echo '--- #522 r6 H2: the PR merges main with -X ours, DROPPING a trunk hooks/ change — fires ---'
+setup; plugin_repo
+commit_path hooks/scripts/a.sh >/dev/null; git -C "$repo" update-ref refs/remotes/origin/main HEAD
+checkout_branch loop/x; p1="$(commit_path hooks/scripts/a.sh)"
+git -C "$repo" checkout -q main; commit_path hooks/scripts/a.sh >/dev/null
+git -C "$repo" update-ref refs/remotes/origin/main HEAD
+git -C "$repo" checkout -q loop/x; git -C "$repo" merge -q --no-edit -X ours main >/dev/null 2>&1
+h="$(git -C "$repo" rev-parse HEAD)"
+np="$(git -C "$repo" rev-list --parents -n 1 "$h" | wc -w | tr -d ' ')"
+dl="$(git -C "$repo" diff --no-renames --name-only "$p1" "$h")"; bd="$(bases_differ "$p1" "$h")"
+if [ "$np" -eq 3 ] && [ -z "$dl" ] && [ "$bd" = y ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$p1"
+  stale_fires 'a PR-own marker refuses once a merge drops a trunk hooks/ change (H2)' "$(run_hook)"
+else
+  bad 'H2 fixture' "expected a merge commit, an empty delta and differing bases, got $np words, '$dl' and $bd"
+fi
+teardown
+
+echo '--- #522 r6: a DOCS-ONLY trunk move merged after the marker ALSO refuses — the accepted cost ---'
+# The base moved, so the rule refuses without reading what moved it. Round 5 carried this; round 6
+# gives it up deliberately, for the rule that closes H1/H2 without a second class-filtered diff.
+setup; plugin_repo
+checkout_branch loop/x; p1="$(commit_path hooks/scripts/a.sh)"
+git -C "$repo" checkout -q main; commit_path docs/t.md >/dev/null
+git -C "$repo" update-ref refs/remotes/origin/main HEAD
+git -C "$repo" checkout -q loop/x; git -C "$repo" merge -q --no-edit main
+h="$(git -C "$repo" rev-parse HEAD)"
+cf="$(class_free_delta "$p1" "$h")"; bd="$(bases_differ "$p1" "$h")"
+if [ -z "$cf" ] && [ "$bd" = y ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$p1"
+  stale_fires 'a docs-only trunk merge after the marker refuses the carry (base moved)' "$(run_hook)"
+else
+  bad 'docs-only base-move fixture' "expected a class-free delta and differing bases, got '$cf' and $bd"
+fi
+teardown
+
+echo '--- #522 r6: an UNREADABLE trunk history refuses — two failed merge-bases are not "equal" ---'
+# An intermediate trunk commit object is deleted, so both merge-base calls fail and print NOTHING,
+# and two empty outputs compare equal. The delta is docs-only and `ls-tree origin/main` still
+# reads, so the rc / non-empty checks are the ONLY thing refusing. Guarded on that shape.
+setup; plugin_repo
+checkout_branch loop/x; m="$(commit_path hooks/scripts/x.sh)"; h="$(commit_path docs/notes.md)"
+git -C "$repo" checkout -q main; n1="$(commit_path docs/n1.md)"; commit_path docs/n2.md >/dev/null
+git -C "$repo" update-ref refs/remotes/origin/main HEAD
+rm -f "$repo/.git/objects/${n1:0:2}/${n1:2}"
+bm=0; git -C "$repo" merge-base --all origin/main "$m" >/dev/null 2>&1 || bm=$?
+bh=0; git -C "$repo" merge-base --all origin/main "$h" >/dev/null 2>&1 || bh=$?
+lt=0; git -C "$repo" ls-tree --name-only origin/main >/dev/null 2>&1 || lt=$?
+cf="$(class_free_delta "$m" "$h")"
+if [ "$bm" -ne 0 ] && [ "$bh" -ne 0 ] && [ "$lt" -eq 0 ] && [ -z "$cf" ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$m"
+  stale_fires 'failed merge-base reads refuse the carry although both print the same (nothing)' "$(run_hook)"
+else
+  ce=0; git -C "$repo" cat-file -e "$n1" 2>/dev/null || ce=$?
+  bad 'unreadable-trunk-history fixture' "expected both merge-bases non-zero, ls-tree 0 and a class-free delta, got $bm, $bh, $lt and '$cf' (cat-file -e on the deleted commit: $ce; trunk $(git -C "$repo" log --format=%h origin/main | tr '\n' ' '))"
+fi
+teardown
+
+echo '--- #522 r6: a marker naming the BRANCH POINT carries — the round-5 check refused it, harmlessly ---'
+# The marker is a trunk commit, so round 5's not-on-trunk check refused. It is also the head's
+# merge-base, so the base has not moved and the marker -> head delta is the PR's whole diff against
+# that base, which the class filter reads (docs-only here). This arm is what shows the round-5
+# check was removed rather than kept: restoring it turns this arm red.
+setup; plugin_repo
+x="$(git -C "$repo" rev-parse HEAD)"
+checkout_branch loop/x; h="$(commit_path docs/n.md)"
+git -C "$repo" checkout -q main; commit_path hooks/scripts/a.sh >/dev/null
+git -C "$repo" update-ref refs/remotes/origin/main HEAD
+git -C "$repo" checkout -q loop/x
+ot=0; git -C "$repo" merge-base --is-ancestor "$x" origin/main 2>/dev/null || ot=$?
+bd="$(bases_differ "$x" "$h")"
+if [ "$ot" -eq 0 ] && [ "$bd" = n ]; then
+  open_pr 522 "$h"; view_with_harness_markers "$h" "$x"
+  stays_silent 'a marker naming the head'"'"'s own branch point carries a class-free PR' "$(run_hook)"
+else
+  bad 'branch-point fixture' "expected on-trunk 0 and equal bases, got $ot and $bd"
 fi
 teardown
 

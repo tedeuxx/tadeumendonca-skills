@@ -5540,7 +5540,7 @@ amendment below: neither class is wider, so an unreadable ref applies the UNION 
 
 **Decision, as filed by the owner in #522 and given `ready`:** hold 2 accepts a marker posted at an
 earlier head of the same PR when the tree delta from that marker's `commit:` SHA to the head touches no
-path in the hold-2 class that the two amendments above define. The canonical statement and its four
+path in the hold-2 class that the two amendments above define. The canonical statement and its
 checks are in hold 2 of `agents/quality-assurance.md`, and `hooks/scripts/zombie-loop-detect.sh`'s
 stale-marker arm applies the same rule. This amendment records the decision; it does not restate the
 commands.
@@ -5553,15 +5553,64 @@ nothing new to attest. The sprint-04 `agents-lead` retrospective, Finding 2, mea
 so:
 - the delta is read from the marker's own `commit:` line, as a tree diff between two commits;
 - that commit must be an ancestor of the head, so a force-push or rebase that orphans it refuses;
-- that commit must NOT be an ancestor of `origin/main` (round 5, the gate's P-A): `--is-ancestor`
-  against the trunk must exit 1, and 0 or 128 refuses. Every trunk commit before the branch point is
-  an ancestor of the head, so without this a marker naming a pre-branch trunk commit X carried when
-  the PR restored X's content of a path the trunk had since changed: the X-to-head delta was empty
-  over a `hooks/` diff no lens read. With both ancestry checks the marked commit is one of the PR's
-  own commits, the set `git rev-list origin/main..<head>` lists; that list was not used because a
-  failed `rev-list` piped into a membership test reads as "absent", which is the answer that carries.
-  The `Stop` detector reads its LOCAL `origin/main` and does not fetch, so a trunk commit newer than
-  that ref is not seen as on the trunk there; the gate fetches `main` first;
+- ~~that commit must NOT be an ancestor of `origin/main` (round 5, the gate's P-A)~~ **— struck at
+  round 6, replaced by the next bullet.** Round 5 added it for P-A: a marker naming a pre-branch
+  trunk commit X carried when the PR restored X's content of a path the trunk had since changed.
+  The round-5 lens then showed that P-A is one instance of a wider class and the check closed only
+  that instance;
+- **the PR's base has not moved since the marked commit** (round 6, the owner's decision on the
+  round-5 lens's B1): `git merge-base --all origin/main <marker>` and the same for the head must
+  both exit 0, print something, and print the same thing; any read failure refuses. A lens reviews a
+  diff against a base, and the marker-to-head tree delta is a valid stand-in only while that base
+  holds. With the base moved, a PR can merge a trunk class change and then revert it (H1) or drop it
+  while resolving the merge with `-X ours` (H2), and the delta is empty over a trunk change no lens
+  read — **so the earlier claim here that a trunk merge "shows up as the paths it brought" was
+  false.** The not-on-trunk check was REMOVED rather than kept beside it: a trunk commit is its own
+  merge-base with the trunk, so a trunk marker passes only when it is the head's branch point, where
+  the delta is the PR's whole diff against an unmoved base and the carry is correct; and its
+  exit-128 case walks the same trunk history as the merge-base calls. Two empty outputs compare
+  equal, and with an intermediate trunk commit deleted both calls exit 255 and print nothing, which
+  is why the statuses and a non-empty output are checked and not the comparison alone. **Cost,
+  accepted:** a PR that merged even a docs-only trunk move after its marker refuses and needs a fresh
+  marker. **Measured to lose no historical carry:** over the nine consecutive-marker pairs that pass the
+  ancestry check and the plugin class filter, each read against the trunk as it stood when its PR merged (`mergeCommit^1`, not
+  today's `main`, on which every merged commit is a trunk commit), all nine keep their base
+  (`BASE_SAME`, 9 of 9). The fixtures H1 and H2 in `hooks/scripts/zombie-loop-detect.test.sh` are
+  the calibration that the same comparison can say the base moved. The command, from a clone of
+  this repository:
+
+  ```
+  python3 -c '
+  import json, re, subprocess
+  R = "."; REPO = "tedeuxx/tadeumendonca-skills"
+  EXCL = re.compile(r"^(docs/|powers/)|^(README\.md|VERSION|\.bumpversion\.toml|LICENSE)$")
+  CAP = re.compile(r"(^|\n)commit:[^0-9a-f\n]*([0-9a-f]{40})")
+  gh = lambda *a: subprocess.check_output(["gh"] + list(a), text=True)
+  git = lambda *a: subprocess.run(["git", "-C", R] + list(a), capture_output=True, text=True)
+  for n in [532, 498, 495, 468, 460, 444, 433]:
+      v = json.loads(gh("pr", "view", str(n), "--repo", REPO, "--json", "comments,mergeCommit"))
+      trunk = v["mergeCommit"]["oid"] + "^1"
+      shas = []
+      for c in v["comments"]:
+          b = c.get("body") or ""
+          if b.startswith("<!-- gatekeeper-verdict"): continue
+          if not any(l.startswith("<!-- harness-lead-verdict") for l in b.split("\n")): continue
+          m = CAP.search(b); shas.append(m.group(2) if m else None)
+      git("fetch", "-q", "origin", "pull/%d/head" % n)
+      for a, b in zip(shas, shas[1:]):
+          if not a or not b: continue
+          if git("merge-base", "--is-ancestor", a, b).returncode != 0: continue
+          d = git("diff", "--no-renames", "--name-only", a, b).stdout.split()
+          if [x for x in d if not EXCL.search(x)]: continue
+          ba = git("merge-base", "--all", trunk, a); bb = git("merge-base", "--all", trunk, b)
+          same = ba.returncode == 0 and bb.returncode == 0 and ba.stdout.strip() and ba.stdout == bb.stdout
+          print(n, a[:8], b[:8], "BASE_SAME" if same else "BASE_MOVED")
+  '
+  # -> 9 lines, all BASE_SAME (2026-09-27): #532 x3, #498, #495, #468, #460, #444, #433
+  ```
+
+  The `Stop` detector reads its LOCAL `origin/main` and does not fetch, so a trunk that moved past
+  that ref is not seen to move there; the gate fetches `main` first;
 - every input that cannot be read refuses and returns to the pre-#522 rule: an abbreviated SHA, an
   unreadable object, a failed diff, a failed class filter, or a repository that cannot be classified;
 - only the NEWEST lens marker on the PR may carry. An older marker never carries past a newer one,

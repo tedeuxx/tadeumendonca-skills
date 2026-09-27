@@ -1081,8 +1081,9 @@ which is the floor, and the floor is its own change.~~
 on every dispatch** — a persona that read *"presence check"* would believe hold 2 still clears on any
 marker. **Hold 2 is HEAD-SCOPED now:** `agents/quality-assurance.md` requires a marker whose `commit:`
 line names the `headRefOid` the gate read for its own verdict. **Since 2026-09-27 (#522) an earlier
-marker of the same PR also satisfies it when its commit is an ancestor of the head and the tree delta
-from it touches no hold-2 path.** Only the newest lens marker may carry, and anything the gate
+marker of the same PR also satisfies it when its commit is an ancestor of the head, the PR's base
+(its merge-base with the trunk) has not moved since it, and the tree delta from it touches no hold-2
+path.** Only the newest lens marker may carry, and anything the gate
 cannot read refuses — an unclassifiable repository included. The rule and its commands
 are in hold 2; this sentence only keeps the preload from overstating the requirement.
 
