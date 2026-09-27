@@ -74,8 +74,9 @@ watches.
 7. **Scratch files go in your harness's own session scratchpad, never in a repository path.** Bodies
    for merge-request and issue text are written to a file and passed by file, never inlined into a
    shell argument — a shell eats backticks and dollar signs out of an inline body silently.
-8. **One work item at a time.** One branch, one open merge request. Finish it through merge before
-   starting the next.
+8. **Work in progress is bounded by the `wip:` value in `docs/loop-mode.md`.** Read it there; do not
+   assume a value. Each concurrent work item gets its own branch and its own `git worktree`, and each
+   is finished through merge. Only one merge request is in review at a time, whatever the bound.
 9. **A review finding is named, never filed.** Only the owner opens work. Report what you found; do
    not convert your own finding into a tracked item.
 10. **Publish a measured number with the command that produced it, inline and runnable, or do not
