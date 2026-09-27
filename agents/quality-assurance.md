@@ -1158,22 +1158,27 @@ not.
 
      ```
      gh pr view <n> --repo <owner/repo> --json comments --jq 'def lens_marker($lens; $g):
-       (startswith($g) | not)
-       and (reduce (split("\n")[]) as $l ({f: false, h: false};
-              if ($l | test("^ {0,3}(```|~~~)")) then .f = (.f | not)
-              elif (.f | not) and ($l | startswith($lens)) then .h = true
-              else . end) | .h);
+       ((.authorAssociation // "") as $a | ["OWNER","MEMBER","COLLABORATOR"] | index($a) != null)
+       and ((.body // "") as $b
+         | ($b | startswith($g) | not)
+           and ($b | reduce (split("\n")[]) as $l ({f: false, h: false};
+                  if ($l | test("^ {0,3}(```|~~~)")) then .f = (.f | not)
+                  elif (.f | not) and ($l | startswith($lens)) then .h = true
+                  else . end) | .h));
      [ .comments[]
-       | select((.authorAssociation // "") as $a | ["OWNER","MEMBER","COLLABORATOR"] | index($a))
-       | .body // ""
-       | select(lens_marker("<!-- harness-lead-verdict"; "<!-- gatekeeper-verdict")) ]
+       | select(lens_marker("<!-- harness-lead-verdict"; "<!-- gatekeeper-verdict"))
+       | .body // "" ]
      | last // ""
      | [capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")] | .[0].c // empty'
      ```
 
      **The `def` is the one `hooks/scripts/zombie-loop-detect.sh` runs for both of its marker arms,
      word for word** (an inventory arm compares the two), so the gate and the stale notice cannot
-     disagree about which comment is newest. **Do NOT use `select(.body|test("harness-lead-verdict"))`
+     disagree about which comment is newest. **All three conditions are INSIDE the `def`, the author
+     association included, and the command selects with the `def` alone** (#522 round 4). The
+     `def` reads the whole comment, not only its body. Do not add a filter beside it: a condition
+     held outside the `def` is one the comparison cannot see, which is how the author filter could
+     be dropped from one call site with every suite green. **Do NOT use `select(.body|test("harness-lead-verdict"))`
      for this.** That selector is the counting instrument further down, and it also selects YOUR OWN
      verdicts, because they quote the literal whenever they discuss hold 2. Measured 2026-09-27 over
      the 60 most recent PRs of `tadeumendonca-skills`: on **16** of them the last comment it selects is

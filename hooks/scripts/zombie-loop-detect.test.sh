@@ -1024,6 +1024,49 @@ view_bodies "$h" "$(lens_body "$b" blocking)" "$fenced"
 stale_fires 'a fenced marker naming the head is not a fresh marker' "$(run_hook)"
 teardown
 
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+# #522 round 4 (blocker B1) — the AUTHOR limb on the CARRY path. Until round 4 the author filter
+# sat beside `lens_marker` at each call site, and dropping it from the carry block alone left this
+# suite green: the only author arm (#385, above) exercises the STALE arm. These put a member's
+# BLOCKING marker (b, does not carry) first and a non-member's CLOSING marker (c, would carry) last.
+# A carry that honours the author limb picks b as newest and fires; one that ignores it picks c,
+# carries, and goes silent. Anyone signed in can comment on a public repository's PR, so this is
+# the forged-marker shape.
+# ══════════════════════════════════════════════════════════════════════════════════════════════
+view_assoc() { # head_sha · (association body) pairs, in posting order
+  vh="$1"; shift
+  jq -n --arg h "$vh" '{headRefOid: $h,
+     comments: [$ARGS.positional | _nwise(2) | {authorAssociation: .[0], body: .[1]}]}' \
+     --args "$@" > "$root/fix/view.json"
+}
+
+echo '--- #522 r4 B1: a NONE closing marker posted after a member blocking one does not carry — fires ---'
+round3_history
+view_assoc "$h" OWNER "$(lens_body "$b" blocking)" NONE "$(lens_body "$c" closed)"
+stale_fires 'a non-member (NONE) closing marker posted last cannot carry' "$(run_hook)"
+teardown
+
+echo '--- #522 r4 B1: the same with CONTRIBUTOR — fires ---'
+round3_history
+view_assoc "$h" OWNER "$(lens_body "$b" blocking)" CONTRIBUTOR "$(lens_body "$c" closed)"
+stale_fires 'a CONTRIBUTOR closing marker posted last cannot carry' "$(run_hook)"
+teardown
+
+echo '--- #522 r4 B1 calibration: the same closing marker from a MEMBER carries — silent ---'
+# Without this the two arms above could pass on a carry path that never carries at all.
+round3_history
+view_assoc "$h" OWNER "$(lens_body "$b" blocking)" MEMBER "$(lens_body "$c" closed)"
+stays_silent 'a MEMBER closing marker posted last carries' "$(run_hook)"
+teardown
+
+echo '--- #522 r4 B1 calibration: the same closing marker from a COLLABORATOR carries — silent ---'
+# Every other arm posts as OWNER or MEMBER, so without this the allow-list could lose COLLABORATOR
+# (a real association on a personal-account repository) with the suite green. Measured: it did.
+round3_history
+view_assoc "$h" OWNER "$(lens_body "$b" blocking)" COLLABORATOR "$(lens_body "$c" closed)"
+stays_silent 'a COLLABORATOR closing marker posted last carries' "$(run_hook)"
+teardown
+
 echo
 printf '%d passed, %d failed\n' "$pass" "$fail"
 [ "$fail" -eq 0 ]

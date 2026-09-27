@@ -5565,7 +5565,11 @@ so:
 - "a lens marker" has ONE definition, published in hold 2 and run by the `Stop` detector, compared
   by an inventory arm: an author association of `OWNER`, `MEMBER` or `COLLABORATOR`, a body that does
   not open with the gatekeeper envelope, and a line opening with the lens envelope at column 0
-  OUTSIDE a fenced code block. The looser `test("harness-lead-verdict")` also selects the gate's own
+  OUTSIDE a fenced code block. All three conditions are inside that one `jq` definition, which
+  takes the whole comment; the gate's command and both detector arms select with it and with
+  nothing beside it, so the arm's string comparison covers the author filter too (round 4: until
+  then the filter sat at each call site, outside the compared text, and dropping it from the
+  detector's carry arm alone left every suite green). The looser `test("harness-lead-verdict")` also selects the gate's own
   verdicts, and on 16 of the 60 most recent PRs its newest pick was a gate verdict with no `commit:`
   line, which refuses a carry the lens marker before it would grant. The fence limb stops a quoted
   marker (a relay, a draft) from becoming the newest; over 505 PR comments carrying the literal in

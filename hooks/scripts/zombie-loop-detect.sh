@@ -375,21 +375,29 @@ esac
 # `startswith` on the whole body was the other candidate and was NOT chosen: #475 measured it
 # dropping two genuine markers (-skills#305, #340), and in the newest-marker rule a dropped marker
 # is the fail-OPEN direction — the lens's latest word vanishes and an older closing one governs.
-# The author filter stays at each call site, because it reads the comment, not the body.
+#
+# THE AUTHOR FILTER IS INSIDE THE DEF, so the predicate takes the COMMENT OBJECT, not its body
+# (#522 round 4, blocker B1). Until round 4 it sat beside the def at each call site — twice here and
+# once in hold 2's command — while the ADR amendment said the one definition, author filter
+# included, was compared by an inventory arm. The arm compared only the body limbs. Dropping the
+# filter from the carry block alone left every suite green, and a non-member's closing marker
+# posted last then governed the carry. With the filter in the def, a call site has nothing of its
+# own left to drop, and the string comparison covers all three limbs. `index($a) != null` rather
+# than a bare `index($a)`: position 0 is truthy in jq, but the explicit test says what is meant.
 LENS_MARKER_JQ='def lens_marker($lens; $g):
-  (startswith($g) | not)
-  and (reduce (split("\n")[]) as $l ({f: false, h: false};
-         if ($l | test("^ {0,3}(```|~~~)")) then .f = (.f | not)
-         elif (.f | not) and ($l | startswith($lens)) then .h = true
-         else . end) | .h);'
+  ((.authorAssociation // "") as $a | ["OWNER","MEMBER","COLLABORATOR"] | index($a) != null)
+  and ((.body // "") as $b
+    | ($b | startswith($g) | not)
+      and ($b | reduce (split("\n")[]) as $l ({f: false, h: false};
+             if ($l | test("^ {0,3}(```|~~~)")) then .f = (.f | not)
+             elif (.f | not) and ($l | startswith($lens)) then .h = true
+             else . end) | .h));'
 harness_stale="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-verdict' --arg g "${MARKER%%:*}" "$LENS_MARKER_JQ"'
   (.headRefOid // "") as $h
   | if $h == "" then ""
     else [ .comments[]?
-           | select((.authorAssociation // "") as $a
-                    | ["OWNER","MEMBER","COLLABORATOR"] | index($a))
-           | .body // ""
-           | select(lens_marker($lens; $g)) ] as $m
+           | select(lens_marker($lens; $g))
+           | .body // "" ] as $m
          | if ($m | length) == 0 then ""
            elif ($m | map(select(contains($h))) | length) > 0 then ""
            else "stale" end
@@ -446,10 +454,8 @@ harness_stale="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-ve
 if [ "$harness_stale" = "stale" ]; then
   newest_sha="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-verdict' --arg g "${MARKER%%:*}" "$LENS_MARKER_JQ"'
     [ .comments[]?
-      | select((.authorAssociation // "") as $a
-               | ["OWNER","MEMBER","COLLABORATOR"] | index($a))
-      | .body // ""
-      | select(lens_marker($lens; $g)) ]
+      | select(lens_marker($lens; $g))
+      | .body // "" ]
     | last // ""
     | [capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")] | .[0].c // empty' 2>/dev/null || true)"
 

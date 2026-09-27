@@ -9758,18 +9758,31 @@ else
   ok "hold-2 consuming class — the selector matches 7 of 7 harness paths (nested included) and 0 of 11 product paths and lookalikes"
 fi
 
-# ── #522 round 3 (advisories A1, A2): ONE lens-marker predicate, in the hook and in hold 2 ──────
+# ── #522 round 3 (advisories A1, A2) + round 4 (blocker B1): ONE lens-marker predicate ────────
 # The carry rule's newest-marker selection is only as good as its definition of "a lens marker".
 # The hook defines it once (`LENS_MARKER_JQ`) and hold 2 publishes it for the gate. If the two
 # drift, the gate and the stale notice disagree about which comment is newest, and one of them
 # carries a SHA the other refuses. Compared with whitespace collapsed, because the brief indents
 # the text inside a list item. A STRING check: the behaviour is the zombie-loop-detect suite's.
+#
+# ROUND 4: THE COMPARISON COVERS THE WHOLE DEFINITION ONLY IF NOTHING SITS BESIDE IT. Until round 4
+# the author filter was written at each call site, outside the compared text, and dropping it from
+# the carry block alone kept this arm and the behaviour suite green. The def now carries all three
+# limbs, so this arm also asserts (a) the def contains the author filter, and (b) no program that
+# calls it — the hook's two jq programs, hold 2's command — reads `authorAssociation` outside it.
 LMK_HOOK="$ROOT/hooks/scripts/zombie-loop-detect.sh"
-lmk_hook="$(sed -n "/^LENS_MARKER_JQ='def lens_marker/,/\.h);'\$/p" "$LMK_HOOK" \
+lmk_hook="$(sed -n "/^LENS_MARKER_JQ='def lens_marker/,/\.h));'\$/p" "$LMK_HOOK" \
   | sed "s/^LENS_MARKER_JQ='//; s/'\$//" | tr '\n' ' ' | tr -s '[:space:]' ' ')"
-lmk_brief="$(sed -n "/--jq 'def lens_marker(\$lens; \$g):/,/\.h);\$/p" "$H2_BRIEF" \
+lmk_brief="$(sed -n "/--jq 'def lens_marker(\$lens; \$g):/,/\.h));\$/p" "$H2_BRIEF" \
   | sed "s/^.*--jq '//" | tr '\n' ' ' | tr -s '[:space:]' ' ')"
 lmk_calls="$(grep -c 'select(lens_marker(' "$LMK_HOOK" || true)"
+# the jq programs that splice the def in, each from its splice line to its `2>/dev/null` line
+lmk_progs="$(awk '/"\$LENS_MARKER_JQ"/{on=1; n++} on{print} on && /2>\/dev\/null/{on=0} END{print "PROGRAMS=" n+0}' "$LMK_HOOK")"
+lmk_nprogs="$(printf '%s\n' "$lmk_progs" | sed -n 's/^PROGRAMS=//p')"
+lmk_prog_aa="$(printf '%s\n' "$lmk_progs" | grep -c 'authorAssociation' || true)"
+# hold 2's whole command, def included: exactly ONE authorAssociation line, and it is the def's
+lmk_cmd_aa="$(sed -n "/--jq 'def lens_marker(\$lens; \$g):/,/\/\/ empty'\$/p" "$H2_BRIEF" | grep -c 'authorAssociation' || true)"
+lmk_author='["OWNER","MEMBER","COLLABORATOR"] | index($a) != null'
 if [ -z "$lmk_hook" ] || [ -z "$lmk_brief" ]; then
   bad "#522 lens-marker predicate — could not extract the def from $( [ -z "$lmk_hook" ] && printf 'the hook' || printf 'hold 2' ).
       Absent, not clean: nothing below compared anything."
@@ -9778,14 +9791,28 @@ elif [ "$lmk_hook" != "$lmk_brief" ]; then
       a lens marker, so the gate and the stale notice can pick different newest markers.
       hook : $lmk_hook
       brief: $lmk_brief"
-elif ! grep -qF 'select(lens_marker("<!-- harness-lead-verdict"; "<!-- gatekeeper-verdict"))' "$H2_BRIEF"; then
-  bad "#522 lens-marker predicate — hold 2 defines lens_marker but its newest-marker command no longer
-      selects with it."
-elif [ "$lmk_calls" -ne 2 ]; then
-  bad "#522 lens-marker predicate — zombie-loop-detect.sh calls lens_marker at $lmk_calls sites, not 2
-      (the stale arm and the carry block); an arm selecting markers some other way has drifted."
 else
-  ok "#522 lens-marker predicate — hold 2 and zombie-loop-detect.sh carry the same lens_marker def, the brief's newest-marker command uses it, and the hook calls it at both marker arms (a STRING check)"
+  case "$lmk_hook" in
+    *"$lmk_author"*) ok "#522 lens-marker predicate — hold 2 and zombie-loop-detect.sh carry the same lens_marker def, and it includes the author filter (a STRING check)" ;;
+    *) bad "#522 lens-marker predicate — the shared def no longer carries the author filter
+      ($lmk_author), so a non-member's marker counts wherever the def is used." ;;
+  esac
+fi
+if ! grep -qF 'select(lens_marker("<!-- harness-lead-verdict"; "<!-- gatekeeper-verdict"))' "$H2_BRIEF"; then
+  bad "#522 lens-marker call sites — hold 2 defines lens_marker but its newest-marker command no longer
+      selects with it."
+elif [ "$lmk_calls" -ne 2 ] || [ "$lmk_nprogs" != 2 ]; then
+  bad "#522 lens-marker call sites — zombie-loop-detect.sh calls lens_marker at $lmk_calls sites in
+      $lmk_nprogs spliced programs, not 2 and 2 (the stale arm and the carry block)."
+elif [ "$lmk_prog_aa" -ne 0 ]; then
+  bad "#522 lens-marker call sites — a jq program in zombie-loop-detect.sh that calls lens_marker also
+      reads authorAssociation itself ($lmk_prog_aa lines). A condition beside the def is one the
+      comparison above cannot see; put it in the def."
+elif [ "$lmk_cmd_aa" -ne 1 ]; then
+  bad "#522 lens-marker call sites — hold 2's newest-marker command reads authorAssociation on
+      $lmk_cmd_aa lines, not 1 (the def's). A filter beside the def is outside the comparison."
+else
+  ok "#522 lens-marker call sites — the hook's two programs and hold 2's command select with lens_marker alone; no author filter sits beside the def"
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"
