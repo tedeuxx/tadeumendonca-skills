@@ -68,6 +68,100 @@ Two independent reasons, and either alone would settle it:
 file, and by this loop's own test — *would something stop me, or only my memory?* — it is not
 engineered.
 
+## Step 0 — confirm the browser bound BEFORE anything is derived or dispatched (#525)
+
+**Run this first, in the session that will dispatch, before the route generator runs and before any
+persona is dispatched.** The browser this rite drives is bounded by `.mcp.json`'s
+`--allowedUrlPattern ${HARNESS_SWEEP_ORIGIN:-http://127.0.0.1:9/*}`. The default is the discard port,
+so the bound fails closed: with no origin declared, the browser can reach nothing. **Until #525 the
+rite learned that only by dispatching a sweep that could only write FAILED.** Three closes in a row
+completed zero rendered sweeps that way (sprint-02, sprint-03, sprint-04, recorded in
+`docs/retrospective/sprint-04/product-lead.md`, Finding 1).
+
+**The probe reads the SERVER, not the environment.** It prints the argument the browser server was
+actually launched with, from the process table:
+
+```
+ps -ax -o pid=,ppid=,args= | grep -E -- '--allowedUrlPattern' | grep -v grep | grep -oE -- '--allowedUrlPattern [^ ]+'
+# measured 2026-09-28, Claude Code 2.1.283, variable unset in the session:
+# -> --allowedUrlPattern http://127.0.0.1:9/*
+```
+
+**Why the process and not `printenv HARNESS_SWEEP_ORIGIN`.** The environment says what the session
+holds. It does not say what the host passed to the server. A host that does not expand
+`${…}` in a plugin's server arguments hands the server the literal string, so `printenv` can pass
+while the server still fails. That is the sprint-02 hypothesis: *"Failed to construct 'URLPattern': A
+base URL must be provided for a relative constructor string"*. The argv shows the literal when that
+happens, so the probe catches it where an environment check would not.
+
+**Classify what it prints. Exactly one outcome proceeds.** If it prints more than one line, proceed
+only when one of them equals the tracked declaration, and list all the lines in the dispatch:
+
+| the probe prints | meaning | outcome |
+|---|---|---|
+| nothing | no browser server is running on this host, or this host's shell cannot see the process table | **`SWEEP-ORIGIN-UNBOUND`** |
+| a value beginning `$` | the host passed the argument **unexpanded** | **`SWEEP-ORIGIN-UNBOUND`** |
+| `http://127.0.0.1:9/*` | the fail-closed default: nothing declared an origin | **`SWEEP-ORIGIN-UNBOUND`** |
+| any other value, and it **differs** from the origin the consuming repository declares in its tracked configuration | bound to something other than production | **`SWEEP-ORIGIN-UNBOUND`** |
+| a value **equal to** that tracked declaration | the precondition holds | **proceed**, and put the observed pattern in the driver's dispatch |
+
+**If the consuming repository declares no origin in tracked configuration, the outcome is
+`SWEEP-ORIGIN-UNBOUND` too.** The only way the bound could then carry a real origin is an untracked
+source, such as a shell profile. The owner ruled that out as the carrier on #525: *«pq vc precisa de
+uma variavel no shell profile para algo que deveria ser baseado em uma ancora de comportamento de
+harness?»*. With no tracked value, "production" has nothing to be compared against.
+
+### On `SWEEP-ORIGIN-UNBOUND`: stop, emit ONE action line, dispatch nothing
+
+**This is an ACTION pendency, not a decision.** The loop cannot perform the fix. The server starts with
+the session, so a new value takes effect only after a restart, and only the owner restarts a session.
+Emit exactly one line, carrying the act and where to act:
+
+```
+SWEEP-ORIGIN-UNBOUND — declare the production sweep origin in <consumer>'s tracked config, restart the session, rerun /sprint-review: <link to that carrier, or to the Issue tracking it>
+```
+
+**The line always points at the consuming repository's TRACKED carrier. It never tells anyone to
+`export` a variable in a shell.** A shell profile is per machine and untracked, and no review sees it.
+Another host or a fresh checkout loses the value silently. The carrier itself is the consumer's
+decision and lives in the consumer's repository, never here: this plugin names no domain.
+
+**Nothing is written for this outcome.** No persona is dispatched, so no sweep report exists for the
+iteration. Pay attention to that cost: the retrospective that follows finds no
+`docs/iteration-sweep/<iteration>.md`, which reads the same as a rite nobody ran. The action line is the
+only record, and it lives in the session.
+
+### `FAILED` is reserved for failures AFTER step 0 held
+
+**`SWEEP-ORIGIN-UNBOUND` and `FAILED` are different literals on purpose, and a missing origin never
+produces `FAILED`.** `FAILED` means the precondition was observed to hold and the sweep still broke:
+the generator did not run, a navigation errored, or fewer routes were visited than emitted. A missing
+origin is not a sweep failure. It is a sweep that should not have started. Writing it as `FAILED` is
+how three closes produced three reports that recorded an absence, and how *FAILED* began to read as
+the rite's normal output.
+
+### What step 0 does NOT establish
+
+- **That Chrome accepts the pattern, or that the origin answers.** The probe reads argv. The first
+  navigation is the first real test of the bound. If it fails after step 0 passed, that is a
+  legitimate `FAILED`.
+- **Which session owns the process.** `ps` lists every browser server on the host. With more than one
+  session open, a line from another session can satisfy the probe. That error runs toward
+  *proceeding*, and it is visible: the first navigation then fails loudly as `FAILED`. It is not
+  silent.
+- **Which server the driver's tools reach, when the consumer declares its own.** If the consumer
+  declares its own `chrome-devtools` server, the probe prints two lines, the plugin's default and the
+  consumer's origin. Whether the driver's calls go to the second one is the consumer carrier's own
+  measurement, not this probe's.
+- **Anything on Codex, which is UNMEASURED.** Two open questions. Does Codex expand
+  `${HARNESS_SWEEP_ORIGIN:-…}` in a plugin server's arguments? Can Codex's sandboxed shell see the
+  process table at all? Neither has been measured. If the shell cannot see the table, the probe prints
+  nothing and stops the rite, so that error runs toward stopping. **The probe is also the instrument
+  that settles the first question.** The next Codex close that runs step 0 prints the argv the server
+  actually received. A `$` literal while the variable is set confirms the sprint-02 hypothesis.
+- **That anyone ran it.** Step 0 is an instruction in this file, like the rite's order. Nothing
+  fires it, and nothing observes that it was skipped.
+
 ## The driver is `product-lead`, and that is a MEASUREMENT rather than a preference
 
 **Dispatch `product-lead`, once.** It is the only persona in the roster holding a browser, and the
@@ -228,7 +322,9 @@ second and the first is the one that means someone has to act tonight:
 **An empty section that says it is empty is a result. A missing section is a step that silently did not
 run.** Both headings appear every time.
 
-**A sweep that could not reach the site reports FAILED, never "no findings".** The rite runs at
+**A sweep that could not reach the site reports FAILED, never "no findings".** That holds *after*
+step 0 held. A bound that never pointed at the site is `SWEEP-ORIGIN-UNBOUND` and is caught before any
+dispatch (see *Step 0*). The rite runs at
 iteration close, which is exactly the moment nobody is watching, and a clean-looking report is precisely
 what a broken sweep produces if it is allowed to. The conditions are in `agents/product-lead.md`; the
 rule here is that **the two counts lead the report**, because a reader who sees no counts at all knows

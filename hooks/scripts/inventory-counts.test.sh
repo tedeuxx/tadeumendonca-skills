@@ -9050,6 +9050,72 @@ else
   fi
 fi
 
+# ── 1b · step 0: the origin bound is checked BEFORE dispatch, and FAILED is reserved (#525) ──────────
+#
+# Three closes (sprint-02/03/04) completed zero rendered sweeps, and the rite learned each time only by
+# dispatching a sweep that could only write FAILED. #525 adds a step 0 that reads the browser server's
+# LAUNCH ARGV (the process table), not the environment, and stops with its own literal.
+#
+# THREE ASSERTIONS, AND THE LAST TWO ARE NOT NEEDLES:
+#   a · the clauses exist — the variable is named, the probe says what it reads, the literal exists,
+#       FAILED is reserved, and Codex is named UNMEASURED rather than assumed;
+#   b · ORDER — step 0's heading precedes the driver section, because a step 0 written after the
+#       dispatch it gates is a step 0 in name only;
+#   c · ABSENCE — neither the rite nor the driver's brief instructs a shell `export` of the variable.
+#       The owner ruled a shell profile out as the carrier on #525; this is the arm that catches the
+#       instruction drifting back in, which is the shape the orchestrator reached for first.
+#
+# WHAT THIS CANNOT SEE: that step 0 was run, that the probe's reading was classified correctly, or that
+# the consumer's tracked carrier exists. It asserts the rule is WRITTEN.
+rev0_missing=""
+if [ -r "$REV_CMD" ] && [ -r "$REV_DRIVER" ]; then
+  for rev0_needle in \
+    'HARNESS_SWEEP_ORIGIN' \
+    '## Step 0 — confirm the browser bound BEFORE anything is derived or dispatched (#525)' \
+    '**The probe reads the SERVER, not the environment.**' \
+    '| **`SWEEP-ORIGIN-UNBOUND`** |' \
+    '### `FAILED` is reserved for failures AFTER step 0 held' \
+    '**Anything on Codex, which is UNMEASURED.**'
+  do
+    grep -qF -- "$rev0_needle" "$REV_CMD" || rev0_missing="$rev0_missing
+    missing (commands/sprint-review.md): \"$rev0_needle\""
+  done
+  grep -qF -- '**`SWEEP-ORIGIN-UNBOUND`**, not `FAILED`' "$REV_DRIVER" || rev0_missing="$rev0_missing
+    missing (agents/product-lead.md): \"**\`SWEEP-ORIGIN-UNBOUND\`**, not \`FAILED\`\""
+  if [ -n "$rev0_missing" ]; then
+    bad "sprint review step 0 — a load-bearing clause is gone:$rev0_missing
+      The variable, the server-not-environment probe, the literal, the FAILED reservation and the
+      Codex residual are each one clause. The driver's brief carries the same literal so a sweep
+      dispatched past a skipped step 0 still does not write FAILED for a missing origin.
+      If a clause was deliberately reworded, move its needle here in the same commit."
+  else
+    ok "sprint review step 0 — the rite names HARNESS_SWEEP_ORIGIN, probes the server argv, stops with SWEEP-ORIGIN-UNBOUND and reserves FAILED; the driver carries the same literal"
+  fi
+
+  rev0_step="$(grep -nF -- '## Step 0 — confirm the browser bound' "$REV_CMD" | head -1 | cut -d: -f1)"
+  rev0_drv="$(grep -nF -- '## The driver is `product-lead`' "$REV_CMD" | head -1 | cut -d: -f1)"
+  if [ -n "$rev0_step" ] && [ -n "$rev0_drv" ] && [ "$rev0_step" -lt "$rev0_drv" ]; then
+    ok "sprint review step 0 — the step 0 section precedes the dispatch section (line $rev0_step < $rev0_drv)"
+  else
+    bad "sprint review step 0 — the step 0 heading is missing or sits AFTER the driver/dispatch section
+      (step0='${rev0_step:-none}', driver='${rev0_drv:-none}'). A precondition written after the dispatch
+      it gates reads as an afterthought and gets run as one."
+  fi
+
+  rev0_export="$(grep -nE 'export[[:space:]]+HARNESS_SWEEP_ORIGIN' "$REV_CMD" "$REV_DRIVER" || true)"
+  if [ -n "$rev0_export" ]; then
+    bad "sprint review step 0 — a shell export of the sweep origin is instructed:
+$rev0_export
+      The owner ruled on #525 that the origin is declared in the CONSUMING repository's tracked
+      configuration, never in a shell profile. Point the ACTION line at the tracked carrier instead."
+  else
+    ok "sprint review step 0 — neither the rite nor the driver's brief instructs a shell export of the origin"
+  fi
+else
+  bad "sprint review step 0 — commands/sprint-review.md or agents/product-lead.md is not readable, so
+      the origin precondition could not be checked at all."
+fi
+
 # ── 2 · MECHANICAL: the rite ships no route list ──────────────────────────────────────────────────
 #
 # NOT A NEEDLE. Every other arm in this block asserts a sentence is present; this one asserts a THING

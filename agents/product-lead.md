@@ -592,6 +592,12 @@ The report is **FAILED**, not clean, whenever any of these holds:
 - `routes visited` is less than `routes emitted`, for any reason including your own budget;
 - you could not write the report file.
 
+**These conditions assume the rite's step 0 held** (`commands/sprint-review.md`, *Step 0*, #525). If
+your first navigation is refused and the bound you were handed is the fail-closed default
+`http://127.0.0.1:9/*`, or a literal beginning `$`, then the origin was never bound. That is
+**`SWEEP-ORIGIN-UNBOUND`**, not `FAILED`: say so in your return, write no sweep report, and name step 0
+as skipped or wrong. `FAILED` is reserved for failures after the precondition held.
+
 **Lead the report with the two counts.** A reader who sees `routes emitted: 18 / routes visited: 18`
 knows the sweep ran; a reader who sees no counts at all knows nothing, and will assume the best.
 
