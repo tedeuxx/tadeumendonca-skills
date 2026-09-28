@@ -9725,17 +9725,21 @@ if ! grep -qF "grep -E '$H2C_RE'" "$H2_BRIEF"; then
 elif ! grep -qF -- "ls-tree --name-only origin/main -- .claude-plugin/plugin.json" "$H2_BRIEF"; then
   bad "hold-2 consuming class — agents/quality-assurance.md lost the repository test (ls-tree for
       .claude-plugin/plugin.json), so nothing says which of the two classes applies where."
-# The test reads TWO refs and routes a failure to the WIDER class (#541 lens round 2, advisory A2):
-# pinning only the trunk call let the head call, or the unreadable-ref rule, vanish with this green.
+# The test reads TWO refs (#541 lens round 2, advisory A2): pinning only the trunk call let the head
+# call, or the unreadable-ref rule, vanish with this green.
+# The unreadable-ref rule was "apply the exclusion-list class, the wider one" until #522, and that was
+# false: the exclusion list drops docs/** and powers/**, so docs/CLAUDE.md is in the consuming class
+# and outside it. Neither class is wider. The rule is now the UNION for the owed decision, and NO
+# CARRY for carry-forward; both are pinned, and the struck sentence is no longer what this arm reads.
 elif ! grep -qF -- "ls-tree --name-only <headRefOid> -- .claude-plugin/plugin.json" "$H2_BRIEF"; then
   bad "hold-2 consuming class — agents/quality-assurance.md lost the HEAD half of the repository test
       (ls-tree at <headRefOid>), so a diff that adds or deletes the manifest is judged at the trunk only."
-elif ! grep -qF -- "**Apply the exclusion-list class**, the wider one." "$H2_BRIEF" \
-  || ! grep -qF -- "An unreadable ref must never" "$H2_BRIEF"; then
+elif ! grep -qF -- "UNION of both classes: run both selectors below, and hold 2 applies when EITHER prints" "$H2_BRIEF" \
+  || ! grep -qF -- 'when either `ls-tree` call above failed, nothing carries' "$H2_BRIEF"; then
   bad "hold-2 consuming class — agents/quality-assurance.md no longer routes an unreadable ref to the
-      WIDER (exclusion-list) class, so a failed read could select the narrower one and drop a hold."
+      UNION of both classes, or no longer refuses a carry when the repository is unclassified (#522)."
 else
-  ok "hold-2 consuming class — agents/quality-assurance.md carries the harness-path selector and the repository test, both refs and the unreadable-to-wider rule (a STRING check)"
+  ok "hold-2 consuming class — agents/quality-assurance.md carries the harness-path selector and the repository test, both refs, the unreadable-to-union rule and the unclassified-refuses-carry rule (a STRING check)"
 fi
 h2c_brief_re="$(grep -oE "grep -E '[^']*claude[^']*'" "$H2_BRIEF" | head -1 | sed "s/^grep -E '//; s/'\$//")"
 h2c_hit="$(printf '%s\n' .claude/settings.json .codex/config.toml .github/workflows/deploy.yml AGENTS.md \
@@ -9752,6 +9756,165 @@ elif [ -n "$h2c_miss" ]; then
   bad "hold-2 consuming class — the selector matches a product path or lookalike: $h2c_miss"
 else
   ok "hold-2 consuming class — the selector matches 7 of 7 harness paths (nested included) and 0 of 11 product paths and lookalikes"
+fi
+
+# ── #522 round 3 (advisories A1, A2) + round 4 (blocker B1): ONE lens-marker predicate ────────
+# The carry rule's newest-marker selection is only as good as its definition of "a lens marker".
+# The hook defines it once (`LENS_MARKER_JQ`) and hold 2 publishes it for the gate. If the two
+# drift, the gate and the stale notice disagree about which comment is newest, and one of them
+# carries a SHA the other refuses. Compared with whitespace collapsed, because the brief indents
+# the text inside a list item. A STRING check: the behaviour is the zombie-loop-detect suite's.
+#
+# ROUND 4: THE COMPARISON COVERS THE WHOLE DEFINITION ONLY IF NOTHING SITS BESIDE IT. Until round 4
+# the author filter was written at each call site, outside the compared text, and dropping it from
+# the carry block alone kept this arm and the behaviour suite green. The def now carries all three
+# limbs, so this arm also asserts (a) the def contains the author filter, and (b) no program that
+# calls it — the hook's two jq programs, hold 2's command — reads `authorAssociation` outside it.
+LMK_HOOK="$ROOT/hooks/scripts/zombie-loop-detect.sh"
+lmk_hook="$(sed -n "/^LENS_MARKER_JQ='def lens_marker/,/\.h));'\$/p" "$LMK_HOOK" \
+  | sed "s/^LENS_MARKER_JQ='//; s/'\$//" | tr '\n' ' ' | tr -s '[:space:]' ' ')"
+lmk_brief="$(sed -n "/--jq 'def lens_marker(\$lens; \$g):/,/\.h));\$/p" "$H2_BRIEF" \
+  | sed "s/^.*--jq '//" | tr '\n' ' ' | tr -s '[:space:]' ' ')"
+lmk_calls="$(grep -c 'select(lens_marker(' "$LMK_HOOK" || true)"
+# the jq programs that splice the def in, each from its splice line to its `2>/dev/null` line
+lmk_progs="$(awk '/"\$LENS_MARKER_JQ"/{on=1; n++} on{print} on && /2>\/dev\/null/{on=0} END{print "PROGRAMS=" n+0}' "$LMK_HOOK")"
+lmk_nprogs="$(printf '%s\n' "$lmk_progs" | sed -n 's/^PROGRAMS=//p')"
+lmk_prog_aa="$(printf '%s\n' "$lmk_progs" | grep -c 'authorAssociation' || true)"
+# hold 2's whole command, def included: exactly ONE authorAssociation line, and it is the def's
+lmk_cmd_aa="$(sed -n "/--jq 'def lens_marker(\$lens; \$g):/,/\/\/ empty'\$/p" "$H2_BRIEF" | grep -c 'authorAssociation' || true)"
+lmk_author='["OWNER","MEMBER","COLLABORATOR"] | index($a) != null'
+if [ -z "$lmk_hook" ] || [ -z "$lmk_brief" ]; then
+  bad "#522 lens-marker predicate — could not extract the def from $( [ -z "$lmk_hook" ] && printf 'the hook' || printf 'hold 2' ).
+      Absent, not clean: nothing below compared anything."
+elif [ "$lmk_hook" != "$lmk_brief" ]; then
+  bad "#522 lens-marker predicate — hold 2 and zombie-loop-detect.sh publish DIFFERENT definitions of
+      a lens marker, so the gate and the stale notice can pick different newest markers.
+      hook : $lmk_hook
+      brief: $lmk_brief"
+else
+  case "$lmk_hook" in
+    *"$lmk_author"*) ok "#522 lens-marker predicate — hold 2 and zombie-loop-detect.sh carry the same lens_marker def, and it includes the author filter (a STRING check)" ;;
+    *) bad "#522 lens-marker predicate — the shared def no longer carries the author filter
+      ($lmk_author), so a non-member's marker counts wherever the def is used." ;;
+  esac
+fi
+if ! grep -qF 'select(lens_marker("<!-- harness-lead-verdict"; "<!-- gatekeeper-verdict"))' "$H2_BRIEF"; then
+  bad "#522 lens-marker call sites — hold 2 defines lens_marker but its newest-marker command no longer
+      selects with it."
+elif [ "$lmk_calls" -ne 2 ] || [ "$lmk_nprogs" != 2 ]; then
+  bad "#522 lens-marker call sites — zombie-loop-detect.sh calls lens_marker at $lmk_calls sites in
+      $lmk_nprogs spliced programs, not 2 and 2 (the stale arm and the carry block)."
+elif [ "$lmk_prog_aa" -ne 0 ]; then
+  bad "#522 lens-marker call sites — a jq program in zombie-loop-detect.sh that calls lens_marker also
+      reads authorAssociation itself ($lmk_prog_aa lines). A condition beside the def is one the
+      comparison above cannot see; put it in the def."
+elif [ "$lmk_cmd_aa" -ne 1 ]; then
+  bad "#522 lens-marker call sites — hold 2's newest-marker command reads authorAssociation on
+      $lmk_cmd_aa lines, not 1 (the def's). A filter beside the def is outside the comparison."
+else
+  ok "#522 lens-marker call sites — the hook's two programs and hold 2's command select with lens_marker alone; no author filter sits beside the def"
+fi
+
+# ── #522 round 6: the PR's BASE must not have moved since the marked commit ───────────────────
+# Replaces round 5's not-on-trunk string arm (that check was removed, subsumed by this one). The
+# behaviour is the zombie-loop-detect suite's H1 / H2 / base-moved arms, and it covers the HOOK
+# only. Hold 2 is prose the gate runs by hand, so nothing but this STRING check notices the base
+# check leaving the brief.
+if ! grep -qF -- 'merge-base --all origin/main <marker-sha>                   # must exit 0 and print something' "$H2_BRIEF" \
+   || ! grep -qF -- 'merge-base --all origin/main <headRefOid>                   # must exit 0 and print THE SAME' "$H2_BRIEF"; then
+  bad "#522 base check — hold 2 no longer publishes both 'git merge-base --all origin/main' calls (marker
+      and head) that must read and agree, so a PR whose base moved carries (H1/H2)."
+elif ! grep -qF -- 'merge-base --all origin/main "$newest_sha"' "$ROOT/hooks/scripts/zombie-loop-detect.sh" \
+   || ! grep -qF -- 'merge-base --all origin/main "$head_sha"' "$ROOT/hooks/scripts/zombie-loop-detect.sh"; then
+  bad "#522 base check — zombie-loop-detect.sh's carry block no longer compares the marker's and the
+      head's merge-base with origin/main, so it disagrees with hold 2."
+else
+  ok "#522 base check — hold 2 and zombie-loop-detect.sh both refuse a carry when the PR's merge-base with origin/main moved (a STRING check)"
+fi
+
+# ── #523: a blocking finding that names a defect CLASS enumerates it ───────────────────────────
+# The rule lives in agents/quality-assurance.md, under "A finding blocks only if it names a
+# criterion and a falsifier". Each clause is read INSIDE that section, from its heading to the next
+# `## ` heading, so moving the rule elsewhere reddens as well as deleting it. A STRING check: it
+# cannot tell whether a verdict enumerates a class or lists examples of one. That is held by the gate.
+DC_SECTION="$(awk '/^### A finding blocks only if it names a criterion and a falsifier$/{on=1; next}
+  on && /^## /{on=0} on{print}' "$H2_BRIEF" | tr '\n' ' ' | tr -s '[:space:]' ' ')"
+dc_missing=""
+for dc_clause in \
+  'its falsifier must enumerate every site in that class' \
+  'A selector over the source' \
+  'Calibrated against a known site' \
+  'A prescribed table-driven test' \
+  'When no selector exists, say so in those words' \
+  'the criterion that selects the sites' \
+  'Examples are allowed only as illustration'; do
+  case "$DC_SECTION" in
+    *"$dc_clause"*) ;;
+    *) dc_missing="${dc_missing}
+      - $dc_clause" ;;
+  esac
+done
+if [ -z "$DC_SECTION" ]; then
+  bad "#523 defect class — could not extract the 'A finding blocks only if it names a criterion and a
+      falsifier' section from agents/quality-assurance.md. Absent, not clean."
+elif [ -n "$dc_missing" ]; then
+  bad "#523 defect class — the falsifier section of agents/quality-assurance.md lost clause(s):$dc_missing"
+else
+  ok "#523 defect class — the falsifier section carries the enumerate-the-class rule, its three parts, the no-selector fallback and the examples-only-illustrate clause (a STRING check)"
+fi
+
+# ── #524: an install-time owner action is posted on the Issue before merge ─────────────────────
+# The rule lives INSIDE criterion 11 of agents/quality-assurance.md. The extraction runs from the
+# criterion's own opening line to ONE named heading, never to "the next `## `": criterion 11 now
+# carries a fenced code block, and a `## ` line inside a fence would end an any-heading range early
+# (the latent defect #544's verdict named in #523's arm). A sentinel proves the end heading was
+# reached, so a missing heading reads as "could not extract" rather than as a range run to EOF that
+# would still find the clauses if the rule moved further down. The SELECTOR is pinned verbatim, not
+# only the clause about it: its line-start anchor is what stops it reading keyword references out of
+# evidence prose, and an un-anchored scan returned four Issues on the PR that published it, three of
+# them unrelated. The leading-markup tolerance `[`*_]*` is pinned inside the same clause: without it
+# the anchor misses a closure line written in backticks or bold (#407, #391, #428). The EMPTY print
+# is pinned too, so a gate that acts only on the command's output still meets the empty-result rule.
+# A STRING check: it cannot tell whether the gate posted anything, or whether the selector still
+# returns the right Issues. That is held by the gate.
+OA_RAW="$(awk '/^11\. \*\*Reach — does this change get to the thing it exists for\?/{on=1}
+  on && /^### A finding blocks only if it names a criterion and a falsifier$/{print "__OA_END__"; exit}
+  on{print}' "$H2_BRIEF")"
+OA_SECTION="$(printf '%s' "$OA_RAW" | tr '\n' ' ' | tr -s '[:space:]' ' ')"
+oa_missing=""
+for oa_clause in \
+  'OWNER ACTION THAT TAKES EFFECT AT INSTALL, post it on each Issue the PR references, before you merge' \
+  'an act or check that only the owner can perform' \
+  'one line plus the link to your verdict comment' \
+  '`Refs #N` as well as a closing keyword' \
+  'the boundary literal'"'"'s *"what the owner should look at live"* sentence' \
+  'gh pr view <n> --repo <owner/repo> --json body,closingIssuesReferences' \
+  'scan("(?im)^[`*_]*(?:refs?|close[sd]?|fix(?:e[sd])?|resolve[sd]?) #([0-9]+)")' \
+  '+ [.closingIssuesReferences[].number])|unique' \
+  '|if length==0 then "EMPTY: read the body, name the Issue yourself or state none" else . end' \
+  'An EMPTY result is not "no Issue"' \
+  'On empty, read the body and name the Issue yourself, or say in the verdict that the PR references none.' \
+  'The order is verdict, then Issue comment, then merge' \
+  'Considered and not adopted: the Release notes' \
+  'the Release stays silent at install time' \
+  'live #509 gap is not repaired by this rule'; do
+  case "$OA_SECTION" in
+    *"$oa_clause"*) ;;
+    *) oa_missing="${oa_missing}
+      - $oa_clause" ;;
+  esac
+done
+case "$OA_SECTION" in
+  *__OA_END__*) oa_extracted=1 ;;
+  *) oa_extracted=0 ;;
+esac
+if [ -z "$OA_RAW" ] || [ "$oa_extracted" -ne 1 ]; then
+  bad "#524 owner action — could not extract criterion 11 of agents/quality-assurance.md up to the
+      'A finding blocks only if it names a criterion and a falsifier' heading. Absent, not clean."
+elif [ -n "$oa_missing" ]; then
+  bad "#524 owner action — criterion 11 of agents/quality-assurance.md lost clause(s):$oa_missing"
+else
+  ok "#524 owner action — criterion 11 requires an install-time owner action on each referenced Issue before merge, names its selector, order and form, and records the Release-notes option as not adopted (a STRING check)"
 fi
 
 printf '\n%s passed, %s failed\n' "$pass" "$fail"

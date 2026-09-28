@@ -603,6 +603,74 @@ The hard gates, each to be confirmed:
    artifact outside the diff and usually outside the repository. `/definition-of-done` row 9 carries the
    full argument, including why the iteration-close sweep is structurally blind to this case and must
    not be pointed at as the backstop.
+   **When your verdict leaves an OWNER ACTION THAT TAKES EFFECT AT INSTALL, post it on each Issue the
+   PR references, before you merge (#524).** Two lines of a verdict produce one, and neither alone
+   covers the class: **criterion 11's third answer** (#544's) and **the boundary literal's *"what the
+   owner should look at live"* sentence** (#534's and #535's). Any other line can be one too. The criterion that selects the class, since no pattern selects it:
+   *an act or check that only the owner can perform, and that becomes possible or necessary only once he
+   installs the release this merge publishes*. That covers `/plugin update`, a restart, re-trusting a
+   hook registration, a canary, a persona snapshot rebuild, and checking the first record the changed
+   mechanism produces after the update. **Illustrations, not the scope:** #544's verdict asked *"Do you
+   want that rebuild done in the next session after `/plugin update`?"* about the Codex persona
+   snapshot; #535's said *"the next `dispatch-metrics:` record posted after `/plugin update`"*; #534's
+   said *"on the next `/plugin update`, every Bash call goes through the new supervisor"*. None of the
+   Issues those PRs referenced (#523, #513, #531) carries the line.
+   - **The surface is the Issue, because that is where he reads.** Criterion 11 already requires the
+     third answer to reach him as a question. This names where. A PR thread goes quiet at merge, and an
+     install-time act is not found there again.
+   - **The form is one line plus the link to your verdict comment**:
+     `Owner action after /plugin update: <the act>. <verdict comment URL>`. It is an action pendency,
+     so it carries no options. Where the verdict's line is a genuine question, keep it a question, still
+     on one line.
+   - **The Issues are the ones the PR body references, `Refs #N` as well as a closing keyword.**
+     `closingIssuesReferences` alone returns `[]` on #534, #535 and #544, because this loop references
+     with `Refs`. A bare `#N` scan over-reads: on #534 it returns five numbers, four of them mentioned
+     in passing. **So does a keyword scan that is not anchored to a line start**: on the PR that
+     published this rule it returned `Refs #524` and also `Refs #531`, `Refs #513` and `Refs #523`,
+     which sit in the evidence prose, so a gate following it would have posted on three unrelated
+     closed Issues. The selector is anchored to a line start, and the anchor tolerates leading markup
+     (a backtick, `*` or `_`), because this loop often writes its closure line in backticks or in bold.
+     It is unioned with the forge's own closing set to catch a closing keyword written mid-sentence,
+     and it prints a marker instead of a bare `[]` when it finds nothing:
+
+     ```
+     gh pr view <n> --repo <owner/repo> --json body,closingIssuesReferences \
+       --jq '([.body|scan("(?im)^[`*_]*(?:refs?|close[sd]?|fix(?:e[sd])?|resolve[sd]?) #([0-9]+)")[]|tonumber]
+             + [.closingIssuesReferences[].number])|unique
+             |if length==0 then "EMPTY: read the body, name the Issue yourself or state none" else . end'
+     ```
+
+     Measured 2026-09-27, it returns exactly one Issue on each of #530, #532, #534, #535, #539, #540,
+     #541, #542, #544 and #545, and `[462,463,464]` on #467. It returns `[383]` on #407 and #391 and
+     `[406]` on #428, where the reference starts a line behind a backtick or a bold marker. Across the
+     120 most recent PRs, tolerating that markup adds no PR that returns more than one Issue: the same
+     five do with or without it (#467, #392, #390, #389 and #387). **The union half is present and not
+     yet exercised**: across those 120 PRs, no forge closing reference is missed by the anchored scan,
+     so the mid-sentence case it exists for has not occurred here.
+   - **An EMPTY result is not "no Issue", and it is the direction this selector errs in.** Over those
+     120 PRs the selector finds nothing on three PRs whose only reference sits mid-line, #486, #465 and
+     #420, for example #486's *"… left out of its spend. `Refs #455`."* An empty selector posts
+     nowhere, and nobody sees a line that was never posted, so the command prints `EMPTY:` rather than
+     `[]`. **On empty, read the body and name the Issue yourself, or say in the verdict that the PR
+     references none.** Either answer is visible. Silence is not.
+
+   - **The order is verdict, then Issue comment, then merge.** The line links the verdict, so the
+     verdict exists first. It lands before the merge so that an Issue closed at merge, by hand or by
+     keyword, already carries it: #508 and #509 were closed by hand with nothing on either. A verdict
+     that does not merge (`APPROVE-PENDING-HUMAN`, `APPROVE-EXECUTOR-BLOCKED`) still posts it.
+     `REQUEST-CHANGES` does not, because nothing is being installed.
+   - **Posting is allowed to you.** `permission-guard.sh` rule 5e allowlists `*:quality-assurance` on
+     `gh issue comment`. Use `--body-file`.
+   - **Considered and not adopted: the Release notes.** `version-main.yml` could lift an
+     `ACTION REQUIRED:` line into the Release it publishes. That is the one surface present at the
+     moment of install, and an Issue comment is not. It is not adopted: it would make a workflow a
+     machine reader of verdict prose, a new string contract between this brief and CI, and it is the
+     larger change. So **the Release stays silent at install time**. That residual is named, not closed.
+   - **What nothing enforces.** No hook observes whether a verdict left an install-time action, or
+     whether the Issue received it: the subject is prose, and bodies travel through `--body-file`.
+     `hooks/scripts/inventory-counts.test.sh` asserts only that this text is written here. And **the
+     live #509 gap is not repaired by this rule**. It binds verdicts posted after this brief is
+     installed.
 
 ### A finding blocks only if it names a criterion and a falsifier
 
@@ -630,6 +698,54 @@ requirement: a falsifier you cannot run is a rhetorical device.
 
 Where you cannot state a falsifier, you are giving advice — which is often worth giving, and is not a
 gate.
+
+#### A finding that names a defect CLASS enumerates the class — examples only illustrate it (#523)
+
+**When a BLOCKING finding names a defect class, its falsifier must enumerate every site in that
+class.** A class is a mechanism that can occur at more than one site: *"a contract value reaches set
+membership before a type check"*, *"a spelling the classifier cannot read"*, *"a carry across a moved
+base"*. A falsifier that enumerates the class has three parts:
+
+1. **A selector over the source** — a command (`git grep -nE`, `rg`, a `jq` over the diff, a short
+   script) whose output IS the class's sites. Publish the command, not only its result.
+2. **Calibrated against a known site.** Show that the selector returns the site you actually found, and
+   that it does not return a control that is outside the class. A selector that matches nothing prints
+   nothing, and nothing reads as *"class closed"*. This is `engineering-standards`' *"Before you trust a
+   green, break it on purpose"*, applied to your own finding.
+3. **A prescribed table-driven test** whose rows are the selector's sites. The builder then repairs
+   the class, and the suite pins every member, not only the ones you happened to list.
+
+**When no selector exists, say so in those words.** Some classes are semantic. No pattern over the
+source selects every shell spelling a parser cannot read, or every history in which a base moved. In
+that case the finding states **the criterion that selects the sites**: the property a site must have
+to be a member. The builder enumerates against that criterion. The next round then checks the
+builder's enumeration against the criterion, instead of finding a new member. Prescribe the
+table-driven test all the same, keyed on the criterion.
+
+**Examples are allowed only as illustration, and must be labelled that way.** A list of examples is
+never the scope of a finding. Repairing the listed examples does not discharge a finding that named a
+class.
+
+**Why this is a rule: fixing the examples of a class took several rounds, and each round found another
+example.** On `-skills` #506 the gate took four rounds on one mechanism. Rounds 1 and 2 gave
+examples, and each later round found more of them. Round 3 was the first to prescribe the class:
+*"Systematically check the existing contract fields reaching set membership, hashing or set
+construction, rather than repairing only one example."* Round 4 approved
+(`docs/retrospective/sprint-04/quality-assurance.md`, Finding 1). The same
+pattern appeared on #542. The gate prescribed the fix for one fixture: *"Prescribed fix, one line. Add a
+fourth check, and add an arm for P-A"*. The next round then reported that the fix *"closes P-A as
+planted, but P-A's class stays open through a PR-own marker across a trunk merge"*. Its fixtures H1
+and H2 were new members of the same class.
+
+**What this does not fix, said here so a complete-looking enumeration is not over-read.** If the
+enumeration is itself incomplete, the problem only moves from rounds 2 and 3 into round 1.
+Calibration is the mitigation, and it is a partial one: it shows the selector can match, not that it
+matches everything. **Nothing enforces this rule.** `hooks/scripts/inventory-counts.test.sh` asserts
+only that this text is written. Whether a finding enumerates the class, or only lists examples of it,
+is held by you.
+
+**Scope: this brief only.** The `agents-lead` lens showed the same pattern on #534 and #542. This rule
+does not bind that lens, and extending it there is a separate change.
 
 ## Content review is not yours — but confirming it happened is
 Your checklist has **no criterion for what the copy claims**, so a positioning breach, an unearned
@@ -1005,9 +1121,11 @@ not.
      (ADR-0002, record 0015's Corollary 2) — ~~a diff touching `hooks/**`, `agents/**`, `skills/**`,
      `commands/**` or `.claude/**`~~ **a diff touching a path in the class that applies to the
      repository under review — the exclusion-list class in the plugin repository, the harness-path
-     list anywhere else (#521; both below)** requires an `<!-- harness-lead-verdict: … -->` comment on the PR
-     **whose `commit:` line names the `headRefOid` you read for your own verdict**, before you may
-     merge it. **This used to be
+     list anywhere else (#521; both below), and the UNION of both when you cannot classify the
+     repository (#522; the "Either call fails" bullet below)** requires an `<!-- harness-lead-verdict: … -->` comment on the PR
+     **whose `commit:` line names the `headRefOid` you read for your own verdict** — **or, since
+     2026-09-27 (#522), names an earlier commit of this PR from which the marker CARRIES FORWARD
+     (the carry-forward rule below)** — before you may merge it. **This used to be
      phrased as "the diff is boundary class regardless"; that phrasing stopped being a hold the moment
      boundary became mergeable**, so it is restated here as its own blocker. It is a *missing reviewer*,
      not a class — the same shape as a missing gate, and you would not merge past one of those either.
@@ -1033,21 +1151,34 @@ not.
      - **Either call prints the path** → the **plugin repository** → the exclusion-list class.
      - **Both print nothing and both exit 0** → a **consuming repository** → the harness-path list.
      - **Either call fails** (a non-zero exit — an unreadable ref) → you have NOT classified the
-       repository. **Apply the exclusion-list class**, the wider one. An unreadable ref must never
-       select the narrower class.
+       repository. ~~**Apply the exclusion-list class**, the wider one. An unreadable ref must never
+       select the narrower class.~~ **Struck 2026-09-27 (#522): neither class is the wider one.** The
+       exclusion list drops `docs/**` and `powers/**`, while the harness-path list matches
+       `CLAUDE.md`, `AGENTS.md`, `.claude/`, `.codex/` and `.github/` at any depth, so
+       `docs/CLAUDE.md` is in the consuming class and outside the exclusion-list class. **Apply the
+       UNION of both classes: run both selectors below, and hold 2 applies when EITHER prints
+       anything.** The union is the only filter that covers every path either class covers, so an
+       unclassified repository can never owe fewer markers than it would once classified. It costs
+       more markers in exactly this case, and the fetch that precedes the test makes the case rare.
+       **For carry-forward an unclassified repository is simpler: nothing carries** (the carry rule
+       below).
 
      *Why `ls-tree` and not `cat-file -e`:* `cat-file -e` exits 128 both when the file is absent and
      when the ref is unreadable, so it cannot tell "consuming repository" from "could not look".
      `ls-tree` exits 0 with no output for an absent path and 128 for a bad ref. *Why both refs:* a diff
      that deletes the manifest is still judged as the plugin repository, and a diff that adds one to a
-     consuming repository is judged by the wider class — the two errors run toward more markers.
+     consuming repository is judged ~~by the wider class~~ **as the plugin repository too (struck
+     2026-09-27, #522: the exclusion-list class is not wider than the harness-path list, only
+     different)** — so a diff that moves the manifest is judged by the class that fails closed on new
+     paths.
      **Measured 2026-09-27:** `tadeumendonca-skills` → prints `.claude-plugin/plugin.json`, exit 0;
      `tadeumendonca-io` → prints nothing, exit 0; either repository against `nosuchref` → exit 128.
 
      *Why the fetch comes before the test and not inside the selectors below:* a `<headRefOid>`
      your clone has never fetched is an unreadable ref, so without the fetch the head call exits 128
-     and the rule above applies the wider class. In a consuming repository that turns every product
-     merge that touches a path outside the exclusion list into a hold 2 it does not owe, which ends
+     and the rule above applies ~~the wider class~~ **the union of both classes (#522)**. In a
+     consuming repository that turns every product merge that touches a path outside the exclusion
+     list into a hold 2 it does not owe, which ends
      in a false `APPROVE-PENDING-HUMAN`. Run the fetch
      once, here. Both selectors below read the refs it fetched.
 
@@ -1114,6 +1245,202 @@ not.
      rites. That follows from the ruling as given; both are named here so they read as known
      consequences, not oversights. The hook reports and denies nothing, so a wrong value there costs
      a wrong notice, never a wrong refusal.
+
+     **CARRY-FORWARD (#522, 2026-09-27) — a marker posted at an EARLIER head of this PR satisfies
+     hold 2 when the tree delta from its own `commit:` SHA to the `headRefOid` touches no path in the
+     class above.** A lens round that would attest nothing new is not owed. The rule reuses the class
+     you already selected; only the RANGE changes. **Carry-forward requires a CLASSIFIED repository:
+     when either `ls-tree` call above failed, nothing carries** — neither class is a superset of the
+     other, so there is no filter an unclassified repository can safely apply to a delta.
+
+     **ONLY THE NEWEST LENS MARKER ON THE PR MAY CARRY.** Newest means last posted, among the
+     comments that are lens markers. **An older marker never carries past a newer one**, and when
+     the newest does not carry, no older marker is consulted. The reason is what a marker is: the
+     newest one is the lens's current word on this PR. If it blocked at a later commit, an earlier
+     marker that closed is a verdict the lens has since withdrawn, and carrying it would clear hold 2
+     with a review the lens no longer stands behind. **Carrying moves the ATTESTATION, never the
+     CONTENT:** a carried marker brings its findings with it. If it does not say
+     `the lens is CLOSED`, its open findings are the lens's word at this head, and you read them
+     exactly as you would read them on a marker that named the head.
+
+     **WHICH COMMENTS ARE LENS MARKERS — select them with this, and with nothing looser (#522 round
+     3).** A comment is a lens marker when three things hold: its author association is `OWNER`,
+     `MEMBER` or `COLLABORATOR`; its body does NOT open with the gatekeeper envelope; and some line
+     OPENS with `<!-- harness-lead-verdict` at column 0 OUTSIDE a fenced code block. A line whose
+     first characters (after at most three spaces) are three backticks or three tildes opens or
+     closes a fence. The newest marker is the last comment that passes, in the order
+     `gh pr view --json comments` returns them, which is posting order. This command prints its
+     `<marker-sha>`, or nothing when the newest marker's `commit:` line has no full SHA:
+
+     ```
+     gh pr view <n> --repo <owner/repo> --json comments --jq 'def lens_marker($lens; $g):
+       ((.authorAssociation // "") as $a | ["OWNER","MEMBER","COLLABORATOR"] | index($a) != null)
+       and ((.body // "") as $b
+         | ($b | startswith($g) | not)
+           and ($b | reduce (split("\n")[]) as $l ({f: false, h: false};
+                  if ($l | test("^ {0,3}(```|~~~)")) then .f = (.f | not)
+                  elif (.f | not) and ($l | startswith($lens)) then .h = true
+                  else . end) | .h));
+     [ .comments[]
+       | select(lens_marker("<!-- harness-lead-verdict"; "<!-- gatekeeper-verdict"))
+       | .body // "" ]
+     | last // ""
+     | [capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")] | .[0].c // empty'
+     ```
+
+     **The `def` is the one `hooks/scripts/zombie-loop-detect.sh` runs for both of its marker arms,
+     word for word** (an inventory arm compares the two), so the gate and the stale notice cannot
+     disagree about which comment is newest. **All three conditions are INSIDE the `def`, the author
+     association included, and the command selects with the `def` alone** (#522 round 4). The
+     `def` reads the whole comment, not only its body. Do not add a filter beside it: a condition
+     held outside the `def` is one the comparison cannot see, which is how the author filter could
+     be dropped from one call site with every suite green. **Do NOT use `select(.body|test("harness-lead-verdict"))`
+     for this.** That selector is the counting instrument further down, and it also selects YOUR OWN
+     verdicts, because they quote the literal whenever they discuss hold 2. Measured 2026-09-27 over
+     the 60 most recent PRs of `tadeumendonca-skills`: on **16** of them the last comment it selects is
+     a gate verdict with no `commit:` line, so it yields no SHA and refuses a carry the lens marker
+     before it would grant. The command above yields a SHA on those 16. **Why the fence limb:** a
+     comment that quotes a marker inside a fence, such as a relay or a draft, is not the lens's word,
+     and without the limb its SHA would govern the carry. Over every PR comment carrying the literal
+     in both repositories (505 comments), the fence limb changes the answer on none, so it costs
+     nothing on the record and closes the case. **Why not "the body opens with the envelope":** #475
+     measured that form dropping two genuine markers (`-skills` #305 and #340). For the newest-marker
+     rule a dropped marker is the fail-open direction, because an older closing marker then governs.
+
+     Take the full forty characters on the newest marker's `commit:` line as `<marker-sha>` — the
+     command above prints it, with `capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")`, the
+     line pattern the corrected limb below tests — and run, after the fetch above, these checks in
+     order:
+
+     ```
+     git -C <repo> merge-base --is-ancestor <marker-sha> <headRefOid>          # must exit 0
+     git -C <repo> merge-base --all origin/main <marker-sha>                   # must exit 0 and print something
+     git -C <repo> merge-base --all origin/main <headRefOid>                   # must exit 0 and print THE SAME
+     git -C <repo> diff --no-renames --name-only <marker-sha> <headRefOid>     # must exit 0, run ALONE
+     git -C <repo> diff --no-renames --name-only <marker-sha> <headRefOid> | <the class filter above>
+     ```
+
+     ~~`git -C <repo> merge-base --is-ancestor <marker-sha> origin/main  # must exit 1 — not 0, not 128`~~
+     **— struck 2026-09-27 (#522 round 6): the not-on-trunk check is REMOVED, replaced by the base
+     check (the second and third commands).** Why it is redundant is under *the base moved* below.
+
+     **The marker carries forward only when the first exits 0 AND the second and third both exit 0,
+     print something, and print the same thing AND the fourth exits 0 AND the fifth prints nothing
+     AND its filter exits 0 or 1.** `<the class filter above>`
+     is the `grep` stage of the selector for the repository you classified, with ONE addition in the
+     consuming repository:
+
+     ```
+     # plugin repository — unchanged from the selector above
+     grep -vE '^(docs/|powers/)|^(README\.md|VERSION|\.bumpversion\.toml|LICENSE)$'
+     # consuming repository — the selector above, plus ^" (a QUOTED path is inside the class)
+     grep -E '^"|(^|/)(\.claude|\.codex|\.github)/|(^|/)(AGENTS|CLAUDE)\.md$'
+     ```
+
+     **Why `^"`.** `git diff --name-only` wraps a non-ASCII or special-character path in double
+     quotes (`core.quotePath` defaults to true), so the line starts with `"` and no pattern anchored
+     at `^` or `/` sees `.claude/` inside it. Measured 2026-09-27: `.claude/agents/café.md`,
+     `.github/workflows/dé.yml` and `apps/café/CLAUDE.md` each carried a consuming-repository marker
+     before this line. **A quoted path never carries, in either repository:** the plugin filter
+     already keeps it, because no exclusion begins with `"`. **The owed-decision selector for a
+     consuming repository, above, does NOT carry `^"`** — it is #521's and is left as it merged — so it
+     does not ask for a marker on a quoted harness path. When a consuming-repository diff lists a
+     quoted path, read it: a quoted `.claude/`, `.codex/`, `.github/`, `AGENTS.md` or `CLAUDE.md`
+     path owes the marker whatever that selector printed. **Why the filter's exit status:** `grep`
+     exits 1 for "nothing matched", which is the carry, and 2 for an error, which prints nothing too
+     and must refuse.
+
+     ~~One carrying marker is enough~~ **— struck 2026-09-27 (#522): only the newest marker may carry,
+     as above.** Say in your verdict which marker carried and which paths the delta held.
+
+     **Every other outcome is a missing reviewer at this head, exactly as before #522:**
+     - **the first command exits 1** — the marked commit is not in this head's history. A force-push
+       or rebase orphaned it, or it belongs to another branch. The lens never read an ancestor of
+       what you are merging, so nothing carries.
+     - **the first command exits 128** — the SHA is unreadable in your clone. The fetch above brings the
+       head's history, so a commit orphaned by a force-push is usually absent. Unreadable refuses; do
+       not fetch other refs to make it readable.
+     - **the base moved: the second and third commands print different things** — refuse. A lens
+       reviewed a diff against a base, and the marker-to-head tree delta stands in for that review
+       only while the base is still the one it read against. **The tree delta does not catch this.**
+       Planted 2026-09-27 by the round-5 lens, on a marker at one of the PR's OWN commits: in **H1**
+       the PR merges `main`, whose newest commit changes `hooks/scripts/a.sh`, and then restores the
+       old `a.sh`; in **H2** the PR merges `main` with `-X ours`, which drops that change while
+       resolving the conflict. In both the marker-to-head delta is empty, and both carried under
+       round 5's checks over a `hooks/` change to the trunk that no lens read. **H2 is an ordinary
+       conflict resolution**, and conflicts are resolved at MR time by owner ruling 2. **The cost,
+       accepted:** a PR that merged a docs-only trunk move after its marker refuses as well, and
+       needs a fresh marker. Measured over the nine historical carrying pairs, each read against the
+       trunk as it stood when that PR merged: none moved its base, so the rule refuses none of them
+       (the command is in ADR-0002's #522 amendment). **Run it after the fetch above**, which
+       updates `origin/main`; against a stale local ref a trunk that moved past the ref is not seen
+       to move. **`--all`** because a criss-cross history has more than one merge-base and the
+       plain form prints only one of them; comparing the whole output can only refuse more.
+       **`--all` is load-bearing, measured 2026-09-27:** in a criss-cross whose trunk merges C
+       (a `hooks/` change) and a NEWER A (docs), a marker after the PR merges A has bases {A}, and
+       a head that then merges C and deletes C's file has {A, C}. The plain form prints A for both,
+       so without `--all` the empty marker-to-head delta carries over a `hooks/` change no lens
+       read. With the dates reversed the plain form refuses too, which is why the earlier fixtures
+       could not tell the two apart; `zombie-loop-detect.test.sh`'s criss-cross arm pins the dates,
+       and dropping `--all` from the hook turns it red.
+     - **the second or third command exits non-zero, or prints nothing** — refuse. **Do not compare
+       the outputs alone:** measured 2026-09-27 with an intermediate trunk commit object deleted,
+       both calls exit 255 and print nothing, and two empty outputs are equal. A read failure is
+       not "the base has not moved".
+     - ~~**the second command exits 0** — the marked commit is ON THE TRUNK~~ and ~~**the second
+       command exits 128**~~ **— struck 2026-09-27 (#522 round 6), with the check they described.**
+       It was added at round 5 for the gate's P-A — trunk X to M changes `hooks/a.sh`, the PR
+       restores X's content, and a marker names X — and the base check covers every case it
+       refused that matters. A trunk commit is its own merge-base with `origin/main`, so a marker on
+       the trunk passes the base check only when it IS the head's merge-base with the trunk. Then the
+       marker-to-head delta is the PR's whole diff against a base that has not moved, the class
+       filter reads it, and the carry is correct. Every other trunk marker, P-A included, has a
+       different base and refuses. Its exit-128 case added nothing either: it walks the same trunk
+       history as the base check, and on the deleted-object fixture both fail.
+     - **the `commit:` line holds no full forty-character SHA** — nothing to test, nothing carries.
+     - **the fourth command exits non-zero** — refuse. **Run it alone for this reason:** in the
+       fifth command's pipeline, a failed `diff` prints nothing, and the filter over nothing also
+       prints nothing — which reads as "no class path", which carries. That is the fail-open shape,
+       and the separate run is what closes it. **A passed ancestry check does NOT make it
+       redundant:** `--is-ancestor` reads the commit graph and the diff reads trees. Measured
+       2026-09-27: with the loose tree object of the head's `docs/` subtree deleted, `--is-ancestor`
+       exits 0 and the diff exits 128.
+     - **the repository is unclassified** (either `ls-tree` call failed) — refuse, as above.
+     - **the newest marker does not carry** — refuse, even when an older marker would.
+
+     **Why two commits and not `origin/main...<headRefOid>`.** The question is what changed since
+     the reviewed commit, not since the branch was cut. With the ancestry check passed, `<marker-sha>
+     <headRefOid>`, `<marker-sha>..<headRefOid>` and `<marker-sha>...<headRefOid>` return the same
+     tree diff. ~~A merge from the trunk inside that range shows up as the paths it brought in. When
+     any of them is in the class, the carry refuses, and it should: the composition is new, and no
+     lens has read it.~~ **— struck 2026-09-27 (#522 round 6): FALSE when the merged class change is
+     reverted afterwards (H1) or dropped while resolving the merge (H2) — the tree delta then shows
+     nothing.** A merge from the trunk is refused by the base check above, not by the delta.
+
+     **What carry-forward does NOT change.** It narrows neither of your lenses and does not
+     change which diffs owe a marker. Every carried delta is still reviewed by you under both
+     lenses. **It loosens what hold 2 requires, so the diff that introduced it is under hold 1**, and
+     the owner merges it. When the lens was re-dispatched anyway and posted at the head, apply the
+     ordinary rule; carry-forward is only for the case where no marker names the head.
+     `hooks/scripts/zombie-loop-detect.sh`'s stale-marker arm applies the same rule, so a
+     carried-forward PR raises no stale notice. It reports and denies nothing, and it does not fetch,
+     so a head it cannot read locally still produces the notice.
+
+     **The case #522 was filed on no longer qualifies, and that is expected.** Its three repair
+     rounds on `-skills` #506 touched `scripts/worklog*` and `scripts/fixtures/worklog/**` beside
+     `docs/worklog/**`. #521 put `scripts/` inside the plugin-repository class, so none of them
+     carries. Measured 2026-09-27 on the round between its second and third markers:
+
+     ```
+     git -C <repo> fetch origin pull/506/head
+     git -C <repo> diff --no-renames --name-only 1762f0912fb8160ab6e8a2cfa97c2dde0fa300b5 \
+       26e7eebf6d7c81bd2a3fa0e357e22e7ba8b20602 \
+       | grep -vE '^(docs/|powers/)|^(README\.md|VERSION|\.bumpversion\.toml|LICENSE)$'
+     # -> scripts/fixtures/worklog/published-5804402298.md  (…and three more under scripts/)
+     ```
+
+     The rule pays on repairs that touch only excluded paths, such as the prose of a
+     `docs/adr/` record or `README.md`, on a PR whose earlier commits owed the marker.
 
      **~~a comment on the PR before you may merge it~~ — the HEAD-SCOPING was added 2026-09-11
      (#385), and the struck phrase is kept because it is what this hold meant for four weeks.** It was
@@ -1195,19 +1522,23 @@ not.
      **Nothing about hold 2 loosens here.** The hold is what it was on 2026-09-11 — a marker whose
      `commit:` line names the `headRefOid` you read — and the sentence was already right. What
      changed is the command beside it, which did not implement it. A marker you cannot match under
-     the corrected form is still a missing reviewer at this head.
+     the corrected form ~~is still a missing reviewer at this head~~ **is a missing reviewer at this
+     head unless it carries forward (#522, the rule above) — struck 2026-09-27 because the
+     unqualified sentence contradicts that rule.**
 
      **You already hold the payload this needs.** ADR-0006 makes you read `headRefOid` for your own
      verdict; this is the same `$h`, compared against the marker's own `commit:` line, on the same response. **It is not an
      expansion of your authority** and does not trip hold 1 — it makes an existing hold stricter,
      which is the direction hold 1 exists to protect.
 
-     **What to do when it fails, and it is NOT a `REQUEST-CHANGES`.** A stale marker is a missing
-     reviewer at this head, not a defect in the diff. Return `APPROVE-PENDING-HUMAN` naming this hold,
+     **What to do when it fails, and it is NOT a `REQUEST-CHANGES`.** A stale marker **that does not
+     carry forward** is a missing reviewer at this head, not a defect in the diff. Return
+     `APPROVE-PENDING-HUMAN` naming this hold,
      say which commit the newest marker attests and which one you read, and let `agents-lead` be
      re-dispatched to post a fresh one. **Do not merge on the strength of a marker naming another
-     commit, and do not accept a relayed claim that the lens re-reviewed** — the marker on the PR is
-     the artifact, exactly as your own verdict is.
+     commit unless it passes the carry-forward checks above (#522)**, and **do not accept a
+     relayed claim that the lens re-reviewed** — the marker on the PR is the artifact, exactly as your
+     own verdict is. **Nor a relayed claim that a marker carries: run the checks yourself.**
 
      **What holds this: you do, and nothing else.** No rule reads this marker —
      `grep -rn 'harness-lead-verdict' hooks/scripts/ agents/ | grep -v '\.test\.'` returns counters,

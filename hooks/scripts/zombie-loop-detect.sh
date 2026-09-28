@@ -110,6 +110,13 @@
 # sidesteps the question entirely: it fires only when a marker is PRESENT and stale, so a diff
 # that carries no marker is invisible to it and no misclassification is possible.
 #
+# SINCE #522 IT CLASSIFIES ONE THING, and only after a marker is already present and stale: the
+# delta from the NEWEST marker's own `commit:` SHA to the head, which hold 2 now lets carry the marker
+# forward when it touches no hold-2 path. That is a LOCAL tree diff between two commits, not the
+# PR's file list, so the pagination argument above does not reach it; and every input it cannot
+# read fails toward the notice firing, which is the pre-#522 behaviour. Whether a marker is OWED
+# at all is still not this hook's question. The block is next to `harness_stale` below.
+#
 # ── DEBOUNCE, AND WHERE THE MARKER FILE LIVES ───────────────────────────────────────────────────
 # Fire at most once per (pr_number, headRefOid) per session — a parked PR the owner is reading
 # must not nag on every subsequent turn end, which is the shape that gets routed around within a
@@ -304,6 +311,9 @@ esac
 #   a marker names the head   -> "" (silent). The lens re-posted, which is the documented practice.
 #   markers exist, none fresh -> "stale". Hold 2 would be satisfied by presence, and every marker
 #                                on the PR attests a commit the PR no longer points at.
+#                                SINCE #522 the carry-forward block below can turn this back into
+#                                "" (silent), and only when the NEWEST marker's delta to the head
+#                                touches no hold-2 path.
 #
 # `select(contains($h))` matches the FULL 40-character head SHA anywhere in the body, which is the
 # same containment test rule 7c and session-wip.sh already use for the gate's marker — the marker
@@ -320,9 +330,12 @@ esac
 # closest. Re-derived 2026-09-20 by feeding this jq a control pair: a stale marker alone returns
 # "stale"; the same marker plus a gate verdict quoting the literal returns "".
 #
-# The predicate is now two limbs: the envelope OPENS A LINE, and the comment does not itself open
-# with the gate's envelope. Both were measured rather than reasoned, over every PR comment in BOTH
-# repositories carrying the literal and passing the author filter (386: 350 in -skills, 36 in -io):
+# #475 made the predicate two limbs: the envelope OPENS A LINE, and the comment does not itself
+# open with the gate's envelope. ~~The predicate is now two limbs~~ — struck at #522 round 5: it is
+# FOUR limbs since #522: these two, the fence limb (round 3) and the author association (round 4),
+# all inside `LENS_MARKER_JQ` further down. The two #475 limbs were measured rather than reasoned,
+# over every PR comment in BOTH repositories carrying the literal and passing the author filter
+# (386: 350 in -skills, 36 in -io):
 #
 #   contains          (the defect)  386 matched — 139 are NOT markers (137 gate verdicts, 2 notes)
 #   startswith on the whole body    245 matched — drops 2 GENUINE markers, because a marker is not
@@ -340,7 +353,8 @@ esac
 # WHAT IT STILL CANNOT SEE, the same blindness one notch narrower: a marker that does not open a
 # line (indented, or inside a blockquote) is invisible, and a comment that opens a line with the
 # lens envelope while opening its own body with neither envelope would still enter $m. Neither
-# occurs in 386 comments; neither is prevented.
+# occurs in 386 comments; neither is prevented. (A marker QUOTED inside a fenced code block no
+# longer enters $m since #522 round 3 — the fence limb of `lens_marker` below.)
 #
 # THE GATE-ENVELOPE LIMB IS DERIVED FROM `MARKER`, and it was two independently typed literals 91
 # lines apart until this line was written. The predicate was CORRECT either way at that head —
@@ -350,19 +364,189 @@ esac
 # stops excluding gate verdicts, which is #475 returning with this comment asserting it cannot.
 # `${MARKER%%:*}` strips from the first colon, so it expands byte-identically to the literal it
 # replaced (23 bytes, verified with `od -c`) and now MOVES WITH `MARKER` rather than beside it.
-harness_stale="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-verdict' --arg g "${MARKER%%:*}" '
+#
+# ── ONE PREDICATE, DEFINED ONCE, USED BY BOTH ARMS (#522 round 3, advisories A1 and A2) ─────────
+# `LENS_MARKER_JQ` below is the only definition of "a lens marker" in this hook. The stale arm and
+# the carry-forward block both call it, and hold 2 in agents/quality-assurance.md publishes the
+# SAME text for the gate, byte for byte (an inventory arm checks that). It adds a third limb to the
+# two above: a lens envelope at column 0 counts only OUTSIDE a fenced code block. A line whose
+# first characters (after at most three spaces) are ``` or ~~~ opens or closes a fence.
+# Why: a comment that QUOTES a marker in a fence — a relay, a gate discussing an earlier round —
+# otherwise became the "newest" marker, and its SHA governed the carry. Measured 2026-09-27 over
+# every PR comment carrying the literal and passing the author filter, both repositories: 505
+# comments (456 in -skills, 49 in -io), and the fence limb changes the verdict on ZERO of them.
+# `startswith` on the whole body was the other candidate and was NOT chosen: #475 measured it
+# dropping two genuine markers (-skills#305, #340), and in the newest-marker rule a dropped marker
+# is the fail-OPEN direction — the lens's latest word vanishes and an older closing one governs.
+#
+# THE AUTHOR FILTER IS INSIDE THE DEF, so the predicate takes the COMMENT OBJECT, not its body
+# (#522 round 4, blocker B1). Until round 4 it sat beside the def at each call site — twice here and
+# once in hold 2's command — while the ADR amendment said the one definition, author filter
+# included, was compared by an inventory arm. The arm compared only the body limbs. Dropping the
+# filter from the carry block alone left every suite green, and a non-member's closing marker
+# posted last then governed the carry. With the filter in the def, a call site has nothing of its
+# own left to drop, and the string comparison covers all three limbs. `index($a) != null` rather
+# than a bare `index($a)`: position 0 is truthy in jq, but the explicit test says what is meant.
+LENS_MARKER_JQ='def lens_marker($lens; $g):
+  ((.authorAssociation // "") as $a | ["OWNER","MEMBER","COLLABORATOR"] | index($a) != null)
+  and ((.body // "") as $b
+    | ($b | startswith($g) | not)
+      and ($b | reduce (split("\n")[]) as $l ({f: false, h: false};
+             if ($l | test("^ {0,3}(```|~~~)")) then .f = (.f | not)
+             elif (.f | not) and ($l | startswith($lens)) then .h = true
+             else . end) | .h));'
+harness_stale="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-verdict' --arg g "${MARKER%%:*}" "$LENS_MARKER_JQ"'
   (.headRefOid // "") as $h
   | if $h == "" then ""
     else [ .comments[]?
-           | select((.authorAssociation // "") as $a
-                    | ["OWNER","MEMBER","COLLABORATOR"] | index($a))
-           | .body // ""
-           | select(startswith($g) | not)
-           | select(split("\n") | map(startswith($lens)) | any) ] as $m
+           | select(lens_marker($lens; $g))
+           | .body // "" ] as $m
          | if ($m | length) == 0 then ""
            elif ($m | map(select(contains($h))) | length) > 0 then ""
            else "stale" end
     end' 2>/dev/null || true)"
+
+# ── CARRY-FORWARD (#522): a stale marker whose delta to the head touches no hold-2 path ────────
+# Hold 2 in agents/quality-assurance.md lets the gate accept a marker posted at an EARLIER head of
+# the same PR when the tree delta from that marker's own `commit:` SHA to the head touches no path
+# in the hold-2 class. This arm applies the SAME rule, so a carried-forward PR is not reported as
+# stale — a detector that fires on every such PR at every Stop is one nobody believes (#522's own
+# words). Canonical statement, both classes, the repository test and the exact commands: hold 2.
+#
+# ONLY THE NEWEST LENS MARKER MAY CARRY. Comments arrive in posting order, so the newest is the
+# last one that passes `lens_marker` above — the same predicate as the stale arm, never a looser
+# one. A gate verdict posted last is excluded by its envelope, and a fenced quote by the fence limb. An older marker never carries past a newer
+# one: a lens that blocked at a later commit is the lens's current word, and letting an earlier
+# closing marker stand in for it would carry a verdict the lens has since withdrawn. If the
+# newest marker does not carry, nothing does — no older marker is consulted.
+#
+# EVERY STEP FAILS CLOSED TO "still stale", i.e. toward the notice firing. That is the direction
+# today's behaviour already has, so an unreadable input can only reproduce the pre-#522 notice and
+# never suppress one:
+#   - the newest marker's `commit:` line must carry the FULL forty characters, read with the same
+#     line-anchored capture hold 2 uses. An abbreviated or missing SHA carries nothing.
+#   - `git merge-base --is-ancestor <marker> <head>` must exit 0. Exit 1 (a force-push or rebase
+#     orphaned the marked commit, or it belongs to another history) and exit 128 (the object is
+#     not in this clone — the head was pushed from elsewhere and never fetched here) both refuse.
+#     This hook does NOT fetch: a `Stop` hook mutating refs on every turn end is a cost nobody
+#     asked for, and the refusal it causes is the pre-#522 notice, not a new false one.
+#   - THE PR'S BASE HAS NOT MOVED (#522 round 6): `git merge-base --all origin/main <marker>` and
+#     `git merge-base --all origin/main <head>` must BOTH exit 0, print something, and print the
+#     SAME thing. A lens reviewed a diff against a base; the tree delta from the marker to the head
+#     stands in for that review only while the base is the one the lens read against. When the
+#     base moves, a trunk change can be merged in and then reverted, or dropped while resolving the
+#     merge, and the marker -> head delta is empty over a class change no lens read. Planted by the
+#     round-5 lens: H1 (the PR merges main, whose M changes hooks/a.sh, then restores the old a.sh)
+#     and H2 (the PR merges main with `-X ours`, dropping M's a.sh change). Both carried at round 5
+#     and both refuse here. `--all` because a criss-cross history has more than one base, plain
+#     `merge-base` prints only one of them, and two histories agreeing on that one need not agree
+#     on the set; comparing the whole output can only refuse more. `--all` IS load-bearing,
+#     measured: in a criss-cross whose trunk merges C (hooks/c.sh) and a NEWER A (docs), a marker
+#     after the PR merges A has bases {A} and a head that then merges C and deletes c.sh has
+#     {A, C}. Plain `merge-base` prints A for both, so without `--all` the empty marker -> head
+#     delta carries over a hooks/ change no lens read. With the dates reversed plain prints
+#     different bases and refuses too, which is why the earlier fixtures could not tell the two
+#     apart. The suite's criss-cross arm pins the dates, and dropping `--all` turns it red.
+#     A READ FAILURE is not "equal":
+#     measured with an intermediate trunk commit object deleted, both calls exit 255 and print
+#     nothing, so two empty outputs compare equal. That is why the exit statuses and the non-empty
+#     output are checked, not the comparison alone. It reads the LOCAL `origin/main`: a trunk that
+#     moved past this clone's ref is not seen to move. This hook does not fetch (above), so that
+#     stays a named residual here; the gate fetches `main` before it runs the same check. The cost,
+#     accepted: a PR that merged a docs-only trunk move after its marker refuses too, and needs a
+#     fresh lens marker.
+#   - ~~`git merge-base --is-ancestor <marker> origin/main` must exit 1~~ — struck at round 6: the
+#     round-5 not-on-trunk check (the gate's P-A) is REMOVED, because the base check above covers
+#     every case it refused that matters. A marker on the trunk has itself as its merge-base with
+#     origin/main, so the two bases are equal only when the marker IS the head's merge-base with the
+#     trunk. Then
+#     the marker -> head delta is the PR's whole diff against an unmoved base, which the class
+#     filter reads, and the carry is correct. Every other trunk marker, P-A included, has a
+#     different base and refuses. Its exit-128 case adds nothing either: it walks the same trunk
+#     history as the base check, and on the deleted-object fixture both fail.
+#   - `git diff --no-renames --name-only <marker> <head>` must exit 0, checked on its own before
+#     any filter. `--is-ancestor` exiting 0 does NOT make this redundant: it reads the COMMIT
+#     graph, and the diff reads TREES. Measured: with the loose tree object of the head's `docs/`
+#     subtree deleted, `--is-ancestor` exits 0 and the diff exits 128. Piped straight into the
+#     filter, that failed diff prints nothing and the filter prints nothing — which reads as an
+#     empty delta and carries, the fail-open shape. The separate status check is what refuses it.
+#   - the repository is classified with `ls-tree` at `origin/main` and at the head, as hold 2 does.
+#     EITHER CALL FAILING (no `origin/main` ref in this clone, an unreadable head) REFUSES THE
+#     CARRY. It used to select the plugin-repository class as "the wider one", and that was false:
+#     the exclusion list drops `docs/**` and `powers/**`, so a consuming-class path such as
+#     `docs/CLAUDE.md` was excluded under it and carried. Neither class is a superset of the other,
+#     so an unclassified repository has no filter it can safely apply, and it carries nothing.
+#     A MISSING `origin/main` refuses one step earlier, at the base check; this refusal is still
+#     reached when the ref resolves and its tree does not, and the suite plants exactly that (a
+#     deleted root tree) so each refusal is tested on its own.
+#   - a path git QUOTES is inside the class, in both repositories. `git diff --name-only` wraps a
+#     non-ASCII or special-character name in double quotes (`core.quotePath`, default true), so the
+#     line starts with `"` and no path pattern anchored at `^` or `/` sees it. The plugin filter
+#     already keeps such a line — no exclusion begins with `"` — and the consuming filter now
+#     selects `^"` explicitly. Measured before the fix: `.claude/agents/café.md` in a consuming
+#     repository carried.
+#   - the filter's own exit status is checked: `grep` exits 1 for "nothing matched", which is the
+#     carry, and 2 for an error, which refuses. A filter that failed prints nothing, which would
+#     otherwise read as a carry.
+# It is a TREE diff between two commits, never `origin/main...<head>`: the question is what changed
+# since the reviewed commit. ~~and a merge from the trunk in that range shows up as the paths it
+# brought, which refuses the carry whenever they are in the class~~ — struck at round 6: FALSE when
+# the merged class change is reverted afterwards (H1) or dropped while resolving the merge (H2).
+# The tree delta then shows nothing. The base check above is what refuses a trunk merge now.
+if [ "$harness_stale" = "stale" ]; then
+  newest_sha="$(printf '%s' "$pr_view" | jq -r --arg lens '<!-- harness-lead-verdict' --arg g "${MARKER%%:*}" "$LENS_MARKER_JQ"'
+    [ .comments[]?
+      | select(lens_marker($lens; $g))
+      | .body // "" ]
+    | last // ""
+    | [capture("(^|\n)commit:[^0-9a-f\n]*(?<c>[0-9a-f]{40})")] | .[0].c // empty' 2>/dev/null || true)"
+
+  carry_class=""
+  base_same=""
+  if [ -n "$newest_sha" ] \
+     && git -C "$cwd" merge-base --is-ancestor "$newest_sha" "$head_sha" >/dev/null 2>&1; then
+    marker_base="$(git -C "$cwd" merge-base --all origin/main "$newest_sha" 2>/dev/null)"
+    marker_base_rc=$?
+    head_base="$(git -C "$cwd" merge-base --all origin/main "$head_sha" 2>/dev/null)"
+    head_base_rc=$?
+    # both reads must succeed and print something: two failed reads print nothing, and compare equal
+    if [ "$marker_base_rc" -eq 0 ] && [ "$head_base_rc" -eq 0 ] \
+       && [ -n "$marker_base" ] && [ "$marker_base" = "$head_base" ]; then
+      base_same="1"
+    fi
+  fi
+  if [ -n "$base_same" ]; then
+    trunk_has="$(git -C "$cwd" ls-tree --name-only origin/main -- .claude-plugin/plugin.json 2>/dev/null)"
+    trunk_rc=$?
+    head_has="$(git -C "$cwd" ls-tree --name-only "$head_sha" -- .claude-plugin/plugin.json 2>/dev/null)"
+    head_rc=$?
+    if [ "$trunk_rc" -ne 0 ] || [ "$head_rc" -ne 0 ]; then
+      carry_class=""                      # unclassifiable: refuse
+    elif [ -n "$trunk_has" ] || [ -n "$head_has" ]; then
+      carry_class="plugin"
+    else
+      carry_class="consuming"
+    fi
+  fi
+
+  if [ -n "$carry_class" ]; then
+    delta="$(git -C "$cwd" diff --no-renames --name-only "$newest_sha" "$head_sha" 2>/dev/null)"
+    diff_rc=$?
+    if [ "$diff_rc" -eq 0 ]; then
+      if [ "$carry_class" = "plugin" ]; then
+        in_class="$(printf '%s\n' "$delta" \
+          | grep -vE '^$|^(docs/|powers/)|^(README\.md|VERSION|\.bumpversion\.toml|LICENSE)$')"
+      else
+        in_class="$(printf '%s\n' "$delta" \
+          | grep -E '^"|(^|/)(\.claude|\.codex|\.github)/|(^|/)(AGENTS|CLAUDE)\.md$')"
+      fi
+      filter_rc=$?
+      if [ "$filter_rc" -le 1 ] && [ -z "$in_class" ]; then
+        harness_stale=""
+      fi
+    fi
+  fi
+fi
 
 # ── per-signal suppression, applied AFTER both signals are computed ────────────────────────────
 # This is where the debounce actually takes effect now. Reaching here means at least one signal was
@@ -402,15 +586,21 @@ if [ -n "$harness_stale" ]; then
   context="${context}${context:+
 
 }Turn ended with a STALE agents-lead verdict marker on PR #${pr_number} (branch ${branch}, head
-${head_sha}): the PR carries at least one '<!-- harness-lead-verdict: ... -->' comment and NOT ONE
-of them names the current head.
+${head_sha}): the PR carries at least one '<!-- harness-lead-verdict: ... -->' comment, NOT ONE
+of them names the current head, and the NEWEST one does not carry forward (#522; only the newest
+may) — either its 'commit:' line holds no full 40-character SHA, that SHA is not an ancestor of the
+head in this clone, the PR's base moved since that SHA (its merge-base with origin/main differs
+from the head's) or either merge-base could not be read, the repository could not be classified
+(an unreadable origin/main or head), the
+tree delta from it to the head could not be read, or that delta touches a path in hold 2's class.
 
 This is the #385 arm of zombie-loop-detect.sh, and it is DETECTION ONLY — it holds nothing, denies
 nothing, and this hook never blocks. It says what it can see: a marker exists, so a harness lens
 ran at some point, and every marker on this PR attests a commit the PR no longer points at.
 
 Why that matters: 'agents/quality-assurance.md' hold 2 requires a marker on the PR before a
-harness diff may be merged, and since #385 it requires one that names the head being merged. Until
+harness diff may be merged, and since #385 it requires one that names the head being merged — or,
+since #522, one whose delta to that head touches no hold-2 path. Until
 #385 it was satisfied by PRESENCE, so a stale marker cleared the hold while attesting a diff
 nobody reviewed. NOTHING MECHANICAL ENFORCES THE HEAD-SCOPING — no rule reads this marker, rule 7c
 head-scopes only the gatekeeper's. This notice is the only observation of it that exists.
