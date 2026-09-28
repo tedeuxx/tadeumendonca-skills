@@ -628,24 +628,31 @@ The hard gates, each to be confirmed:
      in passing. **So does a keyword scan that is not anchored to a line start**: on the PR that
      published this rule it returned `Refs #524` and also `Refs #531`, `Refs #513` and `Refs #523`,
      which sit in the evidence prose, so a gate following it would have posted on three unrelated
-     closed Issues. The selector is anchored to a line start, and it is unioned with the forge's own
-     closing set to catch a closing keyword written mid-sentence:
+     closed Issues. The selector is anchored to a line start, and the anchor tolerates leading markup
+     (a backtick, `*` or `_`), because this loop often writes its closure line in backticks or in bold.
+     It is unioned with the forge's own closing set to catch a closing keyword written mid-sentence,
+     and it prints a marker instead of a bare `[]` when it finds nothing:
 
      ```
      gh pr view <n> --repo <owner/repo> --json body,closingIssuesReferences \
-       --jq '([.body|scan("(?im)^(?:refs?|close[sd]?|fix(?:e[sd])?|resolve[sd]?) #([0-9]+)")[]|tonumber]
-             + [.closingIssuesReferences[].number])|unique'
+       --jq '([.body|scan("(?im)^[`*_]*(?:refs?|close[sd]?|fix(?:e[sd])?|resolve[sd]?) #([0-9]+)")[]|tonumber]
+             + [.closingIssuesReferences[].number])|unique
+             |if length==0 then "EMPTY: read the body, name the Issue yourself or state none" else . end'
      ```
 
      Measured 2026-09-27, it returns exactly one Issue on each of #530, #532, #534, #535, #539, #540,
-     #541, #542, #544 and #545, and `[462,463,464]` on #467. **The union half is present and not yet
-     exercised**: across the 120 most recent PRs, no forge closing reference is missed by the anchored
-     scan, so the mid-sentence case it exists for has not occurred here.
+     #541, #542, #544 and #545, and `[462,463,464]` on #467. It returns `[383]` on #407 and #391 and
+     `[406]` on #428, where the reference starts a line behind a backtick or a bold marker. Across the
+     120 most recent PRs, tolerating that markup adds no PR that returns more than one Issue: the same
+     five do with or without it (#467, #392, #390, #389 and #387). **The union half is present and not
+     yet exercised**: across those 120 PRs, no forge closing reference is missed by the anchored scan,
+     so the mid-sentence case it exists for has not occurred here.
    - **An EMPTY result is not "no Issue", and it is the direction this selector errs in.** Over those
-     120 PRs the anchored form finds nothing on six whose only reference sits mid-line, for example
-     #486's *"… left out of its spend. `Refs #455`."* An empty selector posts nowhere, and nobody sees
-     a line that was never posted. **On empty, read the body and name the Issue yourself, or say in
-     the verdict that the PR references none.** Either answer is visible. Silence is not.
+     120 PRs the selector finds nothing on three PRs whose only reference sits mid-line, #486, #465 and
+     #420, for example #486's *"… left out of its spend. `Refs #455`."* An empty selector posts
+     nowhere, and nobody sees a line that was never posted, so the command prints `EMPTY:` rather than
+     `[]`. **On empty, read the body and name the Issue yourself, or say in the verdict that the PR
+     references none.** Either answer is visible. Silence is not.
 
    - **The order is verdict, then Issue comment, then merge.** The line links the verdict, so the
      verdict exists first. It lands before the merge so that an Issue closed at merge, by hand or by
