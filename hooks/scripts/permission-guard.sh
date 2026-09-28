@@ -254,7 +254,11 @@ set -euo pipefail
 # views when the first pass decided nothing and the two views disagree. No command string reaches an
 # argument of this process, and the host's `hooks.json` command carries none.
 pg_legacy=0; [ "${1:-}" = --legacy-view ] && pg_legacy=1
-pg_decided=0; pg_legacy_differs=0
+# `--heredoc-view` (#536 round 3) is the same kind of internal pass: the EXIT trap passes it when the
+# first pass decided nothing and the command opens a heredoc. See "THE HEREDOC-AS-SHELL PASS" beside
+# `$bare`. Same property as above: no command string can reach it.
+pg_hview=0; [ "${1:-}" = --heredoc-view ] && pg_hview=1
+pg_decided=0; pg_legacy_differs=0; pg_hd_differs=0
 
 input="$(cat 2>/dev/null || true)"
 
@@ -829,13 +833,24 @@ done
 # region, and a region is collapsed with the pre-#536 regex pair: A1 itself. The round-2 lens found
 # three triggers (`$`-quoted delimiters, a delimiter over 256 characters, an arithmetic shift), each
 # ALLOW for a trunk push, a merge and a secret set placed after it, at c0d33be9 and at 88fc667c.
-# RESIDUALS, each pinned in the suite or named here:
-#   · A1 written wholly INSIDE a heredoc body fed to a shell (pre-existing; `#536 RESIDUAL`);
+# ~~RESIDUALS, each pinned in the suite or named here:~~ — each is now a residual of the SCANNER only,
+# not of the guard: the heredoc-as-shell pass (below, beside `$bare`) re-reads every body as shell
+# whenever the first pass allows, so none of them reaches an ALLOW. They stay listed because the first
+# pass still reads them this way, and the suite's round-3 calibration shows they reopen if that pass
+# is removed:
+#   · A1 written wholly INSIDE a heredoc body fed to a shell (pre-existing; `#536 RESIDUAL`, now DENY);
 #   · an arithmetic expression SPANNING A NEWLINE — the check is per line — whose shift operand later
-#     stands alone on a line: the lines between are a body (`#536 r2 RESIDUAL`, pinned as ALLOW);
-#   · a delimiter spelled with an escape the translation does not cover (`\u`, `\c` — bash 3.2 has
-#     neither, zsh has `\u`): the scanner waits on the untranslated spelling, finds no such line, and
-#     re-reads the rest as shell — it reopens only if a later line equals that exact spelling.
+#     stands alone on a line: the lines between are a body (`#536 r2 RESIDUAL`, now DENY);
+#   · a delimiter spelled with an escape the translation does not cover (`\u`, `\U`, `\c` — bash 3.2
+#     has none of them, zsh has `\u` and `\U`, measured: `\U00000041` reopens on zsh): the scanner
+#     waits on the untranslated spelling, finds no such line, and re-reads the rest as shell — it
+#     reopens only if a later line equals that exact spelling. bash 4.2 and later LIKELY has all three
+#     (`\u`, `\U`, `\c`), so on a Linux or Homebrew bash this reaches bash as well — UNMEASURED: this
+#     host has no bash newer than 3.2;
+#   · round 3's three triggers, found by the desync sweep: `<<` inside `${…}` (B1), inside an array
+#     subscript (B2), and a one-line `((…))` holding a quoted paren (B3). bash reads the `<<` as text in
+#     all three and the scanner queued a heredoc. They are NOT fixed in the scanner, deliberately: a
+#     fourth context would be the same defect again, so the class is closed one layer up instead.
 #
 # 3b's push view reads the same scanner in its `pv` mode, which adds that view's own word-only unquoting
 # and `eval` handling — see there.
@@ -858,6 +873,7 @@ done
 qscan_pl='no warnings;
 my $mode = defined $ARGV[0] ? $ARGV[0] : "bare";
 my $pv = ($mode eq "pv") ? 1 : 0;
+my $nohd = (defined $ARGV[1] && $ARGV[1] eq "1") ? 1 : 0;
 binmode STDIN; binmode STDOUT;
 my $all; { local $/; $all = <STDIN>; }
 $all = "" unless defined $all;
@@ -1017,6 +1033,7 @@ sub scan {
     }
     if ($c eq "<") {
       if (substr($s, $p, 3) eq "<<<") { $out .= "<<<"; pos($s) = $p + 3; $prev = "<"; next; }
+      if ($nohd && substr($s, $p, 2) eq "<<") { $out .= "<<"; pos($s) = $p + 2; $prev = "<"; next; }
       if ($p < $aend && substr($s, $p, 2) eq "<<") { $out .= "<<"; pos($s) = $p + 2; $prev = "<"; next; }
       if ($s =~ /\G(<<(-?)[ \t]*)/gc) {
         my ($lead, $dash) = ($1, $2);
@@ -1060,8 +1077,8 @@ if ($pv) {
   print join(" ", @res);
 }
 exit 0;'
-qscan() { # MODE (bare|pv) — NUL-separated items on stdin: the command, then each `-c` payload
-  LC_ALL=C perl -e "$qscan_pl" "$1"
+qscan() { # MODE (bare|pv) [NOHD] — NUL-separated items on stdin: the command, then each `-c` payload
+  LC_ALL=C perl -e "$qscan_pl" "$1" "${2:-$pg_hview}"
 }
 qscan_items() {
   printf '%s\0' "$command"
@@ -1099,11 +1116,59 @@ qscan_unavailable="Blocked: this command contains a quote, and the permission gu
 bare_legacy_view() {
   printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g'
 }
+# ── THE HEREDOC-AS-SHELL PASS (#536 round 3) — CLOSING THE CLASS, NOT LISTING ITS MEMBERS ─────────────
+# Every heredoc the scanner opens and bash does not turns the lines bash EXECUTES into a region, and a
+# region is collapsed with the pre-#536 regex pair: A1. Round 2 closed three such triggers in the
+# scanner; the round-3 desync sweep found three more (`<<` inside `${…}`, inside an array subscript,
+# and a one-line `((…))` holding a quoted paren), all ALLOW for a trunk push, a merge and a secret set
+# at 4c632c6b and at 88fc667c. A fourth trigger would be the same defect again, and bash's contexts
+# that lex `<<` as text have not been enumerated — so the scanner is not taught a fourth exception.
+#
+# INSTEAD: when the first pass decides NOTHING on a quoted command that opens a heredoc, and ignoring
+# every heredoc opener changes `$bare`, this file runs once more with `--heredoc-view`. In that pass the
+# scanner opens NO heredoc at all — each body is read as the shell text it would be without the opener,
+# quotes paired by the shell's grammar, comments and `-c` payloads exactly as before — and every rule
+# reads that view. A DENY there is the answer, with a note saying which view refused. A heredoc the
+# scanner invents can then hide nothing, whatever the context that fooled it, because this view never
+# opens one. It also closes the three named scanner residuals above, measured by the round-2 and
+# round-3 sweeps (both suites' calibrations plant this pass out and watch them reopen).
+#
+# THE CONVENIENCE RULES DO NOT RUN IN THAT PASS (`PERMISSION_GUARD_CONVENIENCE_RULES=off`). They exist
+# to turn a host prompt into an instruction, and a body line with `x > 2` in it is data to `python3 -`:
+# denying it would be an over-block with no floor behind it. Only floor rules refuse there.
+#
+# WHAT IT COSTS — measured, not argued; the corpus command and every changed row are in #536's PR:
+#   · an OVER-BLOCK, stated: a REAL heredoc read by a data reader (`cat`, `python3 -`, `jq`) whose body
+#     holds a floor act that the region's regex pair hid and the shell's pairing does not is refused
+#     now. The suite pins one such row as "#536 r3 COST". Over this machine's transcript corpus
+#     (45,249 distinct commands, both callers, 2026-09-27) it turned SIX commands per caller from
+#     ALLOW to DENY against 4c632c6b, and nothing the other way. All six are `python3 - <<'PY'` edits
+#     whose string literals hold a backtick or `$(`: read as shell, a python apostrophe stops pairing
+#     and rule 8's substitution branch sees it — the over-block class `#497 kept` already pins;
+#   · a third run of the rules, only when the first pass allowed AND a heredoc is present AND ignoring
+#     it changes the view — bounded by the same time budget as the other two, since it is a child of
+#     the first. It moves the budget cliff for MANY heredocs in ONE command: about 3,700 closed quoted
+#     heredocs (~110 KB; 3,500 allowed in 2.70 s, 4,000 denied at 3.03 s), where 4c632c6b still allowed
+#     5,000 (2.78 s). The largest
+#     corpus command with a heredoc is 23,756 bytes and carries five; the 25 largest took at most
+#     0.98 s here, supervised.
+# It runs BEFORE the legacy pass, and a DENY from it ends the call; an ALLOW falls through to the
+# legacy pass unchanged. It can therefore only ever ADD a denial to a first pass that allowed.
+pg_hview_note=" [Read with every heredoc opener ignored: each heredoc body was judged as the shell text it would be if the opener were not a heredoc (#536 round 3). The guard's scanner can see a heredoc where bash opens none — inside a parameter expansion, an array subscript or an arithmetic expression — and would then hide the lines bash runs, so an ALLOW is re-checked this way. If this is a real heredoc whose body only MENTIONS the act, write the body to a file with the Write tool and feed the file instead.]"
 pg_exit() {
   pg_st=$?
-  if [ "$pg_st" = 0 ] && [ "$pg_decided" = 0 ] && [ "$pg_legacy" = 0 ] && [ "$pg_legacy_differs" = 1 ]; then
+  if [ "$pg_st" = 0 ] && [ "$pg_decided" = 0 ] && [ "$pg_legacy" = 0 ] && [ "$pg_hview" = 0 ]; then
     trap - EXIT
-    printf '%s' "$input" | "$BASH" "$0" --legacy-view || exit $?
+    if [ "$pg_hd_differs" = 1 ]; then
+      pg_hv="$(printf '%s' "$input" | PERMISSION_GUARD_CONVENIENCE_RULES=off "$BASH" "$0" --heredoc-view)" || exit $?
+      if [ -n "$pg_hv" ]; then
+        printf '%s' "$pg_hv" | jq --arg n "$pg_hview_note" '.hookSpecificOutput.permissionDecisionReason += $n'
+        exit 0
+      fi
+    fi
+    if [ "$pg_legacy_differs" = 1 ]; then
+      printf '%s' "$input" | "$BASH" "$0" --legacy-view || exit $?
+    fi
   fi
 }
 case "$command" in
@@ -1113,8 +1178,13 @@ case "$command" in
     else
       command -v perl >/dev/null 2>&1 || deny "$qscan_unavailable"
     bare="$(qscan_items | qscan bare)" || deny "$qscan_unavailable"
-      [ "$bare" = "$(bare_legacy_view)" ] || pg_legacy_differs=1
-      trap pg_exit EXIT
+      if [ "$pg_hview" = 0 ]; then
+        [ "$bare" = "$(bare_legacy_view)" ] || pg_legacy_differs=1
+        case "$command $unwrap_all" in
+          *'<<'*) [ "$bare" = "$(qscan_items | qscan bare 1)" ] || pg_hd_differs=1 ;;
+        esac
+        trap pg_exit EXIT
+      fi
     fi
     ;;
   *) bare="$cmd" ;;
@@ -3078,9 +3148,14 @@ push_view=""
 #            set there. Closed now: A1 across a `"…"`, a `\'`, a comment, a heredoc (any delimiter
 #            spelling the shell and the scanner read alike, any length), a backtick span, and a one-line
 #            arithmetic context; and any heredoc whose terminator never arrives is re-read as shell.
-#            STILL OPEN, named at the scanner: A1 wholly inside a body fed to a shell; arithmetic that
+#            ~~STILL OPEN, named at the scanner: A1 wholly inside a body fed to a shell; arithmetic that
 #            spans a newline with its operand later on a line alone; a delimiter escape the translation
-#            does not cover, where a later line equals the untranslated spelling.
+#            does not cover, where a later line equals the untranslated spelling.~~ STRUCK (#536 round
+#            3): the desync sweep found three more triggers (`<<` in `${…}`, in an array subscript, and
+#            a one-line `((…))` holding a quoted paren), and the class is now closed one layer up — the
+#            heredoc-as-shell pass beside `$bare` re-reads every body as shell whenever the first pass
+#            allowed, and this view is rebuilt the same way in that pass. The three named items remain
+#            residuals of the SCANNER, not of the guard.
 #            The paragraph below is kept as the record of the defect; the repair is the quote scanner
 #            beside `$bare`'s definition, which builds `$bare` and this view alike, and every reproducer
 #            below is now an arm in `permission-guard.test.sh` ("#536"), calibrated red against the two
@@ -3184,7 +3259,7 @@ case "$command $unwrap_all" in
         else
           command -v perl >/dev/null 2>&1 || deny "$qscan_unavailable"
         push_view="$(qscan_items | qscan pv)" || deny "$qscan_unavailable"
-          [ "$push_view" = "$(pv_legacy_view)" ] || pg_legacy_differs=1
+          [ "$pg_hview" = 1 ] || [ "$push_view" = "$(pv_legacy_view)" ] || pg_legacy_differs=1
         fi
         ;;
       *)

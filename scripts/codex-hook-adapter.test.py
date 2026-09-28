@@ -168,6 +168,18 @@ check(d is not None and d.get("decision") == "block"
       "#536 A1 — an apostrophe commit chained to a trunk push is blocked on the trunk rule"
       + ("" if d else " (NO DECISION: the mis-pairing is back)"))
 
+# Round 3: a heredoc the scanner opens and bash does not (`<<` inside `${…}` is text to bash)
+# made the executed line a body. The heredoc-as-shell pass is what refuses it now, and it must
+# reach Codex as a block on the act's own reason, through the adapter's convenience-off env.
+B1 = "echo ${x:-<<EOF}\necho \"it's\" && git push origin main && echo 'y z'\nEOF}"
+p = run_adapter(codex_payload(B1))
+d = decision_of(p)
+check(d is not None and d.get("decision") == "block"
+      and "pushing to the trunk" in d.get("reason", "")
+      and "time budget" not in d.get("reason", ""),
+      "#536 r3 B1 — a trunk push after `${x:-<<EOF}` is blocked on the trunk rule"
+      + ("" if d else " (NO DECISION: the invented heredoc hides the push again)"))
+
 # perl is a floor dependency since #536 and selfcheck must say so, in both states. The
 # perl-free PATH links every executable on this PATH except perl*, so bash, jq, git and gh
 # stay reachable and the only difference between the two runs is perl.

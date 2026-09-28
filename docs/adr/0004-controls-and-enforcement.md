@@ -7285,14 +7285,20 @@ making the scan re-read its tail.
 
 Bad, stated rather than discovered:
 
-- **A1 written wholly INSIDE a heredoc body fed to a shell is still hidden.** Inside a body the regex
-  pair still reads quotes, as before. The suite pins this as silence (`#536 RESIDUAL`).
-- **Arithmetic that spans a newline is not recognised.** The check is per line. If the shift's operand
-  later stands alone on a line, the lines between are a body and A1 is open there. The suite pins this
-  as silence (`#536 r2 RESIDUAL`).
-- **A delimiter escape outside the translated set** (`\u`, `\c`; bash 3.2 has neither and zsh has
-  `\u`). The scanner waits on the untranslated spelling. It finds no such line and re-reads the rest as
-  shell, so the hole reopens only if a later line equals that exact spelling.
+- ~~**A1 written wholly INSIDE a heredoc body fed to a shell is still hidden.**~~ **Closed in round 3**
+  by the heredoc-as-shell pass below. The FIRST pass still reads a body with the regex pair and still
+  hides it; the suite row moved from silence to DENY, and its calibration plants the pass out and
+  watches the row return to ALLOW.
+- ~~**Arithmetic that spans a newline is not recognised.**~~ **Closed in round 3** the same way. The
+  scanner's check is still per line, so the first pass still reads the lines before a later operand
+  line as a body; the round-3 pass reads them as shell and refuses.
+- **A delimiter escape outside the translated set** (`\u`, `\U`, `\c`; bash 3.2 has none of them, and
+  zsh has `\u` and `\U`, measured: `\U00000041` reopens on zsh). The scanner waits on the untranslated
+  spelling. It finds no such line and re-reads the rest as shell, so the hole reopens only if a later
+  line equals that exact spelling. **bash 4.2 and later likely has `\u`, `\U` and `\c`**, so on a Linux
+  or Homebrew bash this reaches bash too; that is UNMEASURED, because this host has no bash newer than
+  3.2. **Since round 3 this is a residual of the scanner only**: the heredoc-as-shell pass refuses every
+  such row the sweep built.
 - **A truly unterminated body is now read as shell, not as data.** bash runs nothing after such a body,
   so this can only over-block. The corpus below counts what it cost.
 - **perl is required for any quoted command.** On a host without it, those commands are refused.
@@ -7313,6 +7319,51 @@ Bad, stated rather than discovered:
   40,000-deep shape past the host's 5 s hook timeout on that path. That path was already degraded and
   already stated as degraded; the second pass only adds a longer child to it.
 
+### Round 3: the class is closed one layer up, not by a fourth scanner exception
+
+The round-3 desync sweep found three more triggers of the same mechanism, each ALLOW for a trunk push,
+a merge and a secret set at `4c632c6b` and at `88fc667c`, both callers, with bash 3.2.57 running the
+act: `<<` inside `${…}` (B1, six shapes), `<<` inside an array subscript (B2, four), and a one-line
+`((…))` holding a quoted paren (B3, two). bash reads the `<<` as text in all three; the scanner queued a
+heredoc and read the executed lines as a body.
+
+**Decision (the lens's option 1): close the class, not the three instances.** When the first pass
+decides nothing on a quoted command that opens a heredoc, and ignoring every heredoc opener changes
+`$bare`, the guard runs once more with `--heredoc-view`. In that pass the scanner opens no heredoc at
+all, so every body is read as the shell text it would be, quotes paired by the shell's grammar, and
+every floor rule reads that view. A DENY there is the answer, with a note naming the view. A heredoc the
+scanner invents can then hide nothing, whatever context fooled it. The convenience rules do not run in
+that pass: they turn a host prompt into an instruction, and a `>` in a python body is data.
+
+Considered and rejected:
+
+- **Three per-trigger scanner fixes** (`${…}`, subscripts, a quote-aware paren table). Each closes only
+  its own trigger, and bash's contexts that lex `<<` as text have not been enumerated, so a fourth
+  would be the same defect again. It stays the fallback if the pass's over-block ever grows.
+- **Narrowing the pass** to openers in a position bash would not open one, or to bodies containing a
+  floor-act token. Unneeded on the measurement: the full form over-blocks six corpus commands per
+  caller, all of one class the suite already pins. A narrowed form would re-introduce an enumeration.
+- **Named residuals pinned as ALLOW.** Cheapest and honest, and it leaves the floor open where bash
+  actually runs the act.
+
+Good: every cell of the round-3 sweep is DENY at this head (72 new suite cells: 12 shapes × 3 acts ×
+2 callers, each asserting the act's own reason), and so are both round-2 residuals and every
+delimiter-escape row the sweep built. The pass can only ADD a denial to a first pass that allowed; it
+runs before the legacy pass and does not replace it, so zero DENY→ALLOW still holds by construction.
+
+Bad, stated rather than discovered:
+
+- **An over-block**: a real heredoc read by a data reader whose body holds a floor act that the
+  region's regex pair hid is now refused. Over the transcript corpus (45,249 distinct commands, both
+  callers, measured 2026-09-27 against `4c632c6b`) that is **six commands per caller ALLOW→DENY and
+  zero the other way**, all six `python3 - <<'PY'` edits with a backtick or `$(` in a string literal,
+  refused by rule 8's substitution branch, the class `#497 kept` already pins. The suite pins one
+  row as `#536 r3 COST`.
+- **A third run of the rules** when the first pass allowed and a heredoc changes the view. It moves the
+  budget cliff for many heredocs in one command: about 3,700 closed quoted heredocs (~110 KB) is now a
+  budget DENY, where `4c632c6b` still allowed 5,000. The largest corpus command with a heredoc is
+  23,756 bytes and carries five.
+
 ### What holds it
 
 `hooks/scripts/permission-guard.test.sh` section "#536". It holds the matrix, the controls, the
@@ -7320,7 +7371,12 @@ calibration by planting the old lines (all arms red, all controls green, and eac
 own), the legacy-pass calibration (the trap removed turns a kept over-block into an ALLOW), the
 missing-perl and failing-perl rows, and ten latency rows run with the budget bypassed. Round 2 adds
 the 56 opener-desync cells, their four-plant calibration, the `((cat <<EOF) )` and `<<-` rows, the
-multi-line arithmetic residual, and five more latency rows.
+multi-line arithmetic residual, and five more latency rows. Round 3 adds the 72 desync cells, four
+controls, the named cost row, two latency rows, a plant (P5) that removes the pass, and a calibration
+with it: all 72 cells red and both former residuals back to ALLOW with the pass removed, while the
+round-2 cells stay green. Every round-2 plant set now carries P5, since the pass would otherwise hold
+the cells those sets exist to redden; one more set (all four scanner fixes out, the pass kept) reads
+0, which is the pass holding every round-2 cell alone.
 `scripts/codex-hook-adapter.test.py` section 1b pins the first reproducer through the Codex route, and
 the perl selfcheck note in both states.
 
