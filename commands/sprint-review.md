@@ -84,10 +84,18 @@ its report reads *completed with named gaps*, not FAILED.
 actually launched with, from the process table:
 
 ```
-ps -ax -o pid=,ppid=,args= | grep -E -- '--allowedUrlPattern' | grep -v grep | grep -oE -- '--allowedUrlPattern [^ ]+'
+ps -ax -o pid=,ppid=,args= | grep -E -- 'chrome-devtools-mcp[^ ]* .*--allowedUrlPattern ' | grep -v grep | grep -oE -- '--allowedUrlPattern [^ ]+'
 # measured 2026-09-28, Claude Code 2.1.283, variable unset in the session:
 # -> --allowedUrlPattern http://127.0.0.1:9/*
 ```
+
+**The probe requires the package name before the flag on the same line.** The line that carries the
+flag is the `npm exec chrome-devtools-mcp@…` launcher. Its node child does not repeat the arguments.
+Measured on the same host with a non-server wrapper running,
+`sh -c 'sleep 40; : --allowedUrlPattern https://example.org/*'`: the looser form
+`grep -E -- '--allowedUrlPattern'` printed three lines. They were the harness's own quoted eval
+wrapper, the `sh -c` line with the complete value unquoted, and the real server. The form above
+printed only the server line.
 
 **Why the process and not `printenv HARNESS_SWEEP_ORIGIN`.** The environment says what the session
 holds. It does not say what the host passed to the server. A host that does not expand
@@ -145,11 +153,13 @@ only record, and it lives in the session.
 step 0 observes never produces `FAILED`.** `FAILED` means the precondition was observed to hold and
 the sweep still broke: the generator did not run, a navigation errored, or fewer routes were visited
 than emitted. A missing origin is not a sweep failure. It is a sweep that should not have started.
-Writing it as `FAILED` is how two of those three closes, sprint-02 and sprint-04, produced reports that
-recorded an absence, and how *FAILED* began to read as the rite's normal output. **The one exception is
-a missing origin step 0 cannot observe**: another session's server satisfies the probe, this session's
-bound is still missing, and the first navigation fails as `FAILED`. See the multi-session residual
-below.
+Writing a missing or malformed origin as `FAILED` is how two of those three closes, sprint-02 and
+sprint-04, produced reports that recorded an absence, and how *FAILED* began to read as the rite's
+normal output. For sprint-02, "missing or malformed" is deliberate: the retrospective's hypothesis is
+an unexpanded `$` literal. **The exception is a missing origin step 0 cannot observe, and it has two
+known instances.** In the first, another session's server satisfies the probe. In the second, a
+wrapper or test process prints the declared value. In both, this session's bound is still missing and
+the first navigation fails as `FAILED`. Both are listed under *What step 0 does NOT establish* below.
 
 ### What step 0 does NOT establish
 
@@ -160,9 +170,14 @@ below.
   session open, a line from another session can satisfy the probe. That error runs toward
   *proceeding*, and it is visible: the first navigation then fails loudly as `FAILED`. It is not
   silent.
-- **That every matching line is a server.** The probe matches any process whose argv mentions the flag,
-  including shell wrappers and test processes. Such a line carries a quoted or partial value that never
-  equals the declaration, so that error runs toward stopping.
+- **That every matching line is a server.** `ps` prints argv joined by spaces, without quoting. So a
+  wrapper or test process whose argv names the package and then the flag with the complete value
+  prints that value exactly. Step 0 cannot tell it from a server. Measured:
+  `sh -c 'sleep 30; : chrome-devtools-mcp --allowedUrlPattern https://example.org/*'` satisfies the
+  probe above. If that value equals the declaration while the real server is still on the default,
+  step 0 proceeds. That error runs toward *proceeding*, and it shows up as `FAILED` at the first
+  navigation, like the multi-session case. Requiring the package name narrows this case but does not
+  close it.
 - **The `=value` spelling.** A server launched with `--allowedUrlPattern=<pattern>` prints nothing,
   because the probe matches only the spaced form that `.mcp.json` uses. That error also runs toward
   stopping.

@@ -9052,8 +9052,9 @@ fi
 
 # ── 1b · step 0: the origin bound is checked BEFORE dispatch, and FAILED is reserved (#525) ──────────
 #
-# Three closes (sprint-02/03/04) completed zero rendered sweeps, and the rite learned each time only by
-# dispatching a sweep that could only write FAILED. #525 adds a step 0 that reads the browser server's
+# In three closes (sprint-02/03/04) the shipped server rendered no sweep. Two of them, sprint-02 and
+# sprint-04, wrote FAILED. Sprint-03 rendered only through a browser outside the bound, and its report
+# reads completed with named gaps, not FAILED. #525 adds a step 0 that reads the browser server's
 # LAUNCH ARGV (the process table), not the environment, and stops with its own literal.
 #
 # THREE ASSERTIONS, AND THE LAST TWO ARE NOT NEEDLES:
