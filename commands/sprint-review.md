@@ -74,9 +74,11 @@ engineered.
 persona is dispatched.** The browser this rite drives is bounded by `.mcp.json`'s
 `--allowedUrlPattern ${HARNESS_SWEEP_ORIGIN:-http://127.0.0.1:9/*}`. The default is the discard port,
 so the bound fails closed: with no origin declared, the browser can reach nothing. **Until #525 the
-rite learned that only by dispatching a sweep that could only write FAILED.** Three closes in a row
-completed zero rendered sweeps that way (sprint-02, sprint-03, sprint-04, recorded in
-`docs/retrospective/sprint-04/product-lead.md`, Finding 1).
+rite learned that only by dispatching a sweep that could only write FAILED.** In three closes in a
+row the shipped server rendered no sweep (sprint-02, sprint-03, sprint-04, recorded in
+`docs/retrospective/sprint-04/product-lead.md`, Finding 1). Two of those closes, sprint-02 and
+sprint-04, wrote FAILED. Sprint-03 rendered its routes only through a browser outside the bound, and
+its report reads *completed with named gaps*, not FAILED.
 
 **The probe reads the SERVER, not the environment.** It prints the argument the browser server was
 actually launched with, from the process table:
@@ -111,6 +113,12 @@ source, such as a shell profile. The owner ruled that out as the carrier on #525
 uma variavel no shell profile para algo que deveria ser baseado em uma ancora de comportamento de
 harness?»*. With no tracked value, "production" has nothing to be compared against.
 
+**Read the declaration only from the consuming repository's tracked file. Never take it from memory,
+from the environment, or from a domain you remember.** Which file holds it and which key names it
+belong to the carrier's own design, in the consuming repository, and are not defined here. Until that
+carrier exists and defines its read, the no-declaration paragraph above decides every case, so the
+last two rows of the table cannot be reached.
+
 ### On `SWEEP-ORIGIN-UNBOUND`: stop, emit ONE action line, dispatch nothing
 
 **This is an ACTION pendency, not a decision.** The loop cannot perform the fix. The server starts with
@@ -133,12 +141,15 @@ only record, and it lives in the session.
 
 ### `FAILED` is reserved for failures AFTER step 0 held
 
-**`SWEEP-ORIGIN-UNBOUND` and `FAILED` are different literals on purpose, and a missing origin never
-produces `FAILED`.** `FAILED` means the precondition was observed to hold and the sweep still broke:
-the generator did not run, a navigation errored, or fewer routes were visited than emitted. A missing
-origin is not a sweep failure. It is a sweep that should not have started. Writing it as `FAILED` is
-how three closes produced three reports that recorded an absence, and how *FAILED* began to read as
-the rite's normal output.
+**`SWEEP-ORIGIN-UNBOUND` and `FAILED` are different literals on purpose, and a missing origin that
+step 0 observes never produces `FAILED`.** `FAILED` means the precondition was observed to hold and
+the sweep still broke: the generator did not run, a navigation errored, or fewer routes were visited
+than emitted. A missing origin is not a sweep failure. It is a sweep that should not have started.
+Writing it as `FAILED` is how two of those three closes, sprint-02 and sprint-04, produced reports that
+recorded an absence, and how *FAILED* began to read as the rite's normal output. **The one exception is
+a missing origin step 0 cannot observe**: another session's server satisfies the probe, this session's
+bound is still missing, and the first navigation fails as `FAILED`. See the multi-session residual
+below.
 
 ### What step 0 does NOT establish
 
@@ -149,6 +160,12 @@ the rite's normal output.
   session open, a line from another session can satisfy the probe. That error runs toward
   *proceeding*, and it is visible: the first navigation then fails loudly as `FAILED`. It is not
   silent.
+- **That every matching line is a server.** The probe matches any process whose argv mentions the flag,
+  including shell wrappers and test processes. Such a line carries a quoted or partial value that never
+  equals the declaration, so that error runs toward stopping.
+- **The `=value` spelling.** A server launched with `--allowedUrlPattern=<pattern>` prints nothing,
+  because the probe matches only the spaced form that `.mcp.json` uses. That error also runs toward
+  stopping.
 - **Which server the driver's tools reach, when the consumer declares its own.** If the consumer
   declares its own `chrome-devtools` server, the probe prints two lines, the plugin's default and the
   consumer's origin. Whether the driver's calls go to the second one is the consumer carrier's own
