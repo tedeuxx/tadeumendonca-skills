@@ -3189,11 +3189,23 @@ and rule 11 obeys it rather than restating it.~~
 **2026-09-29 amendment (#537) — the route family is a reviewed capability, not a permission control.**
 `milestone-read.py` exposes title, description, state and issue counts even for an empty milestone;
 `milestone-create.py` creates from file input; `milestone-update.py` compares the exact prior
-description before writing and prints it; `milestone-close.py` refuses anything not open. A stub-`gh`
+description returned by its GET before writing and prints it; `milestone-close.py` refuses anything not open. A stub-`gh`
 behavioral suite exercises success and failure paths. Rejected: a new `gh` extension dependency, a
 browser fallback, and restoring an `ask` whose auto-mode behavior is not a human verification. Cost:
 every Bash persona reaches the routes through the existing `python3` allow. The control is review plus
 tests, not caller identity or a hook verdict.
+
+**Repair amendment (2026-09-29, #537): that comparison is not compare-and-swap.** The official GitHub
+REST [guidance](https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api)
+states that conditional requests for unsafe methods (`POST`, `PUT`, `PATCH`, `DELETE`) are unsupported
+unless the specific endpoint documents an exception. The
+[milestone-update endpoint](https://docs.github.com/en/rest/issues/milestones#update-a-milestone)
+documents only the ordinary PATCH parameters and a `200` response, with no conditional header or
+conflict/precondition response. Therefore `--expect-file` is a best-effort stale-read preflight: it can
+refuse a value already stale at GET time, but the following PATCH is unconditional and can overwrite a
+write landing between the two calls. The stub suite reproduces that race and pins the overwrite as the
+honest residual. A server-enforced precondition was considered first and is unavailable on this carrier;
+no local second read or lock can make the remote write atomic.
 
 ### The alternative that was put FIRST and is not a compromise: do not grant it
 

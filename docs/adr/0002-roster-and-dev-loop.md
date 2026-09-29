@@ -4361,8 +4361,10 @@ available one. Measured against the head guard, one payload per line:
 reachable in.** ~~The correct statement is **no update route is BUILT**; the hole is open and anyone
 may write one.~~ **Struck 2026-09-29 (#537): `scripts/milestone-update.py` is now the reviewed route.**
 It takes both descriptions by file, prints the prior value and refuses unless the expected value still
-matches. The field remains a weak home because the forge does not version its edits where this loop can
-read them; compare-and-swap prevents a concurrent overwrite rather than creating history.
+matches the value returned by its GET. The field remains a weak home because the forge does not version
+its edits where this loop can read them; ~~compare-and-swap prevents a concurrent overwrite rather than
+creating history.~~ **Struck 2026-09-29 (#537, repair round): there is no compare-and-swap. The PATCH is
+unconditional, so an edit landing after the GET can be overwritten.**
 
 **And the residual is guarded PRE-EMPTIVELY rather than left to the slice that accepts the invitation.**
 Rule 11 was pinned to the literal basename `milestone-create.sh`, so the `milestone-update.sh` this
@@ -5679,7 +5681,7 @@ fetch, so a head it cannot read locally still produces its notice.
 
 The owner priced milestone acts as non-critical at #383 and later identified the loop handing those
 acts back to him as a behaviour-anchor defect. The mechanism now follows that decision rather than the
-retired prompts: four repository utilities read, create, compare-and-swap a description, and close a
+retired prompts: four repository utilities read, create, ~~compare-and-swap~~ **check then update** a description, and close a
 milestone. They are Python scripts because the project already permits `python3`; therefore the
 orchestrator and every persona holding Bash can run them without a prompt. No settings layer changes.
 
@@ -5687,8 +5689,13 @@ The raw API remains denied at the shell and generally reachable from an interpre
 not close that hole. They turn four named uses into reviewed, single-purpose files with a behavioral
 stub-`gh` suite. Read is by milestone number, so it returns state and counts even when the milestone
 holds no Issues. Create fails loudly if enumeration fails. Update takes both current expectation and
-replacement by file, prints the prior description and refuses a lost-update race. Close reads first
-and refuses a milestone not in the open state.
+replacement by file and prints the prior description. ~~It refuses a lost-update race.~~ **Struck
+2026-09-29 (#537, repair round).** The route compares the expected file with a GET result and refuses
+only if that read is already stale. GitHub's REST guidance says
+conditional requests on unsafe methods such as PATCH are unsupported unless the endpoint documents an
+exception; the milestone update endpoint documents none. Its following PATCH is unconditional, so the
+GET-to-PATCH race remains and is exercised by the stub suite as an accepted residual, not hidden by a
+CAS claim.
 
 The state model is unchanged: a `loop` Issue still moves `ready → in progress` when its pull request
 opens, and only the gate records `reviewed`. The milestone routes add no label or transition. Their
@@ -5701,9 +5708,10 @@ settings layer and would leave other personas prompting until adoption. **Reject
 as executor. It preserves the exact dependency he rejected and contradicts the non-critical pricing.
 
 **Costs:** every Bash-capable persona receives the write reach; a reviewed script still exploits the
-interpreter hole; and compare-and-swap prevents lost updates but does not make milestone-description
-history visible. Accepted because each milestone mutation is reversible and the wider raw capability
-already existed.
+interpreter hole; and ~~compare-and-swap prevents lost updates but does not make milestone-description
+history visible~~ **the best-effort preflight prevents an already-stale write but cannot prevent a
+lost update during its GET-to-PATCH interval, and milestone-description history remains invisible**.
+Accepted because each milestone mutation is reversible and the wider raw capability already existed.
 
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now

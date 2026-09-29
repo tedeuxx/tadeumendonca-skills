@@ -622,8 +622,12 @@ open.
 **The family is four reviewed routes since #537:** `milestone-read.py`, `milestone-create.py`,
 `milestone-update.py` and `milestone-close.py`. Read identifies a milestone by number, including one
 holding zero Issues, and returns title, description, state, and open/closed counts. Update accepts the
-new description and expected prior description by file only, prints the prior value, and refuses a
-lost-update race. Close reads first and refuses a milestone that is not open. All fail non-zero when
+new description and expected prior description by file only and prints the prior value. ~~It refuses a
+lost-update race.~~ **Struck 2026-09-29 (#537, repair round): the comparison is a local preflight before
+an unconditional PATCH, not compare-and-swap. It refuses a value already stale when read but can
+overwrite a write landing after that GET. GitHub documents conditional requests for unsafe methods as
+unsupported unless an endpoint says otherwise, and the milestone update endpoint names no exception.**
+Close reads first and refuses a milestone that is not open. All fail non-zero when
 `gh` fails, and `scripts/milestone.test.py` exercises the behavior against a stub `gh` on `PATH`.
 
 ~~**What stands there now is an ABSENCE:** `scripts/` matches no allow entry, so running the script

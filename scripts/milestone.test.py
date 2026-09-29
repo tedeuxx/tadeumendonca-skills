@@ -45,7 +45,12 @@ if endpoint.endswith("/milestones/404"):
     print("not found", file=sys.stderr)
     raise SystemExit(1)
 if endpoint.endswith("/milestones/7") and "PATCH" not in args:
-    print(json.dumps(state["milestone"]))
+    current = dict(state["milestone"])
+    if os.environ.get("MILESTONE_STUB_RACE_AFTER_GET"):
+        state["milestone"]["description"] = os.environ["MILESTONE_STUB_RACE_AFTER_GET"]
+        state["race_observed"] = os.environ["MILESTONE_STUB_RACE_AFTER_GET"]
+        state_path.write_text(json.dumps(state))
+    print(json.dumps(current))
     raise SystemExit(0)
 if endpoint.endswith("/milestones/7") and "PATCH" in args:
     fields = [args[i + 1] for i, value in enumerate(args) if value == "-f"]
@@ -114,7 +119,7 @@ class MilestoneRoutes(unittest.TestCase):
         self.assertNotEqual(missing.returncode, 0)
         self.assertIn("not found", missing.stderr)
 
-    def test_update_is_file_only_prints_prior_and_uses_compare_and_swap(self):
+    def test_update_is_file_only_prints_prior_and_rejects_an_already_stale_read(self):
         expected = self.base / "expected.txt"
         description = self.base / "description.txt"
         expected.write_text("before\n")
@@ -132,7 +137,26 @@ class MilestoneRoutes(unittest.TestCase):
             "--expect-file", expected, "--description-file", description, check=False,
         )
         self.assertNotEqual(refused.returncode, 0)
-        self.assertIn("refusing to overwrite", refused.stderr)
+        self.assertIn("already stale when read", refused.stderr)
+
+    def test_update_is_check_then_write_and_cannot_reject_a_race_after_get(self):
+        expected = self.base / "expected.txt"
+        description = self.base / "description.txt"
+        expected.write_text("before\n")
+        description.write_text("reviewer-update\n")
+        raced_environment = dict(self.environment, MILESTONE_STUB_RACE_AFTER_GET="concurrent-writer")
+        result = self.run_route(
+            "milestone-update.py", 7, "--repo", "owner/repo",
+            "--expect-file", expected, "--description-file", description,
+            environment=raced_environment,
+        )
+        value = json.loads(result.stdout)
+        stored_state = json.loads(self.state.read_text())
+        stored = stored_state["milestone"]["description"]
+        self.assertEqual(value["previous_description"], "before")
+        self.assertEqual(stored_state["race_observed"], "concurrent-writer")
+        self.assertEqual(stored, "reviewer-update")
+        self.assertNotEqual(stored, "concurrent-writer")
 
     def test_close_reads_then_closes_and_refuses_closed_state(self):
         result = self.run_route("milestone-close.py", 7, "--repo", "owner/repo")

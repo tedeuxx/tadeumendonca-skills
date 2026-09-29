@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare-and-swap a GitHub milestone description from file input (#537)."""
+"""Check then update a GitHub milestone description from file input (#537)."""
 
 import argparse
 import sys
@@ -10,7 +10,7 @@ from milestone_common import MilestoneError, print_json, read_milestone, resolve
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Update one milestone description after an exact prior-text check.")
+    parser = argparse.ArgumentParser(description="Update one milestone description after a best-effort prior-text check.")
     parser.add_argument("number", type=int)
     parser.add_argument("--repo")
     parser.add_argument("--description-file", required=True)
@@ -21,7 +21,7 @@ def main():
     expected = text_from_file(arguments.expect_file, "expected-description")
     current_description = current["description"] or ""
     if current_description != expected:
-        raise MilestoneError("current milestone description does not match --expect-file; refusing to overwrite")
+        raise MilestoneError("milestone description was already stale when read; refusing to overwrite")
     description = text_from_file(arguments.description_file, "description")
     updated = update_milestone(repo, arguments.number, description=description)
     print_json({

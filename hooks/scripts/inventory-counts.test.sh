@@ -8331,6 +8331,7 @@ else
     '- **The `### Selection` block is OMITTED at planning.**' \
     '- **The record lands in ONE file and it is not `docs/selection/`.**' \
     'the update route is built.' \
+    'Treat `--expect-file` as a best-effort preflight, never as a lock or CAS.' \
     '**If 4a fails after the human has approved it, STOP. Do not enter 4b.**' \
     '**This rite costs a branch, a PR and a gate pass**' \
     'is NOT `hooks/scripts/preflight.sh`.**' \
@@ -8444,7 +8445,7 @@ else
                            needles because the exemption and the instruction live in two sections and
                            either alone leaves the other reading as absolute."
   else
-    ok "planning rite — the rite states its boundary, that the iteration is its PRODUCT rather than a step (in the owner's own words), its dispatch and why that dispatch cannot place work (and how narrowly), the circularity planning forces on the ranking, that the ratified rules partition rather than sequence and what the tiebreak is, the one-activation rule and its two-activation bound, enumerate-then-select on BOTH inputs, the milestone route with the hole it depends on and the compare-and-swap update route, what happens when creation fails, its own cost, that it produces no estimate and which preflight that names, both of its disclaimers, and the two classes it cannot see"
+    ok "planning rite — the rite states its boundary, that the iteration is its PRODUCT rather than a step (in the owner's own words), its dispatch and why that dispatch cannot place work (and how narrowly), the circularity planning forces on the ranking, that the ratified rules partition rather than sequence and what the tiebreak is, the one-activation rule and its two-activation bound, enumerate-then-select on BOTH inputs, the milestone route with the hole it depends on and the check-then-write update route including its race residual, what happens when creation fails, its own cost, that it produces no estimate and which preflight that names, both of its disclaimers, and the two classes it cannot see"
   fi
 fi
 
@@ -8581,7 +8582,9 @@ fi
 if [ -r "$plan_rite" ]; then
   plan_fam_checked=$((plan_fam_checked + 1))
   grep -qF -- 'the update route is built.' "$plan_rite" || plan_fam_problems="$plan_fam_problems
-    commands/sprint-planning.md no longer says the compare-and-swap update route exists."
+    commands/sprint-planning.md no longer says the check-then-write update route exists."
+  grep -qF -- 'best-effort preflight, never as a lock or CAS.' "$plan_rite" || plan_fam_problems="$plan_fam_problems
+    commands/sprint-planning.md no longer states the update route's race residual."
   grep -qF -- 'reviewed capabilities reachable without a prompt' "$plan_rite" || plan_fam_problems="$plan_fam_problems
     commands/sprint-planning.md no longer states the Python family's effective reach."
 fi
@@ -8591,7 +8594,7 @@ if [ "$plan_fam_checked" -lt 2 ]; then
 elif [ -n "$plan_fam_problems" ]; then
   bad "planning rite — the milestone-write family is no longer guarded or no longer explained:$plan_fam_problems"
 else
-  ok "planning rite — the guard and rite agree that the reviewed Python route family is reachable without a prompt, and the rite states that compare-and-swap update now exists (text agreement only; behavior is covered separately)"
+  ok "planning rite — the guard and rite agree that the reviewed Python route family is reachable without a prompt, and the rite states that update is check-then-write with a race residual (text agreement only; behavior is covered separately)"
 fi
 
 # ── 6 · the milestone description travels as a FILE, and the inline route is GONE rather than unused ──

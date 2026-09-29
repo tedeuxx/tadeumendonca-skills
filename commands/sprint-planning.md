@@ -507,8 +507,9 @@ carrier of it: there is no second control to be independent of.**
 so the order below is not a sequencing preference — 4a is the deliverable and 4b is what fills it.
 
 ~~**The order is load-bearing because there is a CREATE route BUILT and no UPDATE route BUILT.**~~
-**Struck 2026-09-29 (#537): read, create, compare-and-swap description update and close routes are all
-built.** Create-before-admit remains the ordinary sequence because creation produces the object that
+**Since 2026-09-29 (#537), read, create, description update and close routes are all built.** ~~The
+update was described here as compare-and-swap.~~ **Corrected 2026-09-29 (#537, repair round): it is
+check-then-write because this endpoint cannot make PATCH conditional.** Create-before-admit remains the ordinary sequence because creation produces the object that
 the admissions name, not because a later update is impossible.
 
 **Read *built* literally, because the convenient reading of this is false.** It is not that the harness
@@ -526,8 +527,11 @@ head guard, one payload per line:
 is reachable in.** So the correct statement is: **no update route is built. The same hole is open, and
 anyone may write one.** What the CREATE-then-ADMIT order actually rests on is that no such script
 exists today — a fact about this tree, re-checkable with `ls scripts/`, not a property of any control.~~
-**Struck 2026-09-29 (#537): the update route is built. It performs an exact compare-and-swap against
-the prior description supplied by file, prints that prior description, and refuses a stale write.**
+**Struck 2026-09-29 (#537): the update route is built. ~~It performs an exact compare-and-swap against
+the prior description supplied by file, prints that prior description, and refuses a stale write.~~**
+**Corrected 2026-09-29 (#537, repair round): it compares the file with a GET result, refuses when that
+read is already stale, prints it, then performs an unconditional PATCH. It cannot see a write between
+the GET and PATCH.**
 
 ~~**The invitation is guarded PRE-EMPTIVELY. Rule 11 now matches
 `milestone-[a-z0-9-]*.sh`.**~~ **Struck 2026-09-29 (#537): rule 11 was deleted on 2026-09-04, so this
@@ -567,9 +571,10 @@ Three things make it sharper here than the general shape:
 - **The text is not trusted.** Both repositories are public (`gh repo view --json isPrivate` → `false`,
   twice), so the Issue titles step 1 reads and step 3 composes are attacker-supplied strings, and step
   4a is where they would have been composed into that argument.
-- ~~**The corruption is unrecoverable from here.**~~ **Struck 2026-09-29 (#537).** The compare-and-swap
-  update route can repair it without losing a concurrent edit, but file-only input remains the safe
-  default.
+- ~~**The corruption is unrecoverable from here.**~~ **Struck 2026-09-29 (#537).** ~~The compare-and-swap
+  update route can repair it without losing a concurrent edit~~ **struck 2026-09-29 (#537, repair
+  round): the update can repair it, but may overwrite an edit concurrent with its GET/PATCH interval**;
+  file-only input remains the safe default.
 
 **The inline `--description <text>` form is REMOVED from the script, not left beside the file route.**
 Measured at head: `python3 scripts/milestone-create.py "probe" --description "x"` → `unrecognized arguments:
@@ -586,7 +591,7 @@ is the same blindness that makes `python3 -c "…gh api -X POST…"` reach the w
 may claim the raw-API route is closed.**
 
 **Where the milestone already exists**, read it by number, write the proposed ordered body and current
-description to separate scratchpad files, then update with compare-and-swap:
+description to separate scratchpad files, then run the best-effort stale-read check and update:
 
 ```
 python3 scripts/milestone-read.py <number> --repo <owner>/<repo>
@@ -594,8 +599,11 @@ python3 scripts/milestone-update.py <number> --repo <owner>/<repo> \
   --expect-file <prior-path> --description-file <new-path>
 ```
 
-The update prints the prior description and refuses if `--expect-file` no longer matches, so a
-concurrent planning cannot be overwritten silently.
+~~The update prints the prior description and refuses if `--expect-file` no longer matches, so a
+concurrent planning cannot be overwritten silently.~~ **Struck 2026-09-29 (#537, repair round): it
+refuses only when the GET already differs from `--expect-file`. GitHub's milestone PATCH has no
+documented conditional-write support, so a change after the GET can still be overwritten silently.
+Treat `--expect-file` as a best-effort preflight, never as a lock or CAS.**
 
 **If 4a fails after the human has approved it, STOP. Do not enter 4b.** The script exits non-zero on a
 duplicate title, an unresolvable repository, invalid JSON and every `gh` failure, and prints structured

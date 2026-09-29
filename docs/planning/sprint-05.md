@@ -147,13 +147,18 @@ Two activations: the admission, then the confirmation. That is the rite's bound 
 
 **The milestone description on the tracker still reads "Order of record (owner-confirmed 2026-09-25 «pode por tudo» …)".** That attribution is wrong: the owner admitted the items with «pode por tudo» and confirmed the order afterwards. It is not corrected there, because no milestone-update route is built (`commands/sprint-planning.md`, step 4) and `gh api` is denied. The owner can fix it in the browser; this file is the correct record.
 
-**Appended 2026-09-29 (#537): the sentence above is now historical.** The new compare-and-swap route
+**Appended 2026-09-29 (#537): the sentence above is now historical.** The new ~~compare-and-swap~~
+**check-then-write** route
 made its first real update against milestone #7. It changed `owner-confirmed` to `owner-admitted` and
 added the four post-planning admissions in #537's ruled scope: #531 (2026-09-25), then #536, #537 and
 #538 (2026-09-26). The prior description was supplied through `--expect-file`, the new description
 through `--description-file`, and the route printed the prior value before reporting the update. The
 tracker now records 90 points across the original 61 and these 29; this append records the use, while
 the milestone description remains the order of record.
+
+**Corrected 2026-09-29 (#537, repair round): `--expect-file` was a best-effort stale-read check, not an
+atomic precondition.** The first use proves the route wrote the intended description and preserved the
+prior value in its output; it does not prove that no concurrent edit landed between GET and PATCH.
 
 ```
 gh issue list --repo tedeuxx/tadeumendonca-skills --state all --limit 300 --json number,labels \
