@@ -7281,7 +7281,8 @@ invented and bash did not has no terminator in the common case, so the lines aft
 bash runs them. The suite pins 56 cells for the three triggers (8 shapes, 3 or 4 acts, 2 callers).
 Each cell is red when all four fixes are planted back out, and the single plants show which fix holds
 which construct. The scanner is linear. The per-kind failure memory stops an unclosed quote from
-making the scan re-read its tail.
+making the scan re-read its tail. **The legacy views are not linear on every host** — see the
+quadratic-cost bullet below; "linear" is a claim about the scanner, never about the guard as a whole.
 
 Bad, stated rather than discovered:
 
@@ -7313,11 +7314,29 @@ Bad, stated rather than discovered:
   12,000-deep, not the worst.** At 20,000-deep the same shape is ALLOW at 2.94 s (1.45 s at
   `88fc667c`), right at the edge. At 30,000-deep it is a **budget DENY at 3.04 s where `88fc667c`
   allowed it in 2.16 s**. That is a new over-block class at extreme depth. The double pass moves the
-  budget cliff from about 40,000-deep to about 20,000-deep. Measured 2026-09-27, supervised, with
-  pgrep present. The guard's time budget bounds both passes together **where `pgrep` exists**. Without
+  budget cliff from about 40,000-deep to about 20,000-deep. Measured 2026-09-27 **on macOS**,
+  supervised, with pgrep present. **Every latency figure in this amendment up to 2026-09-29 was taken
+  on macOS (BSD sed)**, and that was not said. In ubuntu:24.04 (bash 5.2.21, GNU sed 4.9,
+  `LANG=C.UTF-8`, a 5-vCPU aarch64 container, 2026-09-29) the 20,000- and 30,000-deep shapes are ALLOW
+  at 1.57 s and 2.31 s, so this depth cliff is a macOS figure and sits deeper there. The guard's time
+  budget bounds both passes together **where `pgrep` exists**. Without
   it, the budget does not bound a child (see the guard's header), and the round-2 lens measured a
   40,000-deep shape past the host's 5 s hook timeout on that path. That path was already degraded and
   already stated as degraded; the second pass only adds a longer child to it.
+- **A PRE-EXISTING quadratic cost in the legacy views, on Linux with a UTF-8 locale** (found by the
+  gate at `c1edb713`, where CI's `guard` job was red on every head of this PR). `bare_legacy_view` and
+  `pv_legacy_view` run the pre-#536 `sed -E` pair, and **GNU sed under a UTF-8 locale is quadratic on
+  an unclosed `"` followed by many `\"`**: each `"` starts a match that runs to the end and fails.
+  Measured 2026-09-29 in the container above, worker path: 5,000 pairs 0.39 s, 10,000 1.44 s, 15,000
+  3.14 s, 20,000 5.92 s; supervised, 20,000 is a **budget DENY at 3.01 s**. Under `LC_ALL=C` all four
+  stay under 0.1 s, and on macOS 20,000 takes 0.22 s — **the cost is GNU sed's multibyte matching, not
+  Linux as such**, and GitHub's ubuntu runner sets a UTF-8 locale (its `guard` job took 7 s at 20,000).
+  `88fc667c`, which ran this pair as its only view, is equally slow on the same host (1.39 s at 10,000,
+  budget DENY at 20,000), so #536 did not add it; it only made it visible, by pinning a 20,000 row
+  that CI then ran. **It errs toward over-blocking** — a budget DENY, never an ALLOW. **Left as it is on
+  purpose:** zero DENY -> ALLOW holds only while the legacy output stays byte-identical to the pre-#536
+  view, so changing the pair — pinning `LC_ALL=C` included — is its own decision, not a latency fix.
+  The suite's fail-once row runs 10,000 pairs, which clears 3 s on both hosts.
 
 ### Round 3: the class is closed one layer up, not by a fourth scanner exception
 
@@ -7362,7 +7381,9 @@ Bad, stated rather than discovered:
 - **A third run of the rules** when the first pass allowed and a heredoc changes the view. It moves the
   budget cliff for many heredocs in one command: about 3,700 closed quoted heredocs (~110 KB) is now a
   budget DENY, where `4c632c6b` still allowed 5,000. The largest corpus command with a heredoc is
-  23,756 bytes and carries five.
+  23,756 bytes and carries five. **These are macOS figures.** In the ubuntu:24.04 container above,
+  3,000 closed quoted heredocs are ALLOW in 1.19 s (2.32 s on macOS), so the cliff sits higher there;
+  its exact position on Linux is not measured.
 
 ### What holds it
 
@@ -7377,6 +7398,8 @@ with it: all 72 cells red and both former residuals back to ALLOW with the pass 
 round-2 cells stay green. Every round-2 plant set now carries P5, since the pass would otherwise hold
 the cells those sets exist to redden; one more set (all four scanner fixes out, the pass kept) reads
 0, which is the pass holding every round-2 cell alone.
+The fail-once latency row runs 10,000 `\"` pairs, not the 20,000 it first carried: at 20,000 it
+failed CI's 3 s bound on the pre-existing GNU sed cost named above, and 10,000 clears it on both hosts.
 `scripts/codex-hook-adapter.test.py` section 1b pins the first reproducer through the Codex route, and
 the perl selfcheck note in both states.
 

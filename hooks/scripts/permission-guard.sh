@@ -1109,10 +1109,24 @@ qscan_unavailable="Blocked: this command contains a quote, and the permission gu
 #     `pgrep` exists; see the header: without it the budget does not bound a child, and the round-2
 #     lens measured a 40,000-deep `a(` shape past the host's 5 s hook timeout on that path). What the
 #     double pass costs at extreme depth is an OVER-BLOCK, stated: a 30,000-deep `a(` before
-#     `"it's" 'y z'` is a budget DENY at 3.04 s here, where 88fc667c allowed it in 2.16 s; 20,000-deep
-#     is ALLOW at 2.94 s (measured 2026-09-27, supervised, pgrep present);
+#     `"it's" 'y z'` is a budget DENY at 3.04 s on macOS, where 88fc667c allowed it in 2.16 s;
+#     20,000-deep is ALLOW at 2.94 s (measured 2026-09-27 on macOS, supervised, pgrep present). In
+#     ubuntu:24.04 (LANG=C.UTF-8, 2026-09-29) the same two are ALLOW at 1.57 s and 2.31 s, so this
+#     depth cliff is a macOS figure;
 #   · the second pass reads the OLD views, so on its own it is blind to A1 — which is why it can only
 #     ever ADD a denial to a first pass that allowed, and never runs when the first pass denied.
+#
+# A PRE-EXISTING QUADRATIC COST, NAMED HERE BECAUSE THIS FUNCTION IS WHERE IT LIVES (and in
+# `pv_legacy_view`, which runs the same pair). Under GNU sed with a UTF-8 locale — every GitHub ubuntu
+# runner, and most Linux hosts — the pair below is QUADRATIC on an unclosed `"` followed by many `\"`:
+# each `"` starts a match that runs to the end of the string and fails. Measured 2026-09-29 in
+# ubuntu:24.04 (bash 5.2.21, GNU sed 4.9), LANG=C.UTF-8, worker path: 5,000 pairs 0.39 s, 10,000 1.44 s,
+# 15,000 3.14 s, 20,000 5.92 s; supervised, 20,000 is a BUDGET DENY at 3.01 s. Under LC_ALL=C all four
+# stay under 0.1 s, and on macOS (BSD sed, UTF-8) 20,000 takes 0.22 s. 88fc667c's guard, which ran this
+# pair as its only view, is equally slow on the same host (1.39 s at 10,000; budget DENY at 20,000), so
+# #536 did not add it. It errs toward OVER-BLOCKING: a budget DENY, never an ALLOW. It is left as it is
+# on purpose: the legacy pass guarantees zero DENY -> ALLOW only while this output stays byte-identical
+# to the pre-#536 view, and changing the pair — even to pin a locale — is its own decision.
 bare_legacy_view() {
   printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g'
 }
@@ -1151,7 +1165,8 @@ bare_legacy_view() {
 #     heredocs (~110 KB; 3,500 allowed in 2.70 s, 4,000 denied at 3.03 s), where 4c632c6b still allowed
 #     5,000 (2.78 s). The largest
 #     corpus command with a heredoc is 23,756 bytes and carries five; the 25 largest took at most
-#     0.98 s here, supervised.
+#     0.98 s, supervised. All of these are macOS figures (2026-09-27); in ubuntu:24.04 with a UTF-8
+#     locale 3,000 closed quoted heredocs are ALLOW in 1.19 s, so the cliff sits higher there.
 # It runs BEFORE the legacy pass, and a DENY from it ends the call; an ALLOW falls through to the
 # legacy pass unchanged. It can therefore only ever ADD a denial to a first pass that allowed.
 pg_hview_note=" [Read with every heredoc opener ignored: each heredoc body was judged as the shell text it would be if the opener were not a heredoc (#536 round 3). The guard's scanner can see a heredoc where bash opens none — inside a parameter expansion, an array subscript or an arithmetic expression — and would then hide the lines bash runs, so an ALLOW is re-checked this way. If this is a real heredoc whose body only MENTIONS the act, write the body to a file with the Write tool and feed the file instead.]"
@@ -3240,6 +3255,9 @@ case "$command $unwrap_all" in
     # no push this view had to unquote may reach ALLOW. The mark is what makes that checkable.
     pv_mk="$(printf '\037')"
     # The pre-#536 sed pipeline, kept as the LEGACY view (see "THE LEGACY PASS" beside `$bare`).
+    # Its last two expressions are `bare_legacy_view`'s pair, so it carries the same PRE-EXISTING
+    # quadratic cost under GNU sed with a UTF-8 locale on an unclosed `"` before many `\"` (measured and
+    # priced beside `bare_legacy_view`). Left byte-identical on purpose, for the same reason.
     pv_unq() {
       sed -E -e "s#\\\$'(${pv_w}*)'#${pv_mk}\\1#g" -e "s#\\\$\"(${pv_w}*)\"#${pv_mk}\\1#g" \
              -e "s#'(${pv_w}*)'#${pv_mk}\\1#g" -e "s#\"(${pv_w}*)\"#${pv_mk}\\1#g" \

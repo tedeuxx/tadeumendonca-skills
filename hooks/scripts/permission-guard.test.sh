@@ -3836,7 +3836,9 @@ case "$a5_b" in *"or exited with an error"*) pass=$((pass + 1)); printf 'ok    D
 
 # LATENCY (the #534 lesson). The scanner must stay linear: each shape runs with the budget BYPASSED
 # (the worker path), so only the scanner's own shape can keep it inside 3 s (the #531 B1 bound for the 12,000-deep shapes, in whole seconds), and a force push rides at
-# the end so the answer is a DENY on the act's reason, never the budget's.
+# the end so the answer is a DENY on the act's reason, never the budget's. The rows run on BOTH hosts
+# this suite runs on — macOS (BSD sed) locally and ubuntu with a UTF-8 locale (GNU sed) in CI — and the
+# sizes are chosen for the slower of the two; the fail-once row below is the one where they differ.
 a536_time() { # desc cmd
   a5_t0=$SECONDS
   a5_out=$(printf '%s' "$2" | jq -Rs '{tool_input:{command:.}}' | (cd "$TFEAT" && PERMISSION_GUARD_WORKER=1 perl -e 'alarm shift; exec @ARGV' 8 bash "$GUARD"))
@@ -3855,7 +3857,15 @@ a536_time "30,000 apostrophes in a row"            "echo $(printf "'%.0s" $(seq 
 a536_time "30,000 double quotes in a row"          "echo $(printf '"%.0s' $(seq 30000)); $a5_f"
 a536_time "30,000 backslashes in a row"            "echo $(printf '\\%.0s' $(seq 30000)); $a5_f"
 a536_time "30,000 apostrophes inside one \"…\""    "echo \"$(printf "'%.0s" $(seq 30000))\"; $a5_f"
-a536_time "an unclosed \" before 20,000 \\\" (the fail-once path)" "$a5_f; echo \"$(printf '\\"%.0s' $(seq 20000))"
+# The fail-once row is 10,000, not 20,000, and the reason is a PRE-EXISTING cost this slice did not add.
+# The scanner answers it linearly; the LEGACY views (bare_legacy_view, pv_legacy_view) still run the
+# pre-#536 `sed -E` pair, and GNU sed under a UTF-8 locale is QUADRATIC on an unclosed `"` followed by
+# `\"` pairs. Measured 2026-09-29 in ubuntu:24.04 (bash 5.2.21, GNU sed 4.9), worker path, LANG=C.UTF-8:
+# 5,000 -> 0.39 s, 10,000 -> 1.44 s, 15,000 -> 3.14 s, 20,000 -> 5.92 s; under LC_ALL=C all four are
+# <= 0.07 s, and 88fc667c's guard is equally slow. GitHub's ubuntu runner sets a UTF-8 locale, which
+# is why CI took 7 s at 20,000 while macOS (BSD sed) takes 0.22 s. 10,000 keeps the 3 s bound with
+# headroom on both hosts. The legacy pair stays byte-identical on purpose; see the comment beside it.
+a536_time "an unclosed \" before 10,000 \\\" (the fail-once path)" "$a5_f; echo \"$(printf '\\"%.0s' $(seq 10000))"
 a536_time "10,000 \$'\\\\ fragments"               "echo $(printf "\$'\\\\\\\\%.0s" $(seq 10000)); $a5_f"
 a536_time "5,000 heredoc openers, then the push"   "$(printf 'cat'; printf ' <<E%.0s' $(seq 5000); printf '\n%s' "$a5_f")"
 a536_time "a 51 KB heredoc of quoted lines"        "$(printf "cat <<'EOF'\n"; for _ in $(seq 1500); do printf '%s\n' "$a5_line"; done; printf 'EOF\n%s' "$a5_f")"
