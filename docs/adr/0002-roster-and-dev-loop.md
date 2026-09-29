@@ -4151,9 +4151,11 @@ made explicitly, and it lives on #378 rather than only here.
 guarded~~ *(struck 2026-09-04, #383 — it keeps neither guarded; it merely does not act alone)*.**
 *Placement* is an **item** acquiring a milestone — ~~rule 10, one prompt per item~~ **now a
 SILENT allowlisted edit, N times, with nothing asking anyone (#383)**. *Creation* is the **iteration
-object** — ~~rule 11, one prompt~~ **still a prompt, but only because `scripts/` sits in no allow list;
+object** — ~~rule 11, one prompt~~ ~~**still a prompt, but only because `scripts/` sits in no allow list;
 that is an absence rather than a control, and one unrelated allow entry removes it with nothing to say
-so**. Both remain the owner's **by rule**; the rite performs neither without him **by discipline**, which
+so**~~ **struck 2026-09-29 (#537): the reviewed Python route uses an already-allowlisted interpreter and
+executes without a prompt; no guard inspection is needed under the owner's non-critical pricing**.
+Both remain the owner's **by rule**; the rite performs neither without him **by discipline**, which
 is a weaker sentence than the one this paragraph used to make. The widening moves what the rite is
 **for**, not who decides.
 
@@ -4327,11 +4329,14 @@ all** — measured then and unchanged now: `gh milestone --help` → `unknown co
 
 **So the rite PRODUCES the iteration, through that route, and it is the route's first exercise.**
 ~~Rule 11 asks the orchestrator; his answer is the verification.~~ **STRUCK 2026-09-04 (#383): rule 11
-is deleted.** The prompt survives, and its source is now the permission system rather than a rule —
+is deleted.** ~~The prompt survives, and its source is now the permission system rather than a rule —
 `scripts/` matches no `allow` entry in either settings layer. **That is an absence, not a control**, so
 the verification #365 asked for is held by nothing having been written down: one unrelated `allow` entry
 added later removes it silently, and nothing anywhere would say so. Treat the prompt's survival as luck
-rather than as design, which is how `commands/sprint-planning.md` states it at the step that fires it.
+rather than as design, which is how `commands/sprint-planning.md` states it at the step that fires it.~~
+**Struck 2026-09-29 (#537): the reviewed route uses the project-allowlisted `python3` interpreter and
+runs without a prompt. No guard inspection replaces rule 11 or is needed under the owner's non-critical
+pricing; review and the blocking behavioral regression carry the route contract.**
 **Read *produces* rather than *may create*:**
 the ruling's own wording — «como produto ao final dela» — makes the object the rite's deliverable, so a
 planning that ends without one has not finished. **Nothing about that is claimed to be
@@ -4484,9 +4489,11 @@ above are consistent with both readings. **The rite is worth building on the fir
 second** — it is a typed command, costing nothing until invoked — which is why it was built rather than
 argued about further.
 
-**What it costs, which is real:** N admitted items is N permission prompts, plus one for creating the
+~~**What it costs, which is real:** N admitted items is N permission prompts, plus one for creating the
 iteration. That is the price the twenty-seventh amendment already priced and accepted, arriving in
-bulk at the one moment the owner is present by construction.
+bulk at the one moment the owner is present by construction.~~ **Struck 2026-09-29 (#537): both
+admission and the reviewed Python route execute without a prompt; the cost is the wider write reach
+already accepted by the owner, bounded by review and behavioral regression rather than a guard.**
 
 ### Criterion 10 on this slice — CLOSED BY A RULING, not passed, and the ruling is the ORCHESTRATOR'S
 

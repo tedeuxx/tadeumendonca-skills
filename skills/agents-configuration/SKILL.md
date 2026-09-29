@@ -1384,9 +1384,12 @@ carried over), not a gate.
   dela»*, so a planning that ends without one has produced nothing. **Composition stays his**: every
   admission is his act at the rite — ~~a `permission-guard.sh` rule 10 prompt and creating the
   milestone is rule 11's~~ **struck 2026-09-04 (#383): both rules are deleted. Admission is now a
-  SILENT edit (the command is allowlisted), and creating the milestone still prompts only because
-  `scripts/` is in no allow list — an absence, not a control. "Composition stays his" is now held by
-  the rite's own procedure and by his presence at it, not by any layer.**
+  SILENT edit (the command is allowlisted), and ~~creating the milestone still prompts only because
+  `scripts/` is in no allow list — an absence, not a control~~ struck 2026-09-29 (#537): creation now
+  runs through the already-allowlisted `python3` interpreter without a prompt; no guard inspection is
+  needed under the owner's non-critical pricing, so review plus the blocking regression carry it.
+  "Composition stays his" is now held by the rite's own procedure and by his presence at it, not by
+  any layer.**
   **Struck rather than deleted because this file is loaded on every dispatch** — a persona that read
   *"planning is unbuilt"* would not reach for a rite that exists, and the strike is what tells it the
   claim changed rather than leaving the absence to be inferred. **What has NOT changed: nothing fires

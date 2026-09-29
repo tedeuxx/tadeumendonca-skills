@@ -827,11 +827,12 @@ same discipline the rest of this file applies to a count.
    question and an answered one read differently to the next person and only one of them closes.** The
    owner ruled on the premise: *«mexer em milestones nao é um risco crucial a iniciativa»*. Rules 10 and
    11 were deleted in that slice, so the shape he was being asked about no longer exists — **N
-   admissions is now zero prompts, not N.** What survives is the *creation* prompt at 4a, and its
+   admissions is now zero prompts, not N.** ~~What survives is the *creation* prompt at 4a, and its
    source is not a rule: `scripts/` matches no `allow` entry in either settings layer, which is an
-   absence rather than a control. **The question is closed. What replaces it, if anything is wanted, is
-   whether an absence is an acceptable carrier for the one verification #365 asked for** — a different
-   question, not this one reworded, and it is not put to him here.
+   absence rather than a control.~~ **Struck 2026-09-29 (#537): the route now runs through the
+   already-allowlisted `python3` interpreter, so creation also executes without a prompt. No guard
+   inspects it and none is required under the owner's non-critical pricing; review and the blocking
+   route regression carry it. The question is closed.**
 2. **What is the right size of an iteration?** Nothing anywhere bounds how many items may be admitted,
    and this rite composes without a target. An over-filled iteration reproduces the unbounded drain
    inside one milestone — `/agents-configuration` names that residual and proposes no mechanism.

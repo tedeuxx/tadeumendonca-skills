@@ -8186,6 +8186,7 @@ MS_SCRIPT="$ROOT/scripts/milestone-create.py"
 MS_GUARD="$ROOT/hooks/scripts/permission-guard.sh"
 MS_SKILL="$ROOT/skills/agents-configuration/SKILL.md"
 MS_WORKFLOW="$ROOT/.github/workflows/docs-test.yml"
+MS_SETTINGS="$ROOT/.claude/settings.json"
 ms_problems=""
 ms_checked=0
 
@@ -8246,11 +8247,20 @@ fi
 # THAN DELETING IT. Rules 10 and 11 were removed on the owner's pricing of the act
 # («mexer em milestones nao é um risco crucial a iniciativa»), so the guard no longer stands there.
 # The old needles asserted that rule 11 EXPLAINED the route; asserting that now would demand a rule
-# that does not exist. **What replaces them asserts the ABSENCE is stated**, which is the thing a
-# later reader is most likely to get wrong: `scripts/` matches no allow entry in either settings
-# layer, so a permission PROMPT still fires there — and a prompt that exists only because nobody has
-# written an allow entry is an absence, not a control. If someone adds one, the verification
-# disappears with nothing to say so. That sentence is what this arm now pins.
+# that does not exist. The reviewed routes are invoked through the project-allowlisted `python3`
+# interpreter, so they execute without a prompt for every Bash-capable persona. Nothing in the guard
+# inspects them, and under the owner's non-critical pricing no guard inspection is needed: review plus
+# the blocking behavioral regression carry the route contract. The settings check below derives that
+# reach from the actual allow entry rather than repeating it from memory.
+if [ -r "$MS_SETTINGS" ]; then
+  ms_checked=$((ms_checked + 1))
+  grep -qF -- '"Bash(python3:*)"' "$MS_SETTINGS" || ms_problems="$ms_problems
+    .claude/settings.json no longer allowlists Bash(python3:*); the milestone route reach contract
+    changed and must be reconciled before the no-prompt claim can remain"
+else
+  ms_problems="$ms_problems
+    .claude/settings.json is missing or unreadable; the milestone route's no-prompt reach was not checked"
+fi
 if [ -r "$MS_GUARD" ]; then
   ms_checked=$((ms_checked + 1))
   grep -qF -- 'THE MILESTONE PAIR' "$MS_GUARD" || ms_problems="$ms_problems
@@ -8273,17 +8283,17 @@ if [ -r "$MS_SKILL" ]; then
     the universal preload no longer declares the complete read/create/update/close route family"
 fi
 
-if [ "$ms_checked" -lt 5 ]; then
-  bad "milestone route — only $ms_checked of 5 surfaces were readable, so the agreement was NOT
+if [ "$ms_checked" -lt 6 ]; then
+  bad "milestone route — only $ms_checked of 6 surfaces were readable, so the agreement was NOT
       asserted:$ms_problems"
 elif [ -n "$ms_problems" ]; then
   bad "milestone route — a surface stopped saying what the route actually is:$ms_problems
-      The route reaches a write API because no permission layer reads inside a script. Since #383 NO
-      hook rule stands there at all — what is left is a permission prompt that exists only because
-      'scripts/' is in no allow list. A surface that stops saying so hands the next reader a control
-      that does not exist."
+      The route reaches the write API through the already-allowlisted Python interpreter, without a
+      prompt. Since #383 no hook rule stands there and none is needed under the owner's pricing: review
+      plus this blocking behavioral regression carry the contract. A surface that stops saying so
+      hands the next reader a prompt or a guard that does not exist."
 else
-  ok "milestone routes — all four Python routes and the stub-gh regression exist; docs-test executes it with bytecode suppressed; create and the universal preload preserve the open-hole framing; the guard records that nothing inspects the family (contract agreement plus blocking behavioral execution)"
+  ok "milestone routes — all four Python routes and the stub-gh regression exist; docs-test executes it with bytecode suppressed; settings derive their no-prompt Python reach; create and the universal preload preserve the open-hole framing; the guard records that no inspection is needed or present (contract agreement plus blocking behavioral execution)"
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════

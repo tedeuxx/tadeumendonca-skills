@@ -2584,8 +2584,11 @@ becomes load-bearing for a merge decision, that judgement changes, and it should
 > **What is now false in what follows:** every present-tense claim that an admission is denied to a
 > persona or asked of the orchestrator. `gh issue edit --milestone` is allowlisted and the hook that
 > answered first is gone, so **the act executes silently** — it does not degrade to a prompt. The
-> milestone-script route still prompts, but only because `scripts/` is in no allow list, which is this
-> record's own *"absent is not a state"* shape rather than a control.
+> ~~The milestone-script route still prompts, but only because `scripts/` is in no allow list, which is
+> this record's own *"absent is not a state"* shape rather than a control.~~ **Struck 2026-09-29
+> (#537): the reviewed route family now runs through the already-allowlisted `python3` interpreter,
+> without a prompt. Nothing in the guard inspects it and no such inspection is needed under the owner's
+> non-critical pricing; review plus the blocking behavioral regression carry the route contract.**
 >
 > **What is still true and is the reason this amendment is not struck wholesale:** the finding that
 > *the wall a guard hits — it cannot tell "he told me" from "I did it myself" — dissolves when the guard
