@@ -52,14 +52,11 @@ owner admitting NOTHING.** Step 3's activation permits *defer*, *drop* and *stop
 a real answer — and it creates no milestone, because a milestone with no items is an object nothing
 reads. See step 4a. **Every other path through this rite ends with the object or has not finished.**
 
-**This does NOT loosen the sentence above it, and the two are about different objects.** *Placement* is
-an **item** acquiring a milestone — ~~rule 10, one prompt per item, his answer each time~~ **now a
-SILENT allowlisted edit, N times, with nothing asking anyone**. *Creation* is the **iteration object
-itself** — ~~rule 11, one prompt, his answer~~ **still a prompt, but only because `scripts/` sits in no
-allow list; that is an absence rather than a control, and one unrelated allow entry removes it with
-nothing to say so**. Both are still his **by rule**; the rite performs neither without him **by
-discipline**, which is a weaker sentence than the one this paragraph used to be able to make. What the ruling settles is that producing the object is **in scope and is the
-point**, after a period when no route to it existed at all.
+~~**This does NOT loosen the sentence above it, and the two are about different objects.** *Placement*
+is an **item** acquiring a milestone; *creation* is the **iteration object itself**. Both are still his
+by rule.~~ **Struck 2026-09-29 (#537): the premise was the behaviour anchor this route removes.** The
+owner still confirms the composition; after that confirmation the orchestrator executes milestone
+reads and writes without handing an action to him. Producing the iteration remains the rite's product.
 
 **It also supersedes #378's own body**, which reads *"It does not create an iteration. Milestone
 creation has no route from here (#375)."* That line was correct when written and its **reason** lapsed
@@ -91,16 +88,12 @@ the thing that puts the decision in front of him — **once, over a finished com
 already assembled, ranked and composed. ~~item by item~~ **struck #393: that form stopped at item 1 of
 15 on the rite's first real run**, and the correction is step 3.
 
-**It is executed in the ORCHESTRATOR's context, and that is STILL a requirement — but the reason
-changed on 2026-09-04 (#383) and the new reason is weaker.** ~~Rule 10 (`--milestone`) and rule 11
-(`scripts/milestone-create.sh`) both **deny a subagent and ask the orchestrator**, because a dispatched
-context has no prompt surface for an `ask` to reach. A rite that ran inside a persona could not perform
-a single one of its own writes.~~ **Both rules are deleted.** A persona could now perform the
-`--milestone` writes — nothing denies it. What still stops one is the milestone-script prompt, which a
-dispatched context cannot answer, and **that is an absence rather than a rule**. So: run this in the
-orchestrator's context because the rite requires the owner to be present at its confirmation, not
-because a layer would refuse you anywhere else. **Only one of its two writes is still mechanically
-out of a persona's reach, and that one by accident.**
+**It is executed in the ORCHESTRATOR's context because the owner confirms the composition there.**
+~~Only one of its writes is mechanically out of a persona's reach, by accident.~~ **Struck 2026-09-29
+(#537): all reviewed milestone routes run as `python3 scripts/milestone-*.py`, which the project allow
+layer permits without a prompt for the orchestrator and every persona holding Bash.** That reach is
+intentional under the owner's pricing of milestone acts as non-critical; no settings layer changes in
+this slice.
 
 ## The rite is unattended; only its CONFIRMATION addresses him (#393)
 
@@ -108,8 +101,10 @@ out of a persona's reach, and that one by accident.**
 
 > *«a sprint planning nao é uma atividade hitl»* · *«ela é confirmada pelo hitl»*
 
-**Assembling, ranking and composing are the loop's work. The confirmation is his, once. Placement is
-his prompt, per item, and is a separate control that the confirmation does not replace.** That is the
+**Assembling, ranking and composing are the loop's work. The confirmation is his, once.** ~~Placement
+is his prompt, per item, and is a separate control that the confirmation does not replace.~~
+**Struck 2026-09-29 (#537): after confirmation, placement and the reviewed milestone routes execute
+without another prompt.** That is the
 whole of the split, and step 3 is where it is executed.
 
 **The confirmation qualifies as a trade**, which is what makes it his under
@@ -127,13 +122,14 @@ with.** The tension it named is resolved by the removal rather than by a decisio
 owner priced the act below the bar (*«mexer em milestones nao é um risco crucial a iniciativa»*), so the
 prompt whose justification was in question no longer fires.
 
-**What still prompts, and it is one of the two, from a different source.** Placement
+~~**What still prompts, and it is one of the two, from a different source.** Placement
 (`gh issue edit --milestone`) draws no decision from any layer. Creation
 (`bash scripts/milestone-create.sh …`) still prompts — because `scripts/` matches no `allow` entry in
 either settings layer, which is **an absence, not a control**: an unrelated `allow` entry added later
-removes it silently and nothing would say so. Step 4a's own text carries the same reading; this is the
-same fact stated where the tension used to be, so a reader meeting it here is not told the opposite of
-what they meet there.
+removes it silently and nothing would say so.~~ **Struck 2026-09-29 (#537): creation is now
+`python3 scripts/milestone-create.py …`; the existing `python3` permission reaches it without a prompt
+for the orchestrator and for every Bash-holding persona. No settings entry was added.** Step 4a carries
+the operative call.
 
 ## The trigger
 
@@ -328,8 +324,8 @@ against the head guard, same payloads, one per line:
 
 ```
 [scrum-master] gh issue edit 5 --repo o/r --milestone "s2"      -> NO decision from any layer
-[scrum-master] bash scripts/milestone-create.sh "s2" --repo o/r -> NO decision from any layer
-[scrum-master] bash scripts/milestone-update.sh 2  --repo o/r   -> NO decision from any layer
+[scrum-master] python3 scripts/milestone-create.py "s2" --repo o/r -> reachable if the profile held Bash
+[scrum-master] python3 scripts/milestone-update.py 2  --repo o/r   -> reachable if the profile held Bash
 ```
 
 **The paragraph below already argued that the surviving layer is the one doing the work, and that
@@ -500,8 +496,11 @@ without him.~~
 **STRUCK 2026-09-04 (#383), and this is the strike with the most operational consequence in the rite.**
 Rules 10 and 11 are deleted. **The confirmation is now the ONLY thing standing between this rite and N
 milestone writes** — the per-item prompts it was explicitly described as *not replacing* do not exist,
-so it replaces them by default rather than by design. Step 4a still prompts (the milestone script is in
-no allow list — an absence, not a control); step 4b's per-item admissions are silent. **Read "a
+so it replaces them by default rather than by design. ~~Step 4a still prompts (the milestone script is
+in no allow list — an absence, not a control); step 4b's per-item admissions are silent.~~ **Struck
+2026-09-29 (#537, round 4): after the owner confirms the composition, step 4a and step 4b both execute
+without another prompt through their existing allowlisted routes. Review plus the blocking behavioral
+regression carry the unguarded route contract under the accepted non-critical pricing. Read "a
 confirmation is not an authorisation to place" as the rule it always was and as the only remaining
 carrier of it: there is no second control to be independent of.**
 
@@ -510,12 +509,11 @@ carrier of it: there is no second control to be independent of.**
 **This step is where the rite's PRODUCT is made** (see *the iteration is this rite's product* above),
 so the order below is not a sequencing preference — 4a is the deliverable and 4b is what fills it.
 
-**The order is load-bearing, and the reason it is load-bearing is narrower than it first reads: there
-is a CREATE route BUILT and no UPDATE route BUILT.** `scripts/milestone-create.sh` takes the
-description **at creation and nowhere else**. Since the milestone description is where
-`/agents-configuration` says the
-**order of record** lives, the ordered body has to be known before the object is created — so
-composition is collected first and the milestone is created once, carrying it.
+~~**The order is load-bearing because there is a CREATE route BUILT and no UPDATE route BUILT.**~~
+**Since 2026-09-29 (#537), read, create, description update and close routes are all built.** ~~The
+update was described here as compare-and-swap.~~ **Corrected 2026-09-29 (#537, repair round): it is
+check-then-write because this endpoint cannot make PATCH conditional.** Create-before-admit remains the ordinary sequence because creation produces the object that
+the admissions name, not because a later update is impossible.
 
 **Read *built* literally, because the convenient reading of this is false.** It is not that the harness
 *cannot* amend a milestone description — 5f denies the *convenient* spelling of a raw-API write and not
@@ -528,18 +526,20 @@ head guard, one payload per line:
 [scrum-master] bash scripts/milestone-update.sh 2 --repo o/r …          -> NO decision from any layer
 ```
 
-**PATCH is blocked in the same spelling POST is blocked in, and reachable in the same spelling POST is
-reachable in.** So the correct statement is: **no update route is built. The same hole is open, and
+~~**PATCH is blocked in the same spelling POST is blocked in, and reachable in the same spelling POST
+is reachable in.** So the correct statement is: **no update route is built. The same hole is open, and
 anyone may write one.** What the CREATE-then-ADMIT order actually rests on is that no such script
-exists today — a fact about this tree, re-checkable with `ls scripts/`, not a property of any control.
+exists today — a fact about this tree, re-checkable with `ls scripts/`, not a property of any control.~~
+**Struck 2026-09-29 (#537): the update route is built. ~~It performs an exact compare-and-swap against
+the prior description supplied by file, prints that prior description, and refuses a stale write.~~**
+**Corrected 2026-09-29 (#537, repair round): it compares the file with a GET result, refuses when that
+read is already stale, prints it, then performs an unconditional PATCH. It cannot see a write between
+the GET and PATCH.**
 
-**And that invitation is guarded PRE-EMPTIVELY rather than left for the slice that accepts it.** Rule
-11 was pinned to the literal basename `milestone-create.sh`, so a `milestone-update.sh` written in good
-faith would have shipped a milestone write with **neither the `ask` nor the `deny`**, on a route that
-looks exactly like the sanctioned one, and #365's human verification would have been absent with
-nothing saying so. The rule now matches `milestone-[a-z0-9-]*.sh` in the same two run positions, so the
-next script in that family arrives guarded on the day it is written rather than on the day someone
-notices. That widening ships in this slice; it is not a follow-up.
+~~**The invitation is guarded PRE-EMPTIVELY. Rule 11 now matches
+`milestone-[a-z0-9-]*.sh`.**~~ **Struck 2026-09-29 (#537): rule 11 was deleted on 2026-09-04, so this
+present-tense claim was false in the permissive direction.** The Python routes are not guarded; they
+are reviewed capabilities reachable without a prompt by every persona holding Bash.
 
 **If NOTHING was admitted, 4a does not run and the rite has still finished.** Step 3's activation
 permits *defer*, *drop* and *stop*, so the owner ruling everything out — or stopping at the first
@@ -553,7 +553,7 @@ here is the pool he ruled out* — and stop; the rulings are the product of that
 FILE first — `Write` it to the session scratchpad — and the file's PATH is what the command carries:**
 
 ```
-bash scripts/milestone-create.sh "<iteration>" --repo <owner>/<repo> --description-file <path>
+python3 scripts/milestone-create.py "<iteration>" --repo <owner>/<repo> --description-file <path>
 ```
 
 **The ordered body NEVER travels as a shell argument, and this is a production rule rather than a style
@@ -574,37 +574,43 @@ Three things make it sharper here than the general shape:
 - **The text is not trusted.** Both repositories are public (`gh repo view --json isPrivate` → `false`,
   twice), so the Issue titles step 1 reads and step 3 composes are attacker-supplied strings, and step
   4a is where they would have been composed into that argument.
-- **The corruption is unrecoverable from here.** The description IS the order of record and no update
-  route is built (above), so a body that lands mangled is a browser delete-and-recreate.
+- ~~**The corruption is unrecoverable from here.**~~ **Struck 2026-09-29 (#537).** ~~The compare-and-swap
+  update route can repair it without losing a concurrent edit~~ **struck 2026-09-29 (#537, repair
+  round): the update can repair it, but may overwrite an edit concurrent with its GET/PATCH interval**;
+  file-only input remains the safe default.
 
 **The inline `--description <text>` form is REMOVED from the script, not left beside the file route.**
-Measured at head: `bash scripts/milestone-create.sh "probe" --description "x"` → `unknown option:
+Measured at head: `python3 scripts/milestone-create.py "probe" --description "x"` → `unrecognized arguments:
 --description`, exit 2. Keeping both would have fixed this caller and not the script — a later caller
 picks the convenient spelling, which is the whole reason `/shell`'s rule is written without exceptions.
 
-**This still PROMPTS, and since 2026-09-04 the prompt has a different source — read the difference.**
-~~Rule 11 asks the orchestrator; his answer is the human verification #365 demands.~~ **Rule 11 is
-deleted (#383).** The prompt you will see comes from the permission system, because `scripts/` matches
-no `allow` entry in either settings layer. **That is an absence, not a control**: an allow entry added
-later for an unrelated reason removes this verification silently, and nothing anywhere would say so.
-Treat the prompt as the human verification #365 demands, and treat its survival as luck rather than
-design. The script refuses a duplicate title in that repository and prints what the API returned.
+~~**This still PROMPTS because `scripts/` matches no allow entry.**~~ **Struck 2026-09-29 (#537): the
+route uses the already-allowlisted `python3` interpreter and runs without a prompt.** The script fails
+loudly if listing existing milestones fails, refuses a duplicate title and prints structured JSON.
 
 **It works because a hole is open, and this rite repeats that rather than relying on the script's own
 header to say it.** Neither the settings matcher nor `permission-guard.sh` looks inside a script, which
 is the same blindness that makes `python3 -c "…gh api -X POST…"` reach the write API. **No document here
 may claim the raw-API route is closed.**
 
-**Where the milestone already exists** — the owner created it in the browser, or a previous planning
-did — **skip 4a and say in the artifact that the order of record was NOT written into the milestone
-description, and why.** The reason is that no update route is built (above), not that none is possible.
-The composition is still recorded in full in step 5's artifact, so the ordering is not lost — it is
-lost *from the field `/agents-configuration` calls the order of record*, which is one more reason that
-field is called a weak home there.
+**Where the milestone already exists**, read it by number, write the proposed ordered body and current
+description to separate scratchpad files, then run the best-effort stale-read check and update:
+
+```
+python3 scripts/milestone-read.py <number> --repo <owner>/<repo>
+python3 scripts/milestone-update.py <number> --repo <owner>/<repo> \
+  --expect-file <prior-path> --description-file <new-path>
+```
+
+~~The update prints the prior description and refuses if `--expect-file` no longer matches, so a
+concurrent planning cannot be overwritten silently.~~ **Struck 2026-09-29 (#537, repair round): it
+refuses only when the GET already differs from `--expect-file`. GitHub's milestone PATCH has no
+documented conditional-write support, so a change after the GET can still be overwritten silently.
+Treat `--expect-file` as a best-effort preflight, never as a lock or CAS.**
 
 **If 4a fails after the human has approved it, STOP. Do not enter 4b.** The script exits non-zero on a
-duplicate title (4), an unresolvable repository (3) and any `gh` failure under `set -euo pipefail`, and
-prints `created milestone #N` on success. **If that line is not printed, there is no milestone**, and
+duplicate title, an unresolvable repository, invalid JSON and every `gh` failure, and prints structured
+JSON on success. **If the JSON is not printed, there is no milestone**, and
 4b would then issue N `gh issue edit --milestone` calls against a title that does not exist: N more
 prompts, N failures, and a half-executed planning whose artifact says a composition landed. Record the
 failure in step 5 and hand it back.
@@ -719,18 +725,23 @@ a known next act instead of a surprise at the drain's door.
 
 ## What this rite does NOT do
 
-- **It does not place work.** He rules; the prompt is his answer.
+- ~~**It does not place work.** He rules; the prompt is his answer.~~ **Struck 2026-09-29 (#537): the
+  owner confirms the composition once; the main session then creates or updates the milestone and
+  applies each admission without another prompt.**
 - **It does not decide what an iteration should contain — it PROPOSES what an iteration should
   contain, and the distinction is the whole of #393.** It assembles, ranks, composes against rules that
   are already ratified, and asks once. **A composition nobody confirmed is not an iteration**: the
-  milestone and every admission still go through his prompt, and *stop* at the activation ends the rite
+  ~~milestone and every admission still go through his prompt~~ **milestone writes execute only after
+  that confirmation**, and *stop* at the activation ends the rite
   with nothing placed.
 - **It does not estimate.** Step 6.
 - **It does not open work of its own.** A proposal becomes an Issue only on his ruling, and never a
   finding of this rite's own — *Review does not open work* applies to a rite exactly as it applies to a
   review.
-- **It does not close an iteration.** No command available to this loop can read whether a milestone is
-  open or closed; closing is a click in a browser.
+- ~~**It does not close an iteration.** No command available to this loop can read whether a milestone
+  is open or closed; closing is a click in a browser.~~ **Struck 2026-09-29 (#537).** Read state with
+  `python3 scripts/milestone-read.py`; after the closing rites, close with
+  `python3 scripts/milestone-close.py`. Neither act is handed to the owner.
 - **It does not judge the work.** Whether a slice is correct is `quality-assurance`'s, whether an order
   serves the owner's objective is `product-lead`'s.
 
@@ -819,11 +830,12 @@ same discipline the rest of this file applies to a count.
    question and an answered one read differently to the next person and only one of them closes.** The
    owner ruled on the premise: *«mexer em milestones nao é um risco crucial a iniciativa»*. Rules 10 and
    11 were deleted in that slice, so the shape he was being asked about no longer exists — **N
-   admissions is now zero prompts, not N.** What survives is the *creation* prompt at 4a, and its
+   admissions is now zero prompts, not N.** ~~What survives is the *creation* prompt at 4a, and its
    source is not a rule: `scripts/` matches no `allow` entry in either settings layer, which is an
-   absence rather than a control. **The question is closed. What replaces it, if anything is wanted, is
-   whether an absence is an acceptable carrier for the one verification #365 asked for** — a different
-   question, not this one reworded, and it is not put to him here.
+   absence rather than a control.~~ **Struck 2026-09-29 (#537): the route now runs through the
+   already-allowlisted `python3` interpreter, so creation also executes without a prompt. No guard
+   inspects it and none is required under the owner's non-critical pricing; review and the blocking
+   route regression carry it. The question is closed.**
 2. **What is the right size of an iteration?** Nothing anywhere bounds how many items may be admitted,
    and this rite composes without a target. An over-filled iteration reproduces the unbounded drain
    inside one milestone — `/agents-configuration` names that residual and proposes no mechanism.

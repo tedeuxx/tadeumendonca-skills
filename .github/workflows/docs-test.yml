@@ -76,12 +76,14 @@ on:
       - "docs/**"
       # `scripts/**` is the SIXTH occurrence of the miss enumerated in this block, and the first one
       # the instrument caught BEFORE the PR that would have shipped it. #375 added
-      # `scripts/milestone-create.sh` — a repo utility, deliberately not under `hooks/scripts/` because
+      # `scripts/milestone-create.py` — a repo utility, deliberately not under `hooks/scripts/` because
       # it is not a hook and the `purpose:` gate reads an unregistered `*.sh` there as an orphan. That
-      # file is a `.sh`, so `git ls-files -- '*.md' '*.sh'` puts it in FLOOR_CLAIM_FILES and the suite
-      # scans it; without this line a PR editing only that script could not start the gate asserting
-      # against it. The pattern the block above names — the scan set and this filter maintained
-      # independently — is exactly what recurred, and the gate-coverage arm is what said so.
+      # file is Python, so it is NOT in FLOOR_CLAIM_FILES (`*.md`/`*.sh`). It is in the broader
+      # CITATION_FILES set (`*.py` included), which the gate-coverage arm unions with every other set
+      # this suite reads. This `scripts/**` entry is what lets a change to the route start that arm and
+      # the behavioral milestone test below; without it, both contracts could remain green by never
+      # running. The scan union and this filter are derived independently, and the gate-coverage arm
+      # is what checks they still agree.
       - "scripts/**"
       # `PRINCIPLES.md` was added here as the FOURTH occurrence of the same miss, and has since been
       # folded into the README — a floor behind a click is a floor nobody reads — so its entry is gone
@@ -186,7 +188,7 @@ jobs:
       - name: Assert the harness-neutral root brief holds its properties
         run: bash hooks/scripts/agents-md.test.sh
       # The funnel rite's analysis half lives in `scripts/`, not `hooks/scripts/`, because nothing
-      # registers it in hooks.json — the same reason `scripts/milestone-create.sh` states in its own
+      # registers it in hooks.json — the same reason `scripts/milestone-create.py` states in its own
       # header. It runs HERE rather than in hooks-test because its subject is `scripts/**` and
       # `docs/**`, and this workflow's paths: filter already covers both; hooks-test's does not, so a
       # report landing under docs/funnel-review/ would not start that job at all and the cap arm
@@ -198,6 +200,11 @@ jobs:
         env:
           PYTHONDONTWRITEBYTECODE: "1"
         run: python3 scripts/worklog.test.py
+
+      - name: Assert milestone routes preserve their reviewed behavior
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python3 scripts/milestone.test.py
 
       # THE CAVEAT GOES WHERE THE GREEN IS READ, and until this step existed it did not. The two arms
       # of this job surface to a human as a check name and a tick; what that tick does NOT mean lived

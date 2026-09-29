@@ -28,10 +28,9 @@
 # WHAT IS TRUE NOW is two arms rather than one: `arm 4` asserts rule->disk (every path named here
 # resolves) and `arm 4b` asserts disk->rule (every tracked `*.sh` under `hooks/scripts/` is named
 # here). Each refuses to pass over an empty set rather than printing a zero as a green.
-# THE SCOPE IS THAT DIRECTORY AND NOT THE TREE, deliberately: `scripts/milestone-create.sh` is
-# tracked, is run with `bash`, and is named here by NOTHING on purpose -- its absence from every
-# allow layer is what leaves a permission prompt standing where the deleted rule 11 milestone
-# verification used to be. Do not add an allow for it to quiet a gate; no gate asks for one.
+# THE SCOPE IS THAT DIRECTORY AND NOT THE TREE, deliberately. The reviewed milestone routes now live
+# under `scripts/` as Python files and are reached by the existing `python3` allow; this reverse arm
+# remains about shell scripts in hooks/scripts/, not about every executable utility in the repository.
 # #531 ADDED DERIVED FORBIDDEN RULES THAT HAVE NO settings.json SOURCE, and says which it could not.
 # For each of the four spellings: `push -fu`, `push -uf` (force in a short cluster) and
 # `push origin :main`, `push origin :refs/heads/main` (trunk DELETION). What a literal argv prefix

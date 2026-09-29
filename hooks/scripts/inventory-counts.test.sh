@@ -6241,6 +6241,7 @@ else
     '### Rule 1 — the active iteration is derived from the POOL, never from a date' \
     '### Rule 2 — the tracker object is a MILESTONE, and this section is it being written down' \
     'carries **four keys and' \
+    'scripts/milestone-read.py` reads the milestone endpoint directly' \
     '### `loop`-typed items ARE iteration-assignable' \
     '### The state-model pass — the AXIS adds no label and no state, and ESTIMATION adds exactly one class'
   do
@@ -6250,9 +6251,8 @@ else
   if [ -n "$iter_skill_missing" ]; then
     bad "iteration axis — the canonical section no longer carries a load-bearing part of the rule:$iter_skill_missing
       Rule 1 and Rule 2 were imported as NOT OPTIONAL, each because the source project measured the
-      alternative failing. The 'four keys' needle is the tracker object's own degradation — no command
-      available to this loop can read a milestone's open/closed state — and it is what stops someone
-      building a closing rule on an attribute that is not there. If this is a deliberate rewording,
+      alternative failing. The 'four keys' needle preserves the issue-list measurement; the read-route
+      needle pins the reviewed endpoint route that now supplies state and counts. If this is a deliberate rewording,
       update the needles in this file in the same commit."
   else
     ok "iteration axis — the canonical section carries both not-optional rules, the tracker measurement and the state-model pass"
@@ -8166,7 +8166,7 @@ fi
 # THE MILESTONE ROUTE IS AN EXPLOITATION, AND EVERY SURFACE THAT DESCRIBES IT MUST SAY SO (#375)
 #
 # WHAT IS GATED HERE IS ONE SENTENCE, NOT A CONTROL, and the distinction is the whole reason this block
-# has a header this long. `scripts/milestone-create.sh` reaches the GitHub write API because neither the
+# has a header this long. `scripts/milestone-create.py` reaches the GitHub write API because neither the
 # settings matcher nor `permission-guard.sh` reads inside a script — the same blindness that makes
 # `python3 -c "…gh api -X POST…"` a back door. That is a defensible trade (a reviewed, named,
 # single-purpose instance of an open hole beats an unreviewed general one) and it is NOT "we found a
@@ -8182,36 +8182,60 @@ fi
 # WHAT NO ARM HERE CAN HOLD. It cannot tell whether the script does what its name says, whether the hole
 # is still open, or whether anyone read the sentence. It is a string-agreement check across three
 # hand-maintained files. Nothing more, and it says so rather than being read as coverage.
-MS_SCRIPT="$ROOT/scripts/milestone-create.sh"
+MS_SCRIPT="$ROOT/scripts/milestone-create.py"
 MS_GUARD="$ROOT/hooks/scripts/permission-guard.sh"
 MS_SKILL="$ROOT/skills/agents-configuration/SKILL.md"
+MS_WORKFLOW="$ROOT/.github/workflows/docs-test.yml"
+MS_SETTINGS="$ROOT/.claude/settings.json"
+MS_PLANNING="$ROOT/commands/sprint-planning.md"
+MS_AUTONOMY="$ROOT/commands/autonomy.md"
 ms_problems=""
 ms_checked=0
 
-# 1 · the script exists, is executable, and is NOT in hooks/scripts/ — the last of which is a real
+# 1 · the Python route family exists outside hooks/scripts/ — the last of which is a real
 #     constraint rather than tidiness: the `purpose:` gate above reads any `*.sh` there declaring a
 #     purpose as a mechanism that must be registered in hooks.json, and this is not a hook.
 if [ ! -r "$MS_SCRIPT" ]; then
   ms_problems="$ms_problems
-    scripts/milestone-create.sh does not exist or is unreadable — the route rule 11 guards is gone,
-    and rule 11 is now a rule about nothing"
+    scripts/milestone-create.py does not exist or is unreadable — the reviewed create route is gone"
 else
   ms_checked=$((ms_checked + 1))
-  [ -x "$MS_SCRIPT" ] || ms_problems="$ms_problems
-    scripts/milestone-create.sh is not executable; it is invoked as 'bash <path>' so this is not fatal
-    at runtime, and it is asserted because a non-executable script is the shape a committed hook has
-    silently no-opped in before"
 fi
-[ -e "$ROOT/hooks/scripts/milestone-create.sh" ] && ms_problems="$ms_problems
-    hooks/scripts/milestone-create.sh exists. This is not a hook and nothing registers it, so a copy
+[ -e "$ROOT/hooks/scripts/milestone-create.py" ] && ms_problems="$ms_problems
+    hooks/scripts/milestone-create.py exists. This is not a hook and nothing registers it, so a copy
     there is either an orphan under the purpose gate or a mechanism pretending not to be one."
+for ms_route in read create update close; do
+  [ -r "$ROOT/scripts/milestone-$ms_route.py" ] || ms_problems="$ms_problems
+    scripts/milestone-$ms_route.py is missing or unreadable; the reviewed route family is incomplete"
+done
+[ -r "$ROOT/scripts/milestone.test.py" ] || ms_problems="$ms_problems
+    scripts/milestone.test.py is missing or unreadable; the route family has no behavioral stub-gh regression"
+
+# The suite's existence is not execution. Pin the blocking workflow's exact invocation and the
+# bytecode-suppression environment beside the family contract, so deleting either turns the inventory
+# job red instead of leaving CI green while no route behavior ran.
+if [ -r "$MS_WORKFLOW" ]; then
+  ms_checked=$((ms_checked + 1))
+  grep -qF -- 'run: python3 scripts/milestone.test.py' "$MS_WORKFLOW" || ms_problems="$ms_problems
+    docs-test.yml no longer executes the milestone route regression"
+  milestone_step="$(awk '
+    /- name: Assert milestone routes preserve their reviewed behavior/ {inside=1; next}
+    inside && /- name:/ {exit}
+    inside {print}
+  ' "$MS_WORKFLOW")"
+  grep -qF -- 'PYTHONDONTWRITEBYTECODE: "1"' <<< "$milestone_step" || ms_problems="$ms_problems
+    docs-test.yml no longer suppresses Python bytecode for the milestone regression step"
+else
+  ms_problems="$ms_problems
+    .github/workflows/docs-test.yml is missing or unreadable; milestone behavior has no blocking CI executor"
+fi
 
 # 2 · the exploitation is stated on all three surfaces, each in its own words rather than one literal
 #     copied three times — a copied sentence is one edit away from being three stale ones.
 if [ -r "$MS_SCRIPT" ]; then
   ms_checked=$((ms_checked + 1))
   grep -qF -- 'THIS ROUTE WORKS BECAUSE A HOLE IS OPEN' "$MS_SCRIPT" || ms_problems="$ms_problems
-    scripts/milestone-create.sh no longer says in its own header that it depends on an open hole"
+    scripts/milestone-create.py no longer says in its own header that it depends on an open hole"
   # THE NEEDLE IS THE SHORTEST SPAN THAT FITS ON ONE LINE, and that is a constraint rather than a
   # style call: `grep -F` is line-based and this file is prose wrapped at 100 columns, so the sentence
   # this arm is about — "no document here may claim the raw-API route is closed" — is split across two
@@ -8219,28 +8243,36 @@ if [ -r "$MS_SCRIPT" ]; then
   # a file that says exactly what it demands. A multi-line claim needs a single-line anchor.
   grep -qF -- 'raw-API route is closed' "$MS_SCRIPT" \
     || ms_problems="$ms_problems
-    scripts/milestone-create.sh no longer forbids the claim that the raw-API route is closed"
+    scripts/milestone-create.py no longer forbids the claim that the raw-API route is closed"
 fi
 # THE GUARD'S HALF INVERTED ON 2026-09-04 (#383), AND THAT IS THE POINT OF KEEPING THE ARM RATHER
 # THAN DELETING IT. Rules 10 and 11 were removed on the owner's pricing of the act
 # («mexer em milestones nao é um risco crucial a iniciativa»), so the guard no longer stands there.
 # The old needles asserted that rule 11 EXPLAINED the route; asserting that now would demand a rule
-# that does not exist. **What replaces them asserts the ABSENCE is stated**, which is the thing a
-# later reader is most likely to get wrong: `scripts/` matches no allow entry in either settings
-# layer, so a permission PROMPT still fires there — and a prompt that exists only because nobody has
-# written an allow entry is an absence, not a control. If someone adds one, the verification
-# disappears with nothing to say so. That sentence is what this arm now pins.
+# that does not exist. The reviewed routes are invoked through the project-allowlisted `python3`
+# interpreter, so they execute without a prompt for every Bash-capable persona. Nothing in the guard
+# inspects them, and under the owner's non-critical pricing no guard inspection is needed: review plus
+# the blocking behavioral regression carry the route contract. The settings check below derives that
+# reach from the actual allow entry rather than repeating it from memory.
+if [ -r "$MS_SETTINGS" ]; then
+  ms_checked=$((ms_checked + 1))
+  grep -qF -- '"Bash(python3:*)"' "$MS_SETTINGS" || ms_problems="$ms_problems
+    .claude/settings.json no longer allowlists Bash(python3:*); the milestone route reach contract
+    changed and must be reconciled before the no-prompt claim can remain"
+else
+  ms_problems="$ms_problems
+    .claude/settings.json is missing or unreadable; the milestone route's no-prompt reach was not checked"
+fi
 if [ -r "$MS_GUARD" ]; then
   ms_checked=$((ms_checked + 1))
   grep -qF -- 'THE MILESTONE PAIR' "$MS_GUARD" || ms_problems="$ms_problems
     permission-guard.sh no longer records that rules 10 and 11 were REMOVED. The numbers must stay
     vacant and the removal must stay explained, or the next reader re-derives a control that was
     deliberately dropped — or worse, renumbers and repoints every 'rule 10' citation in the records"
-  grep -qF -- 'IS AN ABSENCE, NOT A CONTROL — which is the shape' "$MS_GUARD" || ms_problems="$ms_problems
-    permission-guard.sh no longer states that the prompt still standing in front of the milestone
-    script is an ABSENCE rather than a control. That is the load-bearing half now: rule 11 is gone,
-    and what remains is 'scripts/ is in no allow list', which one unrelated allow entry removes
-    silently. This is ADR-0004's own 'absent is not a state' shape, and it is now live"
+  grep -qF -- 'reviewed milestone family is now `scripts/milestone-*.py`' "$MS_GUARD" || ms_problems="$ms_problems
+    permission-guard.sh no longer records that the reviewed Python family bypasses the deleted rule 11"
+  grep -qF -- 'Nothing in this guard inspects them' "$MS_GUARD" || ms_problems="$ms_problems
+    permission-guard.sh no longer states plainly that the Python milestone routes are unguarded"
 fi
 if [ -r "$MS_SKILL" ]; then
   ms_checked=$((ms_checked + 1))
@@ -8249,19 +8281,39 @@ if [ -r "$MS_SKILL" ]; then
     surface every persona reads on every dispatch, so it is the one where a quiet reframing does most"
   grep -qF -- 'unknown command "milestone" for "gh"' "$MS_SKILL" || ms_problems="$ms_problems
     the universal preload no longer carries the measurement that makes rule 5f's remedy unexecutable"
+  grep -qF -- 'The family is four reviewed routes since #537' "$MS_SKILL" || ms_problems="$ms_problems
+    the universal preload no longer declares the complete read/create/update/close route family"
 fi
 
-if [ "$ms_checked" -lt 4 ]; then
-  bad "milestone route — only $ms_checked of 4 surfaces were readable, so the agreement was NOT
+if [ -r "$MS_PLANNING" ]; then
+  ms_checked=$((ms_checked + 1))
+  grep -qF -- 'step 4a and step 4b both execute' "$MS_PLANNING" || ms_problems="$ms_problems
+    commands/sprint-planning.md no longer says both milestone-write steps execute without another prompt"
+else
+  ms_problems="$ms_problems
+    commands/sprint-planning.md is missing or unreadable; its no-prompt route claim was not checked"
+fi
+
+if [ -r "$MS_AUTONOMY" ]; then
+  ms_checked=$((ms_checked + 1))
+  grep -qF -- 'creation and admission then execute without another prompt' "$MS_AUTONOMY" || ms_problems="$ms_problems
+    commands/autonomy.md no longer says creation and admission execute without another prompt"
+else
+  ms_problems="$ms_problems
+    commands/autonomy.md is missing or unreadable; its no-prompt route claim was not checked"
+fi
+
+if [ "$ms_checked" -lt 8 ]; then
+  bad "milestone route — only $ms_checked of 8 surfaces were readable, so the agreement was NOT
       asserted:$ms_problems"
 elif [ -n "$ms_problems" ]; then
   bad "milestone route — a surface stopped saying what the route actually is:$ms_problems
-      The route reaches a write API because no permission layer reads inside a script. Since #383 NO
-      hook rule stands there at all — what is left is a permission prompt that exists only because
-      'scripts/' is in no allow list. A surface that stops saying so hands the next reader a control
-      that does not exist."
+      The route reaches the write API through the already-allowlisted Python interpreter, without a
+      prompt. Since #383 no hook rule stands there and none is needed under the owner's pricing: review
+      plus this blocking behavioral regression carry the contract. A surface that stops saying so
+      hands the next reader a prompt or a guard that does not exist."
 else
-  ok "milestone route — the script and the universal preload state that the route is an exploitation of an open hole, and the guard records that rules 10/11 were removed and that what replaced them is an absence rather than a control (string agreement only; nothing here checks the hole or the script's behaviour)"
+  ok "milestone routes — all four Python routes and the stub-gh regression exist; docs-test executes it with bytecode suppressed; settings derive their no-prompt Python reach; create and the universal preload preserve the open-hole framing; the guard records that no inspection is needed or present (contract agreement plus blocking behavioral execution)"
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
@@ -8314,7 +8366,7 @@ else
     'The standing «one question at a time, no multiple choice» rule is NOT broken' \
     '**DROP means withhold, never close**' \
     'Never type a milestone title into a query' \
-    'bash scripts/milestone-create.sh "<iteration>" --repo' \
+    'python3 scripts/milestone-create.py "<iteration>" --repo' \
     'may claim the raw-API route is closed.' \
     '**It does not estimate.** No `sp:N` is produced' \
     'will ordinarily refuse the first drain**.' \
@@ -8328,7 +8380,8 @@ else
     'is a DECLARED TIEBREAK and is labelled as one: issue number ascending,' \
     '- **The `### Selection` block is OMITTED at planning.**' \
     '- **The record lands in ONE file and it is not `docs/selection/`.**' \
-    'no update route is built. The same hole is open' \
+    'the update route is built.' \
+    'Treat `--expect-file` as a best-effort preflight, never as a lock or CAS.' \
     '**If 4a fails after the human has approved it, STOP. Do not enter 4b.**' \
     '**This rite costs a branch, a PR and a gate pass**' \
     'is NOT `hooks/scripts/preflight.sh`.**' \
@@ -8442,7 +8495,7 @@ else
                            needles because the exemption and the instruction live in two sections and
                            either alone leaves the other reading as absolute."
   else
-    ok "planning rite — the rite states its boundary, that the iteration is its PRODUCT rather than a step (in the owner's own words), its dispatch and why that dispatch cannot place work (and how narrowly), the circularity planning forces on the ranking, that the ratified rules partition rather than sequence and what the tiebreak is, the one-activation rule and its two-activation bound, enumerate-then-select on BOTH inputs, the milestone route with the hole it depends on and the update route that is merely unwritten, what happens when creation fails, its own cost, that it produces no estimate and which preflight that names, both of its disclaimers, and the two classes it cannot see"
+    ok "planning rite — the rite states its boundary, that the iteration is its PRODUCT rather than a step (in the owner's own words), its dispatch and why that dispatch cannot place work (and how narrowly), the circularity planning forces on the ranking, that the ratified rules partition rather than sequence and what the tiebreak is, the one-activation rule and its two-activation bound, enumerate-then-select on BOTH inputs, the milestone route with the hole it depends on and the check-then-write update route including its race residual, what happens when creation fails, its own cost, that it produces no estimate and which preflight that names, both of its disclaimers, and the two classes it cannot see"
   fi
 fi
 
@@ -8549,8 +8602,8 @@ fi
 # ── 5 · the milestone-write guard covers the FAMILY, not one basename ─────────────────────────────
 #
 # WIDENED PRE-EMPTIVELY (#378) AND ASSERTED HERE SO THE WIDENING CANNOT BE QUIETLY REVERTED. The rite
-# books a residual — the order of record lives in a milestone description, there is a create route and
-# no update route — which invites a `scripts/milestone-update.sh`. Measured before the widening, that
+# booked a residual — the order of record lived in a milestone description with a create route and
+# no update route — which invited a `scripts/milestone-update.sh`. Measured before the widening, that
 # script drew NO decision from any layer, for a subagent as well as the orchestrator: a milestone write
 # with neither the ask nor the deny, on a route indistinguishable from the sanctioned one.
 #
@@ -8565,27 +8618,25 @@ plan_fam_checked=0
 # The family pattern is GONE, because rule 11 is gone. Asserting the pattern's presence would demand
 # a rule the owner decided not to keep, and asserting nothing would let the widening's whole argument
 # vanish with it. **So the arm now pins the argument rather than the pattern.** The residual #378
-# booked is unchanged and is what makes this worth keeping: an unwritten `milestone-update.sh` is
-# still invited by the rite, and it now arrives guarded by exactly what `milestone-create.sh` is
-# guarded by — a permission prompt that exists because `scripts/` is in no allow list. **The family
+# booked is now discharged by the reviewed Python route family. The historical finding still matters:
+# a basename-pinned control ships the next name in a family unguarded. **The family
 # widening's finding survives its own mechanism: a control pinned to one basename ships the next
 # name in the family unguarded, silently. Whoever re-adds a guard here must re-add it as a family.**
 if [ -r "$plan_guard" ]; then
   plan_fam_checked=$((plan_fam_checked + 1))
-  grep -qF -- 'the `scripts/milestone-*.sh` family' "$plan_guard" || plan_fam_problems="$plan_fam_problems
-    permission-guard.sh no longer names the milestone script FAMILY at all. Rules 10/11 were removed at
-    #383, and the tombstone must keep naming the family rather than the one basename — the finding that
-    a basename-pinned control ships the next name unguarded outlives the control, and whoever rebuilds
-    one needs it."
-  grep -qF -- 'IS AN ABSENCE, NOT A CONTROL — which is the shape' "$plan_guard" || plan_fam_problems="$plan_fam_problems
-    permission-guard.sh no longer records that what stands in front of the milestone-write family is an
-    absence rather than a control, so the next reader reads the surviving prompt as a floor."
+  grep -qF -- 'reviewed milestone family is now `scripts/milestone-*.py`' "$plan_guard" || plan_fam_problems="$plan_fam_problems
+    permission-guard.sh no longer names the reviewed Python milestone family."
+  grep -qF -- 'Nothing in this guard inspects them' "$plan_guard" || plan_fam_problems="$plan_fam_problems
+    permission-guard.sh no longer records that no guard rule covers the Python family."
 fi
 if [ -r "$plan_rite" ]; then
   plan_fam_checked=$((plan_fam_checked + 1))
-  grep -qF -- 'no update route is built. The same hole is open' "$plan_rite" || plan_fam_problems="$plan_fam_problems
-    commands/sprint-planning.md no longer says that the missing update route is a missing SCRIPT rather
-    than a control. That sentence is the one that stopped a hole reading as a floor."
+  grep -qF -- 'the update route is built.' "$plan_rite" || plan_fam_problems="$plan_fam_problems
+    commands/sprint-planning.md no longer says the check-then-write update route exists."
+  grep -qF -- 'best-effort preflight, never as a lock or CAS.' "$plan_rite" || plan_fam_problems="$plan_fam_problems
+    commands/sprint-planning.md no longer states the update route's race residual."
+  grep -qF -- 'reviewed capabilities reachable without a prompt' "$plan_rite" || plan_fam_problems="$plan_fam_problems
+    commands/sprint-planning.md no longer states the Python family's effective reach."
 fi
 if [ "$plan_fam_checked" -lt 2 ]; then
   bad "planning rite — only $plan_fam_checked of 2 surfaces were readable, so the milestone-family
@@ -8593,14 +8644,14 @@ if [ "$plan_fam_checked" -lt 2 ]; then
 elif [ -n "$plan_fam_problems" ]; then
   bad "planning rite — the milestone-write family is no longer guarded or no longer explained:$plan_fam_problems"
 else
-  ok "planning rite — the guard's tombstone names the milestone script FAMILY and states that what replaced rules 10/11 is an absence rather than a control, and the rite states that the missing update route is a missing script rather than a control (text agreement only; nothing fires on this route since #383)"
+  ok "planning rite — the guard and rite agree that the reviewed Python route family is reachable without a prompt, and the rite states that update is check-then-write with a race residual (text agreement only; behavior is covered separately)"
 fi
 
 # ── 6 · the milestone description travels as a FILE, and the inline route is GONE rather than unused ──
 #
 # THE ONLY ARM IN THIS BLOCK WHOSE PRIMARY ASSERTION IS AN ABSENCE, and the absence is the control.
 # The gate's production finding at `0ecc7a7`: step 4a composed the ordered body into a double-quoted
-# shell argument, and `scripts/milestone-create.sh` took `--description <text>` and nothing else.
+# shell argument, and the former `scripts/milestone-create.sh` took `--description <text>` and nothing else.
 # Measured, one call, the argument quoted exactly as that step wrote it — and re-run through the file
 # route with the identical bytes:
 #
@@ -8614,7 +8665,7 @@ fi
 #
 # Three things made it blocking rather than a style note: both repositories are PUBLIC, so the Issue
 # titles the rite composes into that body are attacker-supplied; the milestone description IS the order
-# of record and no update route is built, so a mangled one is a browser delete-and-recreate; and it
+# of record and no update route was built, so a mangled one was a browser delete-and-recreate; and it
 # contradicted `/shell`'s no-exception `--body-file` rule inside a slice otherwise careful about it.
 #
 # WHY THE ARM ASSERTS AN ABSENCE. Adding `--description-file` beside `--description` fixes the CALLER
@@ -8647,29 +8698,29 @@ fi
 # WHAT IT CANNOT DO: it reads the option table, not behaviour. Nothing here executes the script or
 # reaches the API. The refusal was verified by running it (`--description "x"` -> `unknown option`,
 # exit 2) and that run is not reproducible from this suite.
-plan_desc_script="$ROOT/scripts/milestone-create.sh"
+plan_desc_script="$ROOT/scripts/milestone-create.py"
 plan_desc_problems=""
 plan_desc_checked=0
 if [ -r "$plan_desc_script" ]; then
   plan_desc_checked=$((plan_desc_checked + 1))
-  grep -qE -- '--description-file[)|]' "$plan_desc_script" || plan_desc_problems="$plan_desc_problems
-    scripts/milestone-create.sh has no '--description-file' option, so the only way to pass a
+  grep -qF -- 'add_argument("--description-file")' "$plan_desc_script" || plan_desc_problems="$plan_desc_problems
+    scripts/milestone-create.py has no '--description-file' option, so the only way to pass a
     description is inline — a shell argument that INTERPRETS backticks and \$ in text composed from
     public-tracker Issue titles."
-  if grep -qE -- '--description[)|]' "$plan_desc_script"; then
+  if grep -qF -- 'add_argument("--description")' "$plan_desc_script"; then
     plan_desc_problems="$plan_desc_problems
-    scripts/milestone-create.sh accepts '--description <text>' again. The inline route was removed
+    scripts/milestone-create.py accepts '--description <text>' again. The inline route was removed
     rather than deprecated, precisely so no caller can pick it; re-adding it restores the injection
     surface whatever the rite happens to call today."
   fi
-  grep -qF -- 'THE DESCRIPTION ARRIVES BY FILE, AND THE INLINE FORM IS GONE RATHER THAN DEPRECATED' "$plan_desc_script" \
+  grep -qF -- 'The description arrives by file. There is deliberately no inline description' "$plan_desc_script" \
     || plan_desc_problems="$plan_desc_problems
-    scripts/milestone-create.sh no longer records WHY the inline form is absent, so the next reader
+    scripts/milestone-create.py no longer records WHY the inline form is absent, so the next reader
     sees a missing convenience flag and adds it back."
 fi
 if [ -r "$plan_rite" ]; then
   plan_desc_checked=$((plan_desc_checked + 1))
-  grep -qF -- 'bash scripts/milestone-create.sh "<iteration>" --repo <owner>/<repo> --description-file <path>' "$plan_rite" \
+  grep -qF -- 'python3 scripts/milestone-create.py "<iteration>" --repo <owner>/<repo> --description-file <path>' "$plan_rite" \
     || plan_desc_problems="$plan_desc_problems
     commands/sprint-planning.md step 4a no longer calls the file route. The script may still refuse the
     inline form, but the rite is what a reader copies."

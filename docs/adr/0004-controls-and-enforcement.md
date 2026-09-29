@@ -2584,8 +2584,11 @@ becomes load-bearing for a merge decision, that judgement changes, and it should
 > **What is now false in what follows:** every present-tense claim that an admission is denied to a
 > persona or asked of the orchestrator. `gh issue edit --milestone` is allowlisted and the hook that
 > answered first is gone, so **the act executes silently** — it does not degrade to a prompt. The
-> milestone-script route still prompts, but only because `scripts/` is in no allow list, which is this
-> record's own *"absent is not a state"* shape rather than a control.
+> ~~The milestone-script route still prompts, but only because `scripts/` is in no allow list, which is
+> this record's own *"absent is not a state"* shape rather than a control.~~ **Struck 2026-09-29
+> (#537): the reviewed route family now runs through the already-allowlisted `python3` interpreter,
+> without a prompt. Nothing in the guard inspects it and no such inspection is needed under the owner's
+> non-critical pricing; review plus the blocking behavioral regression carry the route contract.**
 >
 > **What is still true and is the reason this amendment is not struck wholesale:** the finding that
 > *the wall a guard hits — it cannot tell "he told me" from "I did it myself" — dissolves when the guard
@@ -3114,16 +3117,18 @@ assertion cannot tell the two routes apart by construction.
 
 ### 3 · The milestone route — and it works BECAUSE a hole is open, which is the finding, not the design
 
-> **AMENDED 2026-09-04 (#383): rule 11 is REMOVED, and the section below should be read with one
+> ~~**AMENDED 2026-09-04 (#383): rule 11 is REMOVED, and the section below should be read with one
 > substitution.** Everywhere it says the route is guarded by rule 11's prompt, the truth is now that the
 > route is guarded by **the absence of an `allow` entry for `scripts/`** — which still produces a
 > prompt, and which this record elsewhere names as *not a state*. **The hole is unchanged, the route is
-> unchanged, and what was a decision by a rule is now a gap that happens to behave the same way.**
+> unchanged, and what was a decision by a rule is now a gap that happens to behave the same way.**~~
+> **Struck 2026-09-29 (#537): the reviewed route family is Python and the existing `python3` allow
+> reaches it without a prompt. The open-hole analysis survives; the claimed prompt does not.**
 > The removal's ground was the owner's pricing of the act, not a re-argument about the hole:
 > *«mexer em milestones nao é um risco crucial a iniciativa»*.
 >
 > **The finding this section exists for is untouched and is why it is not struck:** no permission layer
-> reads inside a script, so `scripts/milestone-create.sh` and `python3 -c "…gh api…"` are the same door.
+> reads inside a script, so `scripts/milestone-create.py` and `python3 -c "…gh api…"` are the same door.
 > **No document here may claim the raw-API route is closed** — that sentence binds harder now, not less,
 > because the rule that used to stand in front of one spelling of it is gone.
 
@@ -3140,8 +3145,9 @@ tell which endpoint — and it **would not work**, because a settings `deny` is 
 returns and the floor entry is in an **untracked user file** nothing this plugin ships can change. So
 the precise fix ships inert.
 
-**What was built instead, and it is an exploitation rather than a design.** One tracked script,
-`scripts/milestone-create.sh`, is the only sanctioned milestone write. **It reaches the API because
+**What was built instead, and it is an exploitation rather than a design.** ~~One tracked script,
+`scripts/milestone-create.sh`, is the only sanctioned milestone write.~~ **Struck 2026-09-29 (#537):
+four reviewed scripts — read, create, update and close — now form the sanctioned milestone route family.** They reach the API because
 neither the settings matcher nor `permission-guard.sh` looks inside a script** — the guard says so in
 its own words at the `..`-traversal rule (*"permission-guard.sh deliberately does not look inside a
 script"*). **That is the same blindness that makes `python3 -c "…gh api -X POST…"` a back door, and
@@ -3163,30 +3169,53 @@ closing it means removing `python3:*` / `node:*` / `npx:*` from the allow lists,
 own tooling. **The price of accepting it is this paragraph**: a reviewed, named, single-purpose instance
 of an open hole beats an unreviewed general one, and it is not *"we found a clean layer"*.
 
-**What makes the route defensible rather than merely available.** The widenable surface moves from a
+**What makes the routes defensible rather than merely available.** The widenable surface moves from a
 regex in a hook to a **repo file that goes through review, the inventory gate and `quality-assurance`**.
 And the script deliberately does **not** sit under `hooks/scripts/` — it is not a hook, and the
 `purpose:` gate (#313) would read an unregistered script there as an orphan mechanism. It also
-therefore does **not** match the user floor's `Bash(bash <repo>/hooks/scripts/*)` allow entry, **so it
+~~therefore does **not** match the user floor's `Bash(bash <repo>/hooks/scripts/*)` allow entry, **so it
 prompts** — which is the feature, not the friction: composition is HITL by #365, and a prompt in the
-orchestrator's session is the verification.
+orchestrator's session is the verification.~~ **Struck 2026-09-29 (#537): `python3` is already
+allowlisted, so all four routes execute without a prompt for every Bash persona. The owner confirms the
+composition once; route execution is not a second decision.**
 
-**Rule 11 makes that prompt a decision rather than a gap.** It keys on the script's basename plus
+~~**Rule 11 makes that prompt a decision rather than a gap.** It keys on the script's basename plus
 `agent_type`: a subagent is **denied** (no persona composes an iteration), the orchestrator is **asked**
 — rule 10's exact verdict split, for the same reason. Relying on the *absence* of an allow entry would
-have been the *"absent is not a state"* shape this record already books for the AWS floor.
+have been the *"absent is not a state"* shape this record already books for the AWS floor.~~
 
-**Placement: rule 11 sits LAST, after rule 10, and that is load-bearing.** `ask` exits like `deny`, so a
+~~**Placement: rule 11 sits LAST, after rule 10, and that is load-bearing.** `ask` exits like `deny`, so a
 rule sited earlier would let `bash scripts/milestone-create.sh x && git push origin main` come out ASK
 where rule 8 denies it — an ask that softens a deny is a hole. Rule 10's own comment already states this
-and rule 11 obeys it rather than restating it.
+and rule 11 obeys it rather than restating it.~~
+
+**2026-09-29 amendment (#537) — the route family is a reviewed capability, not a permission control.**
+`milestone-read.py` exposes title, description, state and issue counts even for an empty milestone;
+`milestone-create.py` creates from file input; `milestone-update.py` compares the exact prior
+description returned by its GET before writing and prints it; `milestone-close.py` refuses anything not open. A stub-`gh`
+behavioral suite exercises success and failure paths. Rejected: a new `gh` extension dependency, a
+browser fallback, and restoring an `ask` whose auto-mode behavior is not a human verification. Cost:
+every Bash persona reaches the routes through the existing `python3` allow. The control is review plus
+tests, not caller identity or a hook verdict.
+
+**Repair amendment (2026-09-29, #537): that comparison is not compare-and-swap.** The official GitHub
+REST [guidance](https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api)
+states that conditional requests for unsafe methods (`POST`, `PUT`, `PATCH`, `DELETE`) are unsupported
+unless the specific endpoint documents an exception. The
+[milestone-update endpoint](https://docs.github.com/en/rest/issues/milestones#update-a-milestone)
+documents only the ordinary PATCH parameters and a `200` response, with no conditional header or
+conflict/precondition response. Therefore `--expect-file` is a best-effort stale-read preflight: it can
+refuse a value already stale at GET time, but the following PATCH is unconditional and can overwrite a
+write landing between the two calls. The stub suite reproduces that race and pins the overwrite as the
+honest residual. A server-enforced precondition was considered first and is unavailable on this carrier;
+no local second read or lock can make the remote write atomic.
 
 ### The alternative that was put FIRST and is not a compromise: do not grant it
 
 `agents-configuration` stated the design — *"Creating one and closing one are both owner acts in
 the browser"*, *"one click per iteration is cheaper than reopening that door."* **Both clauses are
-STRUCK at head by this record's own decision (#375), the strike scoped to CREATION — closing is still
-a click.** *This sentence read as if that had always been true of both sites; it was not.* The first
+STRUCK at head by this record's own decision (#375), ~~the strike scoped to CREATION — closing is still
+a click.~~ **Struck 2026-09-29 (#537): close now has a reviewed route too.** *This sentence read as if that had always been true of both sites; it was not.* The first
 clause occurs **twice** in the skill — struck where it is restated alongside the second, and **left
 standing at its original site** until #387 struck it there too, so a reader following this citation
 between #375 and #387 landed on it asserted. Read both as the state this option was argued FROM, not

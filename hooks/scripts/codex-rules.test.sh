@@ -243,10 +243,9 @@ fi
 # scripts were named by no rule and the suite reported 8 passed, 0 failed.
 #
 # SCOPE IS THIS DIRECTORY, NOT THE TREE, and that is a decision rather than convenience. In this
-# repository `scripts/milestone-create.sh` is tracked, is run with `bash`, and is deliberately named
-# by no allow anywhere: the permission prompt its absence produces is what stands in for the deleted
-# rule 11 milestone verification. An arm scoped to the tree would have demanded a rule for it and
-# closed that prompt as a side effect of a drift check. WHAT THAT COSTS: a `*.sh` added outside this
+# repository's milestone routes are Python files, invoked with the already-allowlisted `python3`, and
+# deliberately need no per-file rule. An arm scoped to the tree would have demanded redundant rules
+# for them. WHAT THAT COSTS: a `*.sh` added outside this
 # directory is invisible here, and only review will see it.
 #
 # `*.sh` ONLY, because `bash` is not allowed bare while `python3` is, so a `.py` file needs no
