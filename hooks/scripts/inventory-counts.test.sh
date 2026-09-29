@@ -8185,6 +8185,7 @@ fi
 MS_SCRIPT="$ROOT/scripts/milestone-create.py"
 MS_GUARD="$ROOT/hooks/scripts/permission-guard.sh"
 MS_SKILL="$ROOT/skills/agents-configuration/SKILL.md"
+MS_WORKFLOW="$ROOT/.github/workflows/docs-test.yml"
 ms_problems=""
 ms_checked=0
 
@@ -8206,6 +8207,25 @@ for ms_route in read create update close; do
 done
 [ -r "$ROOT/scripts/milestone.test.py" ] || ms_problems="$ms_problems
     scripts/milestone.test.py is missing or unreadable; the route family has no behavioral stub-gh regression"
+
+# The suite's existence is not execution. Pin the blocking workflow's exact invocation and the
+# bytecode-suppression environment beside the family contract, so deleting either turns the inventory
+# job red instead of leaving CI green while no route behavior ran.
+if [ -r "$MS_WORKFLOW" ]; then
+  ms_checked=$((ms_checked + 1))
+  grep -qF -- 'run: python3 scripts/milestone.test.py' "$MS_WORKFLOW" || ms_problems="$ms_problems
+    docs-test.yml no longer executes the milestone route regression"
+  milestone_step="$(awk '
+    /- name: Assert milestone routes preserve their reviewed behavior/ {inside=1; next}
+    inside && /- name:/ {exit}
+    inside {print}
+  ' "$MS_WORKFLOW")"
+  grep -qF -- 'PYTHONDONTWRITEBYTECODE: "1"' <<< "$milestone_step" || ms_problems="$ms_problems
+    docs-test.yml no longer suppresses Python bytecode for the milestone regression step"
+else
+  ms_problems="$ms_problems
+    .github/workflows/docs-test.yml is missing or unreadable; milestone behavior has no blocking CI executor"
+fi
 
 # 2 · the exploitation is stated on all three surfaces, each in its own words rather than one literal
 #     copied three times — a copied sentence is one edit away from being three stale ones.
@@ -8253,8 +8273,8 @@ if [ -r "$MS_SKILL" ]; then
     the universal preload no longer declares the complete read/create/update/close route family"
 fi
 
-if [ "$ms_checked" -lt 4 ]; then
-  bad "milestone route — only $ms_checked of 4 surfaces were readable, so the agreement was NOT
+if [ "$ms_checked" -lt 5 ]; then
+  bad "milestone route — only $ms_checked of 5 surfaces were readable, so the agreement was NOT
       asserted:$ms_problems"
 elif [ -n "$ms_problems" ]; then
   bad "milestone route — a surface stopped saying what the route actually is:$ms_problems
@@ -8263,7 +8283,7 @@ elif [ -n "$ms_problems" ]; then
       'scripts/' is in no allow list. A surface that stops saying so hands the next reader a control
       that does not exist."
 else
-  ok "milestone routes — all four Python routes and the stub-gh regression exist; create and the universal preload preserve the open-hole framing; the guard records that nothing inspects the family (string agreement only; behavior is covered by scripts/milestone.test.py)"
+  ok "milestone routes — all four Python routes and the stub-gh regression exist; docs-test executes it with bytecode suppressed; create and the universal preload preserve the open-hole framing; the guard records that nothing inspects the family (contract agreement plus blocking behavioral execution)"
 fi
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
