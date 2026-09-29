@@ -8187,6 +8187,8 @@ MS_GUARD="$ROOT/hooks/scripts/permission-guard.sh"
 MS_SKILL="$ROOT/skills/agents-configuration/SKILL.md"
 MS_WORKFLOW="$ROOT/.github/workflows/docs-test.yml"
 MS_SETTINGS="$ROOT/.claude/settings.json"
+MS_PLANNING="$ROOT/commands/sprint-planning.md"
+MS_AUTONOMY="$ROOT/commands/autonomy.md"
 ms_problems=""
 ms_checked=0
 
@@ -8283,8 +8285,26 @@ if [ -r "$MS_SKILL" ]; then
     the universal preload no longer declares the complete read/create/update/close route family"
 fi
 
-if [ "$ms_checked" -lt 6 ]; then
-  bad "milestone route — only $ms_checked of 6 surfaces were readable, so the agreement was NOT
+if [ -r "$MS_PLANNING" ]; then
+  ms_checked=$((ms_checked + 1))
+  grep -qF -- 'step 4a and step 4b both execute' "$MS_PLANNING" || ms_problems="$ms_problems
+    commands/sprint-planning.md no longer says both milestone-write steps execute without another prompt"
+else
+  ms_problems="$ms_problems
+    commands/sprint-planning.md is missing or unreadable; its no-prompt route claim was not checked"
+fi
+
+if [ -r "$MS_AUTONOMY" ]; then
+  ms_checked=$((ms_checked + 1))
+  grep -qF -- 'creation and admission then execute without another prompt' "$MS_AUTONOMY" || ms_problems="$ms_problems
+    commands/autonomy.md no longer says creation and admission execute without another prompt"
+else
+  ms_problems="$ms_problems
+    commands/autonomy.md is missing or unreadable; its no-prompt route claim was not checked"
+fi
+
+if [ "$ms_checked" -lt 8 ]; then
+  bad "milestone route — only $ms_checked of 8 surfaces were readable, so the agreement was NOT
       asserted:$ms_problems"
 elif [ -n "$ms_problems" ]; then
   bad "milestone route — a surface stopped saying what the route actually is:$ms_problems

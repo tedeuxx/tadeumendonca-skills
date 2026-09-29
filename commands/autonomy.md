@@ -592,9 +592,12 @@ the resulting writes through the reviewed milestone routes. Confirmation is the 
 write is not a second owner act.**
 ~~every milestone write is the owner answering a `permission-guard.sh` prompt (rule 10 for an
 admission, rule 11 for creating the iteration).~~ **Struck 2026-09-04 (#383): both rules are deleted.
-An admission is now a silent allowlisted write, and creating the iteration prompts only because
+~~An admission is now a silent allowlisted write, and creating the iteration prompts only because
 `scripts/` is in no allow list — an absence rather than a control. The rule that composition is his
-did not change; the mechanism did, and there is none.**
+did not change; the mechanism did, and there is none.~~ **Struck 2026-09-29 (#537, round 4): the owner
+confirms the composition; creation and admission then execute without another prompt through the
+already-allowlisted reviewed routes. The ownership rule remains procedural, while review plus the
+blocking behavioral regression carry the unguarded route contract.**
 
 **Nothing fires it either**, for the reason stated one paragraph up: no layer here reads the queue. Read
 this as the drain naming where it hands off, never as a chain that runs itself.

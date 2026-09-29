@@ -4735,11 +4735,14 @@ predicate — goes to `docs/planning/<iteration>.md`, **never into the activatio
 precedes the placement prompts and does not replace them.~~
 
 **STRUCK 2026-09-04 (#383) — rules 10 and 11 are DELETED, so there are no placement prompts left for
-the confirmation to precede.** The sentence describes the confirmation as one of two independent
+the confirmation to precede.** ~~The sentence describes the confirmation as one of two independent
 controls when it is now the **only** one: step 4b's per-item admissions fire no prompt at all, and step
 4a's surviving prompt on the milestone script is an **absence** from every allow list rather than a
 control. That is the same arithmetic-that-no-longer-works this slice already struck one page up, in
-*"Why the dispatch cannot leak the composition"*.
+*"Why the dispatch cannot leak the composition"*.~~ **Struck 2026-09-29 (#537, round 4): the
+confirmation remains the only ownership carrier, while step 4a and step 4b both execute without a
+prompt through their already-allowlisted routes. Review plus the blocking behavioral regression carry
+the unguarded route contract under the accepted non-critical pricing.**
 
 **What survives, and it is what the sentence was written to protect:** *a confirmation is not an
 authorisation to place* — now carried by the confirmation alone, because there is no second control for

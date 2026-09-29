@@ -496,8 +496,11 @@ without him.~~
 **STRUCK 2026-09-04 (#383), and this is the strike with the most operational consequence in the rite.**
 Rules 10 and 11 are deleted. **The confirmation is now the ONLY thing standing between this rite and N
 milestone writes** — the per-item prompts it was explicitly described as *not replacing* do not exist,
-so it replaces them by default rather than by design. Step 4a still prompts (the milestone script is in
-no allow list — an absence, not a control); step 4b's per-item admissions are silent. **Read "a
+so it replaces them by default rather than by design. ~~Step 4a still prompts (the milestone script is
+in no allow list — an absence, not a control); step 4b's per-item admissions are silent.~~ **Struck
+2026-09-29 (#537, round 4): after the owner confirms the composition, step 4a and step 4b both execute
+without another prompt through their existing allowlisted routes. Review plus the blocking behavioral
+regression carry the unguarded route contract under the accepted non-critical pricing. Read "a
 confirmation is not an authorisation to place" as the rule it always was and as the only remaining
 carrier of it: there is no second control to be independent of.**
 
