@@ -108,6 +108,14 @@
 # trade — a merge deferred costs a retry, a merge admitted costs the whole control — and the deny says
 # which precondition was missing so the human can see what to fix.
 #
+# A SECOND, NARROWER FAIL-CLOSED BRANCH SINCE #536, AND IT IS NOT A SECOND RULE. The quote scanner
+# that builds `$bare` runs on perl; a command that carries a quote, judged on a host with no perl (or
+# whose perl exits non-zero), is DENIED rather than read through a guess. The criterion is the same
+# one as 7c's, applied to a different dependency: without the scanner the guard cannot tell a MESSAGE
+# from a COMMAND, and the regex it replaced is exactly the guess that hid a trunk push. It cannot wedge
+# the agent the way the paragraph below warns about, because a command with no quote never reaches
+# perl — so the repair (`brew install perl`) is judged normally. See the scanner's own block.
+#
 # AND ONE THING IT DOES NOT BUY: a missing `jq` still disables this ENTIRE file at line ~114 below,
 # before any rule runs, so 7c's own `jq` branch cannot fire. That is a different failure with a wider
 # blast radius, explicitly out of #341's scope, and it is unfixed. See rule 7c's own comment.
@@ -240,6 +248,18 @@ fi
 
 set -euo pipefail
 
+# #536: which VIEW this worker reads quoted spans with. The first pass (no argument, the only form the
+# host can start) reads them with the quote scanner. `--legacy-view` is passed ONLY by this file's own
+# EXIT trap (see "THE LEGACY PASS" beside `$bare`), which re-runs the worker on the pre-#536 regex
+# views when the first pass decided nothing and the two views disagree. No command string reaches an
+# argument of this process, and the host's `hooks.json` command carries none.
+pg_legacy=0; [ "${1:-}" = --legacy-view ] && pg_legacy=1
+# `--heredoc-view` (#536 round 3) is the same kind of internal pass: the EXIT trap passes it when the
+# first pass decided nothing and the command opens a heredoc. See "THE HEREDOC-AS-SHELL PASS" beside
+# `$bare`. Same property as above: no command string can reach it.
+pg_hview=0; [ "${1:-}" = --heredoc-view ] && pg_hview=1
+pg_decided=0; pg_legacy_differs=0; pg_hd_differs=0
+
 input="$(cat 2>/dev/null || true)"
 
 # Suite-only: see "THE TWO ENVIRONMENT KNOBS" above. Under the supervisor a stall is only ever turned
@@ -322,6 +342,7 @@ agent_type="$(printf '%s' "$input" | jq -r '.agent_type // empty' 2>/dev/null ||
 # of the `developer_may` probe — it can still fail, where a probe for a deleted variable could not.
 
 deny() {
+  pg_decided=1
   jq -n --arg r "$1" '{
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
@@ -333,6 +354,7 @@ deny() {
 }
 
 ask() {
+  pg_decided=1
   jq -n --arg r "$1" '{
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
@@ -664,6 +686,10 @@ unwrap_scan="$cmd"
 # the original does not contain the unwrapped payloads — so without this list a `bash -c '<push>'`
 # would be invisible to the classifier. Collecting is additive: nothing here changes `$cmd`.
 unwrap_all=""
+# #536: the same payloads again, one ARRAY element each, for the quote scanner that builds `$bare` and
+# 3b's view. Each payload is scanned as its own command, so a quote in one cannot pair with a quote in
+# the next, which the joined string above could not promise.
+unwrap_list=()
 # ~~#497: each unwrapped payload is ALSO kept on its own, for rule 8's substitution scanner.~~ ~~#497
 # round 2: the views are cut from a PARALLEL copy of the same text with every backslash-NEWLINE
 # removed first~~ — STRUCK (#497 round 3). Both forms cut the views out of the FLATTENED text, where
@@ -701,6 +727,7 @@ for _ in 1 2 3; do
   [ -z "$unwrap_payload" ] && break
   cmd="$cmd $unwrap_payload"
   unwrap_all="$unwrap_all ; $unwrap_payload"
+  unwrap_list+=("$unwrap_payload")
   unwrap_scan="$unwrap_payload"
 done
 
@@ -720,9 +747,13 @@ done
 #                                                    ^^^^^^^^^^^^ read as substitution → denied
 #
 # `([^"\\]|\\.)*` consumes any escaped character as one unit, so the span ends at the real
-# closing quote. Same for single quotes, kept symmetric even though POSIX shells do not honour
+# closing quote. ~~Same for single quotes, kept symmetric even though POSIX shells do not honour
 # escapes inside them — the input here is a command STRING, not a parsed shell word, and a
-# rule that treats the two quote styles differently is one nobody will remember correctly.
+# rule that treats the two quote styles differently is one nobody will remember correctly.~~
+# STRUCK (#536): the symmetry was one of the two ways the regex pair hid acts. `'C:\' && git push
+# origin main && echo 'y z'` is, to the shell, a closed `'C:\'` followed by a trunk push; the
+# escape-aware single-quote regex read `\'` as an escaped quote and ran the span to the NEXT quote,
+# swallowing the push. The other way is below.
 #
 # The issue's stated fear was that fixing a false positive here would buy a false NEGATIVE in
 # the rule protecting the matcher. Three cases pin that it does not, and all three are asserted
@@ -731,7 +762,448 @@ done
 #   · an UNBALANCED quote matches nothing, so the operator stays exposed — it fails CLOSED,
 #     which is the only safe direction for a deny-only rule;
 #   · an escaped quote INSIDE a span no longer truncates it.
-bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g')"
+#
+# ── #536: THE TWO REGEXES ARE REPLACED BY ONE LEFT-TO-RIGHT QUOTE SCANNER ─────────────────────────────
+# ~~bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g')"~~
+# That line ran the single-quote regex over the WHOLE string first and the double-quote regex second,
+# so neither knew what the other had already opened. A literal apostrophe the shell never reads as a
+# quote — inside `"…"`, after a `\`, in a `#` comment, in a heredoc body — was paired with the NEXT
+# real quote, and everything between collapsed to `''`. Measured at 0ea8aad6 and 4bfbfe19, both
+# callers, NO DECISION from this hook:
+#     git commit -m "it's" && git push origin main && echo 'ok go'        (the trunk, rule 7)
+#     echo "it's"; git push origin +feat/x; echo 'a b'                    (a force, rule 3b)
+#     printf "%s" "don't"; git push origin :main; echo 'x y'             (deletes the trunk)
+#     … and the same shape carrying `gh pr merge`, `gh secret set`, a `gh api` write, `gh issue create`
+# Every rule reading `$bare` was blind to all of them: 4b, 4c, 5b, 5c/5d/5e, 5f, 5g, 7, 7b/7c, 8, 8b.
+#
+# WHAT THE SCANNER DOES, per character, in one pass:
+#   · unquoted `\x` is one unit — `x` opens nothing (`it\'s`, `\"`);
+#   · `'…'` runs to the next `'` with NO escapes, as in every POSIX shell;
+#   · `"…"` and `$"…"` run to the next unescaped `"`; `$'…'` to the next unescaped `'`;
+#   · a `#` at a word start opens a COMMENT to the end of the line;
+#   · `<<`/`<<-` (never `<<<`) queues a heredoc whose delimiter is the next shell word with its quotes
+#     removed; the body starts at the next unquoted newline and runs up to the line equal to the
+#     delimiter (leading tabs stripped for `<<-`), and that terminator line is emitted as it is.
+#     Quote removal is the SHELL's (#536 round 2): a `$` directly before a quote is dropped and a
+#     `$'…'` delimiter has its ANSI-C escapes translated, so `<<$'EOF'` and `<<$"EOF"` end at `EOF`
+#     and `<<$'E\x41'` at `EA` — measured with /bin/bash 3.2.57 and /bin/zsh, which agree on all
+#     three except `<<$"EOF"`, where zsh keeps the body to the end (so nothing after it runs there);
+#   · `<<` inside an ARITHMETIC context is a shift, never an opener: `((…))` whose two closers are
+#     ADJACENT, and `$[…]`, each matched on its own line. `((cat <<EOF) )` is not arithmetic — zsh
+#     runs it as a subshell holding a real heredoc — and its closers are not adjacent;
+#   · a heredoc whose terminator line NEVER ARRIVES is not a region: the scan returns to the body's
+#     first line and reads the rest with the shell's rules. bash treats such a body as data to the end
+#     (with a warning), so this can only over-block that case; where the scanner opened a heredoc bash
+#     did not, it is exactly what bash does.
+# Each closed span becomes `''`, `""`, `$''` or `$""` — exactly what the two regexes produced — so a rule
+# downstream sees the same shapes it always saw, only paired correctly.
+#
+# COMMENTS AND HEREDOC BODIES STAY VISIBLE, AND THEIR QUOTES PAIR ONLY INSIDE THEM. A scanner that
+# followed the shell all the way would DROP both — they are not commands to the shell — and `bash <<EOF`
+# + a trunk push + `EOF` would then be read as nothing. So neither is dropped. Each is a REGION of its
+# own, collapsed by the PRE-#536 rule — the two regexes, single quotes first, each escape-aware — run
+# over that region ALONE. So inside a comment or a body nothing changed from the regex pair except the
+# one thing that hid acts: a quote there can no longer pair with a quote AFTER it, so the command after
+# a comment or a heredoc is always read as the shell reads it.
+#   WHY THE OLD RULE INSIDE, NOT THE SHELL'S: a body is data for whatever reads it — `python3 -`, `node`,
+#   `jq` — and those are escape-aware in single quotes, as the regex was and the shell is not.
+#   ~~a comment is emitted VERBATIM … the body … is emitted VERBATIM~~ — the first form of this scanner,
+#   struck before it shipped, on the corpus: with every quote in a body left open, 294 commands per
+#   caller went ALLOW -> DENY, almost all `python3 - <<'PY'` edits whose string literals hold a `>` or a
+#   `$(`. A second form scanned a region with the SHELL's quote grammar and still turned 15 per caller,
+#   because python's `r'…\'…'` and `"""…"""` align differently under it. The regex pair inside a region
+#   is what those bodies were always read with.
+#
+# UNBALANCED INPUT FAILS CLOSED, as before. A quote with no closer is emitted as one literal character
+# and the scan goes on unquoted after it, so everything following it stays visible — the same direction
+# the regex took when it matched nothing. It stays LINEAR while doing so: once a span of one kind has
+# run to the end unclosed, no later opener of that kind can close either (every later opener sits on a
+# boundary the failed scan also crossed), so the scanner remembers the failure per kind and never
+# re-reads the tail. The failure memory is per REGION, so it cannot leak out of a comment or a body,
+# and the same holds for the escape-aware single quotes a region is collapsed with.
+# ~~A heredoc delimiter is read from at most 256 characters; a longer one never matches its terminator,
+# so its body runs to the end, scanned as one region.~~ STRUCK (#536 round 2): that was an A1
+# REOPENING, not a bound — bash accepts a 300-character delimiter and runs the line after it, which the
+# scanner then read as body. The delimiter word is now read with possessive quantifiers and no cap,
+# the terminator is found through a per-command line index (so a pending heredoc never walks lines it
+# cannot close), and the arithmetic check is a per-line paren/bracket table: all three stay linear.
+#
+# WHY A DESYNCED OPENER MATTERED, because the fix is shaped by it. Every heredoc the scanner opens and
+# bash does not — or opens with a terminator bash does not use — turns the lines bash EXECUTES into a
+# region, and a region is collapsed with the pre-#536 regex pair: A1 itself. The round-2 lens found
+# three triggers (`$`-quoted delimiters, a delimiter over 256 characters, an arithmetic shift), each
+# ALLOW for a trunk push, a merge and a secret set placed after it, at c0d33be9 and at 88fc667c.
+# ~~RESIDUALS, each pinned in the suite or named here:~~ — each is now a residual of the SCANNER only,
+# not of the guard: the heredoc-as-shell pass (below, beside `$bare`) re-reads every body as shell
+# whenever the first pass allows, so none of them reaches an ALLOW. They stay listed because the first
+# pass still reads them this way, and the suite's round-3 calibration shows they reopen if that pass
+# is removed:
+#   · A1 written wholly INSIDE a heredoc body fed to a shell (pre-existing; `#536 RESIDUAL`, now DENY);
+#   · an arithmetic expression SPANNING A NEWLINE — the check is per line — whose shift operand later
+#     stands alone on a line: the lines between are a body (`#536 r2 RESIDUAL`, now DENY);
+#   · a delimiter spelled with an escape the translation does not cover (`\u`, `\U`, `\c` — bash 3.2
+#     has none of them, zsh has `\u` and `\U`, measured: `\U00000041` reopens on zsh): the scanner
+#     waits on the untranslated spelling, finds no such line, and re-reads the rest as shell — it
+#     reopens only if a later line equals that exact spelling. bash 4.2 and later LIKELY has all three
+#     (`\u`, `\U`, `\c`), so on a Linux or Homebrew bash this reaches bash as well — UNMEASURED: this
+#     host has no bash newer than 3.2;
+#   · round 3's three triggers, found by the desync sweep: `<<` inside `${…}` (B1), inside an array
+#     subscript (B2), and a one-line `((…))` holding a quoted paren (B3). bash reads the `<<` as text in
+#     all three and the scanner queued a heredoc. They are NOT fixed in the scanner, deliberately: a
+#     fourth context would be the same defect again, so the class is closed one layer up instead.
+#
+# 3b's push view reads the same scanner in its `pv` mode, which adds that view's own word-only unquoting
+# and `eval` handling — see there.
+#
+# WHY perl, AND WHAT HAPPENS WITHOUT IT. The scanner is a state machine and bash has no linear way to
+# run one: a per-character bash loop over a 60 KB command is the latency class #534 spent four lens
+# rounds removing, and sed has no memory of what it opened. perl's `\G` matching walks the string once.
+# perl is not new to this repository (the suite uses it), but it IS new to the guard, so its absence is
+# stated and tested rather than assumed:
+#   · a command carrying NO quote character never reaches perl — without a quote the scanner is the
+#     identity, so `$bare` is `$cmd` and the guard behaves exactly as before, perl or not;
+#   · a command carrying a quote, on a host with no perl on PATH, is DENIED with a reason naming perl.
+#     That is fail CLOSED, deliberately and unlike this file's general posture: without the scanner the
+#     guard cannot tell a message from a command, and guessing is the defect this block removes. It
+#     cannot wedge the agent, because the repair (`brew install perl`, `apt-get install perl`) carries
+#     no quote and is judged normally;
+#   · perl exiting non-zero is the same DENY.
+# The suite's "#536 missing perl" rows run the guard on a PATH with every executable except perl.
+# shellcheck disable=SC2016 # the perl program is a literal and must not expand
+qscan_pl='no warnings;
+my $mode = defined $ARGV[0] ? $ARGV[0] : "bare";
+my $pv = ($mode eq "pv") ? 1 : 0;
+my $nohd = (defined $ARGV[1] && $ARGV[1] eq "1") ? 1 : 0;
+binmode STDIN; binmode STDOUT;
+my $all; { local $/; $all = <STDIN>; }
+$all = "" unless defined $all;
+my @items = split /\x00/, $all, -1;
+pop @items if @items > 1 && $items[-1] eq "";
+my $Q = "\x27";
+my $MK = "\x1f";
+my %ansi = (a => "\a", b => "\b", e => "\e", E => "\e", f => "\f", n => "\n", r => "\r", t => "\t",
+             v => "\x0b", "\\" => "\\", $Q => $Q, "\"" => "\"", "?" => "?");
+sub ansi_c {
+  my $x = shift;
+  $x =~ s/\\(?:x([0-9A-Fa-f]{1,2})|([0-7]{1,3})|(.))/defined $1 ? chr(hex $1) : defined $2 ? chr(oct($2) & 255) : exists $ansi{$3} ? $ansi{$3} : "\\" . $3/gse;
+  return $x;
+}
+sub dequote {
+  my $w = shift; my $r = "";
+  while ($w =~ /\G(?:\$\x27((?:[^\x27\\]|\\.)*)\x27|\$?\x27([^\x27]*)\x27|\$?"((?:[^"\\]|\\.)*)"|\\(.)|(.))/gcs) {
+    if (defined $1) { $r .= ansi_c($1); }
+    elsif (defined $2) { $r .= $2; }
+    elsif (defined $3) { my $x = $3; $x =~ s/\\([\$`"\\\n])/$1/g; $r .= $x; }
+    elsif (defined $4) { $r .= $4; }
+    else { $r .= $5; }
+  }
+  return $r;
+}
+sub after_eval {
+  my $k = length $_[0]; my $j = $k;
+  while ($j > 0) { my $ch = substr($_[0], $j - 1, 1); last unless $ch eq " " || $ch eq "\t"; $j--; }
+  return 0 if $j == $k || $j < 4 || substr($_[0], $j - 4, 4) ne "eval";
+  return 1 if $j == 4;
+  return substr($_[0], $j - 5, 1) =~ /[A-Za-z0-9_]/ ? 0 : 1;
+}
+sub legacy_one {
+  my ($t, $q) = @_;
+  my $o = ""; my $fail = 0; my $n = length $t;
+  my $run = ($q eq $Q) ? qr/\G([^\x27]+)/ : qr/\G([^"]+)/;
+  my $sp = ($q eq $Q) ? qr/\G\x27(?:[^\x27\\]++|\\.)*+\x27/s : qr/\G"(?:[^"\\]++|\\.)*+"/s;
+  pos($t) = 0;
+  while (pos($t) < $n) {
+    if ($t =~ /$run/gc) { $o .= $1; next; }
+    my $p = pos($t);
+    if (!$fail) { if ($t =~ /$sp/gc) { $o .= $q . $q; next; } $fail = 1; }
+    $o .= $q; pos($t) = $p + 1;
+  }
+  return $o;
+}
+sub region { return legacy_one(legacy_one($_[0], $Q), "\""); }
+sub scan {
+  my ($s, $depth) = @_;
+  my $out = ""; my $n = length $s;
+  my ($fs, $fd, $fa) = (0, 0, 0);
+  my @pend; my $pi = 0; my $prev = "\n";
+  my $span = sub {
+    my ($dollar, $body, $q) = @_;
+    return $dollar . $q . $q unless $pv;
+    return $MK . $body if $body =~ /\A[A-Za-z0-9._\/\@:+=~^%,*-]*\z/;
+    if ($dollar eq "" && after_eval($out)) {
+      return $MK . " " . ($depth < 4 ? scan($body, $depth + 1) : $body);
+    }
+    return $dollar . $q . $q;
+  };
+  my $plain = qr/\G([^\x27"\\\$#<\n(]+)/;
+  my ($ls, $le, $aend) = (-1, -1, -1);
+  my (%pm, %bm);
+  my $mline = sub {
+    my $p = shift;
+    return if $p >= $ls && $p < $le;
+    my $e = index($s, "\n", $p); $e = $n if $e < 0;
+    my $bg = rindex($s, "\n", $p); $bg = ($bg < 0) ? 0 : $bg + 1;
+    ($ls, $le) = ($bg, $e); %pm = (); %bm = ();
+    my (@ps, @bs);
+    my $ln = substr($s, $bg, $e - $bg);
+    while ($ln =~ /([()\[\]])/g) {
+      my ($ch, $at) = ($1, $bg + pos($ln) - 1);
+      if ($ch eq "(") { push @ps, $at; }
+      elsif ($ch eq ")") { $pm{pop @ps} = $at if @ps; }
+      elsif ($ch eq "[") { push @bs, $at; }
+      else { $bm{pop @bs} = $at if @bs; }
+    }
+  };
+  my (%li, %lt, %ptr); my $indexed = 0;
+  my $term = sub {
+    my ($d, $dash, $from) = @_;
+    if (!$indexed) {
+      $indexed = 1; my $at = 0;
+      for my $l (split /\n/, $s, -1) {
+        push @{$li{$l}}, $at;
+        my $t = $l; $t =~ s/\A\t+//; push @{$lt{$t}}, $at;
+        $at += length($l) + 1;
+      }
+    }
+    my $L = ($dash ? $lt{$d} : $li{$d}) or return -1;
+    my $k = ($dash ? "t" : "l") . "\x00" . $d;
+    my $i = $ptr{$k} || 0;
+    $i++ while $i < @$L && $L->[$i] < $from;
+    $ptr{$k} = $i;
+    return ($i < @$L && $L->[$i] < $n) ? $L->[$i] : -1;
+  };
+  pos($s) = 0;
+  while (pos($s) < $n) {
+    if ($s =~ /$plain/gc) { $out .= $1; $prev = substr($1, -1); next; }
+    my $p = pos($s);
+    my $c = substr($s, $p, 1);
+    if ($c eq "\\") {
+      if (substr($s, $p + 1, 1) eq "\n") { $out .= "\\\n"; pos($s) = $p + 2; next; }
+      if ($p + 1 < $n) { $out .= substr($s, $p, 2); pos($s) = $p + 2; $prev = "a"; next; }
+      $out .= "\\"; pos($s) = $p + 1; $prev = "a"; next;
+    }
+    if ($c eq "\$") {
+      my $nx = substr($s, $p + 1, 1);
+      if ($nx eq $Q) {
+        if (!$fa) {
+          if ($s =~ /\G\$\x27((?:[^\x27\\]++|\\.)*+)\x27/gcs) { $out .= $span->("\$", $1, $Q); $prev = $Q; next; }
+          $fa = 1;
+        }
+        $out .= "\$" . $Q; pos($s) = $p + 2; $prev = $Q; next;
+      }
+      if ($nx eq "\"") {
+        if (!$fd) {
+          if ($s =~ /\G\$"((?:[^"\\]++|\\.)*+)"/gcs) { $out .= $span->("\$", $1, "\""); $prev = "\""; next; }
+          $fd = 1;
+        }
+        $out .= "\$\""; pos($s) = $p + 2; $prev = "\""; next;
+      }
+      if ($nx eq "[" && $p >= $aend) {
+        $mline->($p);
+        my $m = $bm{$p + 1};
+        $aend = $m + 1 if defined $m;
+      }
+      $out .= "\$"; pos($s) = $p + 1; $prev = "\$"; next;
+    }
+    if ($c eq "(") {
+      if ($p >= $aend && substr($s, $p + 1, 1) eq "(") {
+        $mline->($p);
+        my ($m, $m2) = ($pm{$p}, $pm{$p + 1});
+        $aend = $m + 1 if defined $m && defined $m2 && $m2 == $m - 1;
+      }
+      $out .= "("; pos($s) = $p + 1; $prev = "("; next;
+    }
+    if ($c eq $Q) {
+      if (!$fs) {
+        if ($s =~ /\G\x27([^\x27]*+)\x27/gc) { $out .= $span->("", $1, $Q); $prev = $Q; next; }
+        $fs = 1;
+      }
+      $out .= $Q; pos($s) = $p + 1; $prev = $Q; next;
+    }
+    if ($c eq "\"") {
+      if (!$fd) {
+        if ($s =~ /\G"((?:[^"\\]++|\\.)*+)"/gcs) { $out .= $span->("", $1, "\""); $prev = "\""; next; }
+        $fd = 1;
+      }
+      $out .= "\""; pos($s) = $p + 1; $prev = "\""; next;
+    }
+    if ($c eq "#") {
+      if ($prev =~ /[ \t\n;&|()<>]/) { $s =~ /\G([^\n]*)/gc; $out .= region($1); $prev = "a"; next; }
+      $out .= "#"; pos($s) = $p + 1; $prev = "#"; next;
+    }
+    if ($c eq "<") {
+      if (substr($s, $p, 3) eq "<<<") { $out .= "<<<"; pos($s) = $p + 3; $prev = "<"; next; }
+      if ($nohd && substr($s, $p, 2) eq "<<") { $out .= "<<"; pos($s) = $p + 2; $prev = "<"; next; }
+      if ($p < $aend && substr($s, $p, 2) eq "<<") { $out .= "<<"; pos($s) = $p + 2; $prev = "<"; next; }
+      if ($s =~ /\G(<<(-?)[ \t]*)/gc) {
+        my ($lead, $dash) = ($1, $2);
+        my $q0 = pos($s);
+        if ($s =~ /\G((?:\$\x27(?:[^\x27\\]++|\\.)*+\x27|\$?\x27[^\x27]*+\x27|\$?"(?:[^"\\]++|\\.)*+"|\\.|[^\s;&|<>()\x27"\\])++)/gcs) {
+          push @pend, [dequote($1), ($dash eq "-") ? 1 : 0];
+        }
+        pos($s) = $q0;
+        $out .= $lead; $prev = "<"; next;
+      }
+      $out .= "<"; pos($s) = $p + 1; $prev = "<"; next;
+    }
+    if ($c eq "\n") {
+      $out .= "\n"; pos($s) = $p + 1; $prev = "\n";
+      while ($pi < @pend && pos($s) < $n) {
+        my $from = pos($s);
+        my $t = $term->($pend[$pi][0], $pend[$pi][1], $from);
+        if ($t < 0) { @pend = (); $pi = 0; last; }
+        my $body = substr($s, $from, $t - $from);
+        pos($s) = $t;
+        $s =~ /\G([^\n]*)(\n?)/gc;
+        $out .= region($body) . $1 . $2;
+        $pi++;
+      }
+      if ($pi >= @pend) { @pend = (); $pi = 0; }
+      next;
+    }
+    $out .= $c; pos($s) = $p + 1; $prev = $c;
+  }
+  return $out;
+}
+my @res = map { scan($_, 0) } @items;
+if ($pv) {
+  for my $r (@res) { $r =~ tr/\t/ /; $r =~ s/\\\n/ /g; $r =~ tr/\n/;/; }
+  my $o = shift @res;
+  $o = "" unless defined $o;
+  $o .= " ; " . join("", map { " ; " . $_ } @res) if @res;
+  print $o;
+} else {
+  for my $r (@res) { $r =~ tr/\n\t/  /; }
+  print join(" ", @res);
+}
+exit 0;'
+qscan() { # MODE (bare|pv) [NOHD] — NUL-separated items on stdin: the command, then each `-c` payload
+  LC_ALL=C perl -e "$qscan_pl" "$1" "${2:-$pg_hview}"
+}
+qscan_items() {
+  printf '%s\0' "$command"
+  for qs_p in ${unwrap_list[@]+"${unwrap_list[@]}"}; do printf '%s\0' "$qs_p"; done
+}
+qscan_unavailable="Blocked: this command contains a quote, and the permission guard reads quoted spans with perl, which is not on PATH for hooks (or exited with an error) — so this command was NOT judged, and a command the floor cannot read is refused rather than let through (#536). Use instead: install perl (a command with no quote in it is judged without perl), or run the command without quote characters."
+# ── THE LEGACY PASS — WHY "NO DENY BECOMES AN ALLOW" IS A CONSTRUCTION HERE, NOT A MEASUREMENT ──────
+# The scanner reads quotes correctly, and reading them correctly REMOVES some denials as well as adding
+# others: the regex pair also mis-paired in the other direction, exposing text the shell reads inside
+# a quote, and a rule then denied on that text. Measured 2026-09-27 over this machine's transcript
+# corpus (44,227 distinct commands, both callers — the command is in #536's PR): the second pass below
+# is what denies TWELVE of them per caller, every one a quoted MENTION of an act or a redirect inside a
+# pattern (`echo "=== … gh pr merge … ==="`, `grep -cE '^> '` after an apostrophe). Without it those
+# twelve go DENY -> ALLOW. Each is an over-block, but #536's bar is that no DENY becomes an ALLOW, and
+# an over-block removed is a decision the Issue did not take.
+#
+# So a first pass that decides NOTHING, on a command whose two views differ, is followed by a second
+# pass of this same file on the pre-#536 views (`--legacy-view`), and that pass's answer is the answer.
+# The second pass runs every rule of this file on the two pre-#536 views, and the views are the only
+# thing this slice changed that any rule reads — so its answer is the 88fc667c guard's answer. A
+# command the old guard denied is therefore denied here by the first pass or by the second, and the
+# corpus comparison can only confirm that, never discover the opposite. What it costs:
+#   · the over-blocks the regex pair produced are KEPT — removing one is its own decision, now visible
+#     as a single line (the second pass) rather than spread across every rule;
+#   · a second run of the rules, only when the first pass allowed AND the views differ — 882 of the
+#     corpus's 30,747 quoted commands (2.9%; 2.0% of all 44,227), measured 2026-09-27 — and the time
+#     budget above bounds both passes together, because the second is a child of the first (where
+#     `pgrep` exists; see the header: without it the budget does not bound a child, and the round-2
+#     lens measured a 40,000-deep `a(` shape past the host's 5 s hook timeout on that path). What the
+#     double pass costs at extreme depth is an OVER-BLOCK, stated: a 30,000-deep `a(` before
+#     `"it's" 'y z'` is a budget DENY at 3.04 s on macOS, where 88fc667c allowed it in 2.16 s;
+#     20,000-deep is ALLOW at 2.94 s (measured 2026-09-27 on macOS, supervised, pgrep present). In
+#     ubuntu:24.04 (LANG=C.UTF-8, 2026-09-29) the same two are ALLOW at 1.57 s and 2.31 s, so this
+#     depth cliff is a macOS figure;
+#   · the second pass reads the OLD views, so on its own it is blind to A1 — which is why it can only
+#     ever ADD a denial to a first pass that allowed, and never runs when the first pass denied.
+#
+# A PRE-EXISTING QUADRATIC COST, NAMED HERE BECAUSE THIS FUNCTION IS WHERE IT LIVES (and in
+# `pv_legacy_view`, which runs the same pair). Under GNU sed with a UTF-8 locale — every GitHub ubuntu
+# runner, and most Linux hosts — the pair below is QUADRATIC on an unclosed `"` followed by many `\"`:
+# each `"` starts a match that runs to the end of the string and fails. Measured 2026-09-29 in
+# ubuntu:24.04 (bash 5.2.21, GNU sed 4.9), LANG=C.UTF-8, worker path: 5,000 pairs 0.39 s, 10,000 1.44 s,
+# 15,000 3.14 s, 20,000 5.92 s; supervised, 20,000 is a BUDGET DENY at 3.01 s. Under LC_ALL=C all four
+# stay under 0.1 s, and on macOS (BSD sed, UTF-8) 20,000 takes 0.22 s. 88fc667c's guard, which ran this
+# pair as its only view, is equally slow on the same host (1.39 s at 10,000; budget DENY at 20,000), so
+# #536 did not add it. It errs toward OVER-BLOCKING: a budget DENY, never an ALLOW. It is left as it is
+# on purpose: the legacy pass guarantees zero DENY -> ALLOW only while this output stays byte-identical
+# to the pre-#536 view, and changing the pair — even to pin a locale — is its own decision.
+bare_legacy_view() {
+  printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g'
+}
+# ── THE HEREDOC-AS-SHELL PASS (#536 round 3) — CLOSING THE CLASS, NOT LISTING ITS MEMBERS ─────────────
+# Every heredoc the scanner opens and bash does not turns the lines bash EXECUTES into a region, and a
+# region is collapsed with the pre-#536 regex pair: A1. Round 2 closed three such triggers in the
+# scanner; the round-3 desync sweep found three more (`<<` inside `${…}`, inside an array subscript,
+# and a one-line `((…))` holding a quoted paren), all ALLOW for a trunk push, a merge and a secret set
+# at 4c632c6b and at 88fc667c. A fourth trigger would be the same defect again, and bash's contexts
+# that lex `<<` as text have not been enumerated — so the scanner is not taught a fourth exception.
+#
+# INSTEAD: when the first pass decides NOTHING on a quoted command that opens a heredoc, and ignoring
+# every heredoc opener changes `$bare`, this file runs once more with `--heredoc-view`. In that pass the
+# scanner opens NO heredoc at all — each body is read as the shell text it would be without the opener,
+# quotes paired by the shell's grammar, comments and `-c` payloads exactly as before — and every rule
+# reads that view. A DENY there is the answer, with a note saying which view refused. A heredoc the
+# scanner invents can then hide nothing, whatever the context that fooled it, because this view never
+# opens one. It also closes the three named scanner residuals above, measured by the round-2 and
+# round-3 sweeps (both suites' calibrations plant this pass out and watch them reopen).
+#
+# THE CONVENIENCE RULES DO NOT RUN IN THAT PASS (`PERMISSION_GUARD_CONVENIENCE_RULES=off`). They exist
+# to turn a host prompt into an instruction, and a body line with `x > 2` in it is data to `python3 -`:
+# denying it would be an over-block with no floor behind it. Only floor rules refuse there.
+#
+# WHAT IT COSTS — measured, not argued; the corpus command and every changed row are in #536's PR:
+#   · an OVER-BLOCK, stated: a REAL heredoc read by a data reader (`cat`, `python3 -`, `jq`) whose body
+#     holds a floor act that the region's regex pair hid and the shell's pairing does not is refused
+#     now. The suite pins one such row as "#536 r3 COST". Over this machine's transcript corpus
+#     (45,249 distinct commands, both callers, 2026-09-27) it turned SIX commands per caller from
+#     ALLOW to DENY against 4c632c6b, and nothing the other way. All six are `python3 - <<'PY'` edits
+#     whose string literals hold a backtick or `$(`: read as shell, a python apostrophe stops pairing
+#     and rule 8's substitution branch sees it — the over-block class `#497 kept` already pins;
+#   · a third run of the rules, only when the first pass allowed AND a heredoc is present AND ignoring
+#     it changes the view — bounded by the same time budget as the other two, since it is a child of
+#     the first. It moves the budget cliff for MANY heredocs in ONE command: about 3,700 closed quoted
+#     heredocs (~110 KB; 3,500 allowed in 2.70 s, 4,000 denied at 3.03 s), where 4c632c6b still allowed
+#     5,000 (2.78 s). The largest
+#     corpus command with a heredoc is 23,756 bytes and carries five; the 25 largest took at most
+#     0.98 s, supervised. All of these are macOS figures (2026-09-27); in ubuntu:24.04 with a UTF-8
+#     locale 3,000 closed quoted heredocs are ALLOW in 1.19 s, so the cliff sits higher there.
+# It runs BEFORE the legacy pass, and a DENY from it ends the call; an ALLOW falls through to the
+# legacy pass unchanged. It can therefore only ever ADD a denial to a first pass that allowed.
+pg_hview_note=" [Read with every heredoc opener ignored: each heredoc body was judged as the shell text it would be if the opener were not a heredoc (#536 round 3). The guard's scanner can see a heredoc where bash opens none — inside a parameter expansion, an array subscript or an arithmetic expression — and would then hide the lines bash runs, so an ALLOW is re-checked this way. If this is a real heredoc whose body only MENTIONS the act, write the body to a file with the Write tool and feed the file instead.]"
+pg_exit() {
+  pg_st=$?
+  if [ "$pg_st" = 0 ] && [ "$pg_decided" = 0 ] && [ "$pg_legacy" = 0 ] && [ "$pg_hview" = 0 ]; then
+    trap - EXIT
+    if [ "$pg_hd_differs" = 1 ]; then
+      pg_hv="$(printf '%s' "$input" | PERMISSION_GUARD_CONVENIENCE_RULES=off "$BASH" "$0" --heredoc-view)" || exit $?
+      if [ -n "$pg_hv" ]; then
+        printf '%s' "$pg_hv" | jq --arg n "$pg_hview_note" '.hookSpecificOutput.permissionDecisionReason += $n'
+        exit 0
+      fi
+    fi
+    if [ "$pg_legacy_differs" = 1 ]; then
+      printf '%s' "$input" | "$BASH" "$0" --legacy-view || exit $?
+    fi
+  fi
+}
+case "$command" in
+  *\'*|*\"*)
+    if [ "$pg_legacy" = 1 ]; then
+      bare="$(bare_legacy_view)"
+    else
+      command -v perl >/dev/null 2>&1 || deny "$qscan_unavailable"
+    bare="$(qscan_items | qscan bare)" || deny "$qscan_unavailable"
+      if [ "$pg_hview" = 0 ]; then
+        [ "$bare" = "$(bare_legacy_view)" ] || pg_legacy_differs=1
+        case "$command $unwrap_all" in
+          *'<<'*) [ "$bare" = "$(qscan_items | qscan bare 1)" ] || pg_hd_differs=1 ;;
+        esac
+        trap pg_exit EXIT
+      fi
+    fi
+    ;;
+  *) bare="$cmd" ;;
+esac
 
 # ── `$bare` IS THE WRONG VIEW FOR ONE QUESTION: IS A SUBSTITUTION ACTIVE? (#497) ─────────────────────
 # `$bare` answers "is this text a MESSAGE or a COMMAND?", and for that question collapsing a double-
@@ -2567,7 +3039,8 @@ fi
 #     reached the grammar at all (see the round-2 block below, and the residual it lists). And
 #     NARROWED AGAIN at round 3: not even of every argument spelling — only of arguments the view
 #     actually delivers to the grammar. A brace expansion was cut out of the push before the grammar
-#     ran (A2, closed at round 3), and a quote mis-pairing collapses the whole push away (A1, OPEN):
+#     ran (A2, closed at round 3), and a quote mis-pairing collapses the whole push away (A1, ~~OPEN~~
+#     closed at #536 for the shapes A1 below names — the view is built by the quote scanner now):
 #     both are spellings of a push's ARGUMENTS that never reached this grammar. The error
 #     runs toward a visible over-block — the direction this floor's own standing rule prefers, because
 #     a refused push costs one re-typed command and a forced one can cost someone else's commits.
@@ -2593,8 +3066,9 @@ fi
 #     next command is a blank, and the next line's tokens would read as push arguments — `git push
 #     origin x` on one line and `gh pr create --title "t"` on the next would deny on `--title`. The
 #     view below is cut from the ORIGINAL `$command` with its newlines kept as separators and quoted
-#     spans collapsed by the same expression `$bare` uses (a newline INSIDE a quoted span is not a
-#     separator and collapses with it); the `bash -c` payloads the unwrap step found are appended.
+#     spans collapsed by the same ~~expression~~ scanner (#536) `$bare` uses (a newline INSIDE a quoted
+#     span is not a separator and collapses with it); the `bash -c` payloads the unwrap step found are
+#     appended.
 #
 #     THE 162916b6 REGEX IS KEPT, UNCHANGED, BELOW THE CLASSIFIER — and that is a floor property, not
 #     nostalgia. It reads raw `$cmd`, so it still denies what the classifier's quote-collapsed view
@@ -2681,7 +3155,29 @@ push_view=""
 #     ── ROUND 3 — THE LIST ABOVE WAS PRESENTED AS COMPLETE AND WAS NOT (lens, PR #534 marker 5842274316)
 #     Three pre-existing classes, none a regression of this slice (each was ALLOW at 4b66b789 too):
 #
-#       A1 · OPEN, NOT CLOSED HERE, AND IT IS THE REALISTIC ONE — QUOTE MIS-PAIRING. `$bare` (rule 7)
+#       A1 · ~~OPEN, NOT CLOSED HERE~~ ~~CLOSED AT #536~~ CLOSED AT #536 FOR THE SHAPES NAMED HERE,
+#            AND IT WAS THE REALISTIC ONE — QUOTE MIS-PAIRING. The unqualified "CLOSED" was FALSE at
+#            c0d33be9 (#536 round-2 lens): three heredoc-opener desyncs — `<<$'EOF'`/`<<$"EOF"`, a
+#            delimiter over 256 characters, an arithmetic `((x=1<<2))`/`$[1<<2]` — turned the lines
+#            bash runs after them into a region, and A1 came back for a trunk push, a merge and a secret
+#            set there. Closed now: A1 across a `"…"`, a `\'`, a comment, a heredoc (any delimiter
+#            spelling the shell and the scanner read alike, any length), a backtick span, and a one-line
+#            arithmetic context; and any heredoc whose terminator never arrives is re-read as shell.
+#            ~~STILL OPEN, named at the scanner: A1 wholly inside a body fed to a shell; arithmetic that
+#            spans a newline with its operand later on a line alone; a delimiter escape the translation
+#            does not cover, where a later line equals the untranslated spelling.~~ STRUCK (#536 round
+#            3): the desync sweep found three more triggers (`<<` in `${…}`, in an array subscript, and
+#            a one-line `((…))` holding a quoted paren), and the class is now closed one layer up — the
+#            heredoc-as-shell pass beside `$bare` re-reads every body as shell whenever the first pass
+#            allowed, and this view is rebuilt the same way in that pass. The three named items remain
+#            residuals of the SCANNER, not of the guard.
+#            The paragraph below is kept as the record of the defect; the repair is the quote scanner
+#            beside `$bare`'s definition, which builds `$bare` and this view alike, and every reproducer
+#            below is now an arm in `permission-guard.test.sh` ("#536"), calibrated red against the two
+#            planted old lines. A fourth site the paragraph did not name, found while calibrating: this
+#            view's word-only regex ran BEFORE any span was recognised, so `echo $'it\'s' && git push
+#            origin +feat/x && echo 'ok go'` unquoted the `'s'` and lost the force — ALLOW at 88fc667c.
+#            `$bare` (rule 7)
 #            and this view both collapse quoted spans with two independent regexes, one for `'…'`
 #            and one for `"…"`. An apostrophe INSIDE a double-quoted span is taken as an OPENING
 #            single quote and paired with the next `'` in the command, so everything between —
@@ -2730,10 +3226,23 @@ case "$command $unwrap_all" in
     # W = the characters a refname, flag or command word is made of; `#` is the sed delimiter on the
     # four word-unquoting expressions because W contains `/`.
     pv_w='[A-Za-z0-9._/@:+=~^%,*-]'
-    # Original command, tabs to blanks, newlines to RS, backslash-newline joined, word-only quoting
-    # removed (ANSI-C and locale spans first, so `$'x'` cannot leave a `$x` behind), an eval's quoted
-    # argument unquoted, the remaining quoted spans collapsed exactly as `$bare` collapses them, then
-    # RS to a `;` separator. The unwrapped `bash -c` payloads get the same treatment.
+    # (#536) The scanner's `pv` mode carries its own copy of W, in perl, and nothing here reads `pv_w`
+    # any more except the suite's calibration, which plants the old sed pipeline back and needs it.
+    # Change the two together.
+    # Original command, word-only quoting removed (ANSI-C and locale spans drop their `$` too), an
+    # eval's quoted argument unquoted, the remaining quoted spans collapsed exactly as `$bare`
+    # collapses them, then tabs to blanks, backslash-newline joined, and each newline to a `;`
+    # separator. The unwrapped `bash -c` payloads get the same treatment, each on its own.
+    #
+    # ~~`pv_unq`, a sed pipeline~~ — REPLACED at #536 by the scanner `$bare` uses, in its `pv` mode.
+    # Its last two expressions were the same mis-pairing regex pair, so an apostrophe inside `"…"`
+    # collapsed a whole later push out of this view as well (A1 below); and its word-only and eval
+    # expressions were regexes too, so they could pair across a boundary the shell never crosses. In
+    # `pv` mode a CLOSED span whose content is word characters only becomes a mark plus that content,
+    # a span right after `eval` and blanks becomes a mark, a blank and its content scanned again
+    # (at most four levels; deeper content is kept raw, visible), and every other span collapses as
+    # in `$bare`. Comments and heredoc bodies are verbatim here too. A command with no quote in it
+    # never reaches perl, and then this view is exactly what the sed pipeline produced.
     #
     # EVERY UNQUOTING LEAVES A MARK (US, \037) where the quote was, and the mark is load-bearing. The
     # first form of this repair deleted the quotes outright, and that opened NINE trunk pushes that
@@ -2745,6 +3254,10 @@ case "$command $unwrap_all" in
     # answers first: nothing downstream of this view can read the word the way it is read here, so
     # no push this view had to unquote may reach ALLOW. The mark is what makes that checkable.
     pv_mk="$(printf '\037')"
+    # The pre-#536 sed pipeline, kept as the LEGACY view (see "THE LEGACY PASS" beside `$bare`).
+    # Its last two expressions are `bare_legacy_view`'s pair, so it carries the same PRE-EXISTING
+    # quadratic cost under GNU sed with a UTF-8 locale on an unclosed `"` before many `\"` (measured and
+    # priced beside `bare_legacy_view`). Left byte-identical on purpose, for the same reason.
     pv_unq() {
       sed -E -e "s#\\\$'(${pv_w}*)'#${pv_mk}\\1#g" -e "s#\\\$\"(${pv_w}*)\"#${pv_mk}\\1#g" \
              -e "s#'(${pv_w}*)'#${pv_mk}\\1#g" -e "s#\"(${pv_w}*)\"#${pv_mk}\\1#g" \
@@ -2752,11 +3265,29 @@ case "$command $unwrap_all" in
              -e "s/(^|[^A-Za-z0-9_])eval[[:space:]]+\"(([^\"\\\\]|\\\\.)*)\"/\\1eval ${pv_mk} \\2/g" \
              -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g'
     }
-    push_view="$(printf '%s' "$command" | tr '\t' ' ' | tr '\n' '\036' \
-      | sed -E -e "s/\\\\${pv_rs}/ /g" | pv_unq | tr '\036' ';')"
-    if [ -n "$unwrap_all" ]; then
-      push_view="$push_view ; $(printf '%s' "$unwrap_all" | pv_unq)"
-    fi
+    pv_legacy_view() {
+      printf '%s' "$command" | tr '\t' ' ' | tr '\n' '\036' \
+        | sed -E -e "s/\\\\${pv_rs}/ /g" | pv_unq | tr '\036' ';'
+      if [ -n "$unwrap_all" ]; then printf ' ; %s' "$(printf '%s' "$unwrap_all" | pv_unq)"; fi
+    }
+    case "$command" in
+      *\'*|*\"*)
+        if [ "$pg_legacy" = 1 ]; then
+          push_view="$(pv_legacy_view)"
+        else
+          command -v perl >/dev/null 2>&1 || deny "$qscan_unavailable"
+        push_view="$(qscan_items | qscan pv)" || deny "$qscan_unavailable"
+          [ "$pg_hview" = 1 ] || [ "$push_view" = "$(pv_legacy_view)" ] || pg_legacy_differs=1
+        fi
+        ;;
+      *)
+        push_view="$(printf '%s' "$command" | tr '\t' ' ' | tr '\n' '\036' \
+          | sed -E -e "s/\\\\${pv_rs}/ /g" | tr '\036' ';')"
+        if [ -n "$unwrap_all" ]; then
+          push_view="$push_view ; $unwrap_all"
+        fi
+        ;;
+    esac
     # #531 round 3 (A2) — BRACE EXPANSION BECOMES A MARK (GS, \035) BEFORE THE BRACES BECOME
     # SEPARATORS. `git push origin {+,}feat/x` is `git push origin +feat/x feat/x` to bash — a FORCE —
     # and `HEAD:{m,}ain` is `HEAD:main HEAD:ain`, a TRUNK push; turning `{`/`}` into `;` (the next

@@ -153,6 +153,62 @@ check((p.stdout or "").strip() == "" and p.returncode == 0,
       "vocabulary (calibration) — a permitted act produces NO decision, so `block` is a "
       "real verdict rather than this adapter's only output")
 
+# ── 1b · #536 — the A1 quote mis-pairing reaches Codex as a refusal ──────────────────
+# The guard's `$bare` used to pair the apostrophe inside "it's" with the next single
+# quote, so the whole trunk push between them vanished and the guard said NOTHING — which
+# this adapter forwards as no decision. The shared guard now scans quotes the way the shell
+# does. This row pins it on the Codex route: the Issue's first reproducer, verbatim, must
+# come back as a block that names the trunk rather than the guard's time budget.
+A1 = "git commit -m \"it's\" && git push origin main && echo 'ok go'"
+p = run_adapter(codex_payload(A1))
+d = decision_of(p)
+check(d is not None and d.get("decision") == "block"
+      and "pushing to the trunk" in d.get("reason", "")
+      and "time budget" not in d.get("reason", ""),
+      "#536 A1 — an apostrophe commit chained to a trunk push is blocked on the trunk rule"
+      + ("" if d else " (NO DECISION: the mis-pairing is back)"))
+
+# Round 3: a heredoc the scanner opens and bash does not (`<<` inside `${…}` is text to bash)
+# made the executed line a body. The heredoc-as-shell pass is what refuses it now, and it must
+# reach Codex as a block on the act's own reason, through the adapter's convenience-off env.
+B1 = "echo ${x:-<<EOF}\necho \"it's\" && git push origin main && echo 'y z'\nEOF}"
+p = run_adapter(codex_payload(B1))
+d = decision_of(p)
+check(d is not None and d.get("decision") == "block"
+      and "pushing to the trunk" in d.get("reason", "")
+      and "time budget" not in d.get("reason", ""),
+      "#536 r3 B1 — a trunk push after `${x:-<<EOF}` is blocked on the trunk rule"
+      + ("" if d else " (NO DECISION: the invented heredoc hides the push again)"))
+
+# perl is a floor dependency since #536 and selfcheck must say so, in both states. The
+# perl-free PATH links every executable on this PATH except perl*, so bash, jq, git and gh
+# stay reachable and the only difference between the two runs is perl.
+with tempfile.TemporaryDirectory() as noperl_work:
+    noperl = Path(noperl_work) / "bin"
+    noperl.mkdir()
+    for pdir in os.environ.get("PATH", "").split(os.pathsep):
+        if not os.path.isdir(pdir):
+            continue
+        for name in os.listdir(pdir):
+            src_bin = os.path.join(pdir, name)
+            if name.startswith("perl") or (noperl / name).exists():
+                continue
+            if os.access(src_bin, os.X_OK) and not os.path.isdir(src_bin):
+                os.symlink(src_bin, noperl / name)
+    p_with = subprocess.run([sys.executable, str(ADAPTER), "--selfcheck"],
+                            capture_output=True, text=True)
+    p_without = subprocess.run([sys.executable, str(ADAPTER), "--selfcheck"],
+                               capture_output=True, text=True,
+                               env=dict(os.environ, PATH=str(noperl)))
+    check("floor dependency: perl is on PATH" in p_with.stdout
+          and "FLOOR DEPENDENCY MISSING: perl" not in p_with.stdout,
+          "#536 selfcheck — perl present is named as a floor dependency")
+    check("FLOOR DEPENDENCY MISSING: perl is not on PATH" in p_without.stdout
+          and "every command carrying a quote is DENIED" in p_without.stdout,
+          "#536 selfcheck — perl missing is reported, with its fail-closed consequence"
+          + ("" if shutil.which("perl", path=str(noperl)) is None
+             else " (FIXTURE BROKEN: the perl-free PATH still resolves perl)"))
+
 # ── 2 · identity — measured against the live guard, and the hazard is re-derived ──────
 # The naive mapping is the safe one. This is asserted by MEASURING both, not by trusting
 # the adapter's comment.

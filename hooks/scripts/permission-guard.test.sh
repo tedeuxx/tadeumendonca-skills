@@ -2851,8 +2851,6 @@ A497=(
   "mixed concatenation	printf '%s' 'a'\"\$(date)\"'b'"
   "single quote inside dq is not a boundary	printf '%s' \"it's \$(date)\""
   "no escape inside '…', so 'x\\' ends before the dq	echo 'x\\' \"\$(date)\" 'y'"
-  "no escape inside '…', UNQUOTED dollar after it	echo 'x\\' \$(date) 'y'"
-  "no escape inside '…', UNQUOTED backtick after it	echo 'x\\' \`date\` 'y'"
   "EVEN backslash run: the dollar stays liveprintf \"%s\" \"\\\\\$(date)\""
   "nesting witness	printf '%s' \"\$(printf '%s' \"x\")\""
   "manufactured subcommand	gh \"\$(echo secret)\" set X --body y"
@@ -2947,6 +2945,18 @@ check ALLOW "#497 inert: plain message MENTIONING a forbidden act" 'git commit -
 
 for row in "${A497[@]}"; do
   check_reason DENY "#497 active: ${row%%	*}" "$S497" "${row#*	}"
+done
+# ~~Two A497 rows~~ — MOVED OUT at #536, and the move is a finding rather than a tidy-up. `echo 'x\'
+# $(date) 'y'` carries an UNQUOTED substitution; the pre-#536 `$bare` read `'x\'` as an escaped quote
+# and ran the span on to the next `'`, collapsing the `$(` away, so only the #497 scanner answered and
+# its calibration A (scanner disabled -> ALLOW) held. `$bare` reads `'x\'` as the shell does since
+# #536, so the OLDER predicate answers first, with its own message — the substitution is now seen by
+# two layers, and calibration A can no longer flip these rows. They are asserted here on the older
+# predicate's reason, and calibration A runs over the rows that still depend on the scanner alone.
+for row in "no escape inside '…', UNQUOTED dollar after it	echo 'x\\' \$(date) 'y'" \
+           "no escape inside '…', UNQUOTED backtick after it	echo 'x\\' \`date\` 'y'"; do
+  check_reason DENY "#536 (was #497 active): ${row%%	*} — \$bare sees it now" \
+               "forces a permission prompt even for allowlisted" "${row#*	}"
 done
 for row in "${I497[@]}"; do
   check ALLOW "#497 inert: ${row%%	*}" "${row#*	}"
@@ -3534,6 +3544,630 @@ else
   fail=$((fail + 1)); printf 'FAIL  PARITY (calibration) the literal check missed a planted id — it cannot go red\n'
 fi
 rm -rf "$PARITY_TMP"
+
+echo "--- #536: \$bare and 3b's view pair quotes the way the shell does (the A1 mis-pairing) ---"
+# THE DEFECT. `$bare` was two regexes — every `'…'` collapsed first, then every `"…"` — so an apostrophe
+# the shell reads as TEXT was paired with the next real quote and everything between vanished from every
+# rule reading `$bare` (and from 3b's view, which ran the same pair). #536 replaced both with one
+# left-to-right scanner. The matrix below is the Issue's acceptance criterion 2, cell for cell:
+#   SHAPE  — where the literal apostrophe sits: inside "…", after a backslash, in a # comment, in a
+#            heredoc body, and inside a backtick span;
+#   CALLER — the orchestrator (empty agent_type) and a persona (`tech-lead`, which reaches every act's
+#            catch-all: 5e lets it post, so 5d is what refuses its issue, and 7b's `*)` its merge);
+#   ACT    — trunk push (rule 7), `+refspec` (3b), `:main` (rule 7), merge (7b), secret set (5b),
+#            gh api write (5f), issue create (5d).
+# EVERY ARM ASSERTS THE ACT'S OWN REASON, not merely DENY. That is what makes the backtick shape a real
+# arm: under the regex pair rule 8 still denied it for the backtick, so a verdict-only arm would have
+# been green before the fix. With the reason pinned, each arm is red against the planted old lines below.
+#
+# ONE CELL IS NOT A CALIBRATION ARM, BY DESIGN: the orchestrator may file an Issue (5c asks nothing
+# since #383 and 5e allowlists the main session), so orchestrator x issue-create is ALLOW before and
+# after — except in the backtick shape, where rule 8 refuses the substitution itself, before and after.
+# Each is kept as a row, asserting exactly that, so the matrix has no silent hole.
+#
+# ONE CONTROL THE ISSUE NAMED IS NOT A CONTROL, and it is a finding. `$'…\'…'` was listed as a quote the
+# regex pair already handled, and for `$bare` it was. It was NOT for 3b's view: `pv_unq` ran its
+# word-only regexes BEFORE any span was recognised, so the `'s'` inside `$'it\'s'` was unquoted as a
+# word and the ANSI span then paired with the next quote — `echo $'it\'s' && git push origin +feat/x &&
+# echo 'ok go'` drew NO DECISION at 88fc667c, measured. That cell is therefore a calibrated ARM (red
+# against the old lines), and the other five acts in that shape stay controls.
+a536_shape() { # shape-id ACT -> command
+  case "$1" in
+    dq)   printf '%s' "git commit -m \"it's\" && $2 && echo 'ok go'" ;;
+    bs)   printf '%s' "echo it\\'s && $2 && echo 'ok go'" ;;
+    cmt)  printf 'true # it'"'"'s\n%s\necho '"'"'ok go'"'"'' "$2" ;;
+    hd)   printf 'cat <<EOF\nit'"'"'s\nEOF\n%s\necho '"'"'ok go'"'"'' "$2" ;;
+    bt)   printf '%s' "echo \`printf \"%s\" \"it's\"\` && $2 && echo 'ok go'" ;;
+    rev)  printf '%s' "echo 'ok go' && $2 && git commit -m \"it's\"" ;;
+    besc) printf '%s' "git commit -m \"say \\\"hi\\\"\" && $2 && echo 'ok go'" ;;
+    ansi) printf '%s' "echo \$'it\\'s' && $2 && echo 'ok go'" ;;
+  esac
+}
+A536_PERSONA="tadeumendonca-skills:tech-lead"
+# act-id|command|needle — the needle is a fragment unique to the rule that owns the act.
+A536_ACTS="trunk|git push origin main|pushing to the trunk. Merging
+force|git push origin +feat/x|force-push rewrites a ref
+delmain|git push origin :main|empty-source refspec
+merge|gh pr merge 5 --merge|merging a PR is the deploy
+secret|gh secret set X --body y|writing or deleting a repository secret
+api|gh api repos/o/r/labels -f name=x|call WRITES
+issue|gh issue create --title t --body-file f|a subagent does not open work"
+a536_expect() { # guard shape caller act-cmd needle -> 0 if the guard denies with the needle
+  a5_out=$(jq -n --arg c "$(a536_shape "$2" "$4")" --arg a "$3" '{tool_input:{command:$c}, agent_type:$a}' | bash "$1")
+  a5_r=$(printf '%s' "$a5_out" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""' 2>/dev/null)
+  [ "$(verdict "$a5_out")" = DENY ] && printf '%s' "$a5_r" | grep -qF "$5"
+}
+a536_silent() { # guard shape caller act-cmd -> 0 if the guard emits no decision
+  a5_out=$(jq -n --arg c "$(a536_shape "$2" "$4")" --arg a "$3" '{tool_input:{command:$c}, agent_type:$a}' | bash "$1")
+  [ -z "$a5_out" ]
+}
+# The ARMS: every cell, against the guard as it is.
+for a5_shape in dq bs cmt hd bt; do
+  while IFS='|' read -r a5_act a5_cmd a5_needle; do
+    for a5_caller in "" "$A536_PERSONA"; do
+      a5_who="${a5_caller:-orchestrator}"; a5_who="${a5_who##*:}"
+      if [ "$a5_act" = issue ] && [ -z "$a5_caller" ]; then
+        if [ "$a5_shape" = bt ]; then
+          a536_expect "$GUARD" bt "" "$a5_cmd" "command substitution"; a5_ok=$?
+        else
+          a536_silent "$GUARD" "$a5_shape" "" "$a5_cmd"; a5_ok=$?
+        fi
+        if [ "$a5_ok" = 0 ]; then
+          pass=$((pass + 1)); printf 'ok    %-6s #536 %s x %s x %s (by design: the orchestrator may file)\n' "$( [ "$a5_shape" = bt ] && echo DENY || echo ALLOW)" "$a5_shape" "$a5_who" "$a5_act"
+        else
+          fail=$((fail + 1)); printf 'FAIL  #536 %s x %s x %s — expected the designed verdict\n' "$a5_shape" "$a5_who" "$a5_act"
+        fi
+        continue
+      fi
+      if a536_expect "$GUARD" "$a5_shape" "$a5_caller" "$a5_cmd" "$a5_needle"; then
+        pass=$((pass + 1)); printf 'ok    DENY   #536 %s x %s x %s\n' "$a5_shape" "$a5_who" "$a5_act"
+      else
+        fail=$((fail + 1)); printf 'FAIL  #536 %s x %s x %s — the act was not refused on its own reason\n      cmd: %s\n' \
+          "$a5_shape" "$a5_who" "$a5_act" "$(a536_shape "$a5_shape" "$a5_cmd")"
+      fi
+    done
+  done <<< "$A536_ACTS"
+done
+# The NEGATIVE CONTROLS: quotes the regex pair already paired correctly — the act after them was always
+# visible. They must deny on the act's reason here AND under the planted old lines below; a control
+# that reddened there would mean the calibration copy is broken rather than the old view blind.
+for a5_shape in rev besc ansi; do
+  while IFS='|' read -r a5_act a5_cmd a5_needle; do
+    [ "$a5_act" = issue ] && continue
+    a5_kind=control; [ "$a5_shape/$a5_act" = ansi/force ] && a5_kind="arm (was a control; see above)"
+    if a536_expect "$GUARD" "$a5_shape" "$A536_PERSONA" "$a5_cmd" "$a5_needle" \
+       && a536_expect "$GUARD" "$a5_shape" "" "$a5_cmd" "$a5_needle"; then
+      pass=$((pass + 1)); printf 'ok    DENY   #536 %s %s x both callers x %s\n' "$a5_kind" "$a5_shape" "$a5_act"
+    else
+      fail=$((fail + 1)); printf 'FAIL  #536 control %s x %s — a quote the regex already paired now hides the act\n' "$a5_shape" "$a5_act"
+    fi
+  done <<< "$A536_ACTS"
+done
+# Two more shapes the scanner closes, beyond the Issue's matrix: a single-quoted span ENDING in a
+# backslash (the regex read `\'` as an escaped quote, so `'C:\'` ran on to the next quote), and an
+# ESCAPED double quote OUTSIDE quotes (the regex opened a span on it).
+check_reason DENY "#536 extra: 'C:\\' then a trunk push" "pushing to the trunk. Merging" \
+             "echo 'C:\\' && git push origin main && echo 'y z'"
+check_reason DENY "#536 extra: \\\" outside quotes then a trunk push" "pushing to the trunk. Merging" \
+             "echo \\\"hi && git push origin main && echo \"x\""
+# What must STAY silent: an apostrophe-bearing commit chained to a FEATURE push is the everyday shape,
+# and a comment or heredoc apostrophe must not make an ordinary command refusable.
+check_agent ALLOW "" "#536 the everyday shape: an apostrophe commit then a feature push" \
+            "git commit -m \"it's fine\" && git -C $FEAT push -u origin feat/x && echo 'ok go'"
+check_agent ALLOW "" "#536 an apostrophe in a comment before a read" \
+            "$(printf "git status # it's clean\ngit log --oneline -3 # 'recent'")"
+check_agent ALLOW "" "#536 an apostrophe in a heredoc body read by cat" \
+            "$(printf "cat <<'EOF'\nit's 'quoted' and \"double\"\nEOF")"
+# UNBALANCED INPUT FAILS CLOSED, as it did: a quote with no closer is one literal character and
+# everything after it stays visible.
+check_reason DENY "#536 an unclosed double quote leaves the push visible" "pushing to the trunk. Merging" \
+             "echo \"unclosed && git push origin main"
+check_reason DENY "#536 an unclosed single quote leaves the push visible" "pushing to the trunk. Merging" \
+             "echo 'unclosed && git push origin main"
+check_reason DENY "#536 an unclosed ANSI-C quote leaves the push visible" "pushing to the trunk. Merging" \
+             "echo \$'unclosed\\' && git push origin main"
+# Comments and heredoc BODIES stay VISIBLE — the scanner never drops them — and each is collapsed by the
+# pre-#536 regex pair run over that region ALONE, so a quote inside one cannot pair past its end.
+check_reason DENY "#536 a trunk push inside a heredoc fed to bash is still seen" "pushing to the trunk. Merging" \
+             "$(printf "bash <<'EOF'\ngit push origin main\nEOF")"
+# ~~KNOWN RESIDUAL, pinned as SILENCE~~ — CLOSED at #536 round 3, and the row moves rather than
+# disappears. The FIRST pass still reads a body with the regex pair and still hides this shape, exactly
+# as before #536; what refuses it now is the heredoc-as-shell pass (see "#536 round 3" below), which
+# re-reads every body with the shell's grammar whenever the first pass allowed. The r3 calibration
+# plants that pass out and asserts this row returns to ALLOW, so the closure is attributable.
+A536_RES1="$(printf "bash <<'EOF'\ngit commit -m \"it's\" && git push origin main && echo 'x y'\nEOF")"
+check_reason DENY "#536 former RESIDUAL: A1 written wholly inside a body fed to bash is now refused (r3 pass)" \
+             "pushing to the trunk. Merging" "$A536_RES1"
+check_reason DENY "#536 an act in a comment is not dropped" \
+             "writing or deleting a repository secret" "$(printf "ls # gh secret set X\nls")"
+# A quote inside a comment or a body cannot pair PAST its end: the act on the next line stays visible.
+check_reason DENY "#536 an unclosed quote in a comment ends with the comment" "pushing to the trunk. Merging" \
+             "$(printf "ls # don't\ngit push origin main\necho 'x y'")"
+check_reason DENY "#536 an unclosed quote in a body ends with the body" "pushing to the trunk. Merging" \
+             "$(printf "cat <<'EOF'\nit's\nEOF\ngit push origin main\necho 'x y'")"
+
+# THE LEGACY PASS — no DENY becomes an ALLOW, by construction. The regex pair ALSO mis-paired the other
+# way, exposing quoted text a rule then denied on; the corpus has twelve such commands per caller, this
+# one among them (a `'^> '` pattern read as a redirect because the apostrophe in "skill's" opened a
+# span). The scanner's first pass allows it; the second pass, on the pre-#536 views, still denies it,
+# so the over-block is KEPT rather than silently removed. Calibrated below by deleting the trap.
+A536_LEGACY_CMD="echo \"=== the skill's OWN selector ===\" && grep -cE '^> ' notes.md"
+check_reason DENY "#536 legacy pass: an over-block of the regex pair is kept, not removed" \
+             "shell output redirection" "$A536_LEGACY_CMD"
+check ALLOW "#536 legacy pass: a quoted command whose two views agree is judged once and allowed" \
+            "git commit -m \"it's fine\" && git status"
+
+# CALIBRATION BY MUTATING THE SOURCE (acceptance criterion 3). A copy of the guard with the OLD lines
+# planted back — the two-regex `$bare` and 3b's old `pv_unq` sed pipeline, verbatim from 88fc667c — must
+# turn every calibrated arm above RED, and leave every control green. Two further copies plant each site
+# ALONE, so the reader can see that both sites were load-bearing: the force arms are 3b's (it alone
+# reads `+refspec`), and the rest are `$bare`'s.
+A536_TMP="$(mktemp -d)"
+cat > "$A536_TMP/old-bare.txt" <<'OLDBARE'
+    bare="$(printf '%s' "$cmd" | sed -E -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g')"
+OLDBARE
+cat > "$A536_TMP/old-pv.txt" <<'OLDPV'
+        pv_unq() {
+          sed -E -e "s#\\\$'(${pv_w}*)'#${pv_mk}\\1#g" -e "s#\\\$\"(${pv_w}*)\"#${pv_mk}\\1#g" \
+                 -e "s#'(${pv_w}*)'#${pv_mk}\\1#g" -e "s#\"(${pv_w}*)\"#${pv_mk}\\1#g" \
+                 -e "s/(^|[^A-Za-z0-9_])eval[[:space:]]+'([^']*)'/\\1eval ${pv_mk} \\2/g" \
+                 -e "s/(^|[^A-Za-z0-9_])eval[[:space:]]+\"(([^\"\\\\]|\\\\.)*)\"/\\1eval ${pv_mk} \\2/g" \
+                 -e "s/'([^'\\\\]|\\\\.)*'/''/g" -e 's/"([^"\\]|\\.)*"/""/g'
+        }
+        push_view="$(printf '%s' "$command" | tr '\t' ' ' | tr '\n' '\036' \
+          | sed -E -e "s/\\\\${pv_rs}/ /g" | pv_unq | tr '\036' ';')"
+        if [ -n "$unwrap_all" ]; then
+          push_view="$push_view ; $(printf '%s' "$unwrap_all" | pv_unq)"
+        fi
+OLDPV
+: > "$A536_TMP/none.txt"
+a536_plant() { # out bare-file pv-file — replaces the scanner line(s) named by a non-empty file
+  perl -e '
+    local $/; my ($g, $bf, $pf) = @ARGV;
+    open my $G, "<", $g or exit 4; my $s = <$G>;
+    open my $B, "<", $bf or exit 4; my $b = <$B>;
+    open my $P, "<", $pf or exit 4; my $p = <$P>;
+    my $n = 0;
+    if (length $b) { $n += ($s =~ s/^    bare="\$\(qscan_items \| qscan bare\)".*\n/$b/m) }
+    if (length $p) { $n += ($s =~ s/^        push_view="\$\(qscan_items \| qscan pv\)".*\n/$p/m) }
+    print $s; exit(($n == (length($b) ? 1 : 0) + (length($p) ? 1 : 0)) ? 0 : 3);
+  ' "$GUARD" "$2" "$3" > "$1"
+}
+a536_red_count() { # guard -> "<red> <controls-still-green>" over the calibrated arms and the controls
+  a5_red=0; a5_cg=0
+  for a5_shape in dq bs cmt hd bt; do
+    while IFS='|' read -r a5_act a5_cmd a5_needle; do
+      for a5_caller in "" "$A536_PERSONA"; do
+        [ "$a5_act" = issue ] && [ -z "$a5_caller" ] && continue
+        a536_expect "$1" "$a5_shape" "$a5_caller" "$a5_cmd" "$a5_needle" || a5_red=$((a5_red + 1))
+      done
+    done <<< "$A536_ACTS"
+  done
+  for a5_shape in rev besc ansi; do
+    while IFS='|' read -r a5_act a5_cmd a5_needle; do
+      [ "$a5_act" = issue ] && continue
+      if [ "$a5_shape/$a5_act" = ansi/force ]; then
+        for a5_caller in "" "$A536_PERSONA"; do
+          a536_expect "$1" ansi "$a5_caller" "$a5_cmd" "$a5_needle" || a5_red=$((a5_red + 1))
+        done
+        continue
+      fi
+      a536_expect "$1" "$a5_shape" "$A536_PERSONA" "$a5_cmd" "$a5_needle" && a5_cg=$((a5_cg + 1))
+    done <<< "$A536_ACTS"
+  done
+  printf '%s %s' "$a5_red" "$a5_cg"
+}
+A536_ARMS=67   # 5 shapes x 2 callers x 7 acts, minus the 5 designed orchestrator x issue cells, plus ansi x force x 2 callers
+A536_CTRLS=17  # 3 control shapes x 6 acts, minus ansi x force
+if a536_plant "$A536_TMP/both.sh" "$A536_TMP/old-bare.txt" "$A536_TMP/old-pv.txt" && ! cmp -s "$GUARD" "$A536_TMP/both.sh"; then
+  read -r a5_r a5_c <<< "$(a536_red_count "$A536_TMP/both.sh")"
+  if [ "$a5_r" = "$A536_ARMS" ] && [ "$a5_c" = "$A536_CTRLS" ]; then
+    pass=$((pass + 1)); printf 'ok    #536 (calibration) old $bare + old 3b view planted: %s of %s arms RED, %s of %s controls still green\n' "$a5_r" "$A536_ARMS" "$a5_c" "$A536_CTRLS"
+  else
+    fail=$((fail + 1)); printf 'FAIL  #536 (calibration) old lines planted: %s of %s arms red, %s of %s controls green — an arm cannot go red, or a control is not a control\n' "$a5_r" "$A536_ARMS" "$a5_c" "$A536_CTRLS"
+  fi
+else
+  fail=$((fail + 1)); printf 'FAIL  #536 (calibration) the planting anchors are dead — the copy did not change\n'
+fi
+if a536_plant "$A536_TMP/bare-only.sh" "$A536_TMP/old-bare.txt" "$A536_TMP/none.txt" \
+   && a536_plant "$A536_TMP/pv-only.sh" "$A536_TMP/none.txt" "$A536_TMP/old-pv.txt"; then
+  read -r a5_rb _ <<< "$(a536_red_count "$A536_TMP/bare-only.sh")"
+  read -r a5_rp _ <<< "$(a536_red_count "$A536_TMP/pv-only.sh")"
+  if [ "$a5_rb" -gt 0 ] && [ "$a5_rp" -gt 0 ]; then
+    pass=$((pass + 1)); printf 'ok    #536 (calibration) each site alone is load-bearing: old $bare alone reddens %s arms, old 3b view alone %s\n' "$a5_rb" "$a5_rp"
+  else
+    fail=$((fail + 1)); printf 'FAIL  #536 (calibration) one planted site reddens nothing (bare-only %s, view-only %s)\n' "$a5_rb" "$a5_rp"
+  fi
+else
+  fail=$((fail + 1)); printf 'FAIL  #536 (calibration) the single-site plant failed\n'
+fi
+
+# The legacy pass is load-bearing: with its trap removed from a copy of the source, the kept over-block
+# above goes to ALLOW.
+perl -pe 's/^        trap pg_exit EXIT$/        :/' "$GUARD" > "$A536_TMP/notrap.sh"
+if ! cmp -s "$GUARD" "$A536_TMP/notrap.sh"; then
+  a5_out=$(printf '%s' "$A536_LEGACY_CMD" | jq -R '{tool_input:{command:.}}' | bash "$A536_TMP/notrap.sh")
+  if [ -z "$a5_out" ]; then
+    pass=$((pass + 1)); printf 'ok    #536 (calibration) with the legacy-pass trap removed, the kept over-block goes to ALLOW\n'
+  else
+    fail=$((fail + 1)); printf 'FAIL  #536 (calibration) removing the legacy-pass trap changed nothing — the arm cannot go red\n'
+  fi
+else
+  fail=$((fail + 1)); printf 'FAIL  #536 (calibration) the legacy-pass trap anchor is dead\n'
+fi
+
+# MISSING DEPENDENCY (acceptance criterion 5). perl is new to the guard. A PATH holding every executable
+# this host has EXCEPT perl: a command with a quote is DENIED naming perl; a command with none never
+# reaches perl and is judged exactly as before — a trunk push still denies on its own reason, a read
+# stays silent. Then a perl that exists and FAILS is the same DENY.
+A536_NOPERL="$A536_TMP/noperl"; mkdir -p "$A536_NOPERL"
+IFS=':' read -r -a a5_dirs <<< "$PATH"
+for a5_d in "${a5_dirs[@]}"; do
+  [ -d "$a5_d" ] || continue
+  for a5_f in "$a5_d"/*; do
+    a5_b="${a5_f##*/}"
+    case "$a5_b" in perl*) continue ;; esac
+    [ -x "$a5_f" ] && [ ! -e "$A536_NOPERL/$a5_b" ] && ln -s "$a5_f" "$A536_NOPERL/$a5_b" 2>/dev/null
+  done
+done
+a536_noperl() { # PATH-dir cmd -> the reason, or ALLOW
+  a5_out=$(printf '%s' "$2" | jq -R '{tool_input:{command:.}}' | PATH="$1" "$BASH" "$GUARD")
+  [ -n "$a5_out" ] && printf '%s' "$a5_out" | jq -r '.hookSpecificOutput.permissionDecisionReason' || printf 'ALLOW'
+}
+# A fresh shell for the check: this one has hashed perl's path already, and `command -v` reads the hash.
+if ! PATH="$A536_NOPERL" "$BASH" -c 'command -v perl' >/dev/null 2>&1; then
+  a5_q="$(a536_noperl "$A536_NOPERL" "echo 'hi'")"
+  a5_t="$(a536_noperl "$A536_NOPERL" "git push origin main")"
+  a5_l="$(a536_noperl "$A536_NOPERL" "ls -la")"
+  case "$a5_q" in *"with perl, which is not on PATH"*) pass=$((pass + 1)); printf 'ok    DENY   #536 missing perl: a quoted command is refused, naming perl\n' ;;
+    *) fail=$((fail + 1)); printf 'FAIL  #536 missing perl: a quoted command got %.80s\n' "$a5_q" ;; esac
+  case "$a5_t" in *"pushing to the trunk. Merging"*) pass=$((pass + 1)); printf 'ok    DENY   #536 missing perl: a quote-free trunk push is still judged on its own reason\n' ;;
+    *) fail=$((fail + 1)); printf 'FAIL  #536 missing perl: a quote-free trunk push got %.80s\n' "$a5_t" ;; esac
+  if [ "$a5_l" = ALLOW ]; then pass=$((pass + 1)); printf 'ok    ALLOW  #536 missing perl: a quote-free read is untouched\n'
+  else fail=$((fail + 1)); printf 'FAIL  #536 missing perl: a quote-free read got %.80s\n' "$a5_l"; fi
+else
+  fail=$((fail + 1)); printf 'FAIL  #536 missing perl: the perl-free PATH still resolves perl — the fixture is broken\n'
+fi
+A536_BADPERL="$A536_TMP/badperl"; mkdir -p "$A536_BADPERL"
+printf '#!/bin/sh\nexit 3\n' > "$A536_BADPERL/perl"; chmod +x "$A536_BADPERL/perl"
+a5_b="$(a536_noperl "$A536_BADPERL:$PATH" "git commit -m \"it's\" && git push origin main && echo 'ok go'")"
+case "$a5_b" in *"or exited with an error"*) pass=$((pass + 1)); printf 'ok    DENY   #536 a perl that fails is refused, not read as an empty view\n' ;;
+  *) fail=$((fail + 1)); printf 'FAIL  #536 a failing perl got %.80s\n' "$a5_b" ;; esac
+
+# LATENCY (the #534 lesson). The scanner must stay linear: each shape runs with the budget BYPASSED
+# (the worker path), so only the scanner's own shape can keep it inside 3 s (the #531 B1 bound for the 12,000-deep shapes, in whole seconds), and a force push rides at
+# the end so the answer is a DENY on the act's reason, never the budget's. The rows run on BOTH hosts
+# this suite runs on — macOS (BSD sed) locally and ubuntu with a UTF-8 locale (GNU sed) in CI — and the
+# sizes are chosen for the slower of the two; the fail-once row below is the one where they differ.
+a536_time() { # desc cmd
+  a5_t0=$SECONDS
+  a5_out=$(printf '%s' "$2" | jq -Rs '{tool_input:{command:.}}' | (cd "$TFEAT" && PERMISSION_GUARD_WORKER=1 perl -e 'alarm shift; exec @ARGV' 8 bash "$GUARD"))
+  a5_t1=$SECONDS
+  a5_r=$(printf '%s' "$a5_out" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""' 2>/dev/null)
+  case "$a5_r" in
+    *"force-push rewrites"*|*"cannot classify"*|*"pushing to the trunk"*)
+      if (( a5_t1 - a5_t0 <= 3 )); then pass=$((pass + 1)); printf 'ok    DENY   #536 latency (no budget): %s (%ss)\n' "$1" "$((a5_t1 - a5_t0))"
+      else fail=$((fail + 1)); printf 'FAIL  #536 latency: %s took %ss\n' "$1" "$((a5_t1 - a5_t0))"; fi ;;
+    *) fail=$((fail + 1)); printf 'FAIL  #536 latency: %s — reason %.80s\n' "$1" "$a5_r" ;;
+  esac
+}
+a5_f="git -C . push --force origin feat/x"
+a5_line="it's \"a\" 'b' $(printf '%*s' 20 '' | tr ' ' c)"
+a536_time "30,000 apostrophes in a row"            "echo $(printf "'%.0s" $(seq 30000)); $a5_f"
+a536_time "30,000 double quotes in a row"          "echo $(printf '"%.0s' $(seq 30000)); $a5_f"
+a536_time "30,000 backslashes in a row"            "echo $(printf '\\%.0s' $(seq 30000)); $a5_f"
+a536_time "30,000 apostrophes inside one \"…\""    "echo \"$(printf "'%.0s" $(seq 30000))\"; $a5_f"
+# The fail-once row is 10,000, not 20,000, and the reason is a PRE-EXISTING cost this slice did not add.
+# The scanner answers it linearly; the LEGACY views (bare_legacy_view, pv_legacy_view) still run the
+# pre-#536 `sed -E` pair, and GNU sed under a UTF-8 locale is QUADRATIC on an unclosed `"` followed by
+# `\"` pairs. Measured 2026-09-29 in ubuntu:24.04 (bash 5.2.21, GNU sed 4.9), worker path, LANG=C.UTF-8:
+# 5,000 -> 0.39 s, 10,000 -> 1.44 s, 15,000 -> 3.14 s, 20,000 -> 5.92 s; under LC_ALL=C all four are
+# <= 0.07 s, and 88fc667c's guard is equally slow. GitHub's ubuntu runner sets a UTF-8 locale, which
+# is why CI took 7 s at 20,000 while macOS (BSD sed) takes 0.22 s. 10,000 keeps the 3 s bound with
+# headroom on both hosts. The legacy pair stays byte-identical on purpose; see the comment beside it.
+a536_time "an unclosed \" before 10,000 \\\" (the fail-once path)" "$a5_f; echo \"$(printf '\\"%.0s' $(seq 10000))"
+a536_time "10,000 \$'\\\\ fragments"               "echo $(printf "\$'\\\\\\\\%.0s" $(seq 10000)); $a5_f"
+a536_time "5,000 heredoc openers, then the push"   "$(printf 'cat'; printf ' <<E%.0s' $(seq 5000); printf '\n%s' "$a5_f")"
+a536_time "a 51 KB heredoc of quoted lines"        "$(printf "cat <<'EOF'\n"; for _ in $(seq 1500); do printf '%s\n' "$a5_line"; done; printf 'EOF\n%s' "$a5_f")"
+a536_time "2,000 nested eval \" openers"           "$(printf 'eval "%.0s' $(seq 2000))x; $a5_f"
+a536_time "12,000-deep a(b( nesting after \"it's\"" "echo \"it's\"; x$(printf 'a(%.0s' $(seq 12000)); $a5_f"
+# The three constructs the round-2 lens reopened A1 through are bounded too: the arithmetic check is a
+# per-LINE paren/bracket table, the terminator is a per-command line index, and the delimiter word is
+# read with possessive quantifiers and no length cap.
+a536_time "15,000 (( openers on one line"          "echo \"it's\"; $(printf '((%.0s' $(seq 15000)); $a5_f"
+a536_time "10,000 \$[ openers on one line"          "echo \"it's\"; $(printf '$[%.0s' $(seq 10000)); $a5_f"
+a536_time "3,000 unterminated heredocs, one a line" "$(printf 'cat <<E%s\n' $(seq 3000); printf '%s' "$a5_f")"
+a536_time "a 50,000-character heredoc delimiter"    "$(printf 'cat <<%s\nx\n' "$(printf 'A%.0s' $(seq 50000))"; printf '%s' "$a5_f")"
+a536_time "<<' with no closer, then 50,000 chars"   "$(printf "cat <<'"; printf 'a%.0s' $(seq 50000); printf '\n%s' "$a5_f")"
+# Round 3: shapes whose FIRST pass allows, so the heredoc-as-shell pass is what answers — the third
+# run of the rules. Supervised numbers (the budget in force) are in #536's PR.
+# shellcheck disable=SC2016 # the block is shell text for the guard
+a5_b1blk="$(printf 'echo ${x:-<<EOF}\n%s\nEOF}\n' "echo \"it's\" && git push origin main && echo 'y z'")"
+a536_time "2,000 B1 blocks, A1 hidden in every body" "$(for _ in $(seq 2000); do printf '%s\n' "$a5_b1blk"; done)"
+a536_time "2,000 closed quoted heredocs, then one B1 block" \
+          "$(for a5_i in $(seq 2000); do printf "cat <<'E%s'\nit's %s\nE%s\n" "$a5_i" "$a5_i" "$a5_i"; done; printf '%s' "$a5_b1blk")"
+
+# ── #536 round 2: a heredoc opener the scanner and bash read DIFFERENTLY reopened A1 ──────────────────
+# The round-2 lens found three triggers. Each made the scanner open a heredoc bash does not (or wait on
+# a terminator bash does not use), so every later line was read as BODY — and a body is collapsed with
+# the pre-#536 regex pair, which is A1 itself. Measured with /bin/bash 3.2.57 AND /bin/zsh: bash runs
+# the line after each construct, so the act placed there EXECUTES:
+#   · `<<$'EOF'` / `<<$"EOF"` — the shell drops the `$` and ends at `EOF` (and translates ANSI-C
+#     escapes: `<<$'E\x41'` ends at `EA`); `dequote` kept the `$` and waited for `$EOF`;
+#   · a delimiter longer than 256 characters — the lookahead was capped at 256, so it never matched;
+#   · `((x=1<<2))` / `$[1<<2]` — an arithmetic SHIFT, read as a heredoc opener.
+# All three were ALLOW at c0d33be9 AND at 88fc667c. Each row below asserts the act's own reason, both
+# callers. `$((1<<2))` is not a row: rule 8 already refuses `$(` in every guard, so it is never an arm.
+a536r2_shape() { # shape-id ACT -> command
+  case "$1" in
+    hdansi)    printf 'cat <<$'"'"'EOF'"'"'\nx\nEOF\n' ;;
+    hdloc)     printf 'cat <<$"EOF"\nx\nEOF\n' ;;
+    hdesc)     printf 'cat <<$'"'"'E\\x41'"'"'\nx\nEA\n' ;;
+    hdlong)    printf 'cat <<%s\nx\n%s\n' "$A536_LONG" "$A536_LONG" ;;
+    arith)     printf '((x=1<<2))\n' ;;
+    arithold)  printf 'echo $[1<<2]\n' ;;
+    arith2)    printf '((x=1<<2))\n' ;;
+    arithold2) printf 'echo $[1<<2]\n' ;;
+  esac
+  printf '%s' "echo \"it's\" && $2 && echo 'y z'"
+  case "$1" in arith2|arithold2) printf '\n2' ;; esac
+}
+A536_LONG="$(printf 'A%.0s' $(seq 300))"
+A536R2_ACTS="trunk|git push origin main|pushing to the trunk. Merging
+merge|gh pr merge 5 --merge|merging a PR is the deploy
+secret|gh secret set X --body y|writing or deleting a repository secret
+force|git push origin +feat/x|force-push rewrites a ref"
+a536r2_expect() { # guard shape caller act-cmd needle -> 0 if the guard denies with the needle
+  a5_out=$(jq -n --arg c "$(a536r2_shape "$2" "$4")" --arg a "$3" '{tool_input:{command:$c}, agent_type:$a}' | bash "$1")
+  a5_r=$(printf '%s' "$a5_out" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""' 2>/dev/null)
+  [ "$(verdict "$a5_out")" = DENY ] && printf '%s' "$a5_r" | grep -qF "$5"
+}
+a536r2_cells() { # -> "shape act cmd needle" lines: force only for the heredoc shapes (under `((` 3b's
+                 # repository resolver answers first, with its own DENY, so the needle would lie)
+  for a5_shape in hdansi hdloc hdesc hdlong arith arithold arith2 arithold2; do
+    while IFS='|' read -r a5_act a5_cmd a5_needle; do
+      case "$a5_shape/$a5_act" in arith*/force) continue ;; esac
+      printf '%s|%s|%s|%s\n' "$a5_shape" "$a5_act" "$a5_cmd" "$a5_needle"
+    done <<< "$A536R2_ACTS"
+  done
+}
+a536r2_red() { # guard -> number of cells NOT denied on their reason, over both callers
+  a5_red=0
+  while IFS='|' read -r a5_shape a5_act a5_cmd a5_needle; do
+    for a5_caller in "" "$A536_PERSONA"; do
+      a536r2_expect "$1" "$a5_shape" "$a5_caller" "$a5_cmd" "$a5_needle" || a5_red=$((a5_red + 1))
+    done
+  done <<< "$(a536r2_cells)"
+  printf '%s' "$a5_red"
+}
+while IFS='|' read -r a5_shape a5_act a5_cmd a5_needle; do
+  for a5_caller in "" "$A536_PERSONA"; do
+    a5_who="${a5_caller:-orchestrator}"; a5_who="${a5_who##*:}"
+    if a536r2_expect "$GUARD" "$a5_shape" "$a5_caller" "$a5_cmd" "$a5_needle"; then
+      pass=$((pass + 1)); printf 'ok    DENY   #536 r2 %s x %s x %s\n' "$a5_shape" "$a5_who" "$a5_act"
+    else
+      fail=$((fail + 1)); printf 'FAIL  #536 r2 %s x %s x %s — the act after the construct was not refused on its own reason\n' "$a5_shape" "$a5_who" "$a5_act"
+    fi
+  done
+done <<< "$(a536r2_cells)"
+# What must stay SILENT: the same constructs before an ordinary quoted command, and an arithmetic
+# shift inside a quoted python body.
+check ALLOW "#536 r2 control: an arithmetic shift before a quoted echo" "$(printf "((x=1<<2))\necho ok 'a b'")"
+check ALLOW "#536 r2 control: <<\$'EOF' before a quoted echo" "$(printf "cat <<\$'EOF'\nx\nEOF\necho ok 'a b'")"
+# The zsh case the arithmetic rule is shaped around: `((cat <<EOF) )` is a SUBSHELL holding a real
+# heredoc in zsh (bash 3.2 reads it otherwise). Its two closers are not adjacent, so it is NOT taken as
+# arithmetic, the body stays a body, and its apostrophe cannot pair past EOF.
+check_reason DENY "#536 r2 ((cat <<EOF) ) keeps its heredoc: the push after EOF is seen" "pushing to the trunk. Merging" \
+             "$(printf "((cat <<EOF) )\nit's\nEOF\ngit push origin main && echo 'y z'")"
+check_reason DENY "#536 r2 <<-EOF with a tab-indented terminator: the push after it is seen" "pushing to the trunk. Merging" \
+             "$(printf "cat <<-EOF\n\tit's\n\tEOF\ngit push origin main && echo 'y z'")"
+# ~~RESIDUAL, pinned as SILENCE~~ — CLOSED at #536 round 3. An arithmetic expression SPANNING A
+# NEWLINE is still not recognised by the scanner (the check is per line), so its `<<2` still queues a
+# heredoc and the first pass still reads the lines before a later `2` as a body. The heredoc-as-shell
+# pass re-reads them as shell and refuses; the r3 calibration asserts that removing that pass returns
+# this row to ALLOW.
+A536_RES2="$(printf "((x=1\n<<2))\necho \"it's\" && git push origin main && echo 'y z'\n2")"
+check_reason DENY "#536 r2 former RESIDUAL: multi-line arithmetic no longer hides the lines between (r3 pass)" \
+             "pushing to the trunk. Merging" "$A536_RES2"
+
+# CALIBRATION — each fix is planted back OUT of a copy of the guard, alone and together. With all four
+# reverted the scanner reads these constructs as c0d33be9 did, and every cell above must go red. The
+# singles show which fix is load-bearing for which construct, and that the unterminated-body rule is a
+# second layer under the other three rather than a duplicate of any of them.
+a536_lit() { # out in from-file to-file -> replace the ONE literal occurrence; exit 3 unless exactly one
+  perl -e '
+    local $/; my ($g, $ff, $tf) = @ARGV;
+    open my $G, "<", $g or exit 4; my $s = <$G>;
+    open my $F, "<", $ff or exit 4; my $f = <$F>; chomp $f;
+    open my $T, "<", $tf or exit 4; my $t = <$T>; chomp $t;
+    my $i = index($s, $f); exit 3 if $i < 0 || index($s, $f, $i + 1) >= 0;
+    substr($s, $i, length $f) = $t; print $s;
+  ' "$2" "$3" "$4" > "$1"
+}
+cat > "$A536_TMP/p1f.txt" <<'P1F'
+  while ($w =~ /\G(?:\$\x27((?:[^\x27\\]|\\.)*)\x27|\$?\x27([^\x27]*)\x27|\$?"((?:[^"\\]|\\.)*)"|\\(.)|(.))/gcs) {
+P1F
+cat > "$A536_TMP/p1t.txt" <<'P1T'
+  while ($w =~ /\G(?:(?!)()|\x27([^\x27]*)\x27|"((?:[^"\\]|\\.)*)"|\\(.)|(.))/gcs) {
+P1T
+cat > "$A536_TMP/p2f.txt" <<'P2F'
+\\.|[^\s;&|<>()\x27"\\])++)/gcs) {
+P2F
+cat > "$A536_TMP/p2t.txt" <<'P2T'
+\\.|[^\s;&|<>()\x27"\\]){1,256}+)/gcs) {
+P2T
+cat > "$A536_TMP/p3af.txt" <<'P3AF'
+        $aend = $m + 1 if defined $m && defined $m2 && $m2 == $m - 1;
+P3AF
+cat > "$A536_TMP/p3bf.txt" <<'P3BF'
+        $aend = $m + 1 if defined $m;
+P3BF
+printf '        1;\n' > "$A536_TMP/p3t.txt"
+cat > "$A536_TMP/p4f.txt" <<'P4F'
+        if ($t < 0) { @pend = (); $pi = 0; last; }
+P4F
+cat > "$A536_TMP/p4t.txt" <<'P4T'
+        if ($t < 0) { $out .= region(substr($s, $from)); pos($s) = $n; @pend = (); $pi = 0; last; }
+P4T
+# P5 (#536 round 3) removes the heredoc-as-shell pass by making its one entry condition false. Every
+# round-2 plant set below carries it: that pass re-reads each body as shell, so with it in place a
+# reverted scanner fix is caught by it and the set would read 0 — a calibration that cannot go red.
+# shellcheck disable=SC2016 # the anchor is a literal line of the guard
+printf '    if [ "$pg_hd_differs" = 1 ]; then\n' > "$A536_TMP/p5f.txt"
+printf '    if false; then\n' > "$A536_TMP/p5t.txt"
+a536r2_plant() { # out plant-ids...
+  a5_o="$1"; shift; cp "$GUARD" "$a5_o.0"
+  for a5_p in "$@"; do
+    case "$a5_p" in
+      P1) a536_lit "$a5_o.1" "$a5_o.0" "$A536_TMP/p1f.txt" "$A536_TMP/p1t.txt" || return 3 ;;
+      P2) a536_lit "$a5_o.1" "$a5_o.0" "$A536_TMP/p2f.txt" "$A536_TMP/p2t.txt" || return 3 ;;
+      P3) a536_lit "$a5_o.1" "$a5_o.0" "$A536_TMP/p3af.txt" "$A536_TMP/p3t.txt" || return 3
+          mv "$a5_o.1" "$a5_o.0"
+          a536_lit "$a5_o.1" "$a5_o.0" "$A536_TMP/p3bf.txt" "$A536_TMP/p3t.txt" || return 3 ;;
+      P4) a536_lit "$a5_o.1" "$a5_o.0" "$A536_TMP/p4f.txt" "$A536_TMP/p4t.txt" || return 3 ;;
+      P5) a536_lit "$a5_o.1" "$a5_o.0" "$A536_TMP/p5f.txt" "$A536_TMP/p5t.txt" || return 3 ;;
+    esac
+    mv "$a5_o.1" "$a5_o.0"
+  done
+  mv "$a5_o.0" "$a5_o"
+}
+A536R2_CELLS=$(( $(a536r2_cells | wc -l) * 2 ))
+# plant set | expected red cells — derived from the construct each plant reverts, counted in cells
+# (shape x act x caller): hd* shapes carry 4 acts, arith* shapes 3.
+while IFS='|' read -r a5_set a5_want a5_why; do
+  # shellcheck disable=SC2086 # the plant ids are one word each
+  if a536r2_plant "$A536_TMP/r2.sh" $a5_set; then
+    a5_got="$(a536r2_red "$A536_TMP/r2.sh")"
+    if [ "$a5_got" = "$a5_want" ]; then
+      pass=$((pass + 1)); printf 'ok    #536 r2 (calibration) plant %s: %s of %s cells RED — %s\n' "$a5_set" "$a5_got" "$A536R2_CELLS" "$a5_why"
+    else
+      fail=$((fail + 1)); printf 'FAIL  #536 r2 (calibration) plant %s: %s cells red, expected %s — %s\n' "$a5_set" "$a5_got" "$a5_want" "$a5_why"
+    fi
+  else
+    fail=$((fail + 1)); printf 'FAIL  #536 r2 (calibration) plant %s: an anchor is dead or duplicated\n' "$a5_set"
+  fi
+done <<'A536R2_PLANTS'
+P1 P2 P3 P4 P5|56|all four reverted: the scanner reads the three constructs as c0d33be9 did
+P4 P5|0|the unterminated rule alone reverted: the delimiter and arithmetic fixes still hold every cell
+P1 P5|0|dequote alone reverted: $EOF is never found, and the unterminated rule re-reads the rest as shell
+P1 P4 P5|24|dequote and the unterminated rule: the three $-quoted delimiters (3 shapes x 4 acts x 2)
+P2 P4 P5|8|the 256 cap and the unterminated rule: the long delimiter (4 acts x 2)
+P3 P5|6|arithmetic alone: only ((x=1<<2)) before a later line 2 — $[1<<2] reads its delimiter as 2], which no line equals, so it never terminates
+P3 P4 P5|24|arithmetic and the unterminated rule: all four arithmetic shapes (4 x 3 acts x 2)
+P1 P2 P3 P4|0|all four scanner fixes reverted but the round-3 pass kept: it alone holds every round-2 cell
+A536R2_PLANTS
+# ── #536 round 3: the CLASS, not its members — a heredoc the scanner opens and bash does not ──────────
+# The round-3 desync sweep found three more triggers of round 2's mechanism, each ALLOW at 4c632c6b and
+# at 88fc667c for a trunk push, a merge and a secret set placed on the line after it, both callers.
+# Measured with /bin/bash 3.2.57 (a stand-in act printed RAN-ACT; zsh mostly errors on these):
+#   · B1 — `<<` inside `${…}` is TEXT to bash; the scanner queued a heredoc;
+#   · B2 — `<<` inside an array subscript is TEXT (the subscript is one word);
+#   · B3 — a one-line `((…))` holding a QUOTED paren: bash's matched-pair reader skips the quote, the
+#     scanner's per-line paren table did not, so the closers looked non-adjacent and `<<` opened.
+# The line closing the scanner's heredoc (`EOF}`, `2]=5`, …) is a failed command to bash, which goes on.
+# The fix is not three triggers. When the first pass decides nothing and the command opens a heredoc,
+# the guard re-reads it with EVERY heredoc opener ignored — each body read as the shell text it would be
+# — and a DENY there is the answer. A heredoc the scanner invents can then hide nothing.
+# shellcheck disable=SC2016 # each shape is shell text for the guard and must not expand here
+a536r3_shape() { # shape-id ACT -> command
+  case "$1" in
+    b1dflt)  printf 'echo ${x:-<<EOF}\n' ;;
+    b1subst) printf 's=a; echo ${s//<<EOF/x}\n' ;;
+    b1strip) printf 's=a; echo ${s#<<EOF}\n' ;;
+    b1word)  printf 'echo ${s:-a<<b}\n' ;;
+    b1case)  printf 'case ${x:-<<EOF} in *) : ;; esac\n' ;;
+    b1test)  printf '[[ -z ${x:-<<EOF} ]]\n' ;;
+    b2asgn)  printf 'a[1<<2]=5\n' ;;
+    b2decl)  printf 'declare -a a; a[1<<2]=5\n' ;;
+    b2ref)   printf 'echo ${a[1<<2]}\n' ;;
+    b2dflt)  printf 'echo ${a[1<<2]:-z}\n' ;;
+    b3open)  printf '((echo "(" ;cat <<EOF))\n' ;;
+    b3close) printf '(( x = 1<<2 + ")" ))\n' ;;
+  esac
+  printf '%s' "echo \"it's\" && $2 && echo 'y z'"
+  case "$1" in
+    b1dflt|b1strip|b1case|b1test) printf '\nEOF}' ;;
+    b1subst) printf '\nEOF/x}' ;;
+    b1word)  printf '\nb}' ;;
+    b2asgn|b2decl) printf '\n2]=5' ;;
+    b2ref)   printf '\n2]}' ;;
+    b2dflt)  printf '\n2]:-z}' ;;
+    b3open)  printf '\nEOF' ;;
+    b3close) printf '\n2' ;;
+  esac
+}
+A536R3_SHAPES="b1dflt b1subst b1strip b1word b1case b1test b2asgn b2decl b2ref b2dflt b3open b3close"
+A536R3_ACTS="trunk|git push origin main|pushing to the trunk. Merging
+merge|gh pr merge 543 --merge|merging a PR is the deploy
+secret|gh secret set X --body x|writing or deleting a repository secret"
+a536r3_expect() { # guard shape caller act-cmd needle -> 0 if the guard denies with the needle
+  a5_out=$(jq -n --arg c "$(a536r3_shape "$2" "$4")" --arg a "$3" '{tool_input:{command:$c}, agent_type:$a}' | bash "$1")
+  a5_r=$(printf '%s' "$a5_out" | jq -r '.hookSpecificOutput.permissionDecisionReason // ""' 2>/dev/null)
+  [ "$(verdict "$a5_out")" = DENY ] && printf '%s' "$a5_r" | grep -qF "$5"
+}
+a536r3_red() { # guard -> number of cells NOT denied on their reason, both callers
+  a5_red=0
+  for a5_shape in $A536R3_SHAPES; do
+    while IFS='|' read -r a5_act a5_cmd a5_needle; do
+      for a5_caller in "" "$A536_PERSONA"; do
+        a536r3_expect "$1" "$a5_shape" "$a5_caller" "$a5_cmd" "$a5_needle" || a5_red=$((a5_red + 1))
+      done
+    done <<< "$A536R3_ACTS"
+  done
+  printf '%s' "$a5_red"
+}
+for a5_shape in $A536R3_SHAPES; do
+  while IFS='|' read -r a5_act a5_cmd a5_needle; do
+    for a5_caller in "" "$A536_PERSONA"; do
+      a5_who="${a5_caller:-orchestrator}"; a5_who="${a5_who##*:}"
+      if a536r3_expect "$GUARD" "$a5_shape" "$a5_caller" "$a5_cmd" "$a5_needle"; then
+        pass=$((pass + 1)); printf 'ok    DENY   #536 r3 %s x %s x %s\n' "$a5_shape" "$a5_who" "$a5_act"
+      else
+        fail=$((fail + 1)); printf 'FAIL  #536 r3 %s x %s x %s — the act bash runs after the construct was not refused on its own reason\n' "$a5_shape" "$a5_who" "$a5_act"
+      fi
+    done
+  done <<< "$A536R3_ACTS"
+done
+# The pass names itself, so a caller refused by it can tell why a body it meant as data was read.
+check_reason DENY "#536 r3 a DENY from the heredoc-as-shell pass says which view refused" \
+             "Read with every heredoc opener ignored" "$(a536r3_shape b1dflt "git push origin main")"
+# What must stay SILENT: the same constructs before an ordinary quoted command. The pass only adds a
+# DENY where the re-read view holds an act.
+check ALLOW "#536 r3 control: \${x:-<<EOF} before a quoted echo" "$(printf "echo \${x:-<<EOF}\necho \"it's\" 'y z'\nEOF}")"
+check ALLOW "#536 r3 control: a[1<<2]=5 before a quoted echo" "$(printf "a[1<<2]=5\necho \"it's\" 'y z'\n2]=5")"
+check ALLOW "#536 r3 control: a quoted-paren ((…)) before a quoted echo" "$(printf "(( x = 1<<2 + \")\" ))\necho \"it's\" 'y z'\n2")"
+check ALLOW "#536 r3 control: a python heredoc whose body is only data" \
+      "$(printf "python3 - <<'PY'\nprint('it\\\\'s', \"a'b\")\nPY")"
+# THE COST, pinned so it is visible rather than discovered: a REAL heredoc read by a data reader whose
+# body quotes an act in the A1 shape is now refused, because the re-read view cannot know `cat` is not a
+# shell. Before round 3 this was ALLOW (the region hid it). The corpus count is in #536's PR.
+check_reason DENY "#536 r3 COST: a cat heredoc whose body quotes an act around an apostrophe is refused" \
+             "pushing to the trunk. Merging" \
+             "$(printf "cat <<'EOF'\necho \"it's\" && git push origin main && echo 'y z'\nEOF")"
+# CALIBRATION — the pass is planted OUT of a copy (its one entry condition made false). Every r3 cell
+# must go red, the round-2 cells must stay green (the scanner's own fixes still hold them), and the two
+# former residual rows must return to ALLOW: that is what shows the pass is the ONLY thing holding them.
+if a536r2_plant "$A536_TMP/r3.sh" P5; then
+  a5_r3="$(a536r3_red "$A536_TMP/r3.sh")"; a5_r2="$(a536r2_red "$A536_TMP/r3.sh")"
+  # shellcheck disable=SC2086 # one word per shape id
+  a5_want=$(( $(printf '%s\n' $A536R3_SHAPES | wc -l) * 3 * 2 ))
+  if [ "$a5_r3" = "$a5_want" ] && [ "$a5_r2" = 0 ]; then
+    pass=$((pass + 1)); printf 'ok    #536 r3 (calibration) pass planted out: %s of %s r3 cells RED, round-2 cells still green\n' "$a5_r3" "$a5_want"
+  else
+    fail=$((fail + 1)); printf 'FAIL  #536 r3 (calibration) pass planted out: %s of %s r3 cells red, %s round-2 cells red\n' "$a5_r3" "$a5_want" "$a5_r2"
+  fi
+  for a5_row in "$A536_RES1" "$A536_RES2"; do
+    a5_out=$(printf '%s' "$a5_row" | jq -R '{tool_input:{command:.}}' | bash "$A536_TMP/r3.sh")
+    if [ "$(verdict "$a5_out")" = ALLOW ]; then
+      pass=$((pass + 1)); printf 'ok    #536 r3 (calibration) pass planted out: a former residual returns to ALLOW\n'
+    else
+      fail=$((fail + 1)); printf 'FAIL  #536 r3 (calibration) pass planted out: a former residual still denies — something else holds it\n'
+    fi
+  done
+else
+  fail=$((fail + 1)); printf 'FAIL  #536 r3 (calibration) the pass anchor is dead or duplicated\n'
+fi
+rm -rf "$A536_TMP"
 
 rm -rf "$FEAT"
 rm -rf "$TMAIN" "$TFEAT"
