@@ -569,7 +569,7 @@ floor (`Bash(gh api:*)`). A milestone needs none of that: `gh issue edit --miles
 | requirement (#326) | milestone |
 |---|---|
 | one iteration per item | **yes**, and GitHub enforces it — an Issue has at most one milestone |
-| mark an iteration closed | **not readable from here** — see the degradation below |
+| mark an iteration closed | **yes**, through the reviewed read and close routes below |
 | aggregate a numeric weight per iteration | **no native field**; see *What is not built* |
 
 **The degradation, measured rather than inferred, and it is the one thing to know before trusting this
@@ -583,11 +583,12 @@ gh issue list --repo <owner>/<repo> --state all --limit 200 --json number,milest
 ```
 
 There is no `gh milestone` subcommand, and `state` is not among `gh issue list --json`'s available
-fields, so **no command available to this loop can read whether a milestone is open or closed.**
-~~Creating one and closing one are both owner acts in the browser.~~ **Struck 2026-08-31 (#375), for
-CREATION only** — `scripts/milestone-create.sh` is the route, and **closing is still a click**. The
-restatement further down carries the same strike and the same scope; this site is the original and was
-left standing when that one landed.
+fields, so ~~**no command available to this loop can read whether a milestone is open or closed.**~~
+**Struck 2026-09-29 (#537): `python3 scripts/milestone-read.py` reads the milestone endpoint directly,
+including an empty milestone, and returns state plus open and closed counts.**
+~~Creating one and closing one are both owner acts in the browser.~~ **Struck first for creation at
+#375 and completely at #537:** `scripts/milestone-create.py` creates and
+`scripts/milestone-close.py` closes. Neither act is handed to the owner.
 
 **Why that does not send the object back to the table, which is the honest form of this answer:** rule 1
 never reads `state`. The predicate above derives the active iteration from *items*, so the one attribute
@@ -599,14 +600,15 @@ closing is a click.
 between every persona and the raw write API; one click per iteration is cheaper than reopening that
 door.~~ ~~*"Creating one and closing one are both owner acts in the browser."*~~
 
-**Struck 2026-08-31 (#375) for CREATION only — CLOSING is still a click, and the two halves separate.**
+~~**Struck 2026-08-31 (#375) for CREATION only — CLOSING is still a click.**~~ **Struck 2026-09-29
+(#537): closing now has its own reviewed route.**
 The owner's requirement is that the Scrum rites be executable end to end — *«voce deveria ao final
 dessa reconfiguracao do loop conseguir realizar intencionalmente todas atividades previstas em ritos de
 scrum»* — and creation had **no route at all**: `gh milestone` does not exist
 (`gh milestone --help` → `unknown command "milestone" for "gh"`), so rule 5f's prescribed remedy
 (*"use the gh subcommand for the act instead"*) is **unexecutable**, not merely inconvenient.
 
-**The route is `scripts/milestone-create.sh`, and it is an EXPLOITATION rather than a design.** It
+**The route is `scripts/milestone-create.py`, and it is an EXPLOITATION rather than a design.** It
 reaches the write API because **neither the settings matcher nor `permission-guard.sh` looks inside a
 script** — the same blindness that makes `python3 -c "…gh api -X POST…"` a back door, measured against
 the live guard. **So nothing here may claim the raw-API route is closed**, and the floor entry the
@@ -617,14 +619,18 @@ split, and the owner's answer to that prompt is the HITL verification #365 deman
 and the price of accepting the hole are still in ADR-0004's 2026-08-31 amendment, and the hole is still
 open.
 
-**What stands there now is an ABSENCE, and the difference matters more here than anywhere else in this
-slice.** `scripts/` matches no `allow` entry in either settings layer, so running the script still
-reaches a **permission prompt** for the orchestrator and an unanswerable one for a subagent — so unlike
-rule 10, removing rule 11 is close to behaviour-neutral. **But rule 11's own comment said, while it
-existed, why leaning on that is wrong:** it is ADR-0004's *"Permission entries have three states, and
-absent is not one"* shape. **An allow entry added later for an unrelated reason silently removes the
-verification, and nothing anywhere would say so.** That is now the standing state rather than a
-hypothetical the rule protected against.
+**The family is four reviewed routes since #537:** `milestone-read.py`, `milestone-create.py`,
+`milestone-update.py` and `milestone-close.py`. Read identifies a milestone by number, including one
+holding zero Issues, and returns title, description, state, and open/closed counts. Update accepts the
+new description and expected prior description by file only, prints the prior value, and refuses a
+lost-update race. Close reads first and refuses a milestone that is not open. All fail non-zero when
+`gh` fails, and `scripts/milestone.test.py` exercises the behavior against a stub `gh` on `PATH`.
+
+~~**What stands there now is an ABSENCE:** `scripts/` matches no allow entry, so running the script
+prompts the orchestrator and refuses a subagent.~~ **Struck 2026-09-29 (#537): the reviewed milestone
+family now uses the already-allowlisted `python3` interpreter.** Read, create, update and close execute
+without a prompt for the orchestrator and every persona holding Bash. No settings layer changed; the
+reach is the accepted consequence of the owner's non-critical pricing of milestone acts.
 
 **One measurement that could make the route unnecessary is still NOT taken, and one obstacle to taking
 it is gone:** whether `gh issue edit --milestone "<new title>"` *creates* a missing milestone. `--help`

@@ -585,7 +585,11 @@ repositories plus the proposals the two closing rites just produced — has them
 that did not run this drain, and presents them to the owner **one item at a time**.
 
 **It runs AFTER both closing rites, not instead of them**, because their proposal files are its
-inputs — the retrospective's per-persona findings and, since #379, the sweep's judgement half. **It composes nothing on its own**: every milestone write is the owner's act at the rite.
+inputs — the retrospective's per-persona findings and, since #379, the sweep's judgement half.
+~~**It composes nothing on its own**: every milestone write is the owner's act at the rite.~~
+**Struck 2026-09-29 (#537): the owner still confirms the composition, but the main session executes
+the resulting writes through the reviewed milestone routes. Confirmation is the decision; typing each
+write is not a second owner act.**
 ~~every milestone write is the owner answering a `permission-guard.sh` prompt (rule 10 for an
 admission, rule 11 for creating the iteration).~~ **Struck 2026-09-04 (#383): both rules are deleted.
 An admission is now a silent allowlisted write, and creating the iteration prompts only because
@@ -639,8 +643,10 @@ argument below was built on it.
   preflight passes. **Not a count** — a count is satisfied by an arrival replacing a closed item, and the
   drain would then work an item it never admitted while reporting the same arithmetic.
 - **Where it lives: session state, for the duration of one invocation.** It needs **no durable home**,
-  which is why the constraint #339 measured — a milestone description is not readable from here, so a
-  description edit leaves no trace — does not bite this design. Nothing is being written to the tracker.
+  ~~which is why the constraint #339 measured — a milestone description is not readable from here, so
+  a description edit leaves no trace — does not bite this design.~~ **Struck 2026-09-29 (#537): the
+  reviewed read route returns the description and the update route prints its prior value.** The
+  snapshot still needs no durable home because nothing in this design is written to the tracker.
 - **What a second `/autonomy on` in the same iteration does: it takes a FRESH snapshot.** Items the first
   drain did not take are still open, still `ready`, still in the iteration, so they are in the second
   snapshot by construction. **The snapshot defers, it never drops.** This is the question the proposal was

@@ -2304,7 +2304,7 @@ fi
 #     The long forms keep `([[:space:]=]|$)`, which is what stops `--fieldwork` matching `--field`.
 gh_api_write='(--method|-X)[[:space:]=]*(POST|PUT|PATCH|DELETE)|(-f|-F)|(--field|--raw-field|--input)([[:space:]=]|$)'
 if printf '%s' "$bare" | grep -Eqi "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]+api([[:space:]]+[^[:space:]]+)*[[:space:]]+(${gh_api_write})"; then
-  deny "Blocked: this \`gh api\` call WRITES (it carries --method POST/PUT/PATCH/DELETE, -X, -f/-F/--field/--raw-field, or --input; note that -f and -F make the request a POST on their own). The raw API is the back door around the rules that own these acts — opening an issue (5c/5d) and merging a PR (7b) — so a write here is the one spelling those gates cannot see. Use the gh subcommand for the act instead, so the rule that owns it applies: \`gh issue create\`, \`gh pr merge\`, \`gh pr comment\`. THIS RULE leaves READS untouched — drop the field flags and pass query parameters in the endpoint (\`gh api 'repos/o/r/issues?state=open'\`) — but a static \`Bash(gh api:*)\` deny may sit in the settings floor ABOVE this hook and refuse the read anyway; that is a different layer and this message cannot see it. And where an act has NO gh subcommand at all — creating a milestone, measured: \`gh milestone --help\` -> unknown command — this rule's remedy is unexecutable and the act needs its own reviewed route: \`bash scripts/milestone-create.sh\`. NOTHING IN THIS FILE GUARDS THAT ROUTE — the rule that did (11) was removed 2026-09-04 (#383). It prompts only because \`scripts/\` matches no allow entry in either settings layer, which is an absence and not a control."
+  deny "Blocked: this \`gh api\` call WRITES (it carries --method POST/PUT/PATCH/DELETE, -X, -f/-F/--field/--raw-field, or --input; note that -f and -F make the request a POST on their own). The raw API is the back door around the rules that own these acts — opening an issue (5c/5d) and merging a PR (7b) — so a write here is the one spelling those gates cannot see. Use the gh subcommand for the act instead, so the rule that owns it applies: \`gh issue create\`, \`gh pr merge\`, \`gh pr comment\`. THIS RULE leaves READS untouched — drop the field flags and pass query parameters in the endpoint (\`gh api 'repos/o/r/issues?state=open'\`) — but a static \`Bash(gh api:*)\` deny may sit in the settings floor ABOVE this hook and refuse the read anyway; that is a different layer and this message cannot see it. Where milestone acts have NO gh subcommand, use the reviewed Python routes: \`python3 scripts/milestone-{read,create,update,close}.py\`. NOTHING IN THIS FILE GUARDS THOSE ROUTES — the rule that did (11) was removed 2026-09-04 (#383); the project allow for \`python3\` makes them reachable without a prompt to every persona holding Bash."
 fi
 
 # 5e. THE COPY LENS DOES NOT WRITE TO A PUBLIC SURFACE (owner, 2026-08-04).
@@ -3899,7 +3899,7 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
       # WHAT STAYS OPEN, so the repair is not read as closing the class. A SCRIPT FILE — `sh
       # ./merge-it.sh` — reaches the merge untouched, because neither settings matcher nor any rule in
       # this file looks inside one; the same blindness `agents-configuration` records for
-      # `scripts/milestone-create.sh`, reached from the other side. A BROWSER MERGE is unreachable from
+      # a reviewed repository script, reached from the other side. A BROWSER MERGE is unreachable from
       # any hook, as 7c's own comment already states. Measured for #441 and already closed, so nobody
       # re-walks them: an absolute path, `command gh`, `xargs -I{}` and `gh api -X PUT .../merge`
       # (rule 5f) all deny at head.
@@ -4557,7 +4557,7 @@ fi
 #
 #    WHAT THEY WERE. Rule 10 matched `gh issue create`/`gh issue edit` carrying `--milestone`/`-m` and
 #    split on `agent_type`: a subagent was DENIED, the orchestrator was ASKED. Rule 11 did the same for
-#    the `scripts/milestone-*.sh` family, the sanctioned milestone-write route. Together they were this
+#    the `scripts/milestone-*.sh` family, then the sanctioned milestone-write route. Together they were this
 #    file's only `ask` verdicts and its only PREVENTIVE answer to #365's *«itens nao podem ser criados
 #    dentro do sprint automaticamente sem verificacao HITL»* — the owner's answer to the prompt WAS
 #    that verification.
@@ -4581,16 +4581,20 @@ fi
 #    completion bar. That failure mode is unchanged; what is gone is the prompt that made it visible
 #    at the moment it happened.** Nothing detects it either: no hook in this directory reads the queue.
 #
-#    RULE 11 IS DIFFERENT AND MUST NOT BE DESCRIBED WITH RULE 10'S SENTENCE. `scripts/` matches no
+#    ~~RULE 11 IS DIFFERENT AND MUST NOT BE DESCRIBED WITH RULE 10'S SENTENCE. `scripts/` matches no
 #    allow entry in either layer (the global floor allows `bash <repo>/hooks/scripts/*`, a different
 #    directory), so a milestone-script run still reaches a PERMISSION PROMPT for the orchestrator, and
 #    an unanswerable one for a subagent. **Its removal is close to behaviour-neutral; what is lost is
-#    the rule's own text, which explained WHY the prompt was there.**
+#    the rule's own text, which explained WHY the prompt was there.~~ **Struck 2026-09-29 (#537): the
+#    reviewed milestone family is now `scripts/milestone-*.py`, invoked through the already-allowlisted
+#    `python3` interpreter. It runs without a prompt for the orchestrator and every Bash persona.**
 #
-#    AND THAT SURVIVING PROMPT IS AN ABSENCE, NOT A CONTROL — which is the shape ADR-0004 books under
+#    ~~AND THAT SURVIVING PROMPT IS AN ABSENCE, NOT A CONTROL — which is the shape ADR-0004 books under
 #    "Permission entries have three states, and absent is not one". Rule 11's own comment said so while
 #    it existed: leaning on the absence means an allow entry added later for an unrelated reason
-#    silently removes the verification, and nothing would say so. That is now the standing state.
+#    silently removes the verification, and nothing would say so.~~ **Struck 2026-09-29 (#537): no
+#    prompt survives on the Python routes. Nothing in this guard inspects them; their boundary is
+#    review, behavioral tests and the owner's non-critical pricing of milestone acts.**
 #
 #    NOTHING IS APPENDED BELOW THIS POINT. Both rules were placed last because `ask` exits exactly as
 #    `deny` does, so an `ask` sited earlier would have SOFTENED a deny. With the asks gone that hazard

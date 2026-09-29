@@ -13,10 +13,9 @@ through them
 >   decision from any layer**, for a dispatched persona as well as for the orchestrator. **It EXECUTES
 >   SILENTLY. It does NOT degrade to a prompt.** That is the fact every stale sentence in this file gets
 >   wrong.
-> - **Creation** (`bash scripts/milestone-create.sh`, which was rule 11's act). Also draws no decision
->   from the hook. It still prompts — and **only** because `scripts/` matches no `allow` entry in either
->   layer. **That is an absence, not a control:** one unrelated allow entry added later removes it
->   silently, and nothing anywhere would say so.
+> - ~~**Creation** (`bash scripts/milestone-create.sh`) still prompts because `scripts/` matches no
+>   allow entry.~~ **Struck 2026-09-29 (#537): milestone routes use the already-allowlisted `python3`
+>   interpreter and run without a prompt for every persona holding Bash.** No settings layer changed.
 >
 > **The criterion that deleted them, in the owner's words:** «o risco de permitir essa operacao passar é
 > one way door decision», narrowed to «situacoes irreparaveis». **A milestone assignment is repaired by
@@ -2511,12 +2510,15 @@ prevent. **"No new record owed" is the answer, with that reason**, and the ceili
    condition still lives at planning.
 
 **The one measurement that could have sent decision 1 back to the table, closed here rather than left
-open.** `gh issue list --json milestone` returns a sub-object with **four keys and no `state`**
+open.** `gh issue list --json milestone` returns a sub-object with ~~**four keys and no `state`**~~
+**four keys and no `state` through that command**
 (`description`, `dueOn`, `number`, `title`); `state` is not among that command's available fields, and
-there is no `gh milestone` subcommand. **So no command available to this loop can read whether a milestone
-is open or closed.** It does not overturn the choice, because rule 1 derives the active iteration from
+there is no `gh milestone` subcommand. ~~**So no command available to this loop can read whether a milestone
+is open or closed.**~~ **Struck 2026-09-29 (#537): `scripts/milestone-read.py` reads the endpoint by
+number, including empty milestones.** It does not overturn the choice, because rule 1 derives the active iteration from
 *items* and never consults `state` — but it does kill the source document's *"the iteration closes
-automatically"* clause, which is **not adopted**. Creating and closing a milestone are owner clicks. The
+automatically"* clause, which is **not adopted**. ~~Creating and closing a milestone are owner clicks.~~
+**Both now have reviewed Python routes.** The
 alternative — unlisting `Bash(gh api:*)` from the global floor — is refused: that entry is what stands
 between every persona and the raw write API.
 
@@ -2893,7 +2895,8 @@ authors.
    matched. **Re-taken fresh per invocation**: a second `/autonomy on` in the same iteration picks up
    everything the first did not take, so the snapshot **defers and never drops** — which is also why it
    needs no durable home, and why the constraint the twenty-second amendment's slice measured (a milestone
-   description is not readable from here, so a description edit leaves no trace) does not reach this
+   ~~description is not readable from here, so a description edit leaves no trace~~ **description is
+   readable and an update prints its prior value since #537**) does not reach this
    design.
 3. **No arrivals instrument is built**, on his amendment. The drain does not report how many items joined
    after it started.
@@ -2925,7 +2928,8 @@ existing preflight meeting the new filing rule.
    is #103's argument arriving one layer down, and #103 is the reason `/autonomy on` has a
    terminal-condition section at all.
 3. **Persist the snapshot in the tracker** — a milestone description, or a comment on the iteration Issue.
-   Rejected twice over: the milestone description is not readable from here, and the iteration Issue does
+   Rejected twice over: ~~the milestone description is not readable from here~~ **the description is a
+   weak mutable home even though #537 made it readable**, and the iteration Issue does
    not exist yet. **And it would be worse if it worked** — a persisted snapshot needs an invalidation rule
    for the second invocation, which is exactly the question that kills a snapshot, and session state
    answers it by having nothing to invalidate.
@@ -4354,17 +4358,20 @@ available one. Measured against the head guard, one payload per line:
 ```
 
 **PATCH is blocked in the same spelling POST is blocked in and reachable in the same spelling POST is
-reachable in.** The correct statement is **no update route is BUILT**; the hole is open and anyone may
-write one. Where the milestone already exists, the order of record is **not written into the milestone
-description and the reason is recorded** — the composition itself survives in full in the rite's own
-artifact, which is one more reason `agents-configuration` calls that field a weak home.
+reachable in.** ~~The correct statement is **no update route is BUILT**; the hole is open and anyone
+may write one.~~ **Struck 2026-09-29 (#537): `scripts/milestone-update.py` is now the reviewed route.**
+It takes both descriptions by file, prints the prior value and refuses unless the expected value still
+matches. The field remains a weak home because the forge does not version its edits where this loop can
+read them; compare-and-swap prevents a concurrent overwrite rather than creating history.
 
 **And the residual is guarded PRE-EMPTIVELY rather than left to the slice that accepts the invitation.**
 Rule 11 was pinned to the literal basename `milestone-create.sh`, so the `milestone-update.sh` this
 residual invites would have shipped a milestone write with **neither the `ask` nor the `deny`**, on a
 route indistinguishable from the sanctioned one — #365's human verification absent, with nothing saying
 so. That is ADR-0004's *"absent is not a state"* shape arriving through a file nobody had written yet.
-**Rule 11 now matches `milestone-[a-z0-9-]*.sh` in both run positions**, and the widening ships here.
+~~**Rule 11 now matches `milestone-[a-z0-9-]*.sh` in both run positions.**~~ **Struck 2026-09-29
+(#537): rule 11 was deleted on 2026-09-04, so this sentence had become false in the permissive
+direction.** The reviewed Python routes are intentionally unguarded under the owner's pricing.
 
 **A closed VERB LIST was rejected, and the reason is the whole argument for the family form.**
 `milestone-(create|update|close)\.sh` reintroduces exactly the failure the widening exists to prevent:
@@ -4396,8 +4403,9 @@ the rite says so in the section that writes the file, so a reader cannot mistake
 - **It does not open work.** A retrospective proposal becomes an Issue only on the owner's ruling, and
   it is filed with no milestone like everything else (twenty-seventh amendment), then admitted by the
   same prompted route as any other item.
-- **It does not close an iteration.** No command available to this loop can read whether a milestone is
-  open or closed.
+- ~~**It does not close an iteration.** No command available to this loop can read whether a milestone
+  is open or closed.~~ **Struck 2026-09-29 (#537): read and close routes now exist.** The close follows
+  the closing rites; it is not their trigger.
 - **It does not handle a CARRY-OVER, and it does not pretend to.** Step 1 assembles `milestone == null`,
   so an open item still carrying the last iteration's milestone is invisible to the rite entirely. **The
   class is reachable and its population is a moving number, so the rite publishes the predicate and no
@@ -5666,6 +5674,36 @@ commit from an unreviewed one.
 
 **What enforces it: the gate persona.** The `Stop` detector only reports, one turn late. It does not
 fetch, so a head it cannot read locally still produces its notice.
+
+## Amendment — 2026-09-29: milestone acts have reviewed routes and are not owner actions (#537)
+
+The owner priced milestone acts as non-critical at #383 and later identified the loop handing those
+acts back to him as a behaviour-anchor defect. The mechanism now follows that decision rather than the
+retired prompts: four repository utilities read, create, compare-and-swap a description, and close a
+milestone. They are Python scripts because the project already permits `python3`; therefore the
+orchestrator and every persona holding Bash can run them without a prompt. No settings layer changes.
+
+The raw API remains denied at the shell and generally reachable from an interpreter. These routes do
+not close that hole. They turn four named uses into reviewed, single-purpose files with a behavioral
+stub-`gh` suite. Read is by milestone number, so it returns state and counts even when the milestone
+holds no Issues. Create fails loudly if enumeration fails. Update takes both current expectation and
+replacement by file, prints the prior description and refuses a lost-update race. Close reads first
+and refuses a milestone not in the open state.
+
+The state model is unchanged: a `loop` Issue still moves `ready → in progress` when its pull request
+opens, and only the gate records `reviewed`. The milestone routes add no label or transition. Their
+observable artifacts are the API result in the transcript and, for the first real update, the appended
+planning record plus the pull-request evidence. No hook records that a rite used them, so using the
+route remains an instruction even though the route's own behavior is tested.
+
+**Rejected:** keep Bash and add a settings allow. That would require the owner to change an untracked
+settings layer and would leave other personas prompting until adoption. **Rejected:** retain the owner
+as executor. It preserves the exact dependency he rejected and contradicts the non-critical pricing.
+
+**Costs:** every Bash-capable persona receives the write reach; a reviewed script still exploits the
+interpreter hole; and compare-and-swap prevents lost updates but does not make milestone-description
+history visible. Accepted because each milestone mutation is reversible and the wider raw capability
+already existed.
 
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now
