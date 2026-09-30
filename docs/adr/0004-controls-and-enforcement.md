@@ -7437,3 +7437,62 @@ the perl selfcheck note in both states.
 *Introduces a new dependency* (perl, in the guard). It also adds a second, narrower fail-closed
 branch to the contract that *Which layer carries a control* states as "the authoritative layer fails
 open", and to the guard's own header. It is boundary class: the irreversible floor.
+
+## Amendment 2026-09-29 — one owner ask has a countable half and a semantic half
+
+### Context
+
+The root HITL contract said one decision per activation and already named the transport failure: some
+surfaces render only the first question in a structured picker and report nothing about the remainder.
+The same cost exists outside a running loop and for actions as well as decisions. Two owner actions in
+one message still make the owner rebuild two contexts, even though no picker is involved.
+
+One half is mechanically exact. An `AskUserQuestion` call carries `.tool_input.questions`; an array with
+two or more members is multiple asks. The other half is language. A prose message can order two owner
+actions with no tool call at all, and punctuation such as a leading `! ` is only a proxy.
+
+This decision sits beside the deleted action-pendency guard rather than reversing it. That control
+classified choice shape from verbs in option labels and suppressed genuine decisions before the owner
+could see them. Its false positives were invisible by construction. A count over an array has none of
+that semantic surface.
+
+### Decision
+
+Rule 1 is global: every owner-directed activation or message carries one ask, whether it is a decision
+or an action and whether or not a loop is running.
+
+Register `hooks/scripts/hitl-one-question-guard.sh` on the exact `AskUserQuestion` `PreToolUse` matcher.
+The guard denies only when `.tool_input.questions` is an array of length two or greater. Its recovery
+instruction is to ask the first, wait for the answer and preserve each remaining ask for a later
+activation; converting the remainder into prose or a numbered list is explicitly not a recovery.
+
+The guard abstains on zero or one member and on absent, null, non-array, malformed and
+`__unparsedToolInput` payloads. It does not inspect question text, options, labels, verbs or links. The
+prose action-list half remains held by review because no available pre-execution layer sees an ordinary
+message and no measured textual proxy distinguishes asks from prose.
+
+### Considered options
+
+- **Count the structured array and leave language to review — chosen.** The positive predicate is
+  exact, its false-positive surface is empty within the declared payload shape, and its limits are
+  visible.
+- **Rebuild a semantic action classifier.** Rejected on the prior control's measured error direction:
+  a false positive suppresses a real decision before the owner can observe it.
+- **Use leading `! ` lines as a prose detector.** Rejected. On the 2026-09-29 transcript snapshot,
+  14,826 assistant text blocks contain 14,818 with zero, seven with one and one with two or more such
+  lines. The predicate is measurable but not meaningful: real action lists may contain none and
+  ordinary prose may contain several.
+- **Document the rule only.** Rejected for the structured half. A pre-tool layer receives the exact
+  array before display, so leaving the count to memory would decline a control the layer can hold.
+
+### Consequences
+
+Good: a structured picker cannot silently discard a second question while the registered guard runs.
+The control is narrower than the deleted one by construction and preserves its accepted false-positive
+boundary.
+
+Bad: prose owner-action lists remain possible and are caught only in review. Direct unit tests prove the
+script and registration, not the host's routing of `AskUserQuestion`; the first installed benign pass
+and expected denial after release remain separate runtime evidence. The canonical root block is copied
+to the sibling repository, so the two independent pipelines necessarily have a temporary drift window
+between their merges.

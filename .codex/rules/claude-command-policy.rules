@@ -54,6 +54,8 @@ prefix_rule(pattern=["bash", "hooks/scripts/codex-rules.test.sh"], decision="all
 prefix_rule(pattern=["bash", "hooks/scripts/dispatch-metrics-start.sh"], decision="allow")
 prefix_rule(pattern=["bash", "hooks/scripts/dispatch-metrics-stop.sh"], decision="allow")
 prefix_rule(pattern=["bash", "hooks/scripts/dispatch-metrics-stop.test.sh"], decision="allow")
+prefix_rule(pattern=["bash", "hooks/scripts/hitl-one-question-guard.sh"], decision="allow")
+prefix_rule(pattern=["bash", "hooks/scripts/hitl-one-question-guard.test.sh"], decision="allow")
 prefix_rule(pattern=["bash", "hooks/scripts/hooks-executable.test.sh"], decision="allow")
 prefix_rule(pattern=["bash", "hooks/scripts/inventory-counts.test.sh"], decision="allow")
 prefix_rule(pattern=["bash", "hooks/scripts/kiro-power.test.sh"], decision="allow")

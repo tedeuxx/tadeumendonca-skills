@@ -4486,7 +4486,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=55
+BP_HIGH_WATER=56
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).
@@ -9562,8 +9562,10 @@ fi
 #   C2  README says six, tree says seven          -> count RED ('six'), list green
 #   C3  a published ls list drops one name        -> list RED, COUNT STILL GREEN  <- the #462 shape
 #   C4  CLAUDE.md drops both recognised forms     -> coverage RED "DID NOT RUN"
-#   C5  preflight de-duplicated (14 regs/14 scr)  -> registrations RED, SCRIPTS GREEN
-#   C6  a 16th registration of a new script       -> registrations RED and scripts RED, separately
+#   C5  preflight de-duplicated (15 regs/15 scr)  -> registrations RED, SCRIPTS GREEN
+#   C6  a 16th registration of a new script       -> registrations RED and scripts RED, separately;
+#                                                    #538 supplied the real mutation before its prose
+#                                                    was updated, then the restored contract re-greened
 #   C7  the two docs disagree on typed forms      -> agreement RED, naming both values
 #   C8  the struck false sentence is UN-STRUCK    -> registrations RED ('fourteen')
 #   C9  hooks.json unreadable                     -> derivation RED + both arms "UNCOMPUTABLE"

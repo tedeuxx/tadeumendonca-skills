@@ -262,6 +262,13 @@ jobs:
       - name: Run the dispatch-metrics-stop suite
         run: bash hooks/scripts/dispatch-metrics-stop.test.sh
 
+      # Same rule a SIXTH time (#538). This suite pins both sides of a deliberately narrow control:
+      # arrays with two or more questions deny, while zero, one and every non-array shape fall through.
+      # Running only the positive side would invite the deleted action-pendency classifier back in by
+      # degrees; running neither in CI would leave an unreachable local proof looking like coverage.
+      - name: Run the one-owner-question guard suite
+        run: bash hooks/scripts/hitl-one-question-guard.test.sh
+
       # Added in the SAME slice as the artifact it gates (#419), which is the rule the five comments
       # above all state. The subject is a THIRD harness's permission layer that was agent-authored,
       # `.git/info/exclude`d and never reviewed; it is tracked from this slice on, and this step is
