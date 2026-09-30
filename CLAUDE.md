@@ -551,15 +551,18 @@ main session on build `2.1.263`: a repo-root `CLAUDE.md` reaches this context, a
 in the imperative, rather than in the skill library — **a rule preloaded by every profile and binding on
 none of them is the shape this repository already fails at.**
 
-**Scope: an escalation rising out of a running loop.** Not every question anyone has for the owner — a
-design conversation, an interview, an ad-hoc request typed at the terminal is none of them an
-escalation, whatever its subject. What makes something qualify is the escalation standard's five
-clauses; what follows is the FORM, once it does.
+**Scope: rule 1 binds EVERY owner-directed activation or message — decisions and actions, inside or
+outside a running loop.** The transport can lose a second question and the owner pays the context cost
+of a second action regardless of which process produced it. Rules 2–5 still distinguish the forms: a
+design conversation, an interview and an ad-hoc request are not thereby HITL escalations, and the
+escalation standard's five clauses still decide what qualifies as one. The global rule is one ask; the
+remaining rules say what shape that one ask takes.
 
 ### The five rules
 
-1. **One decision per activation.** Two, however short, is a decision list — he has to rebuild context
-   twice. Ask the first; carry the second to its own activation.
+1. **One owner ask per activation or message.** Two, however short, is a list — he has to rebuild
+   context twice, and some surfaces show only the first without reporting the loss. Ask or order the
+   first; preserve every remaining ask for its own later activation after he answers.
 2. **The activation is a tweet. The context lives in the OPTIONS.** Terse is not context-free: each
    option states its own consequence, and that is the whole preamble. The reasoning belongs in an
    artifact he can open, never in the interruption.
@@ -615,11 +618,23 @@ of that — nothing mechanical stops a fourth restatement appearing, and only re
 **Do not flatten these into *nothing enforces this*.** That sentence is false, and false in the
 permissive direction: it reads as *do not try*, and one of the five is cheaply detectable.
 
-- **Rule 1 is a COUNT, and detection is possible.** An activation is an `AskUserQuestion` tool-use block
-  written to the transcript in full, so `questions | length != 1` is a predicate rather than a judgement
-  about what an option *means* — precisely the property the deleted guard lacked. **The detector is NOT
-  built and is a separate slice**, with its own predicate, test file and calibration. That is a forward
-  reference and not a promise with a date: it is possible, and today it does not exist.
+~~**Rule 1 is a COUNT, and detection is possible, but the detector is NOT built.**~~ **Struck
+2026-09-29 (#538): the forward reference is now a stale description of a mechanism that exists.**
+
+- **Rule 1's structured half is a COUNT, and it is prevented.** `hitl-one-question-guard.sh` is a
+  `PreToolUse` hook on the exact `AskUserQuestion` matcher. It denies only a real
+  `.tool_input.questions` array with length >= 2 and tells the caller to ask the first, wait, and keep
+  the rest for later — never to smuggle them into prose or a numbered list. Zero, one, missing, null,
+  non-array, malformed and `__unparsedToolInput` payloads produce no decision. This is a syntactic
+  predicate, not a judgement about what an option means, and therefore does not recreate the deleted
+  guard's invisible semantic false positives.
+- **Rule 1's prose half is held by REVIEW.** A message can carry two direct owner actions without an
+  `AskUserQuestion` payload, and no pre-tool layer sees that language. A leading `! ` line is measurable
+  but is not a classifier: the current corpus contains one assistant text block with two such lines,
+  while ordinary prose can carry several and a real action list can carry none. The motivating message
+  carried four asks and only two `! ` lines, so the proxy measures command blocks rather than asks.
+  Building on it would exchange a visible extra ask for invisible suppression, the exact rejected error
+  direction.
 - **Rule 3's option ceiling has never been violated, and rule 2's mechanical half is clean too** — no
   question has ever carried more than four options, and no option has ever carried an empty description.
   A gate on either would be a green that has never been red.
@@ -628,22 +643,35 @@ permissive direction: it reads as *do not try*, and one of the five is cheaply d
   from ordinary work narration, so the number is not a predicate.
 - **Rules 2, 4 and 5 are held by REVIEW.** That is their ceiling, and saying so is the point.
 
-**The three figures above, with the command that produced them** — measured 2026-09-07 over this
-machine's own transcripts, a corpus that grows, so read them as a snapshot rather than as a constant:
+~~**Measured 2026-09-07: `activations=199 multi_question=16`, an 8% live base rate.**~~ **Struck
+2026-09-29 (#538): the transcript directories behind that snapshot were cleaned, so its corpus is no
+longer reachable and carrying the ratio reads as reproducible when it is not.**
+
+**The figures above, with the commands that produced them** — re-measured 2026-09-29 over this machine's
+own transcripts, a corpus that grows, so read them as a snapshot rather than as a constant:
 
 ```
-jq -rs '[.[]|select(.type=="assistant")|.message.content[]?
-        |select(.type=="tool_use" and .name=="AskUserQuestion")|.input.questions]
-        |"activations=\(length) multi_question=\(map(select(length!=1))|length)"' \
-   ~/.claude/projects/<project-dirs>/*.jsonl
-# activations=199 multi_question=16      -> rule 1: an 8% live base rate
-# swap the trailing filter for `.[]?|.options` and count `select(length>4)` -> 0 of 225 questions
-#                                        and count options with an empty `.description`   -> 0 of 633
+rg --files ~/.claude/projects -g '*.jsonl' | xargs jq -c \
+  'select(.type=="assistant")|.message.content[]?|select(.type=="tool_use" and .name=="AskUserQuestion")|.input.questions' \
+  | jq -s '{activations:length,zero:(map(select(type=="array" and length==0))|length),
+      one:(map(select(type=="array" and length==1))|length),
+      two_plus:(map(select(type=="array" and length>=2))|length),
+      non_array:(map(select(type!="array"))|length)}'
+# -> {"activations":135,"zero":0,"one":133,"two_plus":1,"non_array":1}
+
+rg --files ~/.claude/projects -g '*.jsonl' | xargs jq -c \
+  'select(.type=="assistant")|.message.content[]?|select(.type=="text")
+   |(.text|split("\n")|map(select(test("^! ")))|length)' \
+  | jq -s '{assistant_text_blocks:length,zero:(map(select(.==0))|length),
+      one:(map(select(.==1))|length),two_plus:(map(select(.>=2))|length)}'
+# -> {"assistant_text_blocks":14826,"zero":14818,"one":7,"two_plus":1}
 ```
 
-**Both zeroes were calibrated rather than trusted:** loosening the ceiling from `length>4` to `length>3`
-returns **25**, and counting options whose description is *non*-empty returns **633 of 633** — so each
-selector can produce a non-zero answer and the zero is a real zero rather than a dead pattern.
+The hook's own zeroes are calibrated at the source: raising its threshold from two to three makes the
+two-question test red; replacing its non-array fall-through with a denial makes the null, absent and
+unparsed tests red; changing the matcher makes the registration test red. Restore-and-green is part of
+the evidence. Direct script tests still do not prove host routing — the first benign pass and expected
+denial after the released plugin is installed remain the runtime measurement.
 
 ### The two copies of this block must stay identical
 
@@ -945,7 +973,7 @@ mode selects a predicate and a ceremony set; it never selects a permission rule.
 surface that can reach the irreversible floor is a hole with a nice name.**
 
 **Today that separation is structural rather than merely intended, and this is the command that says
-so.** Across all **15** registrations in `hooks/hooks.json` — resolving to **14** distinct script
+so.** Across all **16** registrations in `hooks/hooks.json` — resolving to **15** distinct script
 files, because `preflight.sh` is registered twice — every occurrence of the mode vocabulary is a
 comment or a deny-message string, and **no registered hook selects a `milestone` or a `labels` field
 or passes a `--milestone`/`--label` flag**:
@@ -960,9 +988,9 @@ reader who checks it against the pipeline beneath it is told it holds. **Both no
 here on, and each is derived separately rather than as one figure:**
 
 ```
-jq '[.hooks|to_entries[]|.value[]|.hooks[]]|length' hooks/hooks.json                  # -> 15 registrations
+jq '[.hooks|to_entries[]|.value[]|.hooks[]]|length' hooks/hooks.json                  # -> 16 registrations
 jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
-  | sed 's|.*/hooks/scripts/|hooks/scripts/|; s|"$||' | sort -u | wc -l               # -> 14 scripts
+  | sed 's|.*/hooks/scripts/|hooks/scripts/|; s|"$||' | sort -u | wc -l               # -> 15 scripts
 jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
   | sed 's|.*/hooks/scripts/|hooks/scripts/|; s|"$||' | sort | uniq -d                # -> preflight.sh
 ```
@@ -1550,7 +1578,7 @@ is selected one piece at a time and never drained, is design rather than inconsi
 
 ```
 jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json   | sed 's|.*/hooks/scripts/|hooks/scripts/|' | sort -u | xargs grep -l 'rev-parse --git-dir'
-# -> 6 of the 14 distinct SCRIPTS behind those 15 registrations key their state on the worktree's
+# -> 6 of the 15 distinct SCRIPTS behind those 16 registrations key their state on the worktree's
 #    OWN git dir (the pipeline ends in `sort -u`, so scripts is the noun), so two worktrees
 #    never share a debounce namespace:
 #    cadence-notice - closure-artifact-guard - orchestrator-tool-census
@@ -1560,7 +1588,7 @@ jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json   | sed 
 # (in a linked worktree `.git` is a FILE, so such a walk runs off the top of the tree):
 ... | xargs grep -nE '\-d "[^"]*\.git"'
 # -> no output
-# calibration - the denominator is non-empty: the same pipeline without a grep lists 14 scripts.
+# calibration - the denominator is non-empty: the same pipeline without a grep lists 15 scripts.
 ```
 
 **`#385`'s own body said *seven of thirteen*; at `eda00c41` the criterion above returns SIX of

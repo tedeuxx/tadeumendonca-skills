@@ -233,8 +233,9 @@ The owner's rule, in his words:
 > *"todas pendencias HITL devem ser zeradas no momento da invocacao do comando"*
 
 **If any exists, the drain does not enter.** It surfaces what is missing — **one thing at a time**, never
-as a list — and waits. The one-at-a-time rule is not presentation: a batch of pendencies is a decision
-list, and he has said repeatedly that a decision list makes him rebuild the context for each item.
+as a list — and waits. The canonical form is the root `CLAUDE.md` block delimited by
+`<!-- hitl-escalation-format -->`: rule 1 applies to decisions and owner actions, and remaining asks
+stay pending for their own later activation rather than moving into prose.
 
 **The classes, and what queries each:**
 

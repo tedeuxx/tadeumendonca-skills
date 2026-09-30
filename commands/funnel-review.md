@@ -109,18 +109,18 @@ owed**, because there is no credential surface to examine.
 
 ## The containment is STATED, not implied — measured, at head
 
-**No hook in this plugin observes the browser route.** Every registered hook sits on one of two
-matchers, and a browser-extension act is neither:
+**No hook in this plugin observes the browser route.** Every registered hook sits on one of three
+explicit matchers or on an unfiltered event, and a browser-extension act is none of them:
 
 ```
 jq -r '[.hooks|to_entries[]|.value[]|.matcher // "none"]|unique|join(" ")' hooks/hooks.json
-# -> Bash mcp__.* none
+# -> AskUserQuestion Bash mcp__.* none
 
-jq -r '[.hooks|to_entries[]|.value[]|.hooks[]|.command]|length' hooks/hooks.json          # -> 15
-jq -r '[.hooks|to_entries[]|.value[]|.hooks[]|.command]|unique|length' hooks/hooks.json   # -> 14
+jq -r '[.hooks|to_entries[]|.value[]|.hooks[]|.command]|length' hooks/hooks.json          # -> 16
+jq -r '[.hooks|to_entries[]|.value[]|.hooks[]|.command]|unique|length' hooks/hooks.json   # -> 15
 ```
 
-**Both figures are true and they answer different questions** — 15 registrations across 14 distinct
+**Both figures are true and they answer different questions** — 16 registrations across 15 distinct
 scripts, because `preflight.sh` is registered twice. Publish whichever you mean, with its selector.
 
 **And no registered hook reaches an external surface of its own:**

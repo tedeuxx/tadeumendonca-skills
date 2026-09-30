@@ -90,15 +90,19 @@ watches.
 
 ## When you interrupt the owner — the form of an escalation
 
-**Scope first, or the rest is misapplied: this governs a decision rising out of work already in
-flight.** An interview, a design conversation, an ad-hoc request typed at a terminal is none of them an
-escalation, whatever its subject, and none of the rules below binds them.
+**Scope first, or the rest is misapplied: rule 1 governs every owner-directed activation or message —
+decisions and actions, inside or outside work in flight.** An interview, a design conversation and an
+ad-hoc request are not thereby escalations; rules 2–5 govern the form only when the act they describe
+applies. The global rule is one ask. The remaining rules say what shape that one ask takes.
 
-1. **One decision per interruption.** Two, however short, is a decision list, and he rebuilds his
-   context twice. Ask the first; carry the second to its own interruption. **Treat this as the most
-   expensive rule here rather than the softest.** Where the surface you raise questions through renders
+1. **One owner ask per interruption or message.** Two, however short, is a list, and he rebuilds his
+   context twice. Ask or order the first; carry the second to its own later interruption. **Treat this
+   as the most expensive rule here rather than the softest.** Where the surface you raise questions through renders
    only the first of several, the rest were never shown to anyone, nothing reports the loss, and the
    work proceeds as though they had been asked. You cannot observe which surface you got. Ask one.
+   A structured picker is mechanically denied when its real `questions` array has two or more members;
+   zero, one and unparsed shapes fall through. A prose list of owner actions remains review-held — do
+   not recreate the deleted semantic classifier, and do not move the remaining asks into prose.
 2. **The interruption is a tweet, and the context lives in the OPTIONS.** Terse is not context-free:
    each option states its own consequence, and that is the whole preamble. The reasoning belongs in an
    artifact he can open, never in the interruption. **Put the consequence in the text of the option he

@@ -879,6 +879,16 @@ added a carrier and a row together.
 - **o que não faz:** It does not touch the orchestrator, whose agent type is empty by design — the most capable context in the loop is the one with no MCP control at all, and that is a scope line rather than an oversight. It has no opinion about what a granted call does: the origin bound on the browser is Chrome's, not this hook's. And it cannot prove the harness still routes MCP calls to a hook — that was established by live probe, and if the routing regresses every assertion stays green while the backstop is gone.
 - **citação:** > "a layer that holds by ABSENCE"
 
+### 0056 · one structured owner interruption carries one question
+
+- **tipo:** refusal
+- **carrier:** `hooks/scripts/hitl-one-question-guard.sh`
+- **descrição:** A `PreToolUse` guard on the exact `AskUserQuestion` matcher that refuses only a real `.tool_input.questions` array with two or more members.
+- **propósito:** Some owner-facing transports render only the first question in a structured picker and report nothing about the questions they dropped. Even where the transport preserves them, two asks in one interruption make the owner rebuild two contexts. Counting the picker array is the one half of that rule that is a predicate rather than a judgement, and the hook layer sees it before display.
+- **o que faz:** Denies arrays of length two or greater and tells the caller to ask the first, wait, and preserve each remainder for its own later activation. It abstains on zero, one, missing, null, non-array, malformed and unparsed payloads. It checks the tool name again inside the script, so a matcher drift cannot turn another tool carrying a coincidental `questions` field into its subject.
+- **o que não faz:** It does not classify text, options, labels, verbs, links, decisions, actions or interviews. A prose message carrying two owner actions is invisible to it and remains review-held. That limit is deliberate: the retired action-pendency guard guessed semantics from label spelling and hid genuine decisions from the owner before they rendered. Direct suite calls prove the script and its registration, not host routing; the first benign pass and expected denial after the released plugin is installed remain runtime evidence.
+- **citação:** > "only a real `.tool_input.questions` array with length >= 2 is denied"
+
 ### 0049 · when a running loop reaches the human, and in what form
 
 - **tipo:** knowledge
