@@ -63,11 +63,11 @@
       "Bash(gh repo view:*)",
       "Bash(gh browse:*)",
       "Bash(gh auth status:*)",
-      "Bash(bash /Users/tadeumen/git-reps/tadeumendonca-skills/hooks/scripts/permission-guard.test.sh)",
-      "Bash(bash /Users/tadeumen/git-reps/tadeumendonca-skills/hooks/scripts/wip-guard.test.sh)",
-      "Bash(bash /Users/tadeumen/git-reps/tadeumendonca-skills/hooks/scripts/inventory-counts.test.sh)",
-      "Bash(bash /Users/tadeumen/git-reps/tadeumendonca-skills/hooks/scripts/session-plugin-version.test.sh)",
-      "Bash(bash /Users/tadeumen/git-reps/tadeumendonca-skills/hooks/scripts/hooks-executable.test.sh)",
+      "Bash(bash /Users/tadeumen/git-reps/tadeumendonca.io/tadeumendonca-skills/hooks/scripts/permission-guard.test.sh)",
+      "Bash(bash /Users/tadeumen/git-reps/tadeumendonca.io/tadeumendonca-skills/hooks/scripts/wip-guard.test.sh)",
+      "Bash(bash /Users/tadeumen/git-reps/tadeumendonca.io/tadeumendonca-skills/hooks/scripts/inventory-counts.test.sh)",
+      "Bash(bash /Users/tadeumen/git-reps/tadeumendonca.io/tadeumendonca-skills/hooks/scripts/session-plugin-version.test.sh)",
+      "Bash(bash /Users/tadeumen/git-reps/tadeumendonca.io/tadeumendonca-skills/hooks/scripts/hooks-executable.test.sh)",
       "Bash(shellcheck:*)",
       "Bash(actionlint:*)",
       "Bash(npm:*)",
@@ -150,7 +150,7 @@
       "Bash(rm -f -r:*)"
     ],
     "additionalDirectories": [
-      "/Users/tadeumen/git-reps/tadeumendonca-io"
+      "/Users/tadeumen/git-reps/tadeumendonca.io/tadeumendonca-io"
     ],
     "ask": [
       "Edit(.claude/**)"
