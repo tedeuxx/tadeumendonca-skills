@@ -66,7 +66,7 @@ This is the one class the -io guide still routes to him, and OG cards can be pin
 first fetch. After that came five more gated PRs on the same piece (#693, #694, #697, #698, #699)
 before #700 released it, and the owner had to write a correction to undo a release he had not
 approved. Merging boundary content is not the defect: amendment #16 lets me do that. **The defect is
-that I treated a relayed sentence as the owner's act.** ADR-0003's 2026-07-29 amendment and my own
+that I treated a relayed sentence as the owner's act.** The 2026-07-29 amendment to `tadeumendonca-io`'s trunk-based single-environment record (https://github.com/tedeuxx/tadeumendonca-io/blob/main/docs/adr/0003-trunk-based-single-environment.md) and my own
 brief already say a relay is a notification and never the authority. On #692 the floor stopped the
 squash. Nothing stopped the publication.
 
