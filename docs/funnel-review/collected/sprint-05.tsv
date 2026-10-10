@@ -1,0 +1,23 @@
+collected: yes 2026-10-10 orchestrator via the owner's authenticated Chrome (Claude in Chrome), GA4 property for tadeumendonca.io, window 2026-09-25..2026-10-09; LinkedIn own-activity list
+figure: ga4 sessions_total 28 28
+figure: ga4 engaged_sessions_total 11 28
+figure: ga4 active_users_total 8 8
+figure: ga4 sessions_linkedin 16 28
+figure: ga4 engaged_sessions_linkedin 8 16
+figure: ga4 sessions_instagram 6 28
+figure: ga4 engaged_sessions_instagram 1 6
+figure: ga4 sessions_direct 5 28
+figure: ga4 sessions_organic_social 1 28
+figure: ga4 pageviews_total 53 8
+figure: ga4 pageviews_article_ai-answers_pt 20 2
+figure: ga4 pageviews_article_ai-answers_en 6 1
+figure: ga4 pageviews_article_ai-answers_neutral 3 1
+figure: ga4 pageviews_landing_root 4 4
+figure: ga4 pageviews_article_my-commitment_en 4 1
+figure: ga4 events_article_progress 25 4
+figure: ga4 events_article_end_reached 3 3
+figure: ga4 events_share_complete 1 1
+figure: ga4 events_nav_click 2 2
+figure: ga4 events_first_visit 4 4
+figure: linkedin impressions_post_ai-answers 171 171
+figure: linkedin reactions_post_ai-answers 1 171
