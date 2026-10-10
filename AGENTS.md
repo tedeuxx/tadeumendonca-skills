@@ -7,6 +7,10 @@ and the two are authored side by side under the same rule rather than one being 
 other. A rename-only transform was measured and rejected: the other brief is already well past this
 file's budget, so a generator could not produce a loadable artifact at all.
 
+sphere: personal
+
+This is a declaration only, recorded in [mhw ADR-0035](https://github.com/tedeuxx/mhw/blob/rc/next/docs/adr/0035-workstation-blueprint-reconciliation.md); there is no stop-on-undeclared rule.
+
 ## The budget, and whose it is
 
 **Keep this file under 50,000 characters.** That number is **one consumer's measured floor, not a
