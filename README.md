@@ -1817,7 +1817,7 @@ in this tree.** **And the gitignored half was FALSE of `.brand/` until #477 merg
 this line asserted a protection this repo did not have, while `CLAUDE.md` said the opposite and was
 right, with nothing comparing the two. Struck rather than rewritten because a reader took the
 permissive claim from it. **The canonical statement of what `.brand/` is and where it is ignored is
-`AGENTS.md`'s scratch taxonomy section, in Part III (`CLAUDE.md`'s until #562); this line points there rather than restating it** (#479).
+the scratch taxonomy section of `docs/agents-md-record.md` (`CLAUDE.md`'s until #562; its operative rules are in `AGENTS.md`); this line points there rather than restating it** (#479).
 
 **Shipped is not the same claim as exported, and `docs/` is the case that proves it.** The methodology
 ADR library lives at `docs/adr/`, is tracked in git, and travels with every clone — a human reading this
@@ -1972,7 +1972,7 @@ start itself, but a merge **cannot happen without it** — the gate is unskippab
 install, with no configuration. (Subject to the fail-open caveat above: the natural command is
 gated, the raw API call is a named gap.)
 
-[`docs/command-reference.md`](./docs/command-reference.md) is the full command reference; [`AGENTS.md`](./AGENTS.md) is the single root brief — the versioning contract, the orchestrator's own duties and boundary, and the four blocks that bind the main session, which were `CLAUDE.md`'s until #562 consolidated that file into it. **The catalogue was a section of `CLAUDE.md` until 2026-09-22**, when that file crossed the harness's 150,000-character limit. The engineering
+[`docs/command-reference.md`](./docs/command-reference.md) is the full command reference; [`AGENTS.md`](./AGENTS.md) is the single root brief — every rule, including the versioning contract and the orchestrator's duties — and [`docs/agents-md-record.md`](./docs/agents-md-record.md) is its long form: the four orchestrator blocks, the measurements and the Claude Code reference, all `CLAUDE.md`'s until #562 consolidated that file. **The catalogue was a section of `CLAUDE.md` until 2026-09-22**, when that file crossed the harness's 150,000-character limit. The engineering
 floor lives [above](#the-engineering-floor-the-whole-library-encodes) rather than in a file of its own —
 a floor behind a click is a floor nobody reads.
 

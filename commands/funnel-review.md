@@ -179,7 +179,7 @@ record says so in its own reason), and it has not completed a sweep of any kind 
 
 **Struck 2026-09-25: this is a DECISION, and the struck line called it an action.** It offers three
 different acts, and a second one is clearly defensible: `skip` trades a period's reading for no wait.
-By the HITL escalation format (`AGENTS.md`, Part I's escalation section; `CLAUDE.md` until #562), rule 4, that makes it a decision. Rule 3 then requires a
+By the HITL escalation format (`AGENTS.md`'s escalation section; `CLAUDE.md` until #562), rule 4, that makes it a decision. Rule 3 then requires a
 picker, not options numbered or listed in prose. The struck wording came from the retrospective
 proposal the owner incorporated (*"one ACTION line: connect, or skip"*). The agents-lead lens on
 PR #528 found that it contradicts his own escalation rules. The root brief is where those rules bind the

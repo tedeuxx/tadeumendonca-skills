@@ -191,7 +191,8 @@ independent: either model runs under either mode. A mode names a widely-known ag
 exactly two things — **what the container MEANS, and which ceremonies run at its edges.**
 
 **Two artifacts carry it and neither is this file.** The **contract** — what a mode may vary and what it
-may never touch — is the `<!-- loop-mode-contract -->` block in `AGENTS.md` at each repository's root.
+may never touch — is stated in `AGENTS.md` at each repository's root (here, standing rules 17 and 32–36, with the long form in the
+`<!-- loop-mode-contract -->` block of `docs/agents-md-record.md`).
 The **record** — which value is in force — is `docs/loop-mode.md`, which carries the value, the closed
 enum, the back-dated start and both pool predicates in full. **This section is a POINTER plus the
 minimum a dispatched persona needs, and it is deliberately not a copy of either.** The contract's
@@ -338,7 +339,7 @@ description says nothing about who was asked. `hooks/scripts/inventory-counts.te
 rows and the `new-issue.md` branch **exist and say this**; it cannot assert that anyone obeyed them.
 
 **These rows route INTAKE. The REVIEW chain is routed too, and its operative wording is NOT here (#393).**
-It lives in `AGENTS.md` at each repository's root, as one table: `loop` → one lens pass plus the gate ·
+It lives in `AGENTS.md` at each repository's root, as one rule: `loop` → one lens pass plus the gate ·
 `product` → the full chain · `content` → the content pair plus the gate. **This paragraph is a pointer
 and nothing else** — it names the rows without stating their conditions, and the conditions are the
 rule. The carrier is a root brief rather than this skill because the actor that selects a review chain
@@ -1770,7 +1771,7 @@ action before ending the turn, or say plainly that there is none.
    **The bound is now `wip:` in `docs/loop-mode.md`, read from the record and never assumed** — it is
    `2` at the time of writing, and a value read from a file is the point. **Development parallelises;
    THE REVIEW GATE DOES NOT** — at most one merge request is in review at a time, whatever `wip` says
-   (owner ruling 1, stated in `AGENTS.md`'s `loop-mode-contract` block, which is the surface that
+   (owner ruling 1, stated in `AGENTS.md` floor item 8, which is the surface that
    reaches the orchestrator). **Isolation is a `git worktree` per slice**, which is what ruling 4
    re-permits. **Nothing enforces any of it**: `wip-guard.sh` is deleted and `gh pr create` is
    allowlisted in both settings layers, so an (N+1)th PR executes silently.

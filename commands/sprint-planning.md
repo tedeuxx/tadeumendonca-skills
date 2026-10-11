@@ -465,7 +465,7 @@ which is the strictest reading of the standing rule it has ever satisfied; it is
 form that broke it.
 
 **That paragraph is this rite's APPLICATION of rule 5 of the HITL escalation format; the canonical
-statement of the rule is rule 5 in `AGENTS.md` Part I, *When you interrupt the owner*** (#409; `CLAUDE.md`'s
+statement of the rule is rule 5 of `AGENTS.md`'s *When you interrupt the owner*** (#409; `CLAUDE.md`'s
 *The HITL escalation format* section until #562). It is left standing
 verbatim rather than replaced by a bare pointer for two reasons: a gate arm in
 `hooks/scripts/inventory-counts.test.sh` pins its opening clause as a literal, and it is the one place

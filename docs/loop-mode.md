@@ -2,7 +2,7 @@
 
 **This file is the RECORD of which named agile method this loop is currently running.** It declares; it
 decides nothing. **The CONTRACT — what a mode may vary and what it may never touch — is the
-`<!-- loop-mode-contract -->` block in `AGENTS.md` at the root of this repository**, and where this file
+`<!-- loop-mode-contract -->` block in `docs/agents-md-record.md`, with its operative rules in `AGENTS.md` standing rules 17 and 32–36**, and where this file
 and that block disagree, the block wins and the disagreement is a finding.
 
 **Read this before any pool query. Never infer the mode from what a pool query returns.** That is the
@@ -187,12 +187,12 @@ jq -r '.hooks|to_entries[]|.value[]|.hooks[]|.command' hooks/hooks.json \
 
 **The trailing comment filter was ADDED 2026-09-09 (#406 slice C), and the reason is a finding rather
 than tidiness.** As first published this command carried no filter, while the two commands in
-`CLAUDE.md` (now `AGENTS.md`) backing the same untouchable list both did. That asymmetry was invisible while no hook
+`CLAUDE.md` (now `docs/agents-md-record.md`) backing the same untouchable list both did. That asymmetry was invisible while no hook
 mentioned this file — and the cadence carrier's header cites the constraint this record states, in two
 **comment** lines, which turned a true claim red:
 
 ```
-hooks/scripts/cadence-notice.sh:24:# … AGENTS.md's `loop-mode-contract` block states it:
+hooks/scripts/cadence-notice.sh:24:# … the `loop-mode-contract` block states it:
 hooks/scripts/cadence-notice.sh:109:# … exactly as `invocable:`, `purpose:` and `loop-mode:` already
 ```
 
@@ -353,7 +353,7 @@ and every window agrees**, so nothing downstream moves; the figures here are min
   settings layers, `wip-guard.sh` is deleted, and no registered hook reads this file — so an
   (N+1)th concurrent PR executes with no prompt, no denial and no record.
 - **It does not relax the GATE.** Review stays serial at any value of `wip` (owner ruling 1, stated in
-  `AGENTS.md`'s `loop-mode-contract` block). `wip` is a ceiling on **development**, never on review.
+  `AGENTS.md` floor item 8). `wip` is a ceiling on **development**, never on review.
 - **It is not a target.** `scrum-master` may return fewer than `wip` selections, and on a `loop`-heavy
   pool it usually should — the collision base rate over `v2.0.0..origin/main` puts seven distinct
   Issues on `hooks/scripts/inventory-counts.test.sh` alone.
@@ -399,8 +399,7 @@ workspace holding both checkouts:
 
 ```
 git -C ../tadeumendonca-io ls-files --error-unmatch docs/loop-mode.md   # -> docs/loop-mode.md, exit 0
-grep -c -E '^<!-- /?loop-mode-contract -->$' ../tadeumendonca-io/AGENTS.md   # -> 2 once -io#721 merges;
-#   until then the block is in that repository's CLAUDE.md, and this line prints 0
+grep -c -E '^<!-- /?loop-mode-contract -->$' ../tadeumendonca-io/AGENTS.md   # -> 2 (since -io#722; its block is compressed, not byte-identical)
 ```
 
 **So the obligation is live rather than owed, and it bites on every value change**: the two copies must

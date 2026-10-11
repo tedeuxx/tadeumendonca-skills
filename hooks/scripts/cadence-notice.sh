@@ -21,7 +21,7 @@
 # ── IT KEYS ON THE CLOCK AND NEVER ON THE POOL BEING EMPTY ───────────────────────────────────────
 #
 # This is a constraint the mode contract wrote down BEFORE this file existed, and it is the reason
-# this hook makes no tracker call of any kind. AGENTS.md's `loop-mode-contract` block states it:
+# this hook makes no tracker call of any kind. the `loop-mode-contract` block states it:
 # in one mode an empty active container is the terminal condition that hands off to the closing
 # rites; in the other it means nothing whatever, and a rite fired on it would be firing on noise.
 # A trigger keyed on emptiness makes the lighter mode silently inherit the other's trigger under a

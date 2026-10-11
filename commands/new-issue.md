@@ -92,7 +92,7 @@ time**, and **no multiple choice**. A questionnaire is not an interview — four
 a form, and offering options to pick from decides the answer for him.
 
 **This is the interview half of rule 5 of the HITL escalation format, and the canonical statement of that
-rule is rule 5 in `AGENTS.md` Part I, *When you interrupt the owner* — not this paragraph** (#409; it was
+rule is rule 5 of `AGENTS.md`'s *When you interrupt the owner* — not this paragraph** (#409; it was
 `CLAUDE.md`'s *The HITL escalation format* section until #562). It is cited here
 rather than restated independently, because the rule governs the orchestrator and the root brief is the
 surface measured to reach it; three surfaces each stating a rule with no canonical home is drift this

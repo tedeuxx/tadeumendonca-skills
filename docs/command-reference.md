@@ -18,7 +18,7 @@ above every persona's checklist — **stayed in `CLAUDE.md`**, under *The orches
 rules above every persona's checklist*.
 
 **`CLAUDE.md` no longer exists (#562, 2026-10-11).** Its content, that section included, is in
-`AGENTS.md` — Part III for the Claude Code half, with the two owner rules now Part I's standing rule 31.
+`docs/agents-md-record.md`, with the two owner rules now `AGENTS.md` standing rule 31.
 The struck clause above was true on build `2.1.263` and is false on `2.1.296`, where a root `AGENTS.md`
 reaches the main session; the cut test it supported is unchanged.
 

@@ -1,63 +1,40 @@
 #!/usr/bin/env bash
-# Asserts the six MECHANICAL properties of this repository's root brief, `AGENTS.md`, whose PART I —
-# everything above the column-zero line `<!-- part-i:end -->` — is the harness-neutral, budgeted prefix.
+# Asserts the five MECHANICAL properties of this repository's root brief, `AGENTS.md`: tracked; the
+# WHOLE file under a byte budget set by the smallest measured consumer; no declared one-harness token;
+# every repository-relative path it names exists; and no file that a harness would load INSTEAD of it
+# is tracked.
 #
-# WHY THIS EXISTS. `AGENTS.md` is read as always-on steering by at least one agent harness that truncates
-# it — measured against Kiro 1.0.437, whose bundle resolves `AGENTS.md` at the workspace root with
-# `inclusion:"always"` and cuts it at 50,000 characters. Since #562 it is also the ONLY root brief: the
-# harness-specific one was consolidated into it and deleted, so the file now carries labelled
-# harness-specific parts BELOW the marker, and a truncating reader keeps the head. That is why arms
-# 3-5 measure Part I and not the file: Part I is what such a reader actually gets. Until #411 the file
-# was UNTRACKED in both repositories of this workspace — invisible to every merge request, every
-# reviewer and every gate, while being a month stale and telling its reader it described a different
-# product than it does.
+# WHY THIS EXISTS. `AGENTS.md` is the only root brief since #562, read by every harness this repository
+# serves. Codex reads its first 32,768 bytes and silently drops the rest; Kiro truncates at 50,000
+# characters; Claude Code reads it whole, but only when no file of its own vendor's name loads. So a
+# defect here is not cosmetic: a rule past the byte cap, or a shadowing file, removes rules from a
+# harness with every other check green. Until #411 the file was UNTRACKED — invisible to every merge
+# request, reviewer and gate.
 #
-# WHY A MARKER AND NOT A SECOND FILE. A second file is what #562 removed. A marker keeps one file and
-# gives the gate a boundary it can find mechanically; arm 2 asserts the boundary exists exactly once,
-# because without it arms 3-5 would have no span to measure and would either measure the whole file
-# (and redden on every harness-specific line below it) or measure nothing (and pass vacuously).
-#
-# WHY THE CHECK IS SHAPED THIS WAY, AND WHAT WAS REJECTED. The obvious arm — "assert no untracked root
-# brief shadows the tracked one" — CANNOT FAIL. This suite runs in CI on a fresh checkout, and a
-# checkout contains only tracked files by construction, so the arm's subject is absent from the tree in
-# every run, forever. An assertion whose positive result is unconditional, added to the very file whose
-# job is to make drift visible, is this repository's own named recurring defect. TRACKING the file
-# removes the hazard's precondition AND makes arm 1 below a check that can genuinely go red.
+# WHAT WAS TRIED AND REPLACED (#562). A first cut kept a long file with a budgeted, marker-delimited
+# prefix and pinned the marker from both sides. The orchestrator replaced it with a whole-file budget
+# and moved the reasoning to `docs/agents-md-record.md`: a prefix budget leaves the tail free to carry a
+# rule that the smallest consumer never reads, and the marker pin was machinery to defend a boundary
+# that a whole-file budget does not need.
 #
 # WHAT THIS SUITE CANNOT ASSERT, said here rather than left to be inferred from a green:
 #
-#   * THAT THE BRIEF IS TRUE. Nothing here reads the repository and compares it to what the file
-#     claims. A brief describing the wrong product in portable vocabulary passes every arm.
-#   * THAT PART I IS NEUTRAL. Arm 4 greps a DECLARED LIST OF TOKENS. Neutrality is a property of
-#     meaning, and a sentence that describes one harness's mechanism without naming it — "the guard
-#     denies this", "the session hook injects that" — is exactly as harness-bound as one that does,
-#     and passes. The test that catches it is a human one: WOULD THIS SENTENCE STILL BE TRUE ON A
-#     HARNESS WITH NO HOOKS? If it is only true because something fires, it is not neutral.
-#   * ANYTHING BELOW THE MARKER. Parts II-IV name one harness's machinery by design and quote deleted
-#     paths inside struck text, so no token or path arm runs on them.
-#   * THAT THE BUDGET IS RIGHT FOR EVERY HARNESS. 32,768 bytes is the smallest MEASURED cap (Codex,
-#     live); 50,000 characters is Kiro's, read out of a shipped bundle. Claude Code was measured
-#     loading the whole file. Any other harness is unmeasured, and this arm is not evidence about it.
-#   * AN UNTRACKED OR ANCESTOR SHADOW. Arm 6 sees tracked files only.
+#   * THAT THE BRIEF IS TRUE. Nothing here compares the file with the repository it describes.
+#   * THAT THE BRIEF IS NEUTRAL. Arm 3 greps a DECLARED LIST OF TOKENS. A sentence that describes one
+#     harness's mechanism without naming it passes. The human test: WOULD THIS SENTENCE STILL BE TRUE
+#     ON A HARNESS WITH NO HOOKS?
+#   * THAT NO RULE LIVES ONLY IN THE RECORD. Moving reasoning out is the remedy arm 2 prescribes, and
+#     whether a rule went with it is held by review.
+#   * THAT THE BUDGET IS RIGHT FOR EVERY HARNESS. 32,768 bytes is the smallest MEASURED cap; any other
+#     harness is unmeasured.
+#   * AN UNTRACKED OR ANCESTOR SHADOW. Arm 5 sees tracked files only.
 #
-# COPYABILITY IS DELIBERATE, AND WHAT IS COPIED IS THE BODY, NEVER THE FILE. This script derives its
-# root from git rather than from its own position in the tree, so it runs unchanged from any depth in
-# any repository that has an `AGENTS.md`. `tadeumendonca-io` is to carry the same artifact under the
-# same rule, in its own merge request (`-io`#610) — stated as the rule rather than as that
-# repository's current state, which is a claim this file cannot check and must not make. The invariant
-# a sync maintains between this file and its copy at `scripts/agents-md.test.sh` is that everything
-# below the first column-zero `set -uo` line is byte-for-byte identical — an obligation, not an
-# assertion about either copy right now. The headers deliberately differ, because the duplication cost
-# is a fact about that copy and has no subject here. So a sync copies the body, never the file.
-# Falsifiable from a workspace holding both checkouts:
-#
-#   diff <(sed -n '/^set -uo/,$p' hooks/scripts/agents-md.test.sh) \
-#        <(sed -n '/^set -uo/,$p' ../tadeumendonca-io/scripts/agents-md.test.sh)
-#
-# Nothing makes the two move together — a pipeline is independent per repository — so a change to the
-# token list, the fixtures or the budget is a two-repository batch, and until the sibling's own merge
-# request lands, that diff is expected to show the body changes made here.
-
+# ~~COPYABILITY IS DELIBERATE, AND WHAT IS COPIED IS THE BODY, NEVER THE FILE … the invariant a sync
+# maintains between this file and its copy at `scripts/agents-md.test.sh` is that everything below the
+# first column-zero `set -uo` line is byte-for-byte identical~~ — STRUCK 2026-10-11 (#562): since
+# tadeumendonca-io#722 that sibling's checker declares its sync "broken on purpose, because that
+# sibling is to be generated from the workstation repository", and the two bodies differ. There is no
+# sync obligation left; a change here is a change to this repository's checker only.
 set -uo pipefail
 
 ROOT="$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel 2>/dev/null || true)"
@@ -67,44 +44,26 @@ if [ -z "$ROOT" ]; then
 fi
 
 BRIEF="AGENTS.md"
-# Part I ends at the first line that is exactly this. Arm 2 pins WHERE it sits, not only that it exists.
-MARKER='<!-- part-i:end -->'
-# The first non-blank line after the marker must be exactly this heading...
-PART2_HEADING='# Part II — Harness-neutral reference, beyond the budget'
-# ...and every one of these must be a whole line ABOVE the marker and nowhere below it. Together they
-# pin the marker from both sides: moving it UP strands a required section below it (and would exempt
-# that section from arms 4 and 5); moving it DOWN puts the Part II heading, and everything after it,
-# above it.
-REQUIRED_H2=(
-  '## The floor — obligations, not descriptions of enforcement'
-  '## When you interrupt the owner — the form of an escalation'
-  '## Standing rules for working this loop'
-  '## What is checked'
-)
-# BYTES, not characters, against the SMALLEST measured consumer. Codex 0.155.0-alpha.16.3 reads the
-# first 32,768 bytes of the file (default project_doc_max_bytes, measured live on 2026-10-11 by the
-# agents-lead lens on tadeumendonca-io#722); Kiro 1.0.437 truncates at 50,000 characters, which is
-# looser on both counts because a character is at least one byte. The LIMIT is deliberately lower so
-# growth reddens BEFORE it truncates: a gate that fires at the cliff edge fires one merge too late.
+# BYTES, not characters, against the SMALLEST measured consumer, over the WHOLE file. Codex
+# 0.155.0-alpha.16.3 reads the first 32,768 bytes of AGENTS.md (default project_doc_max_bytes, measured
+# live on 2026-10-11 by the agents-lead lens on tadeumendonca-io#722, and again on this repository's
+# brief under #562) and silently drops the rest; Kiro 1.0.437 truncates at 50,000 characters, looser on
+# both counts. A rule past the cut does not exist for that reader, which is why the WHOLE file is
+# budgeted rather than a prefix: a prefix budget leaves the tail free to carry a rule nobody reads. The
+# LIMIT is lower than the cap so growth reddens BEFORE it truncates.
 BUDGET=32768
 LIMIT=30000
-# Files that make one harness load THEM INSTEAD of this one. Claude Code 2.1.296 reads AGENTS.md only
-# as a fallback: a root CLAUDE.md, .claude/CLAUDE.md or CLAUDE.local.md each suppresses it entirely
-# (measured 2026-10-11, tadeumendonca-io#722). An ancestor-directory CLAUDE.md does too, and is outside
-# any repository, so no arm here can see it — a named residual.
+# Files that make one harness load THEM INSTEAD of AGENTS.md. Claude Code 2.1.296 reads AGENTS.md only
+# as a fallback: each of these at the root, or in an ancestor directory, suppresses it entirely
+# (measured 2026-10-11 on tadeumendonca-io#722 and the workstation repository's #154). Ancestors are
+# outside any repository, so no arm here can see them — a named residual.
 SHADOWS=('CLAUDE.md' '.claude/CLAUDE.md' 'CLAUDE.local.md')
 
 fails=0
 ok()  { printf 'PASS  %s\n' "$1"; }
 bad() { printf 'FAIL  %s\n' "$1"; fails=$((fails + 1)); }
 
-printf '\n== %s — root brief, Part I harness-neutral ==\n\n' "$BRIEF"
-
-# Part I is written to a temporary file so arms 3-5 read exactly the span a truncating harness keeps.
-P1="$(mktemp 2>/dev/null || true)"
-MUT="$(mktemp 2>/dev/null || true)"
-cleanup() { [ -n "$P1" ] && rm -f "$P1"; [ -n "$MUT" ] && rm -f "$MUT"; }
-trap cleanup EXIT
+printf '\n== %s — the harness-neutral root brief ==\n\n' "$BRIEF"
 
 # ── ARM 1 · TRACKED ─────────────────────────────────────────────────────────────────────────────────
 # The precondition for every other arm and for review itself: a file git does not know about cannot
@@ -117,100 +76,42 @@ else
       contain. Run: git add $BRIEF"
 fi
 
-# ── ARM 2 · THE PART I MARKER OCCURS ONCE, AND SITS WHERE IT BELONGS ────────────────────────────────
-# Existence is not enough. Measured on the sibling's fence (tadeumendonca-io#722): relocating an
-# exemption boundary so that it exempts the whole floor left every arm green. Here the analogue is
-# moving the marker UP, which would take rules out of arms 4 and 5. pin_problems prints one line per
-# defect; silence means pinned. The arm then CALIBRATES itself: it moves the marker up to just after
-# the title, and down to just after the Part II heading, in a temporary copy, and requires a defect
-# report for each — so a pin that cannot fail reddens instead of passing.
-pin_problems() {
-  python3 - "$1" "$MARKER" "$PART2_HEADING" "${REQUIRED_H2[@]}" <<'PY'
-import sys
-path, marker, part2 = sys.argv[1], sys.argv[2], sys.argv[3]
-required = sys.argv[4:]
-lines = open(path, encoding="utf-8").read().split("\n")
-idx = [i for i, l in enumerate(lines) if l == marker]
-if len(idx) != 1:
-    print("the marker line occurs %d time(s); it must occur exactly once" % len(idx)); sys.exit()
-m = idx[0]
-after = next((l for l in lines[m + 1:] if l.strip()), None)
-if after != part2:
-    print("the first non-blank line after the marker is %r, not the Part II heading" % after)
-above, below = set(lines[:m]), set(lines[m + 1:])
-for h in required:
-    if h not in above:
-        print("required section %r is not above the marker" % h)
-    if h in below:
-        print("required section %r also occurs below the marker" % h)
-for l in lines[:m]:
-    if l.startswith("# Part "):
-        print("a part heading sits above the marker: %r" % l)
-PY
-}
-p1_ready=0
+# ── ARM 2 · THE WHOLE FILE UNDER BUDGET, IN BYTES, WITH HEADROOM ────────────────────────────────────
 if [ ! -f "$ROOT/$BRIEF" ]; then
-  bad "arm 2 — $ROOT/$BRIEF does not exist; the marker assertion did NOT run"
-elif [ -z "$P1" ] || [ -z "$MUT" ]; then
-  bad "arm 2 — could not create a temporary file; arms 2-5 did NOT run"
-elif ! command -v python3 >/dev/null 2>&1; then
-  bad "arm 2 — python3 unavailable; arms 2-5 did NOT run"
+  bad "arm 2 — $ROOT/$BRIEF does not exist; the length assertion did NOT run"
 else
-  probs="$(pin_problems "$ROOT/$BRIEF")"
-  # calibration: up (right after the title) and down (right after the Part II heading)
-  cal=""
-  awk -v m="$MARKER" 'NR == 1 { print; print m; next } $0 == m { next } { print }' "$ROOT/$BRIEF" > "$MUT"
-  [ -n "$(pin_problems "$MUT")" ] || cal="$cal moving the marker UP to the title passes the pin;"
-  awk -v m="$MARKER" -v h="$PART2_HEADING" '$0 == m { next } { print } $0 == h { print m }' "$ROOT/$BRIEF" > "$MUT"
-  [ -n "$(pin_problems "$MUT")" ] || cal="$cal moving the marker DOWN past the Part II heading passes the pin;"
-  if [ -n "$cal" ]; then
-    bad "arm 2 — the marker pin is NOT calibrated:$cal it cannot fail, so arms 3-5 did NOT run."
-  elif [ -n "$probs" ]; then
-    bad "arm 2 — the Part I marker is missing, doubled or misplaced in $BRIEF. Arms 3-5 did NOT run:
-$probs"
-  else
-    awk -v m="$MARKER" '$0 == m { exit } { print }' "$ROOT/$BRIEF" > "$P1"
-    ok "arm 2 — $BRIEF carries the Part I marker once, after every required section and directly before Part II (pin calibrated: moved up and moved down both redden)"
-    p1_ready=1
-  fi
-fi
-
-# ── ARM 3 · PART I UNDER BUDGET, IN BYTES, WITH HEADROOM ────────────────────────────────────────────
-if [ "$p1_ready" -ne 1 ]; then
-  bad "arm 3 — no Part I to measure (see arm 2); the length assertion did NOT run"
-else
-  bytes="$(wc -c < "$P1" | tr -d ' ')"
+  bytes="$(wc -c < "$ROOT/$BRIEF" | tr -d ' ')"
   if ! printf '%s' "$bytes" | grep -qE '^[0-9]+$'; then
-    bad "arm 3 — could not measure Part I of $BRIEF; the length assertion did NOT run"
+    bad "arm 2 — could not measure $BRIEF; the length assertion did NOT run"
   elif [ "$bytes" -ge "$LIMIT" ]; then
-    bad "arm 3 — Part I of $BRIEF is $bytes bytes, at or past the $LIMIT headroom limit (smallest consumer
-      cap $BUDGET bytes, measured live on Codex, which reads that much and drops the rest). Cut content,
-      or move it below the marker if it is not a rule for every harness; do not raise the limit
-      without re-measuring."
+    bad "arm 2 — $BRIEF is $bytes bytes, at or past the $LIMIT headroom limit (smallest consumer cap
+      $BUDGET bytes, measured live on Codex, which reads that much and silently drops the rest). Move
+      reasoning to docs/agents-md-record.md — never a rule — and do not raise the limit without
+      re-measuring."
   else
-    ok "arm 3 — Part I of $BRIEF is $bytes bytes, under the $LIMIT limit ($((LIMIT - bytes)) to spare; smallest consumer cap $BUDGET bytes)"
+    ok "arm 2 — $BRIEF is $bytes bytes, under the $LIMIT limit ($((LIMIT - bytes)) to spare; smallest consumer cap $BUDGET bytes)"
   fi
 fi
 
-# ── ARM 6 · NO FILE THAT A HARNESS WOULD LOAD INSTEAD OF THIS ONE IS TRACKED ────────────────────────
-# Numbered 6 because arms 4 and 5 below predate it. Calibrated with a positive control: the same
-# lookup must find the brief itself, or a broken lookup would report every shadow as absent.
+# ── ARM 5 · NO FILE THAT A HARNESS WOULD LOAD INSTEAD OF THIS ONE IS TRACKED ────────────────────────
+# Calibrated with a positive control: the same lookup must find the brief itself, or a broken lookup
+# would report every shadow as absent.
 if ! git -C "$ROOT" ls-files --error-unmatch "$BRIEF" >/dev/null 2>&1; then
-  bad "arm 6 — the lookup cannot find $BRIEF itself, so an absent shadow would read as clean; did NOT run"
+  bad "arm 5 — the lookup cannot find $BRIEF itself, so an absent shadow would read as clean; did NOT run"
 else
   shadowed=""
   for s in "${SHADOWS[@]}"; do
     git -C "$ROOT" ls-files --error-unmatch -- "$s" >/dev/null 2>&1 && shadowed="$shadowed $s"
   done
   if [ -n "$shadowed" ]; then
-    bad "arm 6 — tracked:$shadowed. One harness loads such a file INSTEAD of $BRIEF, silently dropping
+    bad "arm 5 — tracked:$shadowed. One harness loads such a file INSTEAD of $BRIEF, silently dropping
       this whole brief from its sessions. Fold its content into $BRIEF and delete it."
   else
-    ok "arm 6 — none of ${SHADOWS[*]} is tracked (an untracked or ancestor-directory one is invisible here)"
+    ok "arm 5 — none of ${SHADOWS[*]} is tracked (an untracked or ancestor-directory one is invisible here)"
   fi
 fi
 
-# ── ARM 4 · NO TOKENS SPECIFIC TO ONE HARNESS IN PART I ───────────────────────────────────────────────────────
+# ── ARM 3 · NO TOKENS SPECIFIC TO ONE HARNESS ───────────────────────────────────────────────────────
 # The rejected alternative was to gate on the substitution that produced the old file — rewrite one
 # vendor's name to another's. That is what created `.Codex-plugin/plugin.json` and three sibling
 # identifiers that exist nowhere: a substitution renames the TOKEN and leaves the MECHANISM, so the
@@ -313,8 +214,8 @@ CAL_EOF
   done
 }
 
-if [ "$p1_ready" -ne 1 ]; then
-  bad "arm 4 — no Part I to scan (see arm 2); the token assertion did NOT run"
+if [ ! -f "$ROOT/$BRIEF" ]; then
+  bad "arm 3 — $ROOT/$BRIEF does not exist; the token assertion did NOT run"
 else
   # Vacuity guard for the arm itself, per alternative rather than per pattern. See the fixture block
   # above for why a single control line was not enough.
@@ -329,26 +230,25 @@ $(calibrate "$TOKENS_CS" E "${FIXTURES_CS[@]}")"
   done
   vac="$(printf '%s' "$vac" | grep -v '^$' || true)"
   if [ -n "$vac" ]; then
-    bad "arm 4 — the token patterns are NOT calibrated; this arm did not really run. Fix these before
+    bad "arm 3 — the token patterns are NOT calibrated; this arm did not really run. Fix these before
       trusting any green from it:
 $vac"
   else
-    hits_ci="$(grep -niE "$TOKENS_CI" "$P1" || true)"
-    hits_cs="$(grep -nE  "$TOKENS_CS" "$P1" || true)"
+    hits_ci="$(grep -niE "$TOKENS_CI" "$ROOT/$BRIEF" || true)"
+    hits_cs="$(grep -nE  "$TOKENS_CS" "$ROOT/$BRIEF" || true)"
     hits="$(printf '%s\n%s' "$hits_ci" "$hits_cs" | grep -v '^$' || true)"
     if [ -n "$hits" ]; then
-      bad "arm 4 — Part I of $BRIEF names a token specific to one harness. Part I is what a truncating
-      harness keeps of this file, so such a token is either an identifier that does not exist for its
-      reader or a mechanism that does not run for it. Restate the sentence as an obligation, drop it, or
-      move it below the marker into the part labelled with that harness:
+      bad "arm 3 — $BRIEF names a token specific to one harness. Every harness reads this file, so such a
+      token is either an identifier that does not exist for its reader or a mechanism that does not run
+      for it. Restate the sentence as an obligation, drop it, or move it to docs/agents-md-record.md:
 $hits"
     else
-      ok "arm 4 — Part I of $BRIEF carries none of the declared harness-specific tokens"
+      ok "arm 3 — $BRIEF carries none of the declared harness-specific tokens"
     fi
   fi
 fi
 
-# ── ARM 5 · EVERY REPOSITORY-RELATIVE PATH PART I NAMES EXISTS ──────────────────────────────────────────
+# ── ARM 4 · EVERY REPOSITORY-RELATIVE PATH IT NAMES EXISTS ──────────────────────────────────────────
 # This is the arm that catches a dangling pointer, which is how #411 was found: a substitution pass
 # rewrote a nested brief's path in the sibling repository to a filename that does not exist, at a path
 # the consuming harness genuinely scans. A brief that names an empty path is worse than one that names
@@ -359,12 +259,12 @@ fi
 # carrying a placeholder bracket, a space, or a shell flag is not a path and is skipped. The arm
 # therefore UNDER-checks by construction; it never over-checks, which is the direction that costs an
 # author an argument with the gate over a sentence that was never wrong.
-if [ "$p1_ready" -ne 1 ]; then
-  bad "arm 5 — no Part I to scan (see arm 2); the path assertion did NOT run"
+if [ ! -f "$ROOT/$BRIEF" ]; then
+  bad "arm 4 — $ROOT/$BRIEF does not exist; the path assertion did NOT run"
 elif ! command -v python3 >/dev/null 2>&1; then
-  bad "arm 5 — python3 unavailable; the path assertion did NOT run"
+  bad "arm 4 — python3 unavailable; the path assertion did NOT run"
 else
-  cands="$(python3 - "$P1" <<'PY'
+  cands="$(python3 - "$ROOT/$BRIEF" <<'PY'
 import re, sys
 text = open(sys.argv[1], encoding="utf-8").read()
 EXT = (".md", ".sh", ".py", ".json", ".toml", ".yml", ".yaml", ".mjs", ".ts", ".tsx", ".tf")
@@ -386,7 +286,7 @@ for p in sorted(set(out)):
 PY
 )"
   if [ -z "$cands" ]; then
-    bad "arm 5 — extracted ZERO path-shaped spans from Part I of $BRIEF. Either the brief names no paths at all,
+    bad "arm 4 — extracted ZERO path-shaped spans from $BRIEF. Either the brief names no paths at all,
       which makes it a map with no territory, or the extraction is broken. Either way this arm did not
       really run."
   else
@@ -401,9 +301,9 @@ PY
 $cands
 EOF
     if [ -n "$missing" ]; then
-      bad "arm 5 — Part I of $BRIEF names repository-relative path(s) that do not exist:$missing"
+      bad "arm 4 — $BRIEF names repository-relative path(s) that do not exist:$missing"
     else
-      ok "arm 5 — all $n repository-relative paths named in Part I of $BRIEF exist"
+      ok "arm 4 — all $n repository-relative paths named in $BRIEF exist"
     fi
   fi
 fi

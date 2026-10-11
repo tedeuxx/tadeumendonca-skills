@@ -7514,50 +7514,74 @@ with no `CLAUDE.md` present.
 - `CLAUDE.md` is consolidated into `AGENTS.md` and deleted, with no `@AGENTS.md` bridge. The table row
   above is struck in place and now names `AGENTS.md`; the layer's properties are unchanged — always-on
   context, cannot deny, static text.
-- `AGENTS.md` is laid out in four parts. **Part I**, ending at the column-zero line
-  `<!-- part-i:end -->`, is harness-neutral, holds every rule meant for every harness, and is budgeted
-  in **bytes**: Codex reads the first 32,768 bytes and drops the rest, and Kiro truncates at 50,000
-  characters, so a truncation keeps the head. Parts II–IV sit below the marker: neutral reference, the
-  Claude Code part, and the four byte-shared orchestrator blocks.
-- `hooks/scripts/agents-md.test.sh` pins the marker (once, after the required sections, directly before
-  Part II, with a self-calibration that moves it up and down), counts Part I in bytes against a 30,000
-  limit, scopes its token and path arms to Part I, and reddens on a tracked `CLAUDE.md`,
-  `.claude/CLAUDE.md` or `CLAUDE.local.md`.
-- **Claude Code reads `AGENTS.md` only as a fallback**: any of those three files, or a `CLAUDE.md` in an
-  ancestor directory, makes the session load that file instead and drop this one entirely. None may be
-  created here; the ancestor and untracked cases are residuals no check sees.
+- `AGENTS.md` holds **every rule** and is budgeted **as a whole file**, in bytes: Codex reads the first
+  32,768 bytes and silently drops the rest, and Kiro truncates at 50,000 characters. The reasoning,
+  the measurements, the Claude Code reference and the four orchestrator blocks — the long form that
+  made `CLAUDE.md` 139 KB — moved to `docs/agents-md-record.md`. That file is linked from the brief,
+  not loaded, and every operative rule it states is restated in the brief. The same day,
+  `tadeumendonca-io`#722 made the same call for its brief.
+- *A first cut of this slice kept one 178 KB `AGENTS.md`, with a budgeted, marker-delimited neutral
+  prefix. It was replaced before merge on the orchestrator's decision: a prefix budget leaves the tail
+  free to carry a rule the smallest consumer never reads.*
+- `hooks/scripts/agents-md.test.sh` counts the whole file in bytes against a 30,000 limit, scopes no
+  arm to a part, and reddens on a tracked `CLAUDE.md`, `.claude/CLAUDE.md` or `CLAUDE.local.md`.
+- **Claude Code reads `AGENTS.md` only as a fallback.** Any of those three files, at the root or in an
+  ancestor directory, makes the session load that file instead and drop this one entirely. A linked
+  worktree does not inherit its main checkout's file; a separate repository nested inside a checkout
+  does. None may be created here; the ancestor and untracked cases are residuals no check sees.
+- The byte-identity obligations on the four blocks are **struck**: `tadeumendonca-io`#722 dropped two
+  of the blocks and compressed the other two, so none has a second copy. The checker-body sync with the
+  sibling is struck for the same reason.
 
 ### Evidence, at its real level
 
-Measured on build `2.1.296`, headless, every tool disallowed, in throwaway directories: a nonce at the
-head and one at the tail of a 168,738-character `AGENTS.md` both came back, and a control directory with
-no `AGENTS.md` returned `NONE` for both. With a sibling added through `--add-dir`, only the root
-directory's `AGENTS.md` nonce came back, so the two-repository byte-sharing premise of the four blocks
-survives the rename. Codex `0.155.0-alpha.16.3`, live: a nonce at the end of Part I came back and one
-at the tail did not. The fallback condition and the Codex byte cap were first measured by the
-agents-lead lens on `tadeumendonca-io`#722. The commands are in `AGENTS.md` Part II. **Not measured
-here:** whether `AGENTS.md` reaches a dispatched subagent.
+Measured on build `2.1.296` of Claude Code, headless, with every tool disallowed, in throwaway
+directories:
+
+- In a control directory with no `AGENTS.md`, both nonces came back as `NONE`.
+- With a sibling directory added through `--add-dir`, only the root directory's `AGENTS.md` nonce came
+  back.
+- A 168,738-character `AGENTS.md` loaded whole.
+- The final 24,276-byte brief, with a nonce added at the head and one at the tail, returned **both**
+  nonces.
+
+The same final-brief probe on Codex `0.155.0-alpha.16.3` (`exec --ephemeral -s read-only`) also
+returned **both** nonces.
+
+The fallback condition and the Codex byte cap were measured by the agents-lead lenses on
+`tadeumendonca-io`#722 and on the workstation repository's #154.
+
+The commands are in `docs/agents-md-record.md`.
+
+**Not measured here:** whether `AGENTS.md` reaches a dispatched subagent.
 
 ### Considered options
 
-- **Keep `CLAUDE.md` as a one-line `@AGENTS.md` bridge.** That was the shape the sibling Issue first
-  asked for. Rejected once the native load was measured: a bridge is a second file whose only content
-  is a pointer, and it keeps the Claude-only filename the owner's decision retires.
-- **Keep two files and generate one from the other.** Rejected for the reason recorded at #411: the
-  longer brief is far past the 50,000 budget, so a generated neutral file cannot be a rename of it. A
-  budgeted prefix of one file keeps one source without that problem.
-- **Put the harness-specific parts in separate files linked from `AGENTS.md`.** Rejected: a linked file
-  is not loaded, and the four blocks exist because the main session must have them in context.
+- **Keep `CLAUDE.md` as a one-line `@AGENTS.md` bridge.** This is the shape the sibling Issue first
+  asked for. Rejected once the native load was measured. A bridge is a second file whose only content
+  is a pointer, and it keeps the Claude-only filename that the owner's decision retires. A bridge is
+  also one of the shadowing files: it suppresses `AGENTS.md` and works only through its import.
+- **Keep one long `AGENTS.md` with a budgeted, neutral prefix.** This was the first cut of this slice,
+  178 KB with a pinned marker. Rejected by the orchestrator before merge. The tail is free to carry a
+  rule that the smallest consumer never reads, and defending the boundary takes machinery that a
+  whole-file budget does not need.
+- **Chosen: a whole-file-budgeted brief, plus a linked record.** Every rule is in the brief. The
+  reasoning, the measurements and one harness's how-to are in `docs/agents-md-record.md`, which no
+  session loads.
 
 ### Consequences
 
-Good: one root brief per repository, in the open filename, read whole by Claude Code and read in its
-neutral prefix by a truncating harness. The duplicate statements of the escalation rules, the review
-routing, the conventions, the versioning rule and the dispatch-brief rule are removed; Part I states
-each once and the blocks point at it.
+Good:
 
-Bad: the four blocks were edited where the move made a sentence false or duplicated a Part I rule, so
-they now differ from the sibling's copies until `tadeumendonca-io` makes the same edits in its own merge
-request. A single file read whole by one harness and by its head by two others is safe only while
-every shared rule stays in Part I; the gate holds the byte budget and the marker's position, and only
-review holds which side of the marker a sentence belongs on.
+- One root brief per repository, in the open filename, read whole by every measured harness.
+- Rules that used to be stated twice are now stated once: the escalation rules, the review routing, the
+  conventions, the versioning rule and the dispatch-brief rule.
+- The four orchestrator blocks' operative content is now in the brief as standing rules 32–36, so it
+  reaches Codex and Kiro too. Before, it reached Claude Code only.
+
+Bad:
+
+- The measurements and struck history behind each rule are one link away rather than always loaded.
+- Whether a rule moved to the record without a copy in the brief is held by review, not by any check.
+- The four blocks no longer have a sibling copy, and their identity obligations are struck. What the two
+  repositories share is the rules, and nothing compares them.
