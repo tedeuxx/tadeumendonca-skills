@@ -1,80 +1,53 @@
 # tadeumendonca-skills — the root brief
 
-**This file is the single root brief for every agent harness that works in this repository.** Since
-2026-10-11 there is no other one: the harness-specific root brief this repository carried until then
-was consolidated into this file and deleted (#562), on the owner's decision to work with the open
-filename rather than one only a single harness reads. It is authored, not generated.
-
-**It has four parts, and their order is a mechanism, not a style.** Part I, which ends at the first
-marker line below, is harness-neutral and budgeted, because at least one harness truncates this file
-and a truncation keeps the head. Part II is harness-neutral reference past that budget. Part III is
-labelled with the one harness it binds. Part IV holds four blocks addressed to the main session and
-shared with the sibling repository. **The obligations meant for every harness are in Part I.**
+**This is the single root brief for every agent harness working in this repository** (#562: the
+harness-specific root brief it used to sit beside was consolidated into it and deleted). It is
+authored, not generated. **Part I, which ends at the marker line below, is harness-neutral and holds
+every rule meant for every harness.** It is budgeted because harnesses truncate this file and a
+truncation keeps the head. Parts II–IV come after the marker: Part II is neutral reference and
+record, Part III is labelled with the one harness it binds, and Part IV holds four blocks addressed to
+the main session and shared with the sibling repository.
 
 sphere: personal
 
 This is a declaration only, recorded in [decision record 0035 of the workstation configuration repository](https://github.com/tedeuxx/mhw/blob/main/docs/adr/0035-workstation-blueprint-reconciliation.md); there is no stop-on-undeclared rule.
 
-## The budget, and whose it is
+## The budget, and the one rule about where text goes
 
-**Part I — everything above the first marker line — stays under 45,000 characters.** That number is
-derived from **one consumer's measured floor, not a standard**: Kiro `1.0.437` loads this file as
-always-on steering and truncates it at 50,000 characters, and the gate keeps headroom so growth reddens
-before it truncates. What each harness actually loads of this file is recorded per harness in Part II,
-at its real evidence level. Read the budget as a ceiling known to bite somewhere, not as a limit anyone
-published.
-
-**The whole file is far past that budget, and that is deliberate.** A truncating harness keeps the
-head, so the order of the parts decides what survives, and Part I is what survives. **Never move an
-obligation meant for every harness below the marker, and never move text that names one harness's
-machinery above it.**
-
-**The loss is announced to the READER and only logged for the human**, which is a sharper thing than
-"silently": the truncating branch writes a debug record *and* appends a literal
-`[Truncated: AGENTS.md exceeds the maximum steering document size.]` into the text the model is given.
-So a model reading a truncated brief can tell; a human watching a normal session cannot. Do not lean on
-the in-band marker — it says content was lost, never which content, and by then the tail is gone.
-
-The measurement is a read of the shipped bundle's control flow on a machine where that tool has never
-authenticated. It has not been confirmed against a live session.
-
-**A gate asserts the length of Part I.** See *What is checked* below.
+**Part I stays under 30,000 bytes.** The smallest measured consumer reads the first 32,768 bytes of this
+file and drops the rest; another truncates at 50,000 characters. Part II records each harness's figure
+at its evidence level. **Never move a rule meant for every harness below the marker, and never move
+text that names one harness's machinery above it.** A gate asserts both the byte budget and the
+marker's position; see *What is checked*.
 
 ## What this repository is
 
-A **library of engineering knowledge and agent configuration** for a two-repository platform. It holds:
+A **library of engineering knowledge and agent configuration** for a two-repository platform:
 
-- `skills/` — one directory per skill, each holding one skill file. This is the knowledge layer: dense,
-  scenario-covering architecture and process guides, written to be reusable in any project.
+- `skills/` — one directory per skill, one skill file each: dense, scenario-covering architecture and
+  process guides, reusable in any project.
 - `commands/` — the guides a human invokes by name, with arguments.
 - `agents/` — the persona briefs, one file per profile. `ls agents/*.md` is the roster.
-- `hooks/` — the enforcement scripts and their test suites. **Harness-specific by construction**; see
-  *What is enforced* below before assuming any of it runs for you.
+- `hooks/` — enforcement scripts and their test suites. **Harness-specific by construction**; see
+  *What is enforced* before assuming any of it runs for you.
 - `docs/adr/` — the decision library for the loop and the machinery. Read the record before changing
   anything it decides.
-- `powers/` — a **generated** export of `skills/` for a second harness. **Never edit it by hand**;
-  edit the source under `skills/` and regenerate with `hooks/scripts/kiro-power-build.py`.
+- `powers/` — a **generated** export of `skills/` for a second harness. **Never edit it by hand**; edit
+  the source under `skills/` and regenerate with `hooks/scripts/kiro-power-build.py`.
 - `scripts/` — repository utilities that are not hooks.
 
-It is consumed by `tadeumendonca-io`, the static site that is this platform's public surface. The
-skills are written **project-agnostic** — generic placeholders, never real names, domains, account
-identifiers or resource identifiers — because they are published and meant to be read by strangers.
-
-**The library is broader than its current consumer.** The `backend` skill and parts of
-`cloud-infrastructure` document an architecture the consuming site **retired** — a BFF on Lambda with DynamoDB and
-Cognito; it is now fully static.
-They are kept deliberately as reference patterns. **Never infer the consumer's architecture from
-them** — read the consumer's own root brief.
-
-Why this repository exists — a public knowledge-transfer artifact — and the depth bar every skill is
-written to are in Part II, *Mission*.
+It is consumed by `tadeumendonca-io`, the static site that is the platform's public surface. Skills are
+written **project-agnostic** — generic placeholders, never real names, domains, account or resource
+identifiers — because they are published for strangers. **The library is broader than its consumer:**
+the `backend` skill and parts of `cloud-infrastructure` document an architecture the site **retired**
+(a BFF on Lambda with DynamoDB and Cognito); it is now fully static. **Never infer the consumer's
+architecture from them** — read the consumer's own root brief. Why this repository exists and the depth
+bar every skill meets are in Part II, *Mission*.
 
 ## The floor — obligations, not descriptions of enforcement
 
-**Every rule below is stated as something you must do, and each is true on a harness with no hooks at
-all.** Where this platform also enforces one mechanically, that is a property of one harness and is
-deliberately not written into the rule. Obey them because they are the rules, not because something
-watches.
+**Every rule below is something you must do, and each is true on a harness with no hooks.** Where one
+harness also enforces a rule mechanically, that is not written into the rule.
 
 1. **No solo architectural decisions.** Architecture, public contracts, schemas and anything
    irreversible go to the owner before you act. In-pattern implementation is yours to decide and
@@ -105,61 +78,38 @@ watches.
     rather than executed is a hypothesis, in those words.
 12. **Everything published on the forge is written in English** — this file, the README, commit and
     merge-request text, issues, decision records.
-13. **Content is additive.** Deepen; never thin out good content to make room.
+13. **Content is additive.** Deepen; never thin out good content.
 
 ## When you interrupt the owner — the form of an escalation
 
-**Scope first, or the rest is misapplied: rule 1 governs every owner-directed activation or message —
-decisions and actions, inside or outside work in flight.** An interview, a design conversation and an
-ad-hoc request are not thereby escalations; rules 2–5 govern the form only when the act they describe
-applies. The global rule is one ask. The remaining rules say what shape that one ask takes.
+**Rule 1 governs every owner-directed activation or message** — decisions and actions, inside or
+outside work in flight. An interview, a design conversation and an ad-hoc request are not thereby
+escalations; rules 2–5 govern the form only when the act they describe applies.
 
 1. **One owner ask per interruption or message.** Two, however short, is a list, and he rebuilds his
-   context twice. Ask or order the first; carry the second to its own later interruption. **Treat this
-   as the most expensive rule here rather than the softest.** Where the surface you raise questions through renders
-   only the first of several, the rest were never shown to anyone, nothing reports the loss, and the
-   work proceeds as though they had been asked. You cannot observe which surface you got. Ask one.
-   A structured picker is mechanically denied when its real `questions` array has two or more members;
-   zero, one and unparsed shapes fall through. A prose list of owner actions remains review-held — do
-   not recreate the deleted semantic classifier, and do not move the remaining asks into prose.
-2. **The interruption is a tweet, and the context lives in the OPTIONS.** Terse is not context-free:
-   each option states its own consequence, and that is the whole preamble. The reasoning belongs in an
-   artifact he can open, never in the interruption. **Put the consequence in the text of the option he
-   reads.** A consequence carried in a field beside the option can be dropped in transport before it
-   reaches him, and nothing will tell you it was.
-3. **Enumerate the choices and give each one its consequence. At most four** — a ceiling, not a
-   target. **This is an obligation about the choices, never about a widget:** where your harness offers
-   a structured way to present them, use it; where it does not, enumerate them in prose and keep the
-   ceiling. What must never happen is an open question standing in for a reduction you owed.
+   context twice. Ask or order the first; carry the second to its own later interruption. **This is the
+   most expensive rule here, not the softest:** where a surface renders only the first of several
+   questions, the rest were never shown, nothing reports the loss, and the work proceeds as though they
+   had been asked. A structured picker is mechanically denied when its real `questions` array has two or
+   more members; zero, one and unparsed shapes fall through. A prose list of owner actions remains
+   review-held — do not recreate the deleted semantic classifier, and do not move the remaining asks
+   into prose.
+2. **The interruption is a tweet, and the context lives in the OPTIONS.** Each option states its own
+   consequence, and that is the whole preamble; the reasoning belongs in an artifact he can open.
+   **Put the consequence in the text of the option he reads** — a consequence carried in a side field
+   can be dropped in transport, silently.
+3. **Enumerate the choices and give each its consequence. At most four** — a ceiling, not a target.
+   Where your harness offers a structured way to present them, use it; where it does not, enumerate in
+   prose and keep the ceiling. An open question never stands in for a reduction you owed.
 4. **An act you cannot perform yourself is an order plus a link, not a question.** The test: *is there
-   a second option you would actually defend?* If not, it is an instruction — one line, the act and the
-   object, no options and no recommendation. The tell in a bad one is that every option is the same act
-   at a different time. State the ask first and state it as an act.
-5. **An interview question takes NO options; an escalation always does.** Opposite rules for different
-   acts: an interview elicits what he thinks, and a menu puts words in his mouth; an escalation asks him
-   to take a decision you have already reduced. **The escalation half is not a style preference** — a
-   question raised with no options at all can be disposed of by the machinery and the work advanced, at
-   best leaving a debug record nobody is watching. The options are what make it a question.
-
-**A preventive control was built for rule 4 and deleted.** The transferable half, which is why it is
-written here as a rule instead: **a preventive control whose false positives are invisible to the person
-it protects is worse than no control, however good its true positives.** A refusal that lands before he
-sees anything turns a suppressed decision into prose reading like a decision already taken — the defect
-the control existed to prevent, produced by the control, where nobody can see it.
-
-**Where the three consequences above were measured**, since a measured claim carrying no version
-silently becomes false: they are a reading of the control flow in Kiro `1.0.437`'s shipped bundle — the
-same build and the same machine as the budget measurement above, which has never authenticated that
-tool and has never run a session on it. Read them as control flow read rather than behaviour watched,
-and as dated rather than settled. **The obligations themselves do not rest on that reading**: each is
-worth obeying on a harness where none of it is true, which is why they are written as rules about what
-you do and not as descriptions of what happens.
-
-**The sibling repository's brief is to carry these same rules, and there is deliberately NO
-byte-identity obligation between the two.** That is the rule, not a claim about that repository's
-current state, which nothing here can check. The two briefs are not the same document by design —
-different floors, different sections, different repositories described — so what must match is the
-rules, never the characters. Do not "fix" the divergence.
+   a second option you would actually defend?* If not, it is one line — the act and the object, no
+   options, no recommendation. The tell in a bad one is every option being the same act at a different
+   time. **Do not rebuild this rule as a preventive control:** one was built and deleted, because its
+   false positives were invisible to the person it protected (Part II records why).
+5. **An interview question takes NO options; an escalation always does.** An interview elicits what he
+   thinks, and a menu puts words in his mouth; an escalation asks him to take a decision you already
+   reduced. A question raised with no options can be disposed of by the machinery and the work
+   advanced, unseen.
 
 ## The conventions this platform's skills enforce
 
@@ -170,23 +120,19 @@ rules, never the characters. Do not "fix" the divergence.
 4. REST: resources are nouns, HTTP verbs express the action, paths and parameters in kebab-case.
    Identifiers in paths are opaque — a slug or a hashid/nanoid `public_id` — never enumerable or
    sequential.
-5. Infrastructure mutation is pipeline-only: plan on the merge request, apply on merge, never from a
-   workstation. Local is read-only. Destroying live infrastructure means removing it from
-   configuration and merging, or a reviewed, manually dispatched teardown workflow. See
-   `skills/devops/SKILL.md`.
+5. Infrastructure mutation is pipeline-only: plan on the merge request, apply on merge. Destroying live
+   infrastructure is removal from configuration plus merge, or a reviewed, manually dispatched teardown
+   workflow. See `skills/devops/SKILL.md`.
 
 ## How work moves
 
-Work is tracked as issues in the forge, and nothing is worked that is not tracked. Three exclusive
-routing types — `product` (the deliverable), `content` (published in the owner's voice), `loop` (this
-machinery) — and two state labels, `ready` (the description is closed and the item is buildable) and
-`blocked`. An item without `ready` is not executable.
+Nothing is worked that is not tracked as a forge issue. Three exclusive routing types — `product` (the
+deliverable), `content` (published in the owner's voice), `loop` (this machinery) — and two state
+labels, `ready` (the description is closed; the item is buildable) and `blocked`. An item without
+`ready` is not executable.
 
-**Each profile exists because a specific disagreement or a specific fresh context is wanted** — not to
-complete an organisation chart. **The table below is a convenience, not the roster**; `ls agents/*.md`
-is, and this file states no count of its own, per *Counts* at the end. A row here whose brief is missing
-reddens the brief's own path check; **a profile ADDED with no row here reddens nothing**, so read a
-mismatch against the directory as this table being behind, never as the profile not existing:
+**Each profile exists because a specific disagreement or fresh context is wanted.** This table is a
+convenience, not the roster — `ls agents/*.md` is; a profile added with no row here reddens nothing:
 
 | profile | brief | what it holds |
 |---|---|---|
@@ -199,252 +145,186 @@ mismatch against the directory as this table being behind, never as the profile 
 | content reviewer | `agents/content-reviewer.md` | judges and repairs that draft against one shared ruler |
 | quality assurance | `agents/quality-assurance.md` | the merge gate, on two lenses at once |
 
-The design intent behind all of it — why the loop is shaped this way, its state machine, its intake
-chain — is `skills/agents-configuration/SKILL.md`. The portable engineering judgment is
-`skills/engineering-standards/SKILL.md`. Read those two before proposing a change to any of it.
+The design intent — why the loop is shaped this way, its state machine, its intake chain — is
+`skills/agents-configuration/SKILL.md`; the portable engineering judgment is
+`skills/engineering-standards/SKILL.md`. Read both before proposing a change to any of it.
 
-**The merge is the go/no-go.** A change reaches the trunk through a merge request and a gate that
-judges it against the item's own requirements and against whether it can break production. Nothing
-auto-merges.
+**The merge is the go/no-go.** A change reaches the trunk through a merge request and a gate that judges
+it against the item's requirements and against whether it can break production. Nothing auto-merges.
 
-**Every dispatch is a fresh instance, and no instance is reused.** When you hand work to a profile,
-start a new instance of it for that one dispatch. Never carry an instance from one issue to the next,
-and never carry the instance that built a change into reviewing it — the review is its own dispatch,
-started fresh. Proposing a change and building it are separate dispatches too. **This is about
-instances, not profiles:** the agents lead may still both build a `loop` item and review it, which is
-an accepted decision in `docs/adr/0002-roster-and-dev-loop.md` (record 0015, mitigated by that profile
-never merging), and this rule does not reverse it — it requires the two acts to run in two contexts.
-The reason is what a verdict attests: the diff the reviewing context actually holds. An instance
-carried across several issues, or whose earlier history has been summarised or truncated to fit, may
-no longer hold the diff it signs, and its verdict reads the same either way. Nothing observes which
-instance ran a dispatch; this is held by whoever dispatches and by review.
+**Every dispatch is a fresh instance, and no instance is reused.** Start a new instance for each
+dispatch; never carry one from one issue to the next, nor the instance that built a change into
+reviewing it. Proposing and building are separate dispatches too. This is about instances, not
+profiles: the agents lead may both build a `loop` item and review it (`docs/adr/0002-roster-and-dev-loop.md`,
+record 0015), in two contexts. A verdict attests the diff the reviewing context holds, and an instance
+carried across issues or summarised to fit may no longer hold it. Held by whoever dispatches, and by
+review.
 
 ## Standing rules for working this loop
 
-**These are the owner's standing rules for any agent working this loop, restated as obligations.**
-Until this section existed they were recorded only in one harness's private memory store, which no
-other harness reads, so they never reached a session running anywhere else. Each is true on a harness
-with no hooks. They add to the floor above rather than restate it; where one sits next to a floor item,
-it names that item. Mode-dependent values, and the bound on work in progress, are deliberately not
-stated here — read them from `docs/loop-mode.md`.
+The owner's standing rules, as obligations true on a harness with no hooks. Mode-dependent values and
+the work-in-progress bound are read from `docs/loop-mode.md`, never stated here.
 
 ### Git and the forge
 
 1. **Merge with a real merge commit. Never squash, and do not rebase-merge unless the owner asks.** The
-   branch's individual commits are the changelog: release notes are built from their conventional
-   commit subjects, and a squash collapses them into one. If a repository permits only squash, report
-   that rather than squashing.
+   branch's commits are the changelog. If a repository permits only squash, report it.
 2. **In a commit message, reference an issue as `Refs #N`. Never put a closing verb — close, fix,
    resolve, in any tense — in the same clause as an issue number, not even to deny it.** The forge's
-   parser is lexical: it closes the issue on merge and never reads the negation. A merge request's
-   resolved closing set is derived from its body alone, so inspecting the body cannot see a commit
-   message. Check the commit range instead:
+   parser is lexical and closes the issue on merge. A merge request's closing set is derived from its
+   body alone, so check the commit range instead:
 
    ```
    git log <merge-base>..<head> --format='%B' \
      | grep -inE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\b[^.]{0,20}#[0-9]+'
    ```
-
-   Calibrated rather than trusted: the same selector finds the negated sentence that once closed an
-   issue on merge, so it can return a hit.
-
-   ```
-   git log --all --format='%B' --grep='does not close #455' \
-     | grep -inE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\b[^.]{0,20}#[0-9]+'
-   # -> 1 line: "No closing keyword: merging this does not close #455, …"
-   ```
 3. **Undo a recent change by reversing that change, never by checking out or restoring the whole
-   file.** Resetting a file to the index discards every edit in it that is not yet staged, not only
-   the last one, and nothing keeps a copy; restoring it from the last commit discards the staged ones
-   too. Before deliberately breaking something to test it, commit the good state;
-   then a restore is correct instead of destructive.
-4. **Address a repository explicitly rather than through the shell's current directory** — `git -C
-   <path>`, and a repository flag placed after the subcommand — and never change directory inside a
-   compound command. Several checkouts of one repository can be live at once, so the current
-   directory does not identify which one an act lands in, and an act that defaults to the current
-   branch can land on a different slice's work.
-5. **Commit messages longer than one line go through a file as well** — for the reason floor item 7
-   gives: the shell silently deletes backtick and dollar spans from an inline message, and the commit
-   is created anyway, carrying the mutilated text.
-6. **Scratch never goes to a shared system temporary directory, and never inside a repository's `.git`
-   directory.** Floor item 7 says where scratch goes; these are the two places it has actually gone
-   instead. If your harness gives you no session scratchpad, ask where scratch belongs rather than
-   choosing either of those. **State that must outlive your session is not scratch, and it does not
-   go in a file at all.** It goes on the issue being worked, as a worklog `handoff` or `checkpoint`
-   event, prepared with `scripts/worklog.py prepare-event` and posted by file. That issue is public,
-   so the record carries facts and one next act, one line each, and never your reasoning or anything
-   private. The contract and the command that reads it back on resume are in `docs/worklog/README.md`.
-   A later session resumes from the latest next act, then re-checks the tracker, because the record
-   says where the work was, not where it is.
-7. **Never wait on a pipeline with a sleep-and-poll loop.** Push, report that checks are running, and
-   check once, when it matters. When you read a result, read it for the exact commit you mean, by its
-   full identifier. **The same holds for an agent you dispatched:** wait for it once, blocking, with
-   the longest timeout your tool accepts — the wait returns as soon as the agent finishes — and never
-   sleep, list or re-wait on a short timeout in between. Every check is a model request that re-sends
-   your whole context.
+   file**, which discards every unstaged edit in it with no copy. Before deliberately breaking
+   something to test it, commit the good state.
+4. **Address a repository explicitly** — `git -C <path>`, and a repository flag after the subcommand —
+   and never change directory inside a compound command. Several checkouts can be live at once, so the
+   current directory does not identify which one an act lands in.
+5. **Commit messages longer than one line go through a file**, for floor item 7's reason.
+6. **Scratch never goes to a shared system temporary directory, nor inside `.git`.** With no session
+   scratchpad, ask where scratch belongs. **State that must outlive your session is not scratch:** it
+   goes on the issue being worked, as a worklog `handoff` or `checkpoint` event prepared with
+   `scripts/worklog.py prepare-event` and posted by file — facts and one next act, one line each, never
+   reasoning or anything private. Contract and resume command: `docs/worklog/README.md`. A later session
+   resumes from the latest next act, then re-checks the tracker.
+7. **Never wait on a pipeline with a sleep-and-poll loop.** Push, report that checks are running, check
+   once when it matters, and read the result for the exact commit by its full identifier. **Wait for a
+   dispatched agent once, blocking, with the longest timeout your tool accepts** — never sleep, list or
+   re-wait in between; every check re-sends your whole context.
 
 ### Reporting to the owner
 
-8. **A merge-request link reaches the owner only when that merge request is ready to merge**: every
-   check has finished and passed, and the gate's verdict at the current head leaves only his act.
-   Before that, report state in prose and name the item by number. A merge-request link in his hands
-   reads as *something is waiting for me*, whatever sentence sits beside it. An issue link carries no
-   such signal and is unaffected.
-9. **When you do hand him a link, it is the browser address, not a command line for him to run.**
-10. **A failed check is yours to fix, not his to hear about.** Send it back to whoever built the change,
-    with the failing job and its cause, and keep going until the pipeline is green — unless the failure
-    needs a decision only he holds, in which case it is an escalation and the section above governs its
-    form.
-11. **Anything you need from him goes first in the message, labelled as a request.** An ask buried
-    under a status report is not read. The escalation section's rule 4 says this for an act he must
-    perform; this extends it to every message.
-12. **His decision lands on the item it decides, at the moment he makes it** — a comment on the issue
-    or merge request, carrying his words. Relaying his answer into a dispatch is a separate act and does
-    not record it: a fresh context, such as a gate or a later session, reads the tracker, never your
+8. **A merge-request link reaches the owner only when it is ready to merge**: every check passed and
+   the gate's verdict at the current head leaves only his act. Before that, report state in prose and
+   name the item by number. An issue link carries no such signal.
+9. **When you hand him a link, it is the browser address, not a command for him to run.**
+10. **A failed check is yours to fix, not his to hear about.** Send it back to the builder with the
+    failing job and cause, until green — unless it needs a decision only he holds.
+11. **Anything you need from him goes first in the message, labelled as a request.**
+12. **His decision lands on the item it decides, when he makes it** — a comment carrying his words.
+    Relaying it into a dispatch does not record it: a fresh context reads the tracker, never your
     conversation.
 
 ### The queue
 
-13. **An item the owner opened is never closed on an agent's advice.** A lead recommending that it be
-    dropped withholds `ready`; the item stays, and closing it is his act.
-14. **When he gives several asks at once, each becomes its own tracked item before anything is
-    built.** Folding them straight into slices invents groupings and silently drops whatever did not
-    fit one.
+13. **An item the owner opened is never closed on an agent's advice.** A lead recommending a drop
+    withholds `ready`; closing is his act.
+14. **When he gives several asks at once, each becomes its own tracked item before anything is built.**
 15. **In every mode, every eligible `loop` item is worked before any eligible `product` item.**
-    Ordering inside each block follows the mode of record. Eligible means in the pool that
-    `docs/loop-mode.md` defines for the mode in force — read the predicate there, not a paraphrase of
-    it; under `scrum` that pool holds only items in the active iteration's milestone. Every mode's pool
-    requires `ready`, so an item still awaiting `ready` is never in it. Neither predicate filters
-    `blocked`, so a `ready` item carrying `blocked` is still in the pool.
-16. **`content` is selected by the owner one piece at a time and is never drained autonomously.** When a
-    `content` item is opened, its intake starts by interviewing him about what it must communicate,
-    recorded in his words, one question at a time and without options (the escalation section's
-    rule 5).
-17. **The eligible pool spans both repositories of this platform** — read both queues. Read the mode of
-    record, `docs/loop-mode.md`, before any pool query, and never infer the mode from what a query
-    returns: an empty result means different things in different modes.
+    Eligible means in the pool `docs/loop-mode.md` defines for the mode in force — read the predicate
+    there; under `scrum` it holds only the active iteration's milestone. Every pool requires `ready`;
+    neither filters `blocked`. **The sequence inside an iteration is the machine's:** the scrum master
+    proposes the set, the orchestrator dispatches, with no per-item approval.
+16. **`content` is selected by the owner one piece at a time and never drained autonomously.** Its
+    intake starts by interviewing him, recorded in his words, one question at a time, without options.
+17. **The eligible pool spans both repositories** — read both queues. **Read the mode of record,
+    `docs/loop-mode.md`, before any pool query, and never infer the mode from a query's result**: an
+    empty result means opposite things in the two modes. Never type a milestone name into a query —
+    enumerate, then select from what came back. A drain compares both repositories' mode records at
+    entry and stops if they disagree.
 18. **Review is routed by type.** `loop`: one agents-lead lens pass, plus the gate — no copy lens and no
-    tech lead. `product`: the
-    leads' lenses as the slice warrants, plus the gate. `content`: the content writer drafts and the
-    content reviewer repairs in place for at most two rounds, plus the gate. The gate runs on every
-    merge request whatever the type, and nothing in this routing narrows it. Intake is routed the same
-    way: a `loop` item's description is closed by the agents lead alone, a `content` item's by the
-    product lead alone, and a `product` item's by the product and tech leads together.
+    tech lead. `product`: the leads' lenses as the slice warrants, plus the gate. `content`: the content
+    writer drafts and the content reviewer repairs in place for at most two rounds, plus the gate. **The
+    gate runs on every merge request; the routing never narrows a gate, a hold, a criterion or a verdict
+    literal**, and on `loop` the agents-lead marker hold still applies. The routing is a default: a lens
+    the row does not name is a deviation you state in the dispatch. No review rule is keyed on a round
+    count. Intake is routed the same way: `loop` by the agents lead alone, `content` by the product lead
+    alone, `product` by both leads.
 19. **A dispatch that only reads a checkout still gets its own worktree whenever a build may be
-    running.** Producing no diff is not the same as not colliding: a concurrent build switches branches
-    under a reader sharing its checkout, and the reader measures the wrong tree.
+    running**, because a concurrent build switches branches under it.
 
 ### Building and investigating
 
-20. **Before changing the loop, re-derive its state model**: the item types, the states each passes
-    through, which role acts at each transition, and what observable artifact records that it happened.
-    A rule whose application no artifact records is applied inconsistently and silently.
+20. **Before changing the loop, re-derive its state model**: item types, states, which role acts at each
+    transition, and what artifact records it.
 21. **Before relying on a check you wrote or changed, break its subject on purpose, watch it go red,
-    restore, and watch it go green.** Mutate the thing checked, never the checker. A check that has
-    only ever passed has been observed passing, not shown to work. See *Before you trust a green, break
-    it on purpose* in `skills/engineering-standards/SKILL.md`.
+    restore, and watch it go green.** Mutate the thing checked, never the checker. See *Before you trust
+    a green, break it on purpose* in `skills/engineering-standards/SKILL.md`.
 22. **A true answer that closes the inquiry is the failure to guard against.** When a symptom repeats,
-    *the actor should have been more careful* is a reason to keep going, not a conclusion: find what
-    made the rule unreachable at the moment of the act. That is principle 12 in the same skill.
+    *the actor should have been more careful* is a reason to keep going; find what made the rule
+    unreachable at the moment of the act (principle 12 of the same skill).
 23. **Do not assert in a dispatch brief a premise you have not measured.** Measure it and carry the
-    command, or write it as a premise the dispatch must verify. A brief is the specification the
-    dispatch builds against, so a false premise there becomes the design. State facts in a brief, and
-    mark any argument written to justify one as briefing-only — reasoning placed in a brief tends to
-    come back as published text. **Never ask a dispatched profile to re-read a file its instructions
-    already carry, and as that profile do not re-read one on your own:** the read adds a second copy
-    that every later request re-sends. If you have reason to think the carried copy is stale, read only
-    the section you need and say why.
-24. **A change to the machinery is evaluated against every harness that consumes this repository**, not
-    only the one you are running on.
-25. **A mechanism that lands here ships with a portable prompt under `docs/prompts/`** — the behaviour,
-    the reasoning and the limit — so a harness without the mechanism can adopt the pattern.
-26. **A skill is atomic and consumer-free**: one whole concept across its full lifecycle, no reference
-    to one consumer's setup, and every choice it states carries its trade-off and an explicit list of
-    pros and cons.
-27. **A secret's scope and name follow the single standard in `skills/devops/SKILL.md`.** Never decide
-    either per repository.
+    command, or write it as a premise the dispatch must verify — never as a fact it may inherit. A brief
+    is the specification the dispatch builds against. Mark any argument written to justify a fact as
+    briefing-only. **Never ask a dispatched profile to re-read a file its instructions already carry,
+    and as that profile do not re-read one;** if you think the carried copy is stale, read only the
+    section you need and say why.
+24. **A change to the machinery is evaluated against every harness that consumes this repository.**
+25. **A mechanism that lands here ships with a portable prompt under `docs/prompts/`** — behaviour,
+    reasoning and limit.
+26. **A skill is atomic and consumer-free**: one whole concept across its lifecycle, no reference to one
+    consumer's setup, every choice with its trade-off and explicit pros and cons. Its *My take* layer is
+    elicited from the owner, never invented. A skill is declared in the package manifest and has a row
+    in `docs/command-reference.md`; a typed command carries `argument-hint` and a skill does not; every
+    mechanism carries exactly one `purpose:` line.
+27. **A secret's scope and name follow the single standard in `skills/devops/SKILL.md`.**
 
 ### Who acts, and what is written in public
 
-28. **The main session — the context the owner talks to, called the orchestrator here — only
-    dispatches. It never edits a repository file itself.** Every real change flows through a profile
-    and that profile's gates, on any harness. **No layer enforces this**: the check that once refused
-    such an edit was removed, so nothing stops the orchestrator from making one. It is an obligation
-    held by the orchestrator and by review.
-29. **On the `loop` lane, the owner decides whether an item is ready, and the orchestrator applies the
-    `ready` label once it has aligned with him.** The agents lead closing the description does not earn
-    the label, and no dispatched profile applies it. Aligned means he has said the item is ready, and
-    his words are recorded on the item (standing rule 12, not floor item 12). On the other lanes,
-    `ready` follows the intake that closes the description (standing rule 18).
-30. **On any public surface, a client or other third-party organisation is described by its sector or
-    industry, never by its name.** The owner's own employer may be named. Public means everything
-    published — prose, commit and merge-request text, issues, decision records, examples.
-31. **The loop is a machine for grinding work down, not for generating it, and nothing ships
-    half-done.** Twenty-two findings on a documentation merge request is one slice converted into
-    fifteen. Close what can be closed, and say plainly what could not. These two rules sit above every
-    profile's own checklist.
+28. **The main session — the orchestrator — only dispatches; it never edits a repository file.** It
+    dispatches every profile (no profile addresses another directly), commits and pushes on the loop's
+    behalf, applies the routing label, and judges which lenses a diff needs. No layer enforces the
+    no-edit rule; it is held by the orchestrator and by review.
+29. **On the `loop` lane the owner decides `ready`, and the orchestrator applies the label once aligned
+    with him** — his words recorded on the item (standing rule 12). On other lanes `ready` follows the
+    intake that closes the description (standing rule 18).
+30. **On any public surface a client or other third party is described by sector or industry, never by
+    name.** The owner's own employer may be named. **Private positioning material lives only in the
+    gitignored private directory of the product repository, and is never pasted into an issue, comment
+    or merge-request body** — an ignore stops a commit, not a paste.
+31. **The loop grinds work down rather than generating it, and nothing ships half-done.** Close what can
+    be closed; say plainly what could not.
+
+### Gating and merging
+
+32. **Before dispatching the gate, check whether the trunk moved since the head being attested.** If it
+    did, rebase onto the trunk first: a verdict on a head lacking the previous merge attests a
+    composition no reviewer read. Conflicts are resolved at merge-request time by the slice's author.
+33. **Every merge names the merge request's number explicitly**, never the current branch's: with one
+    worktree per slice, the current branch is not unique.
+34. **A lens or gate verdict is a merge-request comment naming the full 40-character commit it read.**
+    A moved head needs a fresh verdict; an abbreviated identifier attests nothing.
+35. **Remove a slice's worktree once it has merged.**
+
+### The loop mode
+
+36. **A mode selects a pool predicate and a ceremony set; it never selects a permission rule.** No mode
+    touches the permission floor, the merge gate and its lenses, head-scoped verdicts, only-the-owner-
+    opens-work, the readiness bar (`sp:N` in both modes), the routing labels, or the iteration's
+    existence; `content` has no second mode. **A cadence trigger keys on the clock, never on the pool
+    being empty.** Before any hook is taught the mode, review that change first.
 
 ## Versioning and distribution
 
-Numeric SemVer, `MAJOR.MINOR.PATCH`, no pre-release suffix. `VERSION` at the repository root is the
-current value and `.bumpversion.toml` is the bump configuration; both the version file and the package
-manifest move in lockstep.
-
-**Every merge to `main` bumps the patch and publishes a release.** That is deliberate: this repository
-is a consumed dependency, and a consumer's installed copy resolves published versions — an unpublished
-trunk is invisible to it, so a merge that never publishes is work that silently never ships.
-**Publishing is not adoption**: every consumer updates on its own decision.
-
-A deliberate minor or major is cut on demand from the release workflow in `.github/workflows/`.
+Numeric SemVer, `MAJOR.MINOR.PATCH`, no pre-release suffix. `VERSION` is the current value and
+`.bumpversion.toml` the configuration; the version file and package manifest move in lockstep. **Every
+merge to `main` bumps the patch and publishes a release**: a consumer resolves published versions, so an
+unpublished trunk never ships. **Publishing is not adoption.** A deliberate minor or major is cut from
+the release workflow in `.github/workflows/`. For this library the contract is the invocation surface:
+major renames or removes a command or changes its argument contract; minor adds a skill, a command or
+substantial capability; patch changes content without changing what exists or how it is called.
 
 ## What is enforced here, and what your harness enforces
 
-**Assume nothing in `hooks/` runs for you.** Those scripts are written against one specific harness's
-event model and its permission layer. On that harness, several of the obligations above are also
-refused mechanically. **On yours, they are obligations and nothing else** — which is exactly why they
-are written above as rules rather than as descriptions of a guard.
+**Assume nothing in `hooks/` runs for you.** Those scripts target one harness's event model; on yours,
+the rules above are obligations and nothing else. The generated package under `powers/` likewise
+carries the knowledge layer and none of the enforcement layer (Part II says why).
 
-The same split is deliberate in what this repository exports. The generated package under `powers/`
-carries the **knowledge** layer and none of the **enforcement** layer, because the enforcement is
-shaped for one harness and porting it is work nobody has done. Measured against Kiro `1.0.437`: its
-installer copies a package's whole tree, but its loader resolves only the manifest, `skills/`, the MCP
-declaration and its own directory — so shipping briefs or enforcement scripts there would put them on
-disk **inert**, which reads as installed and is worse than an absent file.
+## What is checked
 
-## What is checked, and what no check can say
-
-`hooks/scripts/agents-md.test.sh` asserts, on every change to this file:
-
-- it is **tracked in git** — an untracked brief is invisible to every review and every gate, and that
-  is the state this file was in until the check existed;
-- **the Part I marker occurs exactly once, as a whole line** — without it the arms below have no
-  boundary, so a missing or doubled marker reddens instead of silently measuring the wrong span;
-- **Part I is under the character budget**, with headroom, so growth reddens before it truncates;
-- **Part I** contains **none of a declared set of tokens specific to one harness** — tool names, event
-  names, configuration file names, invocation syntax;
-- **every repository-relative path Part I names exists.**
-
-**Parts II–IV are outside the last three arms by design:** they name one harness's machinery and quote
-deleted paths inside struck text. `hooks/scripts/inventory-counts.test.sh` reads the whole file.
-
-**What no check here can assert: that this brief is TRUE, or that Part I is neutral rather than merely
-free of the tokens on a list.** A sentence that is portable in vocabulary and false in substance passes
-every arm above. Neutrality is held by whoever writes and reviews this file, and the green means only
-that five mechanical properties hold.
-
-## What Part I deliberately does not carry
-
-- **One harness's installation and configuration steps.** They are in Part III, labelled with the
-  harness, and in `README.md`; stating them here would put one harness's mechanics into the part
-  written for all of them.
-- **The invocation syntax for a typed command.** Skills resolve on more than one harness; the typed
-  form does not. Reach a guide by its path — `skills/<name>/SKILL.md` or `commands/<name>.md` — and
-  read it.
-- **Counts.** Every enumerated number in this repository ages, and a prose figure sitting beside a
-  derived one is the arrangement its own drift gate exists because it rots. Where you need a count,
-  derive it.
+`hooks/scripts/agents-md.test.sh` asserts that this file is tracked; that the marker occurs once and
+sits where it belongs — after this part's required sections and directly before Part II; that Part I
+is under its byte budget, names none of a declared set of one-harness tokens, and names only paths that
+exist; and that no file a harness would load instead of this one is tracked. **No check can assert that
+the brief is true, or that Part I is neutral rather than merely free of listed tokens.** That is held by
+review.
 
 <!-- part-i:end -->
+
 
 # Part II — Harness-neutral reference, beyond the budget
 
@@ -454,13 +334,146 @@ the marker because it does not fit Part I's budget, so a harness that truncates 
 That is the trade, chosen rather than discovered: the session rules every harness must obey are in
 Part I, and what is lost here is how the library is written and why.
 
+## The reasoning behind Part I's rules — moved here to fit the budget
+
+**Part I states each rule once, compactly, so it fits inside the smallest measured budget. The
+reasoning and the evidence that stood beside those rules until #562 are here, unchanged in substance.
+They are reference: no rule lives only in this section.**
+
+### The budget
+
+**The truncation is announced to the reader and only logged for the human**, which is a sharper thing
+than "silently". Kiro's truncating branch writes a debug record *and* appends a literal
+`[Truncated: AGENTS.md exceeds the maximum steering document size.]` to the text the model is given.
+So a model reading a truncated brief can tell, and a human watching a normal session cannot. Do not
+lean on the in-band marker: it says content was lost, never which content, and by then the tail is
+gone. That reading comes from the shipped bundle's control flow, on a machine where that tool has
+never authenticated, and has not been confirmed against a live session.
+
+**The byte budget replaced a character budget on 2026-10-11.** Kiro's cap is 50,000 *characters* and
+was the only measured figure until then, so the gate counted characters. The review of the sibling's
+merge request (`tadeumendonca-io`#722) then measured Codex live: it reads 32,768 *bytes*. That is
+tighter on two counts, because a multi-byte character costs more than one byte. So the gate counts
+bytes against the smallest consumer.
+
+### The escalation rules
+
+**The transferable half of the deleted rule-4 control:** *a preventive control whose false positives
+are invisible to the person it protects is worse than no control, however good its true positives.* A
+refusal that lands before he sees anything turns a suppressed decision into prose that reads like a
+decision already taken. That is the defect the control existed to prevent, produced by the control,
+where nobody can see it.
+
+**Three consequences are stated in the rules: an unrendered second question, a dropped side-field
+consequence, and an option-less question being disposed of.** All three are a reading of the control
+flow in Kiro `1.0.437`'s shipped bundle, the same build and machine as the budget measurement. Read
+them as control flow read rather than behaviour watched, and as dated rather than settled. **The
+obligations do not rest on that reading.** Each one is worth obeying on a harness where none of it is
+true.
+
+**The sibling repository's brief carries these same rules, and there is deliberately NO byte-identity
+obligation for Part I.** The two briefs are different documents by design: different floors,
+different sections, different repositories described. What must match is the rules, never the
+characters, so do not "fix" the divergence. Part IV's four delimited blocks are the exception, and
+they carry their own obligation.
+
+### The standing rules
+
+**Until #512 these rules lived only in one harness's private memory store**, which no other harness
+reads, so they never reached a session running anywhere else.
+
+**Each rule's reasoning:**
+
+- **Merge commits (rule 1).** Release notes are built from the branch's conventional commit subjects,
+  and a squash collapses them into one.
+- **Closing verbs (rule 2).** The selector is calibrated rather than trusted: it finds the negated
+  sentence that once closed an issue on merge.
+
+  ```
+  git log --all --format='%B' --grep='does not close #455' \
+    | grep -inE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\b[^.]{0,20}#[0-9]+'
+  # -> 1 line: "No closing keyword: merging this does not close #455, …"
+  ```
+- **Undoing a change (rule 3).** Resetting a file to the index discards every unstaged edit in it, not
+  only the last one. Restoring it from the last commit discards the staged ones too.
+- **Explicit repositories (rule 4).** An act that defaults to the current branch can land on a
+  different slice's work.
+- **Commit messages through a file (rule 5).** Without one, the commit is created anyway, carrying the
+  mutilated text.
+- **Scratch locations (rule 6).** The shared temporary directory and `.git` are the two places scratch
+  has actually gone instead. A worklog record says where the work was, not where it is.
+- **Links (rule 8).** A merge-request link in his hands reads as *something is waiting for me*,
+  whatever sentence sits beside it.
+- **Escalating a failed check (rule 10).** When a failure needs his decision, it is an escalation, and
+  the escalation section governs its form.
+- **Asks first (rule 11).** An ask buried under a status report is not read. This extends escalation
+  rule 4 to every message.
+- **One item per ask (rule 14).** Folding several asks straight into slices invents groupings and
+  silently drops whatever did not fit one.
+- **Separate worktrees for readers (rule 19).** Producing no diff is not the same as not colliding. A
+  reader sharing a checkout measures the wrong tree.
+- **Re-deriving the state model (rule 20).** A rule whose application no artifact records is applied
+  inconsistently and silently.
+- **Unmeasured premises (rule 23).** Reasoning placed in a brief tends to come back as published text.
+  A re-read adds a second copy that every later request re-sends.
+- **The orchestrator never edits files (rule 28).** The check that once refused such an edit was
+  removed, so nothing stops the orchestrator from making one.
+- **Rules 32–36** compress the operative content of Part IV's blocks. Their measurements, struck
+  history and enforcement analysis stay there:
+  - the trunk-moved check is the `#484`/`#488` counter-example;
+  - the explicit number is rule 7c's no-ref residual at `wip` > 1;
+  - the 40 characters are the marker contract;
+  - the mode list is the untouchable list.
+
+### Fresh instances per dispatch
+
+The fresh-instance rule does not reverse the accepted decision that the agents lead may both build a
+`loop` item and review it. That decision is in `docs/adr/0002-roster-and-dev-loop.md`, record 0015, and
+it is mitigated by that profile never merging. The rule requires only that the two acts run in two
+contexts. **Nothing observes which instance ran a dispatch.**
+
+### What the enforcement layer ships, and what it does not
+
+The generated package under `powers/` carries the **knowledge** layer and none of the **enforcement**
+layer, because the enforcement is shaped for one harness and nobody has done the work of porting it.
+This was measured against Kiro `1.0.437`. Its installer copies a package's whole tree, but its loader
+resolves only the manifest, `skills/`, the MCP declaration and its own directory. Shipping briefs or
+enforcement scripts there would therefore put them on disk **inert**, which reads as installed and is
+worse than an absent file.
+
+### What the checker asserts, and what Part I deliberately does not carry
+
+**The checker's arms:**
+
+- **Tracked.** An untracked brief is invisible to every review and every gate, and this file was in
+  that state until the check existed.
+- **Marker pinned.** A missing, doubled or relocated marker turns the check red instead of silently
+  measuring the wrong span. Moving the marker up would exempt rules from the token check, and moving
+  it down would pull a harness-specific part above it.
+- **Byte budget.** The limit has headroom, so growth turns the check red before it truncates.
+- **Token list.** Tool names, event names, configuration file names and invocation syntax.
+- **Existing paths.**
+- **No shadowing file.** One harness reads this file only when no file of its own vendor's name loads;
+  Part III names those files.
+
+**Parts II–IV are outside the token and path arms by design.** They name one harness's machinery, and
+they quote deleted paths inside struck text. `hooks/scripts/inventory-counts.test.sh` reads the whole
+file.
+
+**What Part I deliberately does not carry:**
+
+- **One harness's installation steps.** They are in Part III, labelled, and in `README.md`.
+- **The invocation syntax for a typed command.** Reach a guide by its path:
+  `skills/<name>/SKILL.md` or `commands/<name>.md`.
+- **Counts.** Every enumerated number ages. Derive a count where you need one.
+
 ## Which harness loads how much of this file — per harness, at its real evidence level
 
 | harness | what it loads of this file | evidence |
 |---|---|---|
-| Claude Code `2.1.296` | **the whole file**, with no other root brief present | **measured 2026-10-11** (#562), headless, every tool disallowed — see the commands below |
+| Claude Code `2.1.296` | **the whole file — but only as a FALLBACK.** A root `CLAUDE.md`, a `.claude/CLAUDE.md`, a `CLAUDE.local.md` or a `CLAUDE.md` in an ancestor directory each suppresses this file entirely: the session loads that file and not this one | whole-file load **measured 2026-10-11** (#562), headless, every tool disallowed — see the commands below. The four suppressing layouts were **measured the same day** by the agents-lead lens on `tadeumendonca-io`#722, one nonce per file, each returning only the other file's nonce. The user-level brief under the home directory's configuration folder was present during every probe here and did **not** suppress this file. Part III states the consequence for authors |
 | Kiro `1.0.437` | the first 50,000 characters, then a `[Truncated: …]` marker | **control flow read** out of the shipped bundle, on a machine where that tool never authenticated; never watched in a live session. The same reading found the bundle resolving `AGENTS.md` at the workspace root with `inclusion:"always"`, and `grep -c 'CLAUDE\.md'` over its agent extension returning **0** — so for Kiro this file was always the whole brief |
-| Codex | **unmeasured here** | its configuration exposes a byte cap on project instructions (`project_doc_max_bytes`), and its default is **recalled** as 32 KiB rather than read or measured in this slice — a hypothesis. **What would settle it:** the instructions a session actually loaded, read back out of one session rollout under `~/.codex/sessions/`, as `docs/codex-cost-sprint-03.md` already does for other fields |
+| Codex `0.155.0-alpha.16.3` | **the first 32,768 BYTES**, then silence — the default `project_doc_max_bytes`, with no override in the user configuration | **measured live 2026-10-11** by the agents-lead lens on `tadeumendonca-io`#722: `codex exec --ephemeral -s read-only` returned only the early nonce of a 39,425-byte file and both nonces of a short control; the default and the log line *"project doc exceeds remaining budget; truncating"* are both strings in the shipped binary. Re-measured on this file — see the commands below. **This is the smallest consumer, and the reason Part I's budget is counted in bytes** |
 
 **The Claude Code row, with the commands that produced it.** Each probe ran in a throwaway directory
 holding only the file under test, so no other brief could answer for it:
@@ -468,13 +481,17 @@ holding only the file under test, so no other brief could answer for it:
 ```
 # <dir>/AGENTS.md = "Probe nonce A: <hex>" + this file's content + "Probe nonce B: <hex>"
 cd <dir> && claude -p 'Without using any tool: does your loaded context contain a line starting "Probe nonce A:" and a line starting "Probe nonce B:"? Print each value exactly, or NONE for one you cannot see. Nothing else.' --disallowed-tools Read Grep Glob Bash Task Edit Write WebFetch WebSearch
-# -> both nonces, at 177,472 characters (this file at the head of #562, plus the two nonce lines) and at 168,738 (the two
+# -> both nonces, at 179,136 characters (this file at the head of #562, plus the two nonce lines) and at 168,738 (the two
 #    pre-consolidation root briefs concatenated) — the tail of the file reaches the main session
 # control — the same prompt in a directory holding no AGENTS.md -> "NONE" for both
 
 # rooted in <dirA>, a sibling <dirB> added as a working directory, each holding its own nonce:
 cd <dirA> && claude -p 'Without using any tool: list every line in your loaded context that starts with "Probe nonce", exactly, or print NONE. Nothing else.' --add-dir <dirB> --disallowed-tools Read Grep Glob Bash Task Edit Write WebFetch WebSearch
 # -> only <dirA>'s nonce: an additional working directory does not bring its AGENTS.md
+
+# Codex: nonce A at the head, C at the end of Part I (byte 23,527), B at the tail; <dir> is a git repo
+cd <dir> && codex exec --ephemeral -s read-only 'Without running any command or reading any file: list every line in your loaded project instructions that starts with "Probe nonce", exactly, or print NONE. Nothing else.'
+# -> A and C, never B (Codex 0.155.0-alpha.16.3, 178,979 bytes): Part I arrives whole, the tail does not
 ```
 
 **Bound it exactly.** One build, one machine, headless. It measures that the text reaches the main
@@ -634,6 +651,14 @@ replaced (#562). Every section moved verbatim; a sentence the move made false is
 corrected, per this repository's struck-not-deleted convention, and a sentence that only restated a
 Part I rule is replaced by a pointer to it.
 
+**Claude Code reads this file only as a FALLBACK — measured on `2.1.296` (Part II's table).** A root
+`CLAUDE.md`, a `.claude/CLAUDE.md`, a `CLAUDE.local.md`, or a `CLAUDE.md` in any ancestor directory of
+the session, each makes the session load that file **instead of this one, entirely and silently**.
+**Never create any of them in this repository.** `hooks/scripts/agents-md.test.sh` turns red if one of
+the first three is tracked, and CI's path filter starts the check when one appears. **What no check
+can see:** an untracked one in a developer's checkout, and an ancestor one outside the repository —
+those are residuals, held by whoever sets up the workstation.
+
 ## What this plugin is, on Claude Code
 
 Claude Code **plugin** (slash-command library) for the **tadeumendonca.io** platform — distributed
@@ -666,8 +691,9 @@ What that section held, and where each part lives now:
   filename) → Part II's per-harness table.
 - **The 50,000-character budget, the in-band truncation marker and the three authoring rules** — state
   obligations rather than descriptions of enforcement, name no harness-shaped token, keep the file
-  tracked → Part I's *The budget* and *What is checked*, **now scoped to Part I** rather than to a
-  separate file.
+  tracked → Part I's *The budget* and *What is checked* (the rules) and Part II's *The reasoning
+  behind Part I's rules* (the evidence), **now scoped to Part I** rather than to a separate file, and
+  counted in bytes against Codex's measured 32,768 rather than Kiro's 50,000 characters.
 - ~~**It is authored beside this file. It is NOT generated from it, and a generator is not available as
   a fallback**~~ — **struck 2026-10-11 (#562): there is one file, so there is nothing to generate it
   from.** The measurement behind the sentence — the longer brief was past the 50,000 budget, so a
@@ -1133,7 +1159,7 @@ plugin's *installation* needs — merging publishes the version; adoption is alw
 each is shared byte for byte with the sibling repository's root brief** — the obligation and its
 falsifier are inside each block. They name this harness's tools, events and hook scripts, so they sit
 below the Part I marker. **The obligations they carry for every harness are stated in Part I** (the
-escalation section, standing rules 15, 17, 18 and 23, and floor item 8); the blocks add the measurements
+escalation section, floor item 8, and standing rules 15, 17, 18, 23 and 32–36); the blocks add the measurements
 and the enforcement analysis around them.
 
 **Each block's identity obligation names `AGENTS.md` on both sides since #562.** Until the sibling's own
@@ -1143,6 +1169,14 @@ allows for, *"expected to print a difference in the window between the two merge
 into this file also changed its text where the move made a sentence false or duplicated a Part I rule**;
 those edits are owed to the sibling's copy in its own merge request, or the two copies stop being one
 rule.
+
+**The sibling may retire the byte identity instead, and this file does not decide that.** Its own
+consolidation (`tadeumendonca-io`#722, open when this was written) compresses two of these blocks into
+its brief's rules and drops the other two. If that merges as it stands, each block's *"two copies must
+stay identical"* obligation below has no second copy left, and the `diff` it publishes prints a
+difference for good. What is shared across the two repositories is then the **rules**, stated in each
+brief's own neutral part — and the subsections that state the identity obligation are owed a strike
+here, in the merge request that follows the sibling's merge.
 
 <!-- hitl-escalation-format -->
 ## The HITL escalation format — five rules, and they bind THIS context (tedeuxx/tadeumendonca-skills#409)

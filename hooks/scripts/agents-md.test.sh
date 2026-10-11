@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Asserts the five MECHANICAL properties of this repository's root brief, `AGENTS.md`, whose PART I —
+# Asserts the six MECHANICAL properties of this repository's root brief, `AGENTS.md`, whose PART I —
 # everything above the column-zero line `<!-- part-i:end -->` — is the harness-neutral, budgeted prefix.
 #
 # WHY THIS EXISTS. `AGENTS.md` is read as always-on steering by at least one agent harness that truncates
@@ -35,9 +35,10 @@
 #     HARNESS WITH NO HOOKS? If it is only true because something fires, it is not neutral.
 #   * ANYTHING BELOW THE MARKER. Parts II-IV name one harness's machinery by design and quote deleted
 #     paths inside struck text, so no token or path arm runs on them.
-#   * THAT THE BUDGET IS RIGHT. 50,000 is ONE consumer's measured floor, read out of a shipped bundle
-#     on a machine where that tool has never authenticated. Every other harness's budget is unmeasured,
-#     and this arm is not evidence that any of them is larger.
+#   * THAT THE BUDGET IS RIGHT FOR EVERY HARNESS. 32,768 bytes is the smallest MEASURED cap (Codex,
+#     live); 50,000 characters is Kiro's, read out of a shipped bundle. Claude Code was measured
+#     loading the whole file. Any other harness is unmeasured, and this arm is not evidence about it.
+#   * AN UNTRACKED OR ANCESTOR SHADOW. Arm 6 sees tracked files only.
 #
 # COPYABILITY IS DELIBERATE, AND WHAT IS COPIED IS THE BODY, NEVER THE FILE. This script derives its
 # root from git rather than from its own position in the tree, so it runs unchanged from any depth in
@@ -66,13 +67,32 @@ if [ -z "$ROOT" ]; then
 fi
 
 BRIEF="AGENTS.md"
-# Part I ends at the first line that is exactly this. Arm 2 asserts it occurs exactly once.
+# Part I ends at the first line that is exactly this. Arm 2 pins WHERE it sits, not only that it exists.
 MARKER='<!-- part-i:end -->'
-# The budget is the consumer's measured cap; the LIMIT is deliberately lower so growth reddens BEFORE
-# it truncates. A gate that fires exactly at the cliff edge tells you at the moment content is already
-# being lost, which is one merge too late.
-BUDGET=50000
-LIMIT=45000
+# The first non-blank line after the marker must be exactly this heading...
+PART2_HEADING='# Part II — Harness-neutral reference, beyond the budget'
+# ...and every one of these must be a whole line ABOVE the marker and nowhere below it. Together they
+# pin the marker from both sides: moving it UP strands a required section below it (and would exempt
+# that section from arms 4 and 5); moving it DOWN puts the Part II heading, and everything after it,
+# above it.
+REQUIRED_H2=(
+  '## The floor — obligations, not descriptions of enforcement'
+  '## When you interrupt the owner — the form of an escalation'
+  '## Standing rules for working this loop'
+  '## What is checked'
+)
+# BYTES, not characters, against the SMALLEST measured consumer. Codex 0.155.0-alpha.16.3 reads the
+# first 32,768 bytes of the file (default project_doc_max_bytes, measured live on 2026-10-11 by the
+# agents-lead lens on tadeumendonca-io#722); Kiro 1.0.437 truncates at 50,000 characters, which is
+# looser on both counts because a character is at least one byte. The LIMIT is deliberately lower so
+# growth reddens BEFORE it truncates: a gate that fires at the cliff edge fires one merge too late.
+BUDGET=32768
+LIMIT=30000
+# Files that make one harness load THEM INSTEAD of this one. Claude Code 2.1.296 reads AGENTS.md only
+# as a fallback: a root CLAUDE.md, .claude/CLAUDE.md or CLAUDE.local.md each suppresses it entirely
+# (measured 2026-10-11, tadeumendonca-io#722). An ancestor-directory CLAUDE.md does too, and is outside
+# any repository, so no arm here can see it — a named residual.
+SHADOWS=('CLAUDE.md' '.claude/CLAUDE.md' 'CLAUDE.local.md')
 
 fails=0
 ok()  { printf 'PASS  %s\n' "$1"; }
@@ -82,7 +102,8 @@ printf '\n== %s — root brief, Part I harness-neutral ==\n\n' "$BRIEF"
 
 # Part I is written to a temporary file so arms 3-5 read exactly the span a truncating harness keeps.
 P1="$(mktemp 2>/dev/null || true)"
-cleanup() { [ -n "$P1" ] && rm -f "$P1"; }
+MUT="$(mktemp 2>/dev/null || true)"
+cleanup() { [ -n "$P1" ] && rm -f "$P1"; [ -n "$MUT" ] && rm -f "$MUT"; }
 trap cleanup EXIT
 
 # ── ARM 1 · TRACKED ─────────────────────────────────────────────────────────────────────────────────
@@ -92,49 +113,100 @@ if git -C "$ROOT" ls-files --error-unmatch "$BRIEF" >/dev/null 2>&1; then
   ok "arm 1 — $BRIEF is tracked in git"
 else
   bad "arm 1 — $BRIEF is NOT tracked. An untracked brief is invisible to every merge request and to
-      every gate, including the four below, which cannot run against a file a CI checkout does not
+      every gate, including the ones below, which cannot run against a file a CI checkout does not
       contain. Run: git add $BRIEF"
 fi
 
-# ── ARM 2 · THE PART I MARKER OCCURS EXACTLY ONCE ───────────────────────────────────────────────────
-# The boundary every later arm measures against. Zero occurrences would leave no Part I; two would make
-# "the first" an accident of editing order. Matched as a WHOLE line, so a mention inside prose or a
-# code span does not count.
+# ── ARM 2 · THE PART I MARKER OCCURS ONCE, AND SITS WHERE IT BELONGS ────────────────────────────────
+# Existence is not enough. Measured on the sibling's fence (tadeumendonca-io#722): relocating an
+# exemption boundary so that it exempts the whole floor left every arm green. Here the analogue is
+# moving the marker UP, which would take rules out of arms 4 and 5. pin_problems prints one line per
+# defect; silence means pinned. The arm then CALIBRATES itself: it moves the marker up to just after
+# the title, and down to just after the Part II heading, in a temporary copy, and requires a defect
+# report for each — so a pin that cannot fail reddens instead of passing.
+pin_problems() {
+  python3 - "$1" "$MARKER" "$PART2_HEADING" "${REQUIRED_H2[@]}" <<'PY'
+import sys
+path, marker, part2 = sys.argv[1], sys.argv[2], sys.argv[3]
+required = sys.argv[4:]
+lines = open(path, encoding="utf-8").read().split("\n")
+idx = [i for i, l in enumerate(lines) if l == marker]
+if len(idx) != 1:
+    print("the marker line occurs %d time(s); it must occur exactly once" % len(idx)); sys.exit()
+m = idx[0]
+after = next((l for l in lines[m + 1:] if l.strip()), None)
+if after != part2:
+    print("the first non-blank line after the marker is %r, not the Part II heading" % after)
+above, below = set(lines[:m]), set(lines[m + 1:])
+for h in required:
+    if h not in above:
+        print("required section %r is not above the marker" % h)
+    if h in below:
+        print("required section %r also occurs below the marker" % h)
+for l in lines[:m]:
+    if l.startswith("# Part "):
+        print("a part heading sits above the marker: %r" % l)
+PY
+}
 p1_ready=0
 if [ ! -f "$ROOT/$BRIEF" ]; then
   bad "arm 2 — $ROOT/$BRIEF does not exist; the marker assertion did NOT run"
-elif [ -z "$P1" ]; then
+elif [ -z "$P1" ] || [ -z "$MUT" ]; then
   bad "arm 2 — could not create a temporary file; arms 2-5 did NOT run"
+elif ! command -v python3 >/dev/null 2>&1; then
+  bad "arm 2 — python3 unavailable; arms 2-5 did NOT run"
 else
-  n_marker="$(grep -cxF -- "$MARKER" "$ROOT/$BRIEF" || true)"
-  if [ "$n_marker" != "1" ]; then
-    bad "arm 2 — the Part I marker line '$MARKER' occurs ${n_marker:-0} time(s) in $BRIEF; it must occur
-      exactly once, as a whole line, at the end of the harness-neutral part. Arms 3-5 did NOT run."
+  probs="$(pin_problems "$ROOT/$BRIEF")"
+  # calibration: up (right after the title) and down (right after the Part II heading)
+  cal=""
+  awk -v m="$MARKER" 'NR == 1 { print; print m; next } $0 == m { next } { print }' "$ROOT/$BRIEF" > "$MUT"
+  [ -n "$(pin_problems "$MUT")" ] || cal="$cal moving the marker UP to the title passes the pin;"
+  awk -v m="$MARKER" -v h="$PART2_HEADING" '$0 == m { next } { print } $0 == h { print m }' "$ROOT/$BRIEF" > "$MUT"
+  [ -n "$(pin_problems "$MUT")" ] || cal="$cal moving the marker DOWN past the Part II heading passes the pin;"
+  if [ -n "$cal" ]; then
+    bad "arm 2 — the marker pin is NOT calibrated:$cal it cannot fail, so arms 3-5 did NOT run."
+  elif [ -n "$probs" ]; then
+    bad "arm 2 — the Part I marker is missing, doubled or misplaced in $BRIEF. Arms 3-5 did NOT run:
+$probs"
   else
     awk -v m="$MARKER" '$0 == m { exit } { print }' "$ROOT/$BRIEF" > "$P1"
-    ok "arm 2 — $BRIEF carries the Part I marker exactly once"
+    ok "arm 2 — $BRIEF carries the Part I marker once, after every required section and directly before Part II (pin calibrated: moved up and moved down both redden)"
     p1_ready=1
   fi
 fi
 
-# ── ARM 3 · PART I UNDER BUDGET, WITH HEADROOM ──────────────────────────────────────────────────────
-# Characters, not bytes. The consumer slices a decoded string, so a multi-byte character costs one.
+# ── ARM 3 · PART I UNDER BUDGET, IN BYTES, WITH HEADROOM ────────────────────────────────────────────
 if [ "$p1_ready" -ne 1 ]; then
   bad "arm 3 — no Part I to measure (see arm 2); the length assertion did NOT run"
-elif ! command -v python3 >/dev/null 2>&1; then
-  bad "arm 3 — python3 unavailable; the length assertion did NOT run"
 else
-  chars="$(python3 -c "import sys;print(len(open(sys.argv[1],encoding='utf-8').read()))" "$P1" 2>/dev/null || true)"
-  if ! printf '%s' "$chars" | grep -qE '^[0-9]+$'; then
+  bytes="$(wc -c < "$P1" | tr -d ' ')"
+  if ! printf '%s' "$bytes" | grep -qE '^[0-9]+$'; then
     bad "arm 3 — could not measure Part I of $BRIEF; the length assertion did NOT run"
-  elif [ "$chars" -ge "$LIMIT" ]; then
-    bad "arm 3 — Part I of $BRIEF is $chars characters, at or past the $LIMIT headroom limit (consumer cap
-      $BUDGET, measured on Kiro 1.0.437, which truncates the file, logs the loss on a debug channel,
-      and appends a '[Truncated: …]' marker to the text the model reads — so the reader is told
-      something went, never what). Cut content or move it below the marker if it is not an obligation
-      for every harness; do not raise the limit without re-measuring."
+  elif [ "$bytes" -ge "$LIMIT" ]; then
+    bad "arm 3 — Part I of $BRIEF is $bytes bytes, at or past the $LIMIT headroom limit (smallest consumer
+      cap $BUDGET bytes, measured live on Codex, which reads that much and drops the rest). Cut content,
+      or move it below the marker if it is not a rule for every harness; do not raise the limit
+      without re-measuring."
   else
-    ok "arm 3 — Part I of $BRIEF is $chars characters, under the $LIMIT limit ($((LIMIT - chars)) to spare; consumer cap $BUDGET)"
+    ok "arm 3 — Part I of $BRIEF is $bytes bytes, under the $LIMIT limit ($((LIMIT - bytes)) to spare; smallest consumer cap $BUDGET bytes)"
+  fi
+fi
+
+# ── ARM 6 · NO FILE THAT A HARNESS WOULD LOAD INSTEAD OF THIS ONE IS TRACKED ────────────────────────
+# Numbered 6 because arms 4 and 5 below predate it. Calibrated with a positive control: the same
+# lookup must find the brief itself, or a broken lookup would report every shadow as absent.
+if ! git -C "$ROOT" ls-files --error-unmatch "$BRIEF" >/dev/null 2>&1; then
+  bad "arm 6 — the lookup cannot find $BRIEF itself, so an absent shadow would read as clean; did NOT run"
+else
+  shadowed=""
+  for s in "${SHADOWS[@]}"; do
+    git -C "$ROOT" ls-files --error-unmatch -- "$s" >/dev/null 2>&1 && shadowed="$shadowed $s"
+  done
+  if [ -n "$shadowed" ]; then
+    bad "arm 6 — tracked:$shadowed. One harness loads such a file INSTEAD of $BRIEF, silently dropping
+      this whole brief from its sessions. Fold its content into $BRIEF and delete it."
+  else
+    ok "arm 6 — none of ${SHADOWS[*]} is tracked (an untracked or ancestor-directory one is invisible here)"
   fi
 fi
 

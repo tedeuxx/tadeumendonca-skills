@@ -7515,11 +7515,17 @@ with no `CLAUDE.md` present.
   above is struck in place and now names `AGENTS.md`; the layer's properties are unchanged — always-on
   context, cannot deny, static text.
 - `AGENTS.md` is laid out in four parts. **Part I**, ending at the column-zero line
-  `<!-- part-i:end -->`, is harness-neutral and budgeted, because Kiro truncates the file at 50,000
-  characters and a truncation keeps the head. Parts II–IV sit below the marker: neutral reference, the
+  `<!-- part-i:end -->`, is harness-neutral, holds every rule meant for every harness, and is budgeted
+  in **bytes**: Codex reads the first 32,768 bytes and drops the rest, and Kiro truncates at 50,000
+  characters, so a truncation keeps the head. Parts II–IV sit below the marker: neutral reference, the
   Claude Code part, and the four byte-shared orchestrator blocks.
-- `hooks/scripts/agents-md.test.sh` gains an arm asserting the marker occurs exactly once, and its
-  budget, token and path arms now measure Part I rather than the file.
+- `hooks/scripts/agents-md.test.sh` pins the marker (once, after the required sections, directly before
+  Part II, with a self-calibration that moves it up and down), counts Part I in bytes against a 30,000
+  limit, scopes its token and path arms to Part I, and reddens on a tracked `CLAUDE.md`,
+  `.claude/CLAUDE.md` or `CLAUDE.local.md`.
+- **Claude Code reads `AGENTS.md` only as a fallback**: any of those three files, or a `CLAUDE.md` in an
+  ancestor directory, makes the session load that file instead and drop this one entirely. None may be
+  created here; the ancestor and untracked cases are residuals no check sees.
 
 ### Evidence, at its real level
 
@@ -7527,8 +7533,10 @@ Measured on build `2.1.296`, headless, every tool disallowed, in throwaway direc
 head and one at the tail of a 168,738-character `AGENTS.md` both came back, and a control directory with
 no `AGENTS.md` returned `NONE` for both. With a sibling added through `--add-dir`, only the root
 directory's `AGENTS.md` nonce came back, so the two-repository byte-sharing premise of the four blocks
-survives the rename. The commands are in `AGENTS.md` Part II. **Not measured:** whether `AGENTS.md`
-reaches a dispatched subagent, and how many bytes Codex loads of it.
+survives the rename. Codex `0.155.0-alpha.16.3`, live: a nonce at the end of Part I came back and one
+at the tail did not. The fallback condition and the Codex byte cap were first measured by the
+agents-lead lens on `tadeumendonca-io`#722. The commands are in `AGENTS.md` Part II. **Not measured
+here:** whether `AGENTS.md` reaches a dispatched subagent.
 
 ### Considered options
 
@@ -7550,5 +7558,6 @@ each once and the blocks point at it.
 
 Bad: the four blocks were edited where the move made a sentence false or duplicated a Part I rule, so
 they now differ from the sibling's copies until `tadeumendonca-io` makes the same edits in its own merge
-request. The Part I budget is held by a gate, and the Codex byte cap on the same prefix is a hypothesis
-only.
+request. A single file read whole by one harness and by its head by two others is safe only while
+every shared rule stays in Part I; the gate holds the byte budget and the marker's position, and only
+review holds which side of the marker a sentence belongs on.
