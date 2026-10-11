@@ -465,11 +465,12 @@ which is the strictest reading of the standing rule it has ever satisfied; it is
 form that broke it.
 
 **That paragraph is this rite's APPLICATION of rule 5 of the HITL escalation format; the canonical
-statement of the rule is `CLAUDE.md`'s *The HITL escalation format* section** (#409). It is left standing
+statement of the rule is rule 5 in `AGENTS.md` Part I, *When you interrupt the owner*** (#409; `CLAUDE.md`'s
+*The HITL escalation format* section until #562). It is left standing
 verbatim rather than replaced by a bare pointer for two reasons: a gate arm in
 `hooks/scripts/inventory-counts.test.sh` pins its opening clause as a literal, and it is the one place
 the two rules are shown colliding on a concrete act. **It is not an independent source** — if it ever
-disagrees with `CLAUDE.md`, `CLAUDE.md` wins and this paragraph is the defect.
+disagrees with `AGENTS.md`, `AGENTS.md` wins and this paragraph is the defect.
 
 ### 3c · recompose, and the loop terminates at TWO activations
 

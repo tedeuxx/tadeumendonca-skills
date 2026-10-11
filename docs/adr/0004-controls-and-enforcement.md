@@ -1239,7 +1239,7 @@ None could have been found by a check, and re-introducing any of them today goes
 | **settings permission** | outside the model, on a matcher | yes | the command string only |
 | **agent** (`agents/*.md`) | as a model, fresh context | no — it decides | whatever it reads |
 | **skill / command** | as context, on invocation | no | whatever it is given |
-| **`CLAUDE.md`** | as always-on context | no | static text |
+| ~~**`CLAUDE.md`**~~ **`AGENTS.md`** (since 2026-10-11, #562 — see that amendment) | as always-on context | no | static text |
 
 **And the merge belongs in the hook row under the rule this record's own body already decided** — *if
 the act cannot be undone it needs a hook, and a push to the trunk escapes git*. A `gh pr merge` **is**
@@ -7496,3 +7496,59 @@ script and registration, not the host's routing of `AskUserQuestion`; the first 
 and expected denial after release remain separate runtime evidence. The canonical root block is copied
 to the sibling repository, so the two independent pipelines necessarily have a temporary drift window
 between their merges.
+
+## Amendment 2026-10-11 — the always-on context layer is `AGENTS.md`, and the root `CLAUDE.md` is deleted (#562)
+
+### Context
+
+The mechanisms table above lists the root `CLAUDE.md` as the always-on context layer. Four blocks of
+rules that bind the main session were placed there, and not in `AGENTS.md`, on one measurement: on
+build `2.1.263` a root `AGENTS.md` did not reach the Claude Code main session (#409, one nonce per
+candidate surface). The owner's decision of 2026-10-11, in his words: *"o que eu quero eh não usar mais
+o arquivo que funciona somente no claude (claude.md), preferindo trabalhar com padrões abertos
+(agents.md)"*. The same day, Claude Code `2.1.296` was measured loading a root `AGENTS.md` natively
+with no `CLAUDE.md` present.
+
+### Decision
+
+- `CLAUDE.md` is consolidated into `AGENTS.md` and deleted, with no `@AGENTS.md` bridge. The table row
+  above is struck in place and now names `AGENTS.md`; the layer's properties are unchanged — always-on
+  context, cannot deny, static text.
+- `AGENTS.md` is laid out in four parts. **Part I**, ending at the column-zero line
+  `<!-- part-i:end -->`, is harness-neutral and budgeted, because Kiro truncates the file at 50,000
+  characters and a truncation keeps the head. Parts II–IV sit below the marker: neutral reference, the
+  Claude Code part, and the four byte-shared orchestrator blocks.
+- `hooks/scripts/agents-md.test.sh` gains an arm asserting the marker occurs exactly once, and its
+  budget, token and path arms now measure Part I rather than the file.
+
+### Evidence, at its real level
+
+Measured on build `2.1.296`, headless, every tool disallowed, in throwaway directories: a nonce at the
+head and one at the tail of a 168,738-character `AGENTS.md` both came back, and a control directory with
+no `AGENTS.md` returned `NONE` for both. With a sibling added through `--add-dir`, only the root
+directory's `AGENTS.md` nonce came back, so the two-repository byte-sharing premise of the four blocks
+survives the rename. The commands are in `AGENTS.md` Part II. **Not measured:** whether `AGENTS.md`
+reaches a dispatched subagent, and how many bytes Codex loads of it.
+
+### Considered options
+
+- **Keep `CLAUDE.md` as a one-line `@AGENTS.md` bridge.** That was the shape the sibling Issue first
+  asked for. Rejected once the native load was measured: a bridge is a second file whose only content
+  is a pointer, and it keeps the Claude-only filename the owner's decision retires.
+- **Keep two files and generate one from the other.** Rejected for the reason recorded at #411: the
+  longer brief is far past the 50,000 budget, so a generated neutral file cannot be a rename of it. A
+  budgeted prefix of one file keeps one source without that problem.
+- **Put the harness-specific parts in separate files linked from `AGENTS.md`.** Rejected: a linked file
+  is not loaded, and the four blocks exist because the main session must have them in context.
+
+### Consequences
+
+Good: one root brief per repository, in the open filename, read whole by Claude Code and read in its
+neutral prefix by a truncating harness. The duplicate statements of the escalation rules, the review
+routing, the conventions, the versioning rule and the dispatch-brief rule are removed; Part I states
+each once and the blocks point at it.
+
+Bad: the four blocks were edited where the move made a sentence false or duplicated a Part I rule, so
+they now differ from the sibling's copies until `tadeumendonca-io` makes the same edits in its own merge
+request. The Part I budget is held by a gate, and the Codex byte cap on the same prefix is a hypothesis
+only.

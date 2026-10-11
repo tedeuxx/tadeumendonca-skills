@@ -14,7 +14,7 @@ Pipelines are **independent per repo** — never trigger one repo's pipeline fro
 ## Pick the model first
 
 Determine the repo's loop model (`/agents-configuration`) before configuring protection, writing a deploy
-workflow, or writing a single allow/deny entry. **How to tell:** the repo's `CLAUDE.md` states it.
+workflow, or writing a single allow/deny entry. **How to tell:** the repo's root brief (`AGENTS.md`) states it.
 Otherwise, count environments — more than one → `gitflow-multi-env`; one (or none, for a consumed
 artifact) → `trunk-single-env`.
 
@@ -625,7 +625,7 @@ the shared prefix is what tells a reader they're one system.
 
 ## Language
 
-Everything published on GitHub is in **English** — repo descriptions, READMEs, `docs/`, `CLAUDE.md`,
+Everything published on GitHub is in **English** — repo descriptions, READMEs, `docs/`, the root brief (`AGENTS.md`),
 commit and PR text, Issues. Product UI content language is a separate concern.
 
 ## Pros & cons

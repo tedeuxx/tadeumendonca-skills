@@ -33,8 +33,9 @@ on:
       # it, and never red afterwards.
       - "skills/**"
       - "README.md"
-      - "CLAUDE.md"
-      # `AGENTS.md` — the harness-neutral root brief, tracked since #411 and gated by
+      # `CLAUDE.md` was listed here until #562 consolidated it into `AGENTS.md` and deleted it; an entry
+      # for a file that no longer exists is a filter whose subject is gone, so it went with the file.
+      # `AGENTS.md` — the root brief (Part I harness-neutral), tracked since #411 and gated by
       # `hooks/scripts/agents-md.test.sh` in the job below. This entry is the EIGHTH occurrence of the
       # miss enumerated in this block and the first one that was foreseen rather than found: the brief
       # is a root file matched by no other glob here, so without this line a change that edits only it

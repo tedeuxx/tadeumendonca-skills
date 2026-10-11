@@ -1,13 +1,21 @@
 #!/usr/bin/env bash
-# Asserts the four MECHANICAL properties of this repository's harness-neutral root brief, `AGENTS.md`.
+# Asserts the five MECHANICAL properties of this repository's root brief, `AGENTS.md`, whose PART I —
+# everything above the column-zero line `<!-- part-i:end -->` — is the harness-neutral, budgeted prefix.
 #
-# WHY THIS EXISTS. `AGENTS.md` is read as always-on steering by at least one agent harness that never
-# reads this repository's other root brief — measured against Kiro 1.0.437, whose bundle resolves
-# `AGENTS.md` at the workspace root with `inclusion:"always"` and contains zero references to the other
-# filename. For that harness this file is not a courtesy copy; it is the ENTIRE brief. So a defect in
-# it is not cosmetic, and until #411 the file was UNTRACKED in both repositories of this workspace —
-# invisible to every merge request, every reviewer and every gate, while being a month stale and
-# telling its reader it described a different product than it does.
+# WHY THIS EXISTS. `AGENTS.md` is read as always-on steering by at least one agent harness that truncates
+# it — measured against Kiro 1.0.437, whose bundle resolves `AGENTS.md` at the workspace root with
+# `inclusion:"always"` and cuts it at 50,000 characters. Since #562 it is also the ONLY root brief: the
+# harness-specific one was consolidated into it and deleted, so the file now carries labelled
+# harness-specific parts BELOW the marker, and a truncating reader keeps the head. That is why arms
+# 3-5 measure Part I and not the file: Part I is what such a reader actually gets. Until #411 the file
+# was UNTRACKED in both repositories of this workspace — invisible to every merge request, every
+# reviewer and every gate, while being a month stale and telling its reader it described a different
+# product than it does.
+#
+# WHY A MARKER AND NOT A SECOND FILE. A second file is what #562 removed. A marker keeps one file and
+# gives the gate a boundary it can find mechanically; arm 2 asserts the boundary exists exactly once,
+# because without it arms 3-5 would have no span to measure and would either measure the whole file
+# (and redden on every harness-specific line below it) or measure nothing (and pass vacuously).
 #
 # WHY THE CHECK IS SHAPED THIS WAY, AND WHAT WAS REJECTED. The obvious arm — "assert no untracked root
 # brief shadows the tracked one" — CANNOT FAIL. This suite runs in CI on a fresh checkout, and a
@@ -20,11 +28,13 @@
 #
 #   * THAT THE BRIEF IS TRUE. Nothing here reads the repository and compares it to what the file
 #     claims. A brief describing the wrong product in portable vocabulary passes every arm.
-#   * THAT THE BRIEF IS NEUTRAL. Arm 3 greps a DECLARED LIST OF TOKENS. Neutrality is a property of
+#   * THAT PART I IS NEUTRAL. Arm 4 greps a DECLARED LIST OF TOKENS. Neutrality is a property of
 #     meaning, and a sentence that describes one harness's mechanism without naming it — "the guard
 #     denies this", "the session hook injects that" — is exactly as harness-bound as one that does,
 #     and passes. The test that catches it is a human one: WOULD THIS SENTENCE STILL BE TRUE ON A
 #     HARNESS WITH NO HOOKS? If it is only true because something fires, it is not neutral.
+#   * ANYTHING BELOW THE MARKER. Parts II-IV name one harness's machinery by design and quote deleted
+#     paths inside struck text, so no token or path arm runs on them.
 #   * THAT THE BUDGET IS RIGHT. 50,000 is ONE consumer's measured floor, read out of a shipped bundle
 #     on a machine where that tool has never authenticated. Every other harness's budget is unmeasured,
 #     and this arm is not evidence that any of them is larger.
@@ -56,6 +66,8 @@ if [ -z "$ROOT" ]; then
 fi
 
 BRIEF="AGENTS.md"
+# Part I ends at the first line that is exactly this. Arm 2 asserts it occurs exactly once.
+MARKER='<!-- part-i:end -->'
 # The budget is the consumer's measured cap; the LIMIT is deliberately lower so growth reddens BEFORE
 # it truncates. A gate that fires exactly at the cliff edge tells you at the moment content is already
 # being lost, which is one merge too late.
@@ -66,7 +78,12 @@ fails=0
 ok()  { printf 'PASS  %s\n' "$1"; }
 bad() { printf 'FAIL  %s\n' "$1"; fails=$((fails + 1)); }
 
-printf '\n== %s — harness-neutral root brief ==\n\n' "$BRIEF"
+printf '\n== %s — root brief, Part I harness-neutral ==\n\n' "$BRIEF"
+
+# Part I is written to a temporary file so arms 3-5 read exactly the span a truncating harness keeps.
+P1="$(mktemp 2>/dev/null || true)"
+cleanup() { [ -n "$P1" ] && rm -f "$P1"; }
+trap cleanup EXIT
 
 # ── ARM 1 · TRACKED ─────────────────────────────────────────────────────────────────────────────────
 # The precondition for every other arm and for review itself: a file git does not know about cannot
@@ -75,31 +92,53 @@ if git -C "$ROOT" ls-files --error-unmatch "$BRIEF" >/dev/null 2>&1; then
   ok "arm 1 — $BRIEF is tracked in git"
 else
   bad "arm 1 — $BRIEF is NOT tracked. An untracked brief is invisible to every merge request and to
-      every gate, including the three below, which cannot run against a file a CI checkout does not
+      every gate, including the four below, which cannot run against a file a CI checkout does not
       contain. Run: git add $BRIEF"
 fi
 
-# ── ARM 2 · UNDER BUDGET, WITH HEADROOM ─────────────────────────────────────────────────────────────
-# Characters, not bytes. The consumer slices a decoded string, so a multi-byte character costs one.
+# ── ARM 2 · THE PART I MARKER OCCURS EXACTLY ONCE ───────────────────────────────────────────────────
+# The boundary every later arm measures against. Zero occurrences would leave no Part I; two would make
+# "the first" an accident of editing order. Matched as a WHOLE line, so a mention inside prose or a
+# code span does not count.
+p1_ready=0
 if [ ! -f "$ROOT/$BRIEF" ]; then
-  bad "arm 2 — $ROOT/$BRIEF does not exist; the length assertion did NOT run"
-elif ! command -v python3 >/dev/null 2>&1; then
-  bad "arm 2 — python3 unavailable; the length assertion did NOT run"
+  bad "arm 2 — $ROOT/$BRIEF does not exist; the marker assertion did NOT run"
+elif [ -z "$P1" ]; then
+  bad "arm 2 — could not create a temporary file; arms 2-5 did NOT run"
 else
-  chars="$(python3 -c "import sys;print(len(open(sys.argv[1],encoding='utf-8').read()))" "$ROOT/$BRIEF" 2>/dev/null || true)"
-  if ! printf '%s' "$chars" | grep -qE '^[0-9]+$'; then
-    bad "arm 2 — could not measure $BRIEF; the length assertion did NOT run"
-  elif [ "$chars" -ge "$LIMIT" ]; then
-    bad "arm 2 — $BRIEF is $chars characters, at or past the $LIMIT headroom limit (consumer cap
-      $BUDGET, measured on Kiro 1.0.437, which truncates the file, logs the loss on a debug channel,
-      and appends a '[Truncated: …]' marker to the text the model reads — so the reader is told
-      something went, never what). Cut content; do not raise the limit without re-measuring."
+  n_marker="$(grep -cxF -- "$MARKER" "$ROOT/$BRIEF" || true)"
+  if [ "$n_marker" != "1" ]; then
+    bad "arm 2 — the Part I marker line '$MARKER' occurs ${n_marker:-0} time(s) in $BRIEF; it must occur
+      exactly once, as a whole line, at the end of the harness-neutral part. Arms 3-5 did NOT run."
   else
-    ok "arm 2 — $BRIEF is $chars characters, under the $LIMIT limit ($((LIMIT - chars)) to spare; consumer cap $BUDGET)"
+    awk -v m="$MARKER" '$0 == m { exit } { print }' "$ROOT/$BRIEF" > "$P1"
+    ok "arm 2 — $BRIEF carries the Part I marker exactly once"
+    p1_ready=1
   fi
 fi
 
-# ── ARM 3 · NO TOKENS SPECIFIC TO ONE HARNESS ───────────────────────────────────────────────────────
+# ── ARM 3 · PART I UNDER BUDGET, WITH HEADROOM ──────────────────────────────────────────────────────
+# Characters, not bytes. The consumer slices a decoded string, so a multi-byte character costs one.
+if [ "$p1_ready" -ne 1 ]; then
+  bad "arm 3 — no Part I to measure (see arm 2); the length assertion did NOT run"
+elif ! command -v python3 >/dev/null 2>&1; then
+  bad "arm 3 — python3 unavailable; the length assertion did NOT run"
+else
+  chars="$(python3 -c "import sys;print(len(open(sys.argv[1],encoding='utf-8').read()))" "$P1" 2>/dev/null || true)"
+  if ! printf '%s' "$chars" | grep -qE '^[0-9]+$'; then
+    bad "arm 3 — could not measure Part I of $BRIEF; the length assertion did NOT run"
+  elif [ "$chars" -ge "$LIMIT" ]; then
+    bad "arm 3 — Part I of $BRIEF is $chars characters, at or past the $LIMIT headroom limit (consumer cap
+      $BUDGET, measured on Kiro 1.0.437, which truncates the file, logs the loss on a debug channel,
+      and appends a '[Truncated: …]' marker to the text the model reads — so the reader is told
+      something went, never what). Cut content or move it below the marker if it is not an obligation
+      for every harness; do not raise the limit without re-measuring."
+  else
+    ok "arm 3 — Part I of $BRIEF is $chars characters, under the $LIMIT limit ($((LIMIT - chars)) to spare; consumer cap $BUDGET)"
+  fi
+fi
+
+# ── ARM 4 · NO TOKENS SPECIFIC TO ONE HARNESS IN PART I ───────────────────────────────────────────────────────
 # The rejected alternative was to gate on the substitution that produced the old file — rewrite one
 # vendor's name to another's. That is what created `.Codex-plugin/plugin.json` and three sibling
 # identifiers that exist nowhere: a substitution renames the TOKEN and leaves the MECHANISM, so the
@@ -202,8 +241,8 @@ CAL_EOF
   done
 }
 
-if [ ! -f "$ROOT/$BRIEF" ]; then
-  bad "arm 3 — $ROOT/$BRIEF does not exist; the token assertion did NOT run"
+if [ "$p1_ready" -ne 1 ]; then
+  bad "arm 4 — no Part I to scan (see arm 2); the token assertion did NOT run"
 else
   # Vacuity guard for the arm itself, per alternative rather than per pattern. See the fixture block
   # above for why a single control line was not enough.
@@ -218,25 +257,26 @@ $(calibrate "$TOKENS_CS" E "${FIXTURES_CS[@]}")"
   done
   vac="$(printf '%s' "$vac" | grep -v '^$' || true)"
   if [ -n "$vac" ]; then
-    bad "arm 3 — the token patterns are NOT calibrated; this arm did not really run. Fix these before
+    bad "arm 4 — the token patterns are NOT calibrated; this arm did not really run. Fix these before
       trusting any green from it:
 $vac"
   else
-    hits_ci="$(grep -niE "$TOKENS_CI" "$ROOT/$BRIEF" || true)"
-    hits_cs="$(grep -nE  "$TOKENS_CS" "$ROOT/$BRIEF" || true)"
+    hits_ci="$(grep -niE "$TOKENS_CI" "$P1" || true)"
+    hits_cs="$(grep -nE  "$TOKENS_CS" "$P1" || true)"
     hits="$(printf '%s\n%s' "$hits_ci" "$hits_cs" | grep -v '^$' || true)"
     if [ -n "$hits" ]; then
-      bad "arm 3 — $BRIEF names a token specific to one harness. This file is another harness's ENTIRE
-      brief, so such a token is either an identifier that does not exist for its reader or a mechanism
-      that does not run for it. Restate the sentence as an obligation, or drop it:
+      bad "arm 4 — Part I of $BRIEF names a token specific to one harness. Part I is what a truncating
+      harness keeps of this file, so such a token is either an identifier that does not exist for its
+      reader or a mechanism that does not run for it. Restate the sentence as an obligation, drop it, or
+      move it below the marker into the part labelled with that harness:
 $hits"
     else
-      ok "arm 3 — $BRIEF carries none of the declared harness-specific tokens"
+      ok "arm 4 — Part I of $BRIEF carries none of the declared harness-specific tokens"
     fi
   fi
 fi
 
-# ── ARM 4 · EVERY REPOSITORY-RELATIVE PATH IT NAMES EXISTS ──────────────────────────────────────────
+# ── ARM 5 · EVERY REPOSITORY-RELATIVE PATH PART I NAMES EXISTS ──────────────────────────────────────────
 # This is the arm that catches a dangling pointer, which is how #411 was found: a substitution pass
 # rewrote a nested brief's path in the sibling repository to a filename that does not exist, at a path
 # the consuming harness genuinely scans. A brief that names an empty path is worse than one that names
@@ -247,12 +287,12 @@ fi
 # carrying a placeholder bracket, a space, or a shell flag is not a path and is skipped. The arm
 # therefore UNDER-checks by construction; it never over-checks, which is the direction that costs an
 # author an argument with the gate over a sentence that was never wrong.
-if [ ! -f "$ROOT/$BRIEF" ]; then
-  bad "arm 4 — $ROOT/$BRIEF does not exist; the path assertion did NOT run"
+if [ "$p1_ready" -ne 1 ]; then
+  bad "arm 5 — no Part I to scan (see arm 2); the path assertion did NOT run"
 elif ! command -v python3 >/dev/null 2>&1; then
-  bad "arm 4 — python3 unavailable; the path assertion did NOT run"
+  bad "arm 5 — python3 unavailable; the path assertion did NOT run"
 else
-  cands="$(python3 - "$ROOT/$BRIEF" <<'PY'
+  cands="$(python3 - "$P1" <<'PY'
 import re, sys
 text = open(sys.argv[1], encoding="utf-8").read()
 EXT = (".md", ".sh", ".py", ".json", ".toml", ".yml", ".yaml", ".mjs", ".ts", ".tsx", ".tf")
@@ -274,7 +314,7 @@ for p in sorted(set(out)):
 PY
 )"
   if [ -z "$cands" ]; then
-    bad "arm 4 — extracted ZERO path-shaped spans from $BRIEF. Either the brief names no paths at all,
+    bad "arm 5 — extracted ZERO path-shaped spans from Part I of $BRIEF. Either the brief names no paths at all,
       which makes it a map with no territory, or the extraction is broken. Either way this arm did not
       really run."
   else
@@ -289,9 +329,9 @@ PY
 $cands
 EOF
     if [ -n "$missing" ]; then
-      bad "arm 4 — $BRIEF names repository-relative path(s) that do not exist:$missing"
+      bad "arm 5 — Part I of $BRIEF names repository-relative path(s) that do not exist:$missing"
     else
-      ok "arm 4 — all $n repository-relative paths named in $BRIEF exist"
+      ok "arm 5 — all $n repository-relative paths named in Part I of $BRIEF exist"
     fi
   fi
 fi

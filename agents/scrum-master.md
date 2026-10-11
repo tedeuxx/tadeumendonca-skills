@@ -67,7 +67,7 @@ acts that mandate implies, not the whole of it.
 
 **The quote above says *«em formato scrum»*, and `scrum` is one value of a closed enum of two.** The
 mode of record is `docs/loop-mode.md`; the contract for what a mode may vary is the
-`<!-- loop-mode-contract -->` block in `CLAUDE.md` at each repository's root. **Read the record before
+`<!-- loop-mode-contract -->` block in `AGENTS.md` at each repository's root. **Read the record before
 you rank anything, and never infer the mode from an empty pool** — the two predicates return
 byte-identical output over an empty set and have opposite correct behaviours.
 
@@ -273,7 +273,7 @@ you are asked for a `loop`-heavy set**, and prefer a smaller set over a collidin
 **What this does NOT prevent, and it must never be cited as covering it.** Composition prevents **merge
 conflicts** — textual overlap, which is exactly the condition git can see. It does **not** prevent the
 **composition hazard**: two branches whose verdicts each attest a head not containing the other's diff.
-That one is dissolved by the **serial gate** (owner ruling 1), stated in `CLAUDE.md`'s
+That one is dissolved by the **serial gate** (owner ruling 1), stated in `AGENTS.md`'s
 `loop-mode-contract` block, and by nothing you do.
 
 **What holds any of this: nothing.** No layer sees which set you selected, `SELECTION-RECORD` has
@@ -453,7 +453,7 @@ are live READS, both in `closure-artifact-guard.sh`: one resolves a single Issue
 (`gh issue view N --json body,title`) and one enumerates **closed** Issues in a rolling date window
 (`gh issue list --state closed --search "closed:>=…"`). **Neither is a queue predicate** — no registered
 hook selects a `--label` or a `--milestone`, which is the property the conclusion actually rests on and
-the one `CLAUDE.md`'s untouchable-list command falsifies.
+the one `AGENTS.md`'s untouchable-list command falsifies.
 
 **Nothing reads your record.** `SELECTION-RECORD` has no consumer. A session that dispatches you,
 receives a record naming `developer`, and then edits the file itself produces a discrepancy that only a

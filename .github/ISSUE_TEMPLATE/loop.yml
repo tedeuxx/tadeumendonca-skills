@@ -23,7 +23,7 @@ body:
     attributes:
       label: What the search found
       description: |
-        Was this already decided somewhere — an ADR (`docs/adr/`), `CLAUDE.md`, a closed Issue, the
+        Was this already decided somewhere — an ADR (`docs/adr/`), `AGENTS.md`, a closed Issue, the
         hook's own header comment?
         One of three answers: it was decided and here is why · it was decided and a premise changed ·
         nothing decides it (say so explicitly).

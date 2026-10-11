@@ -203,7 +203,7 @@ versus boundary**, and it is the comparison the owner was given in the option he
 identically in both modes, so it never has to ask which one is running.
 
 **That is not a convenience — it is what keeps the mode contract's central measurement true.**
-`CLAUDE.md`'s `loop-mode-contract` block backs its untouchable list with a measurement that **no
+`AGENTS.md`'s `loop-mode-contract` block (`CLAUDE.md`'s until #562) backs its untouchable list with a measurement that **no
 registered hook reads any object a mode varies**, and states in its own words that *"the moment a hook
 is taught the mode, that measurement needs re-scoping and the enforcement layer stops being mode-blind
 by construction."* This carrier is registered and does not reach that boundary.

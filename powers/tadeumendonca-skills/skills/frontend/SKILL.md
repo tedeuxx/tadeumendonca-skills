@@ -293,7 +293,7 @@ Cons: no random page access (cursor, not page numbers); couples the UI to the cu
 The framework-level design-system decision: **own Tailwind components, no third-party component
 library** (no shadcn/ui, no Cloudscape). It pairs with the Framework react section above (the impl home)
 and the Storybook section below (where components are documented). **Project-specific identity** — the
-actual palette, typography, radius and theme tokens — lives in the app (its `CLAUDE.md` + `src/styles`), NOT here.
+actual palette, typography, radius and theme tokens — lives in the app (its root brief + `src/styles`), NOT here.
 
 **The stack**
 - **Tailwind CSS** (v3, preflight on) — utility-first; no UI component library.
@@ -327,7 +327,7 @@ actual palette, typography, radius and theme tokens — lives in the app (its `C
   tokens, one `:root`, no `ThemeProvider`. A theme switch is a deliberate add (a second token set +
   a provider), not the baseline.
 - **Brand identity is project-specific** — palette, fonts, radius scale and density live in the
-  app's `src/styles` and are documented in the app's `CLAUDE.md`. This section stays identity-agnostic.
+  app's `src/styles` and are documented in the app's root brief. This section stays identity-agnostic.
 
 **Rationale — why own components over a library**
 - **Full design control + a bespoke identity** — the look is part of the product's argument, not an
