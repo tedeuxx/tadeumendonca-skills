@@ -862,6 +862,26 @@ for doc in "$README" "$RECORD" "$ROOT/skills/agents-configuration/SKILL.md"; do
   fi
 done
 
+# THE ROOT BRIEF GETS THE RETIRED HALF ONLY (#562, orchestrator decision on #563). `AGENTS.md` is the one
+# file every harness LOADS, so a retired term written there reaches every session — the absence half
+# must scan it. The PRESENCE half does not apply: the brief is held under a byte budget and does not
+# name the practice (the record and the skill do), so requiring it here would redden a correct brief.
+# Same two selectors as the loop above, on purpose: the stripped-qualified bare form, and the stem.
+if [ ! -f "$ROOTBRIEF" ]; then
+  bad "vocabulary — AGENTS.md does not exist; the retired-term scan of the root brief did NOT run"
+else
+  if sed 's/Agent Harness Engineering//g' "$ROOTBRIEF" | grep -q 'Harness Engineering'; then
+    bad "vocabulary — AGENTS.md carries the BARE term 'Harness Engineering'; the current name is 'Agent Harness Engineering'"
+  else
+    ok "vocabulary — AGENTS.md carries no un-prefixed form of the term (absence only; the brief is not required to name the practice)"
+  fi
+  if grep -qF -- 'Loop Engineer' "$ROOTBRIEF"; then
+    bad "vocabulary — AGENTS.md carries the RETIRED term 'Loop Engineer…' (any inflection)"
+  else
+    ok "vocabulary — AGENTS.md is clear of the retired term in every inflection"
+  fi
+fi
+
 # THE EXCEPTION THIS BLOCK USED TO ASSERT IS RETIRED, NOT SILENTLY DROPPED. Every prior version of this
 # comment recorded a known, deliberate gap: the skill was still named `loop-engineering` even though the
 # vocabulary check above required `Agent Harness Engineering`, so `/loop-engineering` was a live public
@@ -872,7 +892,7 @@ done
 # `skills/agents-configuration/SKILL.md` — so `/loop-engineering` is no longer a published
 # invocation and the gap this block asserted is closed by the rename it was written to wait for.
 # **This is the version decision the block's last form asked for, made rather than assumed: a command
-# renamed/removed is a MAJOR bump per CLAUDE.md's own rule.** Whether the release that ships this PR
+# renamed/removed is a MAJOR bump per CLAUDE.md's own rule (now `AGENTS.md`'s *Versioning*).** Whether the release that ships this PR
 # carries it as MAJOR or, per #164's precedent, as one contract change already announced by a prior
 # major version, is the owner's call at release time — not asserted here.
 #

@@ -315,7 +315,8 @@ nowhere to write one.
 this fence yet.** No consumer exists: `roster:lanes` appears nowhere in `tadeumendonca-io`
 (`grep -rln "roster:lanes"` there returns nothing), and the reader that *does* exist —
 `rosterDispatchNames` in `apps/fed/scripts/harness-source.mjs`, called from `check-harness-drift.mjs` —
-is pointed at that repo's own `CLAUDE.md` and matches a **different** marker, `roster:dispatch`. It is
+is pointed at that repo's own `AGENTS.md` (its `CLAUDE.md` until `tadeumendonca-io`#721/#722 deleted it) and
+matches a **different** marker, `roster:dispatch`. It is
 cited here as the **precedent this anchor is shaped to mirror**, not as anything that reads these lines.
 
 **The forecast is still the reason for the arm.** The consumer built for this anchor will mirror that

@@ -58,7 +58,8 @@ harness also enforces a rule mechanically, that is not written into the rule.
    irreversible go to the owner before you act. In-pattern implementation is yours to decide and
    report.
 2. **Never merge your own work, and never push to the trunk.** Work on a short-lived branch, open a
-   merge request, and let the gate decide. `main` is the only long-lived branch here.
+   merge request, and let the gate decide. `main` is the only long-lived branch here: this repository
+   runs the `trunk-single-env` loop model.
 3. **Never rewrite published history.** No force-push to a shared branch, no `git reset --hard` over
    work you did not create.
 4. **Never write a secret into this repository or into a forge secret store.** No exceptions, no
@@ -265,7 +266,9 @@ the work-in-progress bound are read from `docs/loop-mode.md`, never stated here.
 26. **A skill is atomic and consumer-free**: one whole concept across its lifecycle, no reference to one
     consumer's setup, every choice with its trade-off and explicit pros and cons. It covers the scenario
     space as a decision tree, with criteria and rough numbers where they drive the call. Its *My take*
-    layer is elicited from the owner, never invented, and a persona brief's is calibrated the same way. A skill is declared in the package manifest and has a row
+    layer is elicited from the owner, never invented. A persona brief's is calibrated the same way, from a
+    running note of the moments it decided something the owner would have decided differently, never on
+    a fixed cadence. Typed commands live in `commands/`, skills in `skills/`. A skill is declared in the package manifest and has a row
     in `docs/command-reference.md`; a typed command carries `argument-hint` and a skill does not; every
     mechanism carries exactly one `purpose:` line.
 27. **A secret's scope and name follow the single standard in `skills/devops/SKILL.md`.**
@@ -282,7 +285,8 @@ the work-in-progress bound are read from `docs/loop-mode.md`, never stated here.
 30. **On any public surface a client or other third party is described by sector or industry, never by
     name.** The owner's own employer may be named. **Private positioning material lives only in the
     gitignored private directory of the product repository, and is never pasted into an issue, comment
-    or merge-request body** — an ignore stops a commit, not a paste.
+    or merge-request body, nor quoted into this repository** — an ignore stops a commit, not a paste.
+    The owner's target role is read from that source, never written from memory.
 31. **The loop grinds work down rather than generating it, and nothing ships half-done.** Close what can
     be closed; say plainly what could not.
 
@@ -304,7 +308,9 @@ the work-in-progress bound are read from `docs/loop-mode.md`, never stated here.
     opens-work, the readiness bar (`sp:N` in both modes), the routing labels, or the iteration's
     existence; `content` has no second mode. **A cadence trigger keys on the clock, never on the pool
     being empty.** Before any hook is taught the mode, review that change first. A mode record states
-    the date the mode actually began, never the day the record lands.
+    the date the mode actually began, never the day the record lands. **Nothing enters a running
+    iteration automatically:** an issue is filed with no milestone, and composing an iteration is the
+    owner's act, in both modes.
 
 ## Versioning and distribution
 

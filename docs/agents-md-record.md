@@ -29,6 +29,9 @@ of the first cut of #562.
   file that keep those headings.
 - *"This file"*, *"this brief"* and *"this context"* mean the root brief the sentence was written in
   — `CLAUDE.md` until 2026-10-11, then `AGENTS.md` — never this record.
+- **Any mention of "the marker", "below the Part I marker" or "the budgeted prefix" describes the first
+  cut of #562** — one long `AGENTS.md` whose neutral prefix ended at a marker line. It was replaced
+  before merge, so there is no marker. Read such sentences as the record of that cut.
 - **Every carrier claim below is history** — *"this file is their carrier"*, *"they bind THIS
   context"*. It was true of the root brief, which is loaded into the main session. This record is not
   loaded, so it carries nothing to any session. What reaches the main session is the rules the brief
@@ -39,10 +42,15 @@ of the first cut of #562.
 # Part II — Harness-neutral reference, beyond the budget
 
 **Nothing in this part is specific to one harness.** It is reference and record — what each harness
-loads, the sibling sync, why this repository exists and how its skills are authored — and it sits below
+loads, the sibling sync, why this repository exists and how its skills are authored. ~~It sits below
 the marker because it does not fit Part I's budget, so a harness that truncates this file loses it.
 That is the trade, chosen rather than discovered: the session rules every harness must obey are in
-Part I, and what is lost here is how the library is written and why.
+Part I, and what is lost here is how the library is written and why.~~
+
+**Struck 2026-10-11 (#562).** This described the first cut of #562: one long `AGENTS.md`, with a
+budgeted prefix ending at a marker. In the final shape there is no marker. `AGENTS.md` is a whole file
+under the byte budget, and this part sits in a record that no harness loads. What still holds is that
+the session rules are in the brief and only the how and why are here.
 
 ## The reasoning behind Part I's rules — moved here to fit the budget
 
@@ -411,8 +419,10 @@ What that section held, and where each part lives now:
 - ~~**It is authored beside this file. It is NOT generated from it, and a generator is not available as
   a fallback**~~ — **struck 2026-10-11 (#562): there is one file, so there is nothing to generate it
   from.** The measurement behind the sentence — the longer brief was past the 50,000 budget, so a
-  rename-only transform could not produce a loadable artifact — is still the reason Part I is a
-  **budgeted prefix** of one file rather than the whole of it. And the defect it was written after
+  rename-only transform could not produce a loadable artifact — ~~is still the reason Part I is a
+  **budgeted prefix** of one file rather than the whole of it~~ **(struck: that was the first cut. In
+  the final shape the brief is a whole file under the byte budget, and the long form is this record —
+  the same measurement taken to its conclusion)**. And the defect it was written after
   stays instructive: a substitution pass renames the token and leaves the mechanism, which is how the
   pre-#411 neutral brief came to instruct its reader to open `.Codex-plugin/plugin.json` and three
   sibling identifiers that exist nowhere.
