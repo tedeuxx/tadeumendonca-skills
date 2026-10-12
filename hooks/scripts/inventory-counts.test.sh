@@ -855,7 +855,7 @@ for doc in "$README" "$RECORD" "$ROOT/skills/agents-configuration/SKILL.md"; do
   # retired check. All three were fixed-string comparisons guarding a name. Matching the stem
   # `Loop Engineer` covers the noun, the gerund and the role in one, and costs nothing — nothing
   # legitimate contains those two words any more.
-  if grep -qF -- 'Loop Engineer' "$doc"; then
+  if grep -qiF -- 'Loop Engineer' "$doc"; then
     bad "vocabulary — $name still carries the RETIRED term (any inflection); supersede it, do not add alongside"
   else
     ok "vocabulary — $name is clear of the retired term in every inflection"
@@ -867,6 +867,8 @@ done
 # must scan it. The PRESENCE half does not apply: the brief is held under a byte budget and does not
 # name the practice (the record and the skill do), so requiring it here would redden a correct brief.
 # Same two selectors as the loop above, on purpose: the stripped-qualified bare form, and the stem.
+# The stem match is CASE-INSENSITIVE here and in the loop above (#563, lens round 2): a lower-case
+# "loop engineering" is the same retired term, and a case-sensitive -F match let it through.
 if [ ! -f "$ROOTBRIEF" ]; then
   bad "vocabulary — AGENTS.md does not exist; the retired-term scan of the root brief did NOT run"
 else
@@ -875,7 +877,7 @@ else
   else
     ok "vocabulary — AGENTS.md carries no un-prefixed form of the term (absence only; the brief is not required to name the practice)"
   fi
-  if grep -qF -- 'Loop Engineer' "$ROOTBRIEF"; then
+  if grep -qiF -- 'Loop Engineer' "$ROOTBRIEF"; then
     bad "vocabulary — AGENTS.md carries the RETIRED term 'Loop Engineer…' (any inflection)"
   else
     ok "vocabulary — AGENTS.md is clear of the retired term in every inflection"

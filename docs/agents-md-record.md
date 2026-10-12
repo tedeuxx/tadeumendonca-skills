@@ -92,8 +92,10 @@ true.
 **The sibling repository's brief carries these same rules, and there is deliberately NO byte-identity
 obligation for Part I.** The two briefs are different documents by design: different floors,
 different sections, different repositories described. What must match is the rules, never the
-characters, so do not "fix" the divergence. Part IV's four delimited blocks are the exception, and
-they carry their own obligation.
+characters, so do not "fix" the divergence. ~~Part IV's four delimited blocks are the exception, and
+they carry their own obligation.~~ **Struck 2026-10-11 (#562): there is no exception any more.
+`tadeumendonca-io`#722 merged without byte-identical copies of the four blocks. Each block's identity
+obligation is struck below, and only the rules are shared.**
 
 ### The standing rules
 
@@ -228,8 +230,9 @@ evidence that the limit does not truncate it on this build, and nothing more.
 the same way under `tadeumendonca-io`#721, after a first neutral brief landed there under `-io`#610.
 Read that as the rule and not as a description of that repository's `main`: **every sentence crossing
 the repository boundary is true on the day its own repository merges, never on the day the other one
-does.** What must match across the two briefs is the rules, never the characters — except the four
-delimited blocks of Part IV, which carry their own byte-identity obligation.
+does.** What must match across the two briefs is the rules, never the characters~~ — except the four
+delimited blocks of Part IV, which carry their own byte-identity obligation~~. **The exception is
+struck 2026-10-11 (#562): `tadeumendonca-io`#722 merged without byte-identical copies of the blocks.**
 
 **STRUCK 2026-10-11 (#562): the body-sync obligation is retired.** Since `tadeumendonca-io`#722, the
 sibling's checker declares its sync *"broken on purpose, because that sibling is to be generated from
