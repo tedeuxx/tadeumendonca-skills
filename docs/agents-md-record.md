@@ -1,20 +1,259 @@
-# tadeumendonca-skills
+# The `AGENTS.md` record — reasoning, measurements, the Claude Code reference and the four orchestrator blocks
 
-Claude Code **plugin** (slash-command library) for the **tadeumendonca.io** platform — distributed
-via the **marketplace in this repo** and consumed by **`tadeumendonca-io`** (the static site SPA in
-`apps/fed` + its Terraform in `iac/`).
-The commands are generic, reusable implementation guides (no AWS dependency to run).
+**This file is NOT loaded into any agent session.** It holds what were Parts II–IV of `AGENTS.md` for one
+day of #562, and before that most of the root `CLAUDE.md`. It moved here on 2026-10-11, on the
+orchestrator's decision under #562, so that the root brief fits whole inside the smallest measured
+consumer: Codex reads the first 32,768 bytes of `AGENTS.md` and drops the rest. `tadeumendonca-io`#722
+made the same call for its own brief.
 
-Each command is a per-component guide: when the owner runs `/tadeumendonca-skills:frontend`,
-Claude reads the guide and knows exactly how to implement that piece following this project's
-established patterns (custom Tailwind design system, snake_case contracts, Terraform parametrization,
-numeric SemVer, etc.).
+**Every operative rule in this record is also stated in `AGENTS.md`, and the brief is canonical.**
+Where the two differ, the brief wins and the difference here is a defect. The check was made section by
+section against the rule map on PR #563. What stays only here is reference — the reasoning behind
+the rules, the measurements, the struck history, and how-to for one harness — and none of it is an
+obligation that the brief lacks.
 
-> **The library is broader than its current consumer.** The `backend` skill and parts of `cloud-infrastructure`
-> skills document a BFF-on-Lambda + DynamoDB + Cognito architecture that `tadeumendonca-io` **retired**
-> — it is now fully static. Those skills are kept **deliberately, as reference patterns**, not as a
-> description of the live platform. Never infer the consumer's architecture from them; read the
-> consumer's own `CLAUDE.md`.
+**Measured on the final brief, 2026-10-11.** Each probe used a copy of `AGENTS.md` (24,276 bytes)
+with a nonce added at the head and another at the tail, 24,331 bytes in all. Each ran in a throwaway
+directory with the prompts and flags recorded in Part II's command block below.
+
+- Claude Code `2.1.296`, headless, every tool disallowed: **both** nonces came back.
+- Codex `0.155.0-alpha.16.3`, `exec --ephemeral -s read-only`, in a throwaway git repository: **both**
+  nonces came back.
+
+The whole brief reaches both harnesses. The larger-file measurements in Part II are kept as the record
+of the first cut of #562.
+
+**How to read the text below, because it was written to be loaded and is now a record:**
+
+- *"Part I"* means `AGENTS.md`. *"Part II"*, *"Part III"* and *"Part IV"* mean the sections of this
+  file that keep those headings.
+- *"This file"*, *"this brief"* and *"this context"* mean the root brief the sentence was written in
+  — `CLAUDE.md` until 2026-10-11, then `AGENTS.md` — never this record.
+- **Any mention of "the marker", "below the Part I marker" or "the budgeted prefix" describes the first
+  cut of #562** — one long `AGENTS.md` whose neutral prefix ended at a marker line. It was replaced
+  before merge, so there is no marker. Read such sentences as the record of that cut.
+- **Every carrier claim below is history** — *"this file is their carrier"*, *"they bind THIS
+  context"*. It was true of the root brief, which is loaded into the main session. This record is not
+  loaded, so it carries nothing to any session. What reaches the main session is the rules the brief
+  restates: the escalation section, floor item 8, and standing rules 15, 17, 18, 23 and 28–36.
+
+
+
+# Part II — Harness-neutral reference, beyond the budget
+
+**Nothing in this part is specific to one harness.** It is reference and record — what each harness
+loads, the sibling sync, why this repository exists and how its skills are authored. ~~It sits below
+the marker because it does not fit Part I's budget, so a harness that truncates this file loses it.
+That is the trade, chosen rather than discovered: the session rules every harness must obey are in
+Part I, and what is lost here is how the library is written and why.~~
+
+**Struck 2026-10-11 (#562).** This described the first cut of #562: one long `AGENTS.md`, with a
+budgeted prefix ending at a marker. In the final shape there is no marker. `AGENTS.md` is a whole file
+under the byte budget, and this part sits in a record that no harness loads. What still holds is that
+the session rules are in the brief and only the how and why are here.
+
+## The reasoning behind Part I's rules — moved here to fit the budget
+
+**Part I states each rule once, compactly, so it fits inside the smallest measured budget. The
+reasoning and the evidence that stood beside those rules until #562 are here, unchanged in substance.
+They are reference: no rule lives only in this section.**
+
+### The budget
+
+**The truncation is announced to the reader and only logged for the human**, which is a sharper thing
+than "silently". Kiro's truncating branch writes a debug record *and* appends a literal
+`[Truncated: AGENTS.md exceeds the maximum steering document size.]` to the text the model is given.
+So a model reading a truncated brief can tell, and a human watching a normal session cannot. Do not
+lean on the in-band marker: it says content was lost, never which content, and by then the tail is
+gone. That reading comes from the shipped bundle's control flow, on a machine where that tool has
+never authenticated, and has not been confirmed against a live session.
+
+**The byte budget replaced a character budget on 2026-10-11.** Kiro's cap is 50,000 *characters* and
+was the only measured figure until then, so the gate counted characters. The review of the sibling's
+merge request (`tadeumendonca-io`#722) then measured Codex live: it reads 32,768 *bytes*. That is
+tighter on two counts, because a multi-byte character costs more than one byte. So the gate counts
+bytes against the smallest consumer.
+
+### The escalation rules
+
+**The transferable half of the deleted rule-4 control:** *a preventive control whose false positives
+are invisible to the person it protects is worse than no control, however good its true positives.* A
+refusal that lands before he sees anything turns a suppressed decision into prose that reads like a
+decision already taken. That is the defect the control existed to prevent, produced by the control,
+where nobody can see it.
+
+**Three consequences are stated in the rules: an unrendered second question, a dropped side-field
+consequence, and an option-less question being disposed of.** All three are a reading of the control
+flow in Kiro `1.0.437`'s shipped bundle, the same build and machine as the budget measurement. Read
+them as control flow read rather than behaviour watched, and as dated rather than settled. **The
+obligations do not rest on that reading.** Each one is worth obeying on a harness where none of it is
+true.
+
+**The sibling repository's brief carries these same rules, and there is deliberately NO byte-identity
+obligation for Part I.** The two briefs are different documents by design: different floors,
+different sections, different repositories described. What must match is the rules, never the
+characters, so do not "fix" the divergence. ~~Part IV's four delimited blocks are the exception, and
+they carry their own obligation.~~ **Struck 2026-10-11 (#562): there is no exception any more.
+`tadeumendonca-io`#722 merged without byte-identical copies of the four blocks. Each block's identity
+obligation is struck below, and only the rules are shared.**
+
+### The standing rules
+
+**Until #512 these rules lived only in one harness's private memory store**, which no other harness
+reads, so they never reached a session running anywhere else.
+
+**Each rule's reasoning:**
+
+- **Merge commits (rule 1).** Release notes are built from the branch's conventional commit subjects,
+  and a squash collapses them into one.
+- **Closing verbs (rule 2).** The selector is calibrated rather than trusted: it finds the negated
+  sentence that once closed an issue on merge.
+
+  ```
+  git log --all --format='%B' --grep='does not close #455' \
+    | grep -inE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\b[^.]{0,20}#[0-9]+'
+  # -> 1 line: "No closing keyword: merging this does not close #455, …"
+  ```
+- **Undoing a change (rule 3).** Resetting a file to the index discards every unstaged edit in it, not
+  only the last one. Restoring it from the last commit discards the staged ones too.
+- **Explicit repositories (rule 4).** An act that defaults to the current branch can land on a
+  different slice's work.
+- **Commit messages through a file (rule 5).** Without one, the commit is created anyway, carrying the
+  mutilated text.
+- **Scratch locations (rule 6).** The shared temporary directory and `.git` are the two places scratch
+  has actually gone instead. A worklog record says where the work was, not where it is.
+- **Links (rule 8).** A merge-request link in his hands reads as *something is waiting for me*,
+  whatever sentence sits beside it.
+- **Escalating a failed check (rule 10).** When a failure needs his decision, it is an escalation, and
+  the escalation section governs its form.
+- **Asks first (rule 11).** An ask buried under a status report is not read. This extends escalation
+  rule 4 to every message.
+- **One item per ask (rule 14).** Folding several asks straight into slices invents groupings and
+  silently drops whatever did not fit one.
+- **Separate worktrees for readers (rule 19).** Producing no diff is not the same as not colliding. A
+  reader sharing a checkout measures the wrong tree.
+- **Re-deriving the state model (rule 20).** A rule whose application no artifact records is applied
+  inconsistently and silently.
+- **Unmeasured premises (rule 23).** Reasoning placed in a brief tends to come back as published text.
+  A re-read adds a second copy that every later request re-sends.
+- **The orchestrator never edits files (rule 28).** The check that once refused such an edit was
+  removed, so nothing stops the orchestrator from making one.
+- **Rules 32–36** compress the operative content of Part IV's blocks. Their measurements, struck
+  history and enforcement analysis stay there:
+  - the trunk-moved check is the `#484`/`#488` counter-example;
+  - the explicit number is rule 7c's no-ref residual at `wip` > 1;
+  - the 40 characters are the marker contract;
+  - the mode list is the untouchable list.
+
+### Fresh instances per dispatch
+
+The fresh-instance rule does not reverse the accepted decision that the agents lead may both build a
+`loop` item and review it. That decision is in `docs/adr/0002-roster-and-dev-loop.md`, record 0015, and
+it is mitigated by that profile never merging. The rule requires only that the two acts run in two
+contexts. **Nothing observes which instance ran a dispatch.**
+
+### What the enforcement layer ships, and what it does not
+
+The generated package under `powers/` carries the **knowledge** layer and none of the **enforcement**
+layer, because the enforcement is shaped for one harness and nobody has done the work of porting it.
+This was measured against Kiro `1.0.437`. Its installer copies a package's whole tree, but its loader
+resolves only the manifest, `skills/`, the MCP declaration and its own directory. Shipping briefs or
+enforcement scripts there would therefore put them on disk **inert**, which reads as installed and is
+worse than an absent file.
+
+### What the checker asserts, and what Part I deliberately does not carry
+
+**The checker's arms:**
+
+- **Tracked.** An untracked brief is invisible to every review and every gate, and this file was in
+  that state until the check existed.
+- **Marker pinned.** A missing, doubled or relocated marker turns the check red instead of silently
+  measuring the wrong span. Moving the marker up would exempt rules from the token check, and moving
+  it down would pull a harness-specific part above it.
+- **Byte budget.** The limit has headroom, so growth turns the check red before it truncates.
+- **Token list.** Tool names, event names, configuration file names and invocation syntax.
+- **Existing paths.**
+- **No shadowing file.** One harness reads this file only when no file of its own vendor's name loads;
+  Part III names those files.
+
+**Parts II–IV are outside the token and path arms by design.** They name one harness's machinery, and
+they quote deleted paths inside struck text. `hooks/scripts/inventory-counts.test.sh` reads the whole
+file.
+
+**What Part I deliberately does not carry:**
+
+- **One harness's installation steps.** They are in Part III, labelled, and in `README.md`.
+- **The invocation syntax for a typed command.** Reach a guide by its path:
+  `skills/<name>/SKILL.md` or `commands/<name>.md`.
+- **Counts.** Every enumerated number ages. Derive a count where you need one.
+
+## Which harness loads how much of this file — per harness, at its real evidence level
+
+| harness | what it loads of this file | evidence |
+|---|---|---|
+| Claude Code `2.1.296` | **the whole file — but only as a FALLBACK.** A root `CLAUDE.md`, a `.claude/CLAUDE.md` or a `CLAUDE.local.md` — or **any of the three in an ancestor directory** — each suppresses this file entirely. A **linked** git worktree does not inherit its main checkout's file; a separate repository nested inside a checkout does: the session loads that file and not this one | whole-file load **measured 2026-10-11** (#562), headless, every tool disallowed — see the commands below. The suppressing layouts were **measured the same day** by the agents-lead lenses on `tadeumendonca-io`#722 and on the workstation repository's #154 (which added the ancestor `.claude/CLAUDE.md`, the ancestor `CLAUDE.local.md` and the linked-worktree case), one nonce per file, each returning only the other file's nonce. The user-level brief under the home directory's configuration folder was present during every probe here and did **not** suppress this file. Part III states the consequence for authors |
+| Kiro `1.0.437` | the first 50,000 characters, then a `[Truncated: …]` marker | **control flow read** out of the shipped bundle, on a machine where that tool never authenticated; never watched in a live session. The same reading found the bundle resolving `AGENTS.md` at the workspace root with `inclusion:"always"`, and `grep -c 'CLAUDE\.md'` over its agent extension returning **0** — so for Kiro this file was always the whole brief |
+| Codex `0.155.0-alpha.16.3` | **the first 32,768 BYTES**, then silence — the default `project_doc_max_bytes`, with no override in the user configuration | **measured live 2026-10-11** by the agents-lead lens on `tadeumendonca-io`#722: `codex exec --ephemeral -s read-only` returned only the early nonce of a 39,425-byte file and both nonces of a short control; the default and the log line *"project doc exceeds remaining budget; truncating"* are both strings in the shipped binary. Re-measured on this file — see the commands below. **This is the smallest consumer, and the reason Part I's budget is counted in bytes** |
+
+**The Claude Code row, with the commands that produced it.** Each probe ran in a throwaway directory
+holding only the file under test, so no other brief could answer for it:
+
+```
+# <dir>/AGENTS.md = "Probe nonce A: <hex>" + this file's content + "Probe nonce B: <hex>"
+cd <dir> && claude -p 'Without using any tool: does your loaded context contain a line starting "Probe nonce A:" and a line starting "Probe nonce B:"? Print each value exactly, or NONE for one you cannot see. Nothing else.' --disallowed-tools Read Grep Glob Bash Task Edit Write WebFetch WebSearch
+# -> both nonces, at 179,136 characters (this file at the head of #562, plus the two nonce lines) and at 168,738 (the two
+#    pre-consolidation root briefs concatenated) — the tail of the file reaches the main session
+# control — the same prompt in a directory holding no AGENTS.md -> "NONE" for both
+
+# rooted in <dirA>, a sibling <dirB> added as a working directory, each holding its own nonce:
+cd <dirA> && claude -p 'Without using any tool: list every line in your loaded context that starts with "Probe nonce", exactly, or print NONE. Nothing else.' --add-dir <dirB> --disallowed-tools Read Grep Glob Bash Task Edit Write WebFetch WebSearch
+# -> only <dirA>'s nonce: an additional working directory does not bring its AGENTS.md
+
+# Codex: nonce A at the head, C at the end of Part I (byte 23,527), B at the tail; <dir> is a git repo
+cd <dir> && codex exec --ephemeral -s read-only 'Without running any command or reading any file: list every line in your loaded project instructions that starts with "Probe nonce", exactly, or print NONE. Nothing else.'
+# -> A and C, never B (Codex 0.155.0-alpha.16.3, 178,979 bytes): Part I arrives whole, the tail does not
+```
+
+**Bound it exactly.** One build, one machine, headless. It measures that the text reaches the main
+session's **context**, not that a given rule reaches the **turn** in which it must be applied — Part
+IV's fourth block names that difference for itself. **It does not measure a dispatched subagent**:
+whether a root brief reaches a subagent was measured for the deleted file and not re-measured for this
+one, so every persona brief still states its own obligations rather than relying on this file.
+
+**The 150,000-character limit that Part III's command-reference section cites was stated for the
+deleted file and never re-measured for this one.** This file loaded whole at the size above, which is
+evidence that the limit does not truncate it on this build, and nothing more.
+
+## Keeping this file and its checker in step with the sibling repository
+
+**`tadeumendonca-io` carries the same artifact under the same rule** — its own `AGENTS.md`, consolidated
+the same way under `tadeumendonca-io`#721, after a first neutral brief landed there under `-io`#610.
+Read that as the rule and not as a description of that repository's `main`: **every sentence crossing
+the repository boundary is true on the day its own repository merges, never on the day the other one
+does.** What must match across the two briefs is the rules, never the characters~~ — except the four
+delimited blocks of Part IV, which carry their own byte-identity obligation~~. **The exception is
+struck 2026-10-11 (#562): `tadeumendonca-io`#722 merged without byte-identical copies of the blocks.**
+
+**STRUCK 2026-10-11 (#562): the body-sync obligation is retired.** Since `tadeumendonca-io`#722, the
+sibling's checker declares its sync *"broken on purpose, because that sibling is to be generated from
+the workstation repository"*, and the two bodies differ. The text below is kept as the record.
+
+~~What is shared with the sibling's checker at `scripts/agents-md.test.sh` is the executable BODY, not
+the file.~~ The invariant a sync maintains is that everything below the first column-zero `set -uo`
+line is byte-for-byte identical — an obligation, not a claim about either copy's current state, which
+nothing here can check. The header deliberately differs, because the duplication cost is a fact about
+that copy and has no subject here. So a sync copies the body, never the file — copying the whole file
+destroys the sibling's header, which is the artifact that records the cost and carries its own
+falsifier. From a workspace holding both checkouts:
+
+```
+diff <(sed -n '/^set -uo/,$p' hooks/scripts/agents-md.test.sh) \
+     <(sed -n '/^set -uo/,$p' ../tadeumendonca-io/scripts/agents-md.test.sh)
+```
+
+Nothing makes the two copies move together — a pipeline is independent per repo — so a change to the
+token list, the fixtures, the budget or the marker is a two-repo batch, and until the sibling's merge
+request lands that command is expected to print the body changes made here.
 
 ---
 
@@ -127,67 +366,74 @@ person can falsify it in one command instead of trusting the date.
 
 ---
 
-## `AGENTS.md` is a SECOND root brief, it is AUTHORED, and it is not this file (#411)
+# Part III — Claude Code
 
-**`AGENTS.md` at this repo's root is the whole brief for any harness that reads that filename — and one
-of them reads THIS file never.** Measured against Kiro `1.0.437`'s shipped bundle: `grep -c 'CLAUDE\.md'`
-over its agent extension returns **0**, while `AGENTS.md` is a bundle constant resolved at the workspace
-root with `inclusion:"always"`. So it is not a compatibility copy of this file; for that reader it is the
-only brief there is.
+**Everything in this part binds a session running on Claude Code, and only that.** It names that
+harness's tools, events, configuration files and invocation syntax, which is why it sits below the
+Part I marker: on another harness these sentences name identifiers that do not exist for the reader or
+mechanisms that do not run for it. **Until 2026-10-11 it was the root `CLAUDE.md`**, which this file
+replaced (#562). Every section moved verbatim; a sentence the move made false is struck in place and
+corrected, per this repository's struck-not-deleted convention, and a sentence that only restated a
+Part I rule is replaced by a pointer to it.
 
-**It is authored beside this file. It is NOT generated from it, and a generator is not available as a
-fallback** — Kiro truncates `AGENTS.md` at **50,000 characters**, logging the loss on a debug channel
-and appending a literal `[Truncated: …]` marker into the text the model reads (so the LOSS is announced
-to the reader, never to a human watching, and never says WHAT was lost), while this file is far past
-that, so a rename-only transform cannot produce a loadable
-artifact at all. Both figures with the command that produced them:
+**Claude Code reads this file only as a FALLBACK — measured on `2.1.296` (Part II's table).** A root
+`CLAUDE.md`, a `.claude/CLAUDE.md`, a `CLAUDE.local.md`, or any of the three in any ancestor directory of
+the session, each makes the session load that file **instead of this one, entirely and silently**.
+**Never create any of them in this repository.** `hooks/scripts/agents-md.test.sh` turns red if one of
+the first three is tracked, and CI's path filter starts the check when one appears. **What no check
+can see:** an untracked one in a developer's checkout, and an ancestor one outside the repository —
+those are residuals, held by whoever sets up the workstation.
 
-```
-python3 -c "
-for p in ['AGENTS.md','CLAUDE.md']:
-    print(p, len(open(p,encoding='utf-8').read()))"
-```
+## What this plugin is, on Claude Code
 
-**The 50,000 budget is ONE consumer's measured floor, not a standard**, read out of a shipped bundle on
-a machine where that tool has never authenticated. Every other harness's budget is unmeasured.
+Claude Code **plugin** (slash-command library) for the **tadeumendonca.io** platform — distributed
+via the **marketplace in this repo** and consumed by **`tadeumendonca-io`** (the static site SPA in
+`apps/fed` + its Terraform in `iac/`).
+The commands are generic, reusable implementation guides (no AWS dependency to run).
 
-**Three rules, and the first two are what a substitution pass violates.** The brief states the floor as
-**obligations addressed to the agent, never as descriptions of the enforcement** — the test is *would
-this sentence still be true on a harness with no hooks?* It names **no Claude-Code-shaped token**: a
-substitution renames the token and leaves the mechanism, which is how the pre-#411 file came to instruct
-its reader to open `.Codex-plugin/plugin.json` and three sibling identifiers that exist nowhere. And it
-is **tracked**, which is the precondition for the other two being reviewable at all — it was untracked
-and referenced by nothing until #411, so no PR ever contained it.
+Each command is a per-component guide: when the owner runs `/tadeumendonca-skills:frontend`,
+Claude reads the guide and knows exactly how to implement that piece following this project's
+established patterns (custom Tailwind design system, snake_case contracts, Terraform parametrization,
+numeric SemVer, etc.).
 
-`hooks/scripts/agents-md.test.sh` gates four mechanical properties (tracked · under budget with headroom
-· no declared harness-specific token · every repo-relative path resolves). **It cannot assert that the
-brief is true, or that it is neutral rather than merely token-free** — a sentence describing one
-harness's mechanism without naming it passes every arm. That half is held by review.
+*The "library is broader than its current consumer" note that opened `CLAUDE.md` is Part I's, in
+*What this repository is*, and is not repeated here.*
 
-**`tadeumendonca-io` is to carry the same artifact under the same rule** — in its own merge request
-(`-io`#610), which had not landed when this sentence was written, so read it as the rule and not as a
-description of that repository's `main`. Every sentence crossing the repository boundary is true on
-the day **its own** repository merges, never on the day the other one does.
+### What this replaced — the second root brief, and why there is no longer one (#411 → #562)
 
-**What is shared with its checker at `scripts/agents-md.test.sh` is the executable BODY, not the
-file.** The invariant a sync maintains is that everything below the first column-zero `set -uo` line
-is byte-for-byte identical — an obligation, not a claim about either copy's current state, which
-nothing here can check. The header deliberately differs, because the duplication cost is a fact about
-that copy and has no subject here.
-So a sync copies the body, never the file — copying the whole file destroys the sibling's header,
-which is the artifact that records the cost and carries its own falsifier. From a workspace holding
-both checkouts:
+**From #411 to #562 this repository carried two root briefs:** `AGENTS.md`, authored for every harness
+that reads that filename, and `CLAUDE.md`, the longer one Claude Code read. The section of `CLAUDE.md`
+that explained the pair was headed *"`AGENTS.md` is a SECOND root brief, it is AUTHORED, and it is not
+this file"*. **The split rested on a measurement that is no longer true:** on build `2.1.263` a root
+`AGENTS.md` did not reach the Claude Code main session (#409, one nonce per candidate surface), so the
+rules binding that session had to live in `CLAUDE.md`. **On build `2.1.296` it does** — measured, see
+Part II — so the owner's decision of 2026-10-11 (#562) consolidated `CLAUDE.md` into this file and
+deleted it, **with no `@AGENTS.md` bridge**.
 
-```
-diff <(sed -n '/^set -uo/,$p' hooks/scripts/agents-md.test.sh) \
-     <(sed -n '/^set -uo/,$p' ../tadeumendonca-io/scripts/agents-md.test.sh)
-```
+What that section held, and where each part lives now:
 
-Nothing makes the two copies move together — a pipeline is independent per repo — so a change to the
-token list, the fixtures or the budget is a two-repo batch, and until the sibling's merge request
-lands that command is expected to print the body changes made here.
-
----
+- **The Kiro measurement** (`AGENTS.md` resolved at the workspace root, zero references to the other
+  filename) → Part II's per-harness table.
+- **The 50,000-character budget, the in-band truncation marker and the three authoring rules** — state
+  obligations rather than descriptions of enforcement, name no harness-shaped token, keep the file
+  tracked → Part I's *The budget* and *What is checked* (the rules) and Part II's *The reasoning
+  behind Part I's rules* (the evidence), **now scoped to Part I** rather than to a separate file, and
+  counted in bytes against Codex's measured 32,768 rather than Kiro's 50,000 characters.
+- ~~**It is authored beside this file. It is NOT generated from it, and a generator is not available as
+  a fallback**~~ — **struck 2026-10-11 (#562): there is one file, so there is nothing to generate it
+  from.** The measurement behind the sentence — the longer brief was past the 50,000 budget, so a
+  rename-only transform could not produce a loadable artifact — ~~is still the reason Part I is a
+  **budgeted prefix** of one file rather than the whole of it~~ **(struck: that was the first cut. In
+  the final shape the brief is a whole file under the byte budget, and the long form is this record —
+  the same measurement taken to its conclusion)**. And the defect it was written after
+  stays instructive: a substitution pass renames the token and leaves the mechanism, which is how the
+  pre-#411 neutral brief came to instruct its reader to open `.Codex-plugin/plugin.json` and three
+  sibling identifiers that exist nowhere.
+- **The sibling-repository rule and the checker-body sync** → Part II, *Keeping this file and its
+  checker in step*.
+- ~~the falsifier `python3 -c "for p in ['AGENTS.md','CLAUDE.md']: …"`~~ — **struck: one of its two
+  operands no longer exists.** Measure Part I's length with `hooks/scripts/agents-md.test.sh`, which
+  prints it.
 
 ## Installation (Claude Code plugin)
 
@@ -251,7 +497,7 @@ announces itself, a copied-but-never-read one reads as installed, which is this 
 failure shape. **Read out of the shipped bundle, not from a live install** — nothing here was
 exercised in an authenticated Kiro session and no Power has ever been installed on the measuring
 machine. The command, the evidence, the element-by-element gap and the Kiro CLI-vs-IDE distinction are
-in [`README.md`](./README.md); the decision is ADR-0005's 2026-08-21 amendment, unchanged by this
+in [`README.md`](../README.md); the decision is ADR-0005's 2026-08-21 amendment, unchanged by this
 measurement.
 
 ### What is a command and what is a skill — three rules, and only one of them is a mechanism
@@ -342,7 +588,7 @@ purpose from a plausible one — is stated in the gate's own header.
 **The cost this makes visible, measured on 2026-08-10 against the 69 descriptions the library held
 then:** those 69 totalled ~28 KB and became **always-on**, about **+9,919 tokens per session**
 (`Skills (2)` ≈ 1,444 tok → `Skills (71)` ≈ 11,363 tok). The trigger-description standard — record 0009
-until 2026-08-20, now a section of [ADR-0011](./docs/adr/0011-skills-and-preload.md) — made those
+until 2026-08-20, now a section of [ADR-0011](./adr/0011-skills-and-preload.md) — made those
 descriptions dense deliberately; **that decision was free while nothing loaded them and stopped being free once they
 loaded.** Nobody has revisited it — that is an open decision, not a settled one.
 
@@ -382,9 +628,12 @@ not changed once.
 
 **Trunk-based** (`trunk-single-env`, consumed-artifact variant) — this repo is a *consumed dependency*
 (by `tadeumendonca-io`), not an app with environments, so it does **not** use GitFlow. There is one long-lived branch, **`main`**: skill
-work lands via short-lived `feature/*` / `docs/*` PRs, and `main` is always releasable. Pushing to
+work lands via short-lived `feature/*` / `docs/*` PRs, and `main` is always releasable. ~~Pushing to
 `main` does **not** auto-version — the version is a deliberate, consumer-facing decision decoupled
-from integration.
+from integration.~~ **Struck 2026-10-11 (#562) — false since ADR-0005, and found because the
+consolidation put this sentence in the same file as the rule it contradicts:** every merge to `main`
+auto-bumps the patch and publishes a Release (`.github/workflows/version-main.yml` runs on push to
+`main`; Part I *Versioning and distribution*). What follows is the deliberate minor/major path only.
 
 A release is cut **on demand** from the `release` workflow (numeric SemVer, see `/devops`'s "Versioning
 & tags" section):
@@ -402,8 +651,10 @@ What the SemVer part means **for a skills library** (the contract is the *invoca
 
 Consumers tracking `main` get the latest on the next `/plugin marketplace update`; **pinned
 consumers** (recommended — the `ref` is their lockfile) bump their `ref` to the new tag deliberately.
-Because tags are only ever cut by this workflow, **every `vX.Y.Z` tag is a reviewed release** and a
-safe pin (no mid-development tags pollute the namespace).
+~~Because tags are only ever cut by this workflow,~~ **every `vX.Y.Z` tag is a reviewed release** and a
+safe pin (no mid-development tags pollute the namespace). **The clause is struck 2026-10-11 (#562):
+`version-main.yml` cuts a tag on every merge too; each tag is still a reviewed release, because every
+merge passed the gate.**
 
 ---
 
@@ -430,7 +681,9 @@ measured on or it is a falsifier that refutes a true claim.
 **The cut test is the one the four blocks below are already written against.** `CLAUDE.md` is the only
 brief that reaches the ORCHESTRATOR — the main session, dispatched by nobody and preloading nothing
 (#409, one nonce per candidate surface: a repo-root `CLAUDE.md` reaches that context, a skill body does
-not, `AGENTS.md` does not). So each paragraph was asked *is this an obligation the orchestrator must
+not~~, `AGENTS.md` does not~~). **Struck 2026-10-11 (#562): true on build `2.1.263`, false on
+`2.1.296`, where a root `AGENTS.md` reaches that context — and this file, which now holds everything
+that section kept, is that `AGENTS.md`.** The cut test is unchanged by it. So each paragraph was asked *is this an obligation the orchestrator must
 obey, or a reading structure for a human?* **Reading structure moved. The obligations stayed, in the
 section immediately below**, which is where they always belonged and never sat.
 
@@ -438,7 +691,7 @@ section immediately below**, which is where they always belonged and never sat.
 tree decision (#286), the family-heading history (#182), the consolidation narratives
 (#229/#230/#231), the roster narrative with its layer table, the absorbed-and-retired lists, and all
 six per-skill `| Command | Purpose |` tables. Read it at
-[`docs/command-reference.md`](./docs/command-reference.md).
+[`docs/command-reference.md`](./command-reference.md).
 
 **And one fact was PULLED BACK OUT of the move, by the gate rather than by the cut test.** The name of
 the discipline this whole plugin runs — **Agent Harness Engineering**, the owner's own term, with AI-DLC
@@ -469,6 +722,11 @@ cut (`python3 -c "print(len(open('CLAUDE.md',encoding='utf-8').read()))"`), abou
 Four of the remaining blocks are byte-shared with `tadeumendonca-io` and may not be split unilaterally,
 so the next time this file grows past the edge the cut will have to come out of something that binds.
 
+**Superseded 2026-10-11 (#562), and kept because it is the record of the cut:** the file it measured
+no longer exists, so its falsifier now errors. Its content lives in this file, which loaded whole on
+build `2.1.296` past that figure (Part II). The edge this paragraph warned about was never re-measured
+for `AGENTS.md`, and the tail nonce is the only evidence about it.
+
 ## The orchestrator, and the two rules above every persona's checklist
 
 **This section is what the cut above left behind, and it is left behind on the test rather than on
@@ -480,8 +738,8 @@ reference* only because the roster narrative wandered into it.
 (`ls agents/*.md | wc -l` -> 8): `product-lead`, `tech-lead`, `agents-lead` and `scrum-master` above
 the build · `developer`, `content-writer` and `content-reviewer` building · `quality-assurance`
 gating. **Why each exists and what each holds is NOT here** — it is
-[`docs/command-reference.md`](./docs/command-reference.md), and canonically
-[`README.md`](./README.md#the-roster-and-what-each-tier-holds). The roll-call stays because it is the
+[`docs/command-reference.md`](./command-reference.md), and canonically
+[`README.md`](../README.md#the-roster-and-what-each-tier-holds). The roll-call stays because it is the
 operand of a duty stated below, not because the roster is orchestrator-binding.
 
 **The orchestrator is the main session itself — one name, not a sixth persona** (ADR-0002). It is not
@@ -519,26 +777,135 @@ allow, unscoped to who calls them — and the dispatch-omission judgment call, w
 shape than "decides the irreversible": an omission nobody can see happened or didn't, not a decision on
 an irreversible act. See ADR-0002 for the full record.
 
-Two rules the owner set for the loop, above every persona's own checklist: **it is a machine for grinding work down, not for generating it** (twenty-two findings on a documentation PR is one slice converted into fifteen), and **nothing ships half-done** — close what can be closed, and say plainly what could not.
+The two rules the owner set for the loop, above every persona's own checklist, are Part I's standing
+rule 31 — stated there once since #562, because they bind a session on any harness.
 
 ---
 
-## Project conventions (enforced by every skill)
+## Scratch — the session scratchpad, not a repo directory (#245)
 
-1. **No solo architectural decisions** — when ambiguous, ask the owner before deciding.
-2. **Pipelines are independent per repository** — triggering one repo's pipeline from another
-   is an antipattern. Never couple them.
-3. **snake_case everywhere** — DB fields, TypeScript interfaces, request/response JSON. No
-   mapping layer.
-4. **REST** — resources are nouns; HTTP verbs express the action; paths and parameters in
-   kebab-case. Resource ids in paths are **opaque** (slug or hashid/nanoid `public_id`), never
-   enumerable/sequential.
-5. **IaC mutations are pipeline-only** — `terraform apply`/`destroy` run **only in CI** (plan on PR,
-   apply on merge); never from a laptop. Local is read-only (`fmt`/`validate`/inspection `plan`).
-   Destroying live infra = remove from config + merge (or a reviewed `workflow_dispatch` teardown).
-   See `/devops`.
+**A repo-root `.scratch/` used to be the documented place for throwaway files. It is retired.** It was
+designed on the belief that WHERE a scratch file lives affects permission friction; measured directly on
+#230/#231/#244, it does not — the friction (a prompt on `command > newfile`) fires the same regardless
+of destination, and #244 already closed the actual cause (`permission-guard.sh` now denies the
+redirect outright, everywhere). Carrying a repo-side scratch directory bought nothing that fix didn't
+already buy, and cost a sweep hook, a gitignore entry, and a rule that only lived in agent-brief prose —
+exactly the shape #164 already named as the failure mode this repo tries hardest to avoid.
+
+**Use the harness's own session scratchpad instead** — the path it hands you at session start,
+session-specific and isolated from the tracked tree by construction. No repo directory to document, no
+sweep hook to maintain: the harness owns that lifecycle, not this plugin.
+
+**The taxonomy still matters, only the location column changed:**
+
+| what | where |
+|---|---|
+| PR bodies, commit messages | **the session scratchpad** — written once, consumed by `--body-file`, discarded when the session ends. |
+| lens and gate verdicts | **the PR comment.** It is the durable record for both — and the **gate** verdict is additionally machine-read by `session-wip.sh`, which matches the `gatekeeper-verdict: quality-assurance` marker and nothing else; a lens verdict has no reader but a human. A file copy is a second source of truth with no reader either way — and it is what broke: the file handoff failed twice while `SendMessage` failed zero times. |
+| interview transcripts, raw source material | **`.brand/` in `tadeumendonca-io`** — private and gitignored *there*, which is the documented home for exactly this. ~~**It is NOT gitignored in this repo**, so the path is only safe in the repo that ignores it; writing private material to `.brand/` here puts it in a tracked path in a public repo.~~ **Struck by this slice's own `.gitignore` entry — `.brand/` is ignored in THIS repo too now.** Struck rather than deleted because this is the sentence that told every reader the path was unsafe here, and a reader who acted on it deserves to find out it changed. **The home is still `tadeumendonca-io`, and the ignore stops a COMMIT, not a PASTE** — private text has reached public GitHub through an Issue body and a PR comment, which no `.gitignore` observes and whose edit history is not repairable. |
+| a measurement instrument | **a repo script with a test, if and only if a gate will run it.** Otherwise discard. "It worked once" is not "it must persist". |
+| an isolated checkout | **not a scratch class.** Use the repo — WIP=1 already serialises — or a git worktree with its own install. |
+| continuity state that must survive the session | **not a scratch class either — the Issue being worked, as a worklog `handoff` or `checkpoint` event** (#514), prepared with `scripts/worklog.py prepare-event` and posted with `--body-file`. **Never a file in a shared temporary directory**: that is how sprint state was carried across sessions once, and the fifth such file resumed a session with its words glued together. The format is bounded because the Issue is public: facts and one `next_act`, one line each, no private reasoning. The contract and the resume command are in `docs/worklog/README.md`. |
+
+### `.brand/` — THIS section is the canonical home of that fact, and the other four are pointers (#479)
+
+**The fact, stated once and completely: `.brand/` is the owner's private positioning source, and it is
+gitignored in BOTH repositories** — in `tadeumendonca-io` since that repo was stood up, and here since
+#477 (`.gitignore:17`). Its documented home is still `tadeumendonca-io`; this repo ignores it
+preventively and has never held one.
+
+**Why it needed a ruling: the fact lived in five places and two of them disagreed.** On 2026-09-20
+`README.md` listed `.brand/` among this repo's gitignored paths — **false until #477 merged**, hours
+earlier — while the taxonomy row above said the opposite and was right. **Neither noticed the other,
+and the false one was the PERMISSIVE one**, claiming a protection that did not exist.
+
+**Why the canonical home is here, and the second reason is mechanical.** The scratch taxonomy above
+already owns this fact — it is the table that says where raw source material goes. And **this is the
+only brief that reaches the ORCHESTRATOR**: #409 measured, one nonce per candidate surface, that a
+repo-root `CLAUDE.md` reaches that context while a skill body does not~~ and `AGENTS.md` does not~~.
+**Struck 2026-10-11 (#562): true on `2.1.263`, false on `2.1.296` — and this section now lives in that
+`AGENTS.md`, so the conclusion holds for the file it is in.** The
+context that pasted private material onto a public surface was the orchestrator. **A canonical
+statement the leaking context cannot read is not canonical for the failure it exists to prevent.**
+
+**The four pointers — `README.md`, `agents/product-lead.md`, `.gitignore`'s own comment, and `-io`'s
+side — and one of them cannot be a bare pointer.** **`-io` does not load this file**: #393 measured
+that a session rooted in one repository loads neither the other's root brief nor a sibling's, **even
+with the sibling added as a working directory**. So `-io`'s statement must stand on its own as a
+complete sentence rather than as *"see the plugin repo"*. **That is a pointer in intent and a
+restatement in fact**, said here rather than papered over — and **no fifth hand-maintained
+two-repository block is created for it**, because four is already a cost this file names in its own
+words.
+
+**What enforces any of this: nothing, and no gate arm is added.** An arm asserting that one sentence
+exists in one file is a green that has never been red, and the failure it would have to catch — two
+surfaces disagreeing about one fact — is a cross-file consistency check nothing here has the shape
+for. **And the ignore stops a COMMIT, not a PASTE**, which the row above already says and which is the
+route by which private text has actually reached public GitHub.
+
+**What this drops, and why it's safe to drop.** `session-scratch.sh` (a `SessionStart` hook that swept
+`<repo-root>/.scratch/`, plus its test suite) is deleted outright rather than repointed — it existed
+only because the scratch lived inside the tracked tree, where nothing else would ever clean it up. The
+session scratchpad has no such gap: it is not part of any repo, so there is nothing here for a repo-side
+hook to own.
+
+## Versioning — what the rule runs on here
+
+**The rule is Part I's *Versioning and distribution*: every merge to `main` auto-bumps the PATCH and
+publishes a Release, numeric SemVer, no pre-release suffix.** This section is the Claude Code half —
+why the rule exists on this harness, and the files and the consumer step it runs on. (#562 removed the
+two sentences that restated the Part I rule here.)
+
+The marketplace only serves *published* versions: an unreleased `main` is invisible to the installed
+plugin (a restart reloads the installed cache, not `main`). Publishing on every merge is safe because
+**publishing ≠ forcing adoption** — each consumer opts in with `/plugin update`, so a merge that never
+publishes is work that silently never ships. (Methodology **ADR-0005**, which supersedes the earlier
+release-only model.)
+
+- `VERSION` — current version; `.claude-plugin/plugin.json` bumps in lockstep (the marketplace serves this).
+- `.bumpversion.toml` — bump config; numeric only, `tag_name = v{new_version}`,
+  `message = "bump: {current_version} → {new_version}"` (CI loop guard); bumps `VERSION` +
+  `.claude-plugin/plugin.json` in lockstep.
+- `.github/workflows/version-main.yml` — **push to `main`**: skips `bump:` commits, bumps **patch**, tags
+  `vX.Y.Z`, pushes, publishes a Release with categorized notes. The default, automatic path.
+- `.github/workflows/release.yml` — **`workflow_dispatch` only**, for a **deliberate minor/major** milestone
+  (`part` = major | minor | patch). Its `bump:` commit is skipped by `version-main.yml`'s loop guard.
+
+**Required secret:** `VERSION_BUMP_TOKEN` — a GitHub fine-grained PAT with `contents: write` +
+`workflows: write` (so the bump push/tag can write protected `main`).
+
+**Consumers pull deliberately:** `/plugin marketplace update tadeumendonca` (refresh the marketplace to the
+latest `main`) then `/plugin` → update `tadeumendonca-skills` to the new version. This is the only step the
+plugin's *installation* needs — merging publishes the version; adoption is always the consumer's call.
 
 ---
+
+# Part IV — The four orchestrator blocks (Claude Code; ~~shared byte for byte with `tadeumendonca-io`~~ — no longer shared, see each block's struck subsection)
+
+**Each block below addresses the main session and is delimited by a column-zero comment pair, because
+each is shared byte for byte with the sibling repository's root brief** — the obligation and its
+falsifier are inside each block. They name this harness's tools, events and hook scripts, so they sit
+below the Part I marker. **The obligations they carry for every harness are stated in Part I** (the
+escalation section, floor item 8, and standing rules 15, 17, 18, 23 and 32–36); the blocks add the measurements
+and the enforcement analysis around them.
+
+**Each block's identity obligation names `AGENTS.md` on both sides since #562.** Until the sibling's own
+consolidation (`tadeumendonca-io`#721) merges, its copy still sits in its `CLAUDE.md`, so each published
+`diff` is expected to print the whole block in that window — the case every block's own text already
+allows for, *"expected to print a difference in the window between the two merges"*. **Moving a block
+into this file also changed its text where the move made a sentence false or duplicated a Part I rule**;
+those edits are owed to the sibling's copy in its own merge request, or the two copies stop being one
+rule.
+
+**Struck 2026-10-11 (#562): the sibling DID retire it.** `tadeumendonca-io`#722 merged as described
+below, and each block's identity subsection is now struck. The paragraph is kept as the record.
+~~The sibling may retire the byte identity instead, and this file does not decide that.~~ Its own
+consolidation (`tadeumendonca-io`#722, open when this was written) compresses two of these blocks into
+its brief's rules and drops the other two. If that merges as it stands, each block's *"two copies must
+stay identical"* obligation below has no second copy left, and the `diff` it publishes prints a
+difference for good. What is shared across the two repositories is then the **rules**, stated in each
+brief's own neutral part — and the subsections that state the identity obligation are owed a strike
+here, in the merge request that follows the sibling's merge.
 
 <!-- hitl-escalation-format -->
 ## The HITL escalation format — five rules, and they bind THIS context (tedeuxx/tadeumendonca-skills#409)
@@ -547,7 +914,10 @@ Two rules the owner set for the loop, above every persona's own checklist: **it 
 orchestrator is not a persona, is dispatched by nobody and preloads nothing, so it is the one actor in
 this loop that no brief reaches. Measured with one nonce per candidate surface, read back by a headless
 main session on build `2.1.263`: a repo-root `CLAUDE.md` reaches this context, a **skill body does not**
-(only its name and its `description` do), and neither does `AGENTS.md`. So the rules are written here,
+(only its name and its `description` do)~~, and neither does `AGENTS.md`~~. **Struck 2026-10-11
+(tedeuxx/tadeumendonca-skills#562): true on `2.1.263`, false on `2.1.296`, where a root `AGENTS.md`
+reaches this context with no `CLAUDE.md` present, measured by the same nonce method. This block now
+lives in `AGENTS.md`; the root `CLAUDE.md` it was written into no longer exists.** So the rules are written here,
 in the imperative, rather than in the skill library — **a rule preloaded by every profile and binding on
 none of them is the shape this repository already fails at.**
 
@@ -560,22 +930,16 @@ remaining rules say what shape that one ask takes.
 
 ### The five rules
 
-1. **One owner ask per activation or message.** Two, however short, is a list — he has to rebuild
-   context twice, and some surfaces show only the first without reporting the loss. Ask or order the
-   first; preserve every remaining ask for its own later activation after he answers.
-2. **The activation is a tweet. The context lives in the OPTIONS.** Terse is not context-free: each
-   option states its own consequence, and that is the whole preamble. The reasoning belongs in an
-   artifact he can open, never in the interruption.
-3. **A picker, never prose numbering. At most four options** — a ceiling, not a target. **Bounded:**
-   `AskUserQuestion` is absent from a headless session (`claude -p`), where the model degrades silently
-   to exactly the prose numbering this rule forbids. Every escalation path today is interactive, so the
-   rule is obeyable today; a headless path added later would break it and nothing would say so.
-4. **A merge is an order plus a link, not a question.** The test: *is there a second option you would
-   actually defend?* If not it is an instruction — one line, the act and the object, no options and no
-   recommendation. The tell in a bad one is that every option is the same act at a different time.
-5. **An interview question takes NO options; an escalation always does.** Opposite rules, different
-   acts: an interview elicits what he thinks, and a menu puts words in his mouth; an activation asks him
-   to take a decision the loop has already reduced, and the options are what make it fast.
+**They are stated once, in Part I of this file — *When you interrupt the owner* — and that statement
+binds this context too.** Until 2026-10-11 they were also listed here, in a second wording; #562 removed
+the duplicate when this block moved into the same file. What is specific to Claude Code, and is not in
+Part I because it names this harness:
+
+- **Rule 3's structured surface here is `AskUserQuestion` — a picker, never prose numbering — and it is
+  bounded:** the tool is absent from a headless session (`claude -p`), where the model degrades silently
+  to exactly the prose numbering the rule forbids. Every escalation path today is interactive, so the
+  rule is obeyable today; a headless path added later would break it and nothing would say so.
+- **Rule 4's canonical case here is a merge** — an order plus a link, never a picker.
 
 ### Rule 4 was BUILT as a hook and DELETED — do not build it again
 
@@ -604,6 +968,10 @@ theatre."* **So rule 4 supplies vocabulary for a hole that hook already admits, 
 opinion about a question it already answers.**
 
 ### This block is rule 5's CANONICAL statement
+
+**Since #562 the canonical statement is rule 5 in Part I of this same file** — *When you interrupt the
+owner* — and the two citations below were repointed there. The heading is kept because it is what
+both citations named for a month.
 
 Rule 5 already existed, operatively, in two files of `tedeuxx/tadeumendonca-skills` —
 `commands/new-issue.md`'s interview constraint and `commands/sprint-planning.md`'s
@@ -673,17 +1041,24 @@ unparsed tests red; changing the matcher makes the registration test red. Restor
 the evidence. Direct script tests still do not prove host routing — the first benign pass and expected
 denial after the released plugin is installed remain the runtime measurement.
 
-### The two copies of this block must stay identical
+### ~~The two copies of this block must stay identical~~
 
-**It is shared, byte for byte, between `CLAUDE.md` at the root of `tedeuxx/tadeumendonca-skills` and
-`CLAUDE.md` at the root of `tedeuxx/tadeumendonca-io`** — the escalation precondition is a running loop,
+**STRUCK 2026-10-11 (#562): this obligation no longer has a second copy.**
+`tadeumendonca-io`#722 merged a compressed brief. It dropped two of the four blocks and rewrote
+the other two without this subsection, so no byte-identical sibling exists and the `diff`
+below would print a difference permanently. The text is kept as the record of the obligation.
+**Do not run the diff as a check.** What the two repositories share now is the rules, stated in
+each repository's own `AGENTS.md`.
+
+**It is shared, byte for byte, between `AGENTS.md` at the root of `tedeuxx/tadeumendonca-skills` and
+`AGENTS.md` at the root of `tedeuxx/tadeumendonca-io`** — the escalation precondition is a running loop,
 a loop is two milestone objects in two repositories, and a session rooted in one repository does not
-load the other's `CLAUDE.md`. A rule landed in one is half a rule. From a workspace holding both
+load the other's root brief. A rule landed in one is half a rule. From a workspace holding both
 checkouts:
 
 ```
-diff <(sed -n '/^<!-- hitl-escalation-format -->$/,/^<!-- \/hitl-escalation-format -->$/p' tadeumendonca-skills/CLAUDE.md) \
-     <(sed -n '/^<!-- hitl-escalation-format -->$/,/^<!-- \/hitl-escalation-format -->$/p' tadeumendonca-io/CLAUDE.md)
+diff <(sed -n '/^<!-- hitl-escalation-format -->$/,/^<!-- \/hitl-escalation-format -->$/p' tadeumendonca-skills/AGENTS.md) \
+     <(sed -n '/^<!-- hitl-escalation-format -->$/,/^<!-- \/hitl-escalation-format -->$/p' tadeumendonca-io/AGENTS.md)
 ```
 
 **That is an OBLIGATION and not a claim about either copy's current state — nothing checks it, and
@@ -715,17 +1090,16 @@ cat <prompt-file> | claude -p --disallowed-tools Read Grep Glob Bash Task Edit W
 ```
 
 **The middle row is the one that is not obvious, and it is why this block lives in two repositories
-rather than one:** an additional working directory does **not** bring its `CLAUDE.md` with it. A
+rather than one:** an additional working directory does **not** bring its `CLAUDE.md` with it — nor, re-measured on
+build `2.1.296` for #562, its `AGENTS.md` (Part II carries the command). A
 session can read, edit and commit in a sibling checkout while loading none of that repository's root
 brief. A rule landed in one repository is half a rule.
 
 ### The table
 
-| type | which lenses run on the review |
-|---|---|
-| **`loop`** | **one lens pass — `agents-lead` — plus `quality-assurance`.** No copy lens, no `tech-lead` |
-| **`product`** | **the full chain** — the leads' lenses as the slice warrants, plus `quality-assurance` |
-| **`content`** | **the content pair** — `content-writer` drafts, `content-reviewer` repairs in place, at most two rounds — plus `quality-assurance` |
+**The table is Part I's standing rule 18, stated there once** — #562 removed the second wording
+that stood here, so that every harness reading this file gets the same rows. Its rows are `loop`,
+`product` and `content`; everything below is about them.
 
 **`quality-assurance` appears in every row and is not a variable.** It runs on every merge request
 under both its lenses, whatever the type. **Nothing in this table narrows a gate, removes a hold or
@@ -733,7 +1107,7 @@ changes a verdict literal.** In particular the `loop` row does not relax hold 2 
 needs an `agents-lead` verdict marker **on the PR** before the gate may merge it — it says that the
 marker plus the gate is the *whole* chain rather than the first half of a longer one.
 
-**It is a routing default, not a lock.** `CLAUDE.md` already leaves the orchestrator the judgment of
+**It is a routing default, not a lock.** This file already leaves the orchestrator the judgment of
 whether a given review specialist needs dispatching **at all** on a particular diff; this table
 answers *which lenses are eligible for this type*, and that judgment still runs inside the row.
 **Adding a lens that the row does not name is the deviation this table exists to make visible** —
@@ -762,8 +1136,8 @@ which is the dependency that failed five times.
 
 **A correct rule saying the same thing already existed and was overridden five times running.** It
 lived in the orchestrator's memory and in a retrospective; no artifact the loop reads carried it.
-**`CLAUDE.md` is the carrier because it is the surface the measurement above shows actually reaches
-this context — not because text became enforcement.** By this loop's own test — *would something stop
+**~~`CLAUDE.md`~~ `AGENTS.md` (since #562) is the carrier because it is the surface the measurement
+above shows actually reaches this context — not because text became enforcement.** By this loop's own test — *would something stop
 me, or only my memory?* — **this is an instruction**, and it is the right kind, because the failure it
 prevents is delay rather than escape.
 
@@ -789,10 +1163,17 @@ denies `product-lead` the comment subcommands, so its findings reach a PR only q
 gate's own marker. **A green here could only ever mean the rule is written down.** That is the same
 limit the `filed → description closed` rows already carry in their own words.
 
-### The two copies of this block must stay identical
+### ~~The two copies of this block must stay identical~~
 
-**It is shared, byte for byte, between `CLAUDE.md` at the root of `tedeuxx/tadeumendonca-skills` and
-`CLAUDE.md` at the root of `tedeuxx/tadeumendonca-io`**, for the reason the probe above measured: a
+**STRUCK 2026-10-11 (#562): this obligation no longer has a second copy.**
+`tadeumendonca-io`#722 merged a compressed brief. It dropped two of the four blocks and rewrote
+the other two without this subsection, so no byte-identical sibling exists and the `diff`
+below would print a difference permanently. The text is kept as the record of the obligation.
+**Do not run the diff as a check.** What the two repositories share now is the rules, stated in
+each repository's own `AGENTS.md`.
+
+**It is shared, byte for byte, between `AGENTS.md` at the root of `tedeuxx/tadeumendonca-skills` and
+`AGENTS.md` at the root of `tedeuxx/tadeumendonca-io`**, for the reason the probe above measured: a
 session rooted in one repository loads neither the other's root brief nor the sibling's, even with the
 sibling added as a working directory. And **the routing types are not repository-scoped** — `-io`
 carries `loop` Issues too (`gh issue list --repo tedeuxx/tadeumendonca-io --state all --label loop
@@ -800,8 +1181,8 @@ carries `loop` Issues too (`gh issue list --repo tedeuxx/tadeumendonca-io --stat
 tree. From a workspace holding both checkouts:
 
 ```
-diff <(sed -n '/^<!-- review-chain-routing -->$/,/^<!-- \/review-chain-routing -->$/p' tadeumendonca-skills/CLAUDE.md) \
-     <(sed -n '/^<!-- review-chain-routing -->$/,/^<!-- \/review-chain-routing -->$/p' tadeumendonca-io/CLAUDE.md)
+diff <(sed -n '/^<!-- review-chain-routing -->$/,/^<!-- \/review-chain-routing -->$/p' tadeumendonca-skills/AGENTS.md) \
+     <(sed -n '/^<!-- review-chain-routing -->$/,/^<!-- \/review-chain-routing -->$/p' tadeumendonca-io/AGENTS.md)
 ```
 
 **That is an OBLIGATION and not a claim about either copy's current state — nothing checks it, and
@@ -823,7 +1204,9 @@ measured, on build `2.1.263`, that a repo-root `CLAUDE.md` reaches this context 
 sibling checkout as a working directory does not bring its brief; #409 measured, with one nonce per
 candidate surface, that a skill body does not reach it at all — only the skill's name and its
 `description` do. **Neither measurement was re-run for this block**, and both are cited rather than
-re-derived; the falsifier is in each block's own text.
+re-derived; the falsifier is in each block's own text. **Both were re-run for `AGENTS.md` on build
+`2.1.296` under #562** — the root brief reaches this context, and a sibling working directory does not
+bring its brief — with the commands in Part II.
 
 ### What a mode IS, and what it may contain
 
@@ -1720,16 +2103,23 @@ answer: a reader stops at it and waits.**
 config gets better by shrinking, because every axis is a place the two modes can drift apart with
 nothing watching.
 
-### The two copies of this block must stay identical
+### ~~The two copies of this block must stay identical~~
+
+**STRUCK 2026-10-11 (#562): this obligation no longer has a second copy.**
+`tadeumendonca-io`#722 merged a compressed brief. It dropped two of the four blocks and rewrote
+the other two without this subsection, so no byte-identical sibling exists and the `diff`
+below would print a difference permanently. The text is kept as the record of the obligation.
+**Do not run the diff as a check.** What the two repositories share now is the rules, stated in
+each repository's own `AGENTS.md`.
 
 **A mode is a WORKSPACE property, and a session rooted in one repository loads neither the other's root
 brief nor a sibling's** — measured in the block above. So this block is shared, byte for byte, between
-`CLAUDE.md` at the root of `tedeuxx/tadeumendonca-skills` and `CLAUDE.md` at the root of
+`AGENTS.md` at the root of `tedeuxx/tadeumendonca-skills` and `CLAUDE.md` at the root of
 `tedeuxx/tadeumendonca-io`. From a workspace holding both checkouts:
 
 ```
-diff <(sed -n '/^<!-- loop-mode-contract -->$/,/^<!-- \/loop-mode-contract -->$/p' tadeumendonca-skills/CLAUDE.md) \
-     <(sed -n '/^<!-- loop-mode-contract -->$/,/^<!-- \/loop-mode-contract -->$/p' tadeumendonca-io/CLAUDE.md)
+diff <(sed -n '/^<!-- loop-mode-contract -->$/,/^<!-- \/loop-mode-contract -->$/p' tadeumendonca-skills/AGENTS.md) \
+     <(sed -n '/^<!-- loop-mode-contract -->$/,/^<!-- \/loop-mode-contract -->$/p' tadeumendonca-io/AGENTS.md)
 ```
 
 **That is an OBLIGATION and not a claim about either copy's current state — nothing checks it, and
@@ -1739,12 +2129,14 @@ hand-maintained two-repository block in this file**, and that is a cost stated r
 each one is a place where two files can disagree in silence, and the only instrument is a `diff`
 somebody has to remember to run.
 
-**`AGENTS.md` deliberately does NOT carry this block**, and the reason is its own rule rather than
-budget: that brief states obligations addressed to an agent, never descriptions of enforcement, and the
+~~**`AGENTS.md` deliberately does NOT carry this block**, and the reason is its own rule rather than
+budget~~ — **struck 2026-10-11 (#562): it carries it now, in Part IV, below the Part I marker, and the
+reason that followed is the reason for that placement:** Part I states obligations addressed to an
+agent, never descriptions of enforcement, and the
 untouchable list above is a measurement of this harness's own hook layer. **The portable statement of
 the same contract is `docs/prompts/loop-mode-contract.md`**, which is what another harness adopts.
 **The residual: if a mode ever gains an operative rule a session on other machinery must obey, that
-rule is owed to `AGENTS.md` as an obligation, and nothing will say so.**
+rule is owed to Part I of `AGENTS.md` as an obligation, and nothing will say so.**
 <!-- /loop-mode-contract -->
 
 ---
@@ -1756,14 +2148,14 @@ rule is owed to `AGENTS.md` as an obligation, and nothing will say so.**
 reason the three above are.** `#410` landed *dive deep* as the twelfth principle in the
 `engineering-standards` skill, which all eight profiles preload. **The orchestrator preloads nothing**:
 `#409` measured, one nonce per candidate surface, that a skill body does not reach this context while a
-repo-root `CLAUDE.md` does. So the principle whose motivating failure was the orchestrator's own was
+repo-root `CLAUDE.md` does — and since build `2.1.296` a root `AGENTS.md` does too, which is where this
+block lives now (#562). So the principle whose motivating failure was the orchestrator's own was
 readable by every context except that one.
 
 ### The rule
 
-> **Do not assert in a dispatch brief a premise you have not measured. Measure it and carry the
-> command, or write it into the brief as a premise the dispatch must VERIFY — never as a fact it may
-> inherit.**
+**The rule is Part I's standing rule 23, stated there once** — #562 removed the quoted second
+wording that stood here, so that every harness reading this file gets one statement of it.
 
 **This is narrower than the skill's principle and must not be flattened back into it.** That one
 addresses a builder deciding how deep to investigate a symptom in code. This one addresses a single
@@ -1777,7 +2169,8 @@ available, never falsifiable, and it ends the investigation exactly where the me
 
 ### This carrier is WEAKER than the three above it, and the block says so rather than implying otherwise
 
-`#409` measured this file reaching the orchestrator's **context**. It did not measure it reaching the
+`#409` measured this file — then `CLAUDE.md`; for `AGENTS.md`, #562 on build `2.1.296` — reaching the
+orchestrator's **context**. It did not measure it reaching the
 **turn**, and those are different claims: a brief is composed hundreds of turns after the file loaded.
 **The three blocks above at least attach to an act some layer can see** — a command string, a picker
 payload, a pool query. **This one attaches to text being composed, and no layer observes that.**
@@ -1795,10 +2188,17 @@ something stop me, or only my memory?* — nothing stops it. It lands anyway on 
 removes the dependency on a fresh context happening to know the rule, and that dependency has now
 failed six times, every one caught by a dispatch or a gate and none by the orchestrator.
 
-### The two copies of this block must stay identical — and the falsifier ships with a CONTROL
+### ~~The two copies of this block must stay identical — and the falsifier ships with a CONTROL~~
 
-**Shared byte for byte between `CLAUDE.md` at the root of `tedeuxx/tadeumendonca-skills` and
-`CLAUDE.md` at the root of `tedeuxx/tadeumendonca-io`**, for the reason `#393`'s probe measured: a
+**STRUCK 2026-10-11 (#562): this obligation no longer has a second copy.**
+`tadeumendonca-io`#722 merged a compressed brief. It dropped two of the four blocks and rewrote
+the other two without this subsection, so no byte-identical sibling exists and the `diff`
+below would print a difference permanently. The text is kept as the record of the obligation.
+**Do not run the diff as a check.** What the two repositories share now is the rules, stated in
+each repository's own `AGENTS.md`.
+
+**Shared byte for byte between `AGENTS.md` at the root of `tedeuxx/tadeumendonca-skills` and
+`AGENTS.md` at the root of `tedeuxx/tadeumendonca-io`**, for the reason `#393`'s probe measured: a
 session rooted in one repository loads neither the other's root brief nor a sibling's, even with the
 sibling added as a working directory.
 
@@ -1811,10 +2211,10 @@ From a workspace holding both checkouts:
 # CONTROL — both sides must report 2 (one opening and one closing delimiter).
 # A 0 or 1 on either side means the diff below CANNOT fail, whatever it prints.
 grep -c -E '^<!-- /?dive-deep-orchestrator -->$' \
-  tadeumendonca-skills/CLAUDE.md tadeumendonca-io/CLAUDE.md
+  tadeumendonca-skills/AGENTS.md tadeumendonca-io/AGENTS.md
 
-diff <(sed -n '/^<!-- dive-deep-orchestrator -->$/,/^<!-- \/dive-deep-orchestrator -->$/p' tadeumendonca-skills/CLAUDE.md) \
-     <(sed -n '/^<!-- dive-deep-orchestrator -->$/,/^<!-- \/dive-deep-orchestrator -->$/p' tadeumendonca-io/CLAUDE.md)
+diff <(sed -n '/^<!-- dive-deep-orchestrator -->$/,/^<!-- \/dive-deep-orchestrator -->$/p' tadeumendonca-skills/AGENTS.md) \
+     <(sed -n '/^<!-- dive-deep-orchestrator -->$/,/^<!-- \/dive-deep-orchestrator -->$/p' tadeumendonca-io/AGENTS.md)
 ```
 
 **The three blocks above publish their diff WITHOUT that control, so all three read green vacuously if
@@ -1828,104 +2228,10 @@ nothing makes the two move together.** Pipelines are independent per repository,
 block is a two-repository batch, and the command above is expected to print a difference in the window
 between the two merges.
 
-**`AGENTS.md` deliberately does NOT carry this block.** That brief states obligations addressed to an
+~~**`AGENTS.md` deliberately does NOT carry this block.**~~ **Struck 2026-10-11 (#562): it carries it in
+Part IV, below the Part I marker, and the reason survives as the reason for that placement.** Part I
+states obligations addressed to an
 agent on machinery nobody here has measured; this one names `SubagentStart`, a payload field set and a
 tool matcher, which are descriptions of this harness's own enforcement layer. The obligation is
-portable; the enforcement analysis around it is not.
+portable — it is Part I's standing rule 23 — and the enforcement analysis around it is not.
 <!-- /dive-deep-orchestrator -->
-
----
-
-## Scratch — the session scratchpad, not a repo directory (#245)
-
-**A repo-root `.scratch/` used to be the documented place for throwaway files. It is retired.** It was
-designed on the belief that WHERE a scratch file lives affects permission friction; measured directly on
-#230/#231/#244, it does not — the friction (a prompt on `command > newfile`) fires the same regardless
-of destination, and #244 already closed the actual cause (`permission-guard.sh` now denies the
-redirect outright, everywhere). Carrying a repo-side scratch directory bought nothing that fix didn't
-already buy, and cost a sweep hook, a gitignore entry, and a rule that only lived in agent-brief prose —
-exactly the shape #164 already named as the failure mode this repo tries hardest to avoid.
-
-**Use the harness's own session scratchpad instead** — the path it hands you at session start,
-session-specific and isolated from the tracked tree by construction. No repo directory to document, no
-sweep hook to maintain: the harness owns that lifecycle, not this plugin.
-
-**The taxonomy still matters, only the location column changed:**
-
-| what | where |
-|---|---|
-| PR bodies, commit messages | **the session scratchpad** — written once, consumed by `--body-file`, discarded when the session ends. |
-| lens and gate verdicts | **the PR comment.** It is the durable record for both — and the **gate** verdict is additionally machine-read by `session-wip.sh`, which matches the `gatekeeper-verdict: quality-assurance` marker and nothing else; a lens verdict has no reader but a human. A file copy is a second source of truth with no reader either way — and it is what broke: the file handoff failed twice while `SendMessage` failed zero times. |
-| interview transcripts, raw source material | **`.brand/` in `tadeumendonca-io`** — private and gitignored *there*, which is the documented home for exactly this. ~~**It is NOT gitignored in this repo**, so the path is only safe in the repo that ignores it; writing private material to `.brand/` here puts it in a tracked path in a public repo.~~ **Struck by this slice's own `.gitignore` entry — `.brand/` is ignored in THIS repo too now.** Struck rather than deleted because this is the sentence that told every reader the path was unsafe here, and a reader who acted on it deserves to find out it changed. **The home is still `tadeumendonca-io`, and the ignore stops a COMMIT, not a PASTE** — private text has reached public GitHub through an Issue body and a PR comment, which no `.gitignore` observes and whose edit history is not repairable. |
-| a measurement instrument | **a repo script with a test, if and only if a gate will run it.** Otherwise discard. "It worked once" is not "it must persist". |
-| an isolated checkout | **not a scratch class.** Use the repo — WIP=1 already serialises — or a git worktree with its own install. |
-| continuity state that must survive the session | **not a scratch class either — the Issue being worked, as a worklog `handoff` or `checkpoint` event** (#514), prepared with `scripts/worklog.py prepare-event` and posted with `--body-file`. **Never a file in a shared temporary directory**: that is how sprint state was carried across sessions once, and the fifth such file resumed a session with its words glued together. The format is bounded because the Issue is public: facts and one `next_act`, one line each, no private reasoning. The contract and the resume command are in `docs/worklog/README.md`. |
-
-### `.brand/` — THIS section is the canonical home of that fact, and the other four are pointers (#479)
-
-**The fact, stated once and completely: `.brand/` is the owner's private positioning source, and it is
-gitignored in BOTH repositories** — in `tadeumendonca-io` since that repo was stood up, and here since
-#477 (`.gitignore:17`). Its documented home is still `tadeumendonca-io`; this repo ignores it
-preventively and has never held one.
-
-**Why it needed a ruling: the fact lived in five places and two of them disagreed.** On 2026-09-20
-`README.md` listed `.brand/` among this repo's gitignored paths — **false until #477 merged**, hours
-earlier — while the taxonomy row above said the opposite and was right. **Neither noticed the other,
-and the false one was the PERMISSIVE one**, claiming a protection that did not exist.
-
-**Why the canonical home is here, and the second reason is mechanical.** The scratch taxonomy above
-already owns this fact — it is the table that says where raw source material goes. And **this is the
-only brief that reaches the ORCHESTRATOR**: #409 measured, one nonce per candidate surface, that a
-repo-root `CLAUDE.md` reaches that context while a skill body does not and `AGENTS.md` does not. The
-context that pasted private material onto a public surface was the orchestrator. **A canonical
-statement the leaking context cannot read is not canonical for the failure it exists to prevent.**
-
-**The four pointers — `README.md`, `agents/product-lead.md`, `.gitignore`'s own comment, and `-io`'s
-side — and one of them cannot be a bare pointer.** **`-io` does not load this file**: #393 measured
-that a session rooted in one repository loads neither the other's root brief nor a sibling's, **even
-with the sibling added as a working directory**. So `-io`'s statement must stand on its own as a
-complete sentence rather than as *"see the plugin repo"*. **That is a pointer in intent and a
-restatement in fact**, said here rather than papered over — and **no fifth hand-maintained
-two-repository block is created for it**, because four is already a cost this file names in its own
-words.
-
-**What enforces any of this: nothing, and no gate arm is added.** An arm asserting that one sentence
-exists in one file is a green that has never been red, and the failure it would have to catch — two
-surfaces disagreeing about one fact — is a cross-file consistency check nothing here has the shape
-for. **And the ignore stops a COMMIT, not a PASTE**, which the row above already says and which is the
-route by which private text has actually reached public GitHub.
-
-**What this drops, and why it's safe to drop.** `session-scratch.sh` (a `SessionStart` hook that swept
-`<repo-root>/.scratch/`, plus its test suite) is deleted outright rather than repointed — it existed
-only because the scratch lived inside the tracked tree, where nothing else would ever clean it up. The
-session scratchpad has no such gap: it is not part of any repo, so there is nothing here for a repo-side
-hook to own.
-
----
-
-## Versioning
-
-Numeric SemVer via `bump-my-version`. **Every merge to `main` auto-bumps the PATCH and publishes a
-Release** — because this plugin is distributed through a marketplace, and the marketplace only serves
-*published* versions: an unreleased `main` is invisible to the installed plugin (a restart reloads the
-installed cache, not `main`). Publishing on every merge is safe because **publishing ≠ forcing adoption**
-— each consumer opts in with `/plugin update`, so a merge that never publishes is work that silently never
-ships. (Methodology **ADR-0005**, which supersedes the earlier release-only model.)
-
-Purely **numeric SemVer** `MAJOR.MINOR.PATCH` — no `-dev` pre-release suffix.
-
-- `VERSION` — current version; `.claude-plugin/plugin.json` bumps in lockstep (the marketplace serves this).
-- `.bumpversion.toml` — bump config; numeric only, `tag_name = v{new_version}`,
-  `message = "bump: {current_version} → {new_version}"` (CI loop guard); bumps `VERSION` +
-  `.claude-plugin/plugin.json` in lockstep.
-- `.github/workflows/version-main.yml` — **push to `main`**: skips `bump:` commits, bumps **patch**, tags
-  `vX.Y.Z`, pushes, publishes a Release with categorized notes. The default, automatic path.
-- `.github/workflows/release.yml` — **`workflow_dispatch` only**, for a **deliberate minor/major** milestone
-  (`part` = major | minor | patch). Its `bump:` commit is skipped by `version-main.yml`'s loop guard.
-
-**Required secret:** `VERSION_BUMP_TOKEN` — a GitHub fine-grained PAT with `contents: write` +
-`workflows: write` (so the bump push/tag can write protected `main`).
-
-**Consumers pull deliberately:** `/plugin marketplace update tadeumendonca` (refresh the marketplace to the
-latest `main`) then `/plugin` → update `tadeumendonca-skills` to the new version. This is the only step the
-plugin's *installation* needs — merging publishes the version; adoption is always the consumer's call.

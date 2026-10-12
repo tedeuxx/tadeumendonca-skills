@@ -33,7 +33,12 @@ on:
       # it, and never red afterwards.
       - "skills/**"
       - "README.md"
+      # `CLAUDE.md`, `.claude/CLAUDE.md`, `CLAUDE.local.md` — none exists since #562, and each is listed
+      # so that a PR ADDING one starts the gate: Claude Code loads any of them INSTEAD of `AGENTS.md`
+      # (measured on 2.1.296), and arm 6 of `hooks/scripts/agents-md.test.sh` reddens on a tracked one.
       - "CLAUDE.md"
+      - ".claude/CLAUDE.md"
+      - "CLAUDE.local.md"
       # `AGENTS.md` — the harness-neutral root brief, tracked since #411 and gated by
       # `hooks/scripts/agents-md.test.sh` in the job below. This entry is the EIGHTH occurrence of the
       # miss enumerated in this block and the first one that was foreseen rather than found: the brief
@@ -226,4 +231,4 @@ jobs:
             echo "::notice::the inventory/brief gate did NOT complete — read the failing step, not this line."
             exit 0
           fi
-          echo "::notice::AGENTS.md is tracked, under budget, free of the declared harness-specific tokens, and every repository-relative path it names exists. This says NOTHING about whether the brief is TRUE, or NEUTRAL rather than merely free of the tokens on a declared list — a sentence describing one harness's mechanism without naming it passes every arm. That half is held by review."
+          echo "::notice::AGENTS.md is tracked, under the whole-file byte budget, free of the declared harness-specific tokens, and every repository-relative path it names exists, and no file that would shadow it is tracked. This says NOTHING about whether the brief is TRUE, or NEUTRAL rather than merely free of the tokens on a declared list — a sentence describing one harness's mechanism without naming it passes every arm. That half is held by review."

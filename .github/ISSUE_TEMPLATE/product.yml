@@ -20,7 +20,7 @@ body:
     attributes:
       label: What the search found
       description: |
-        Was this already decided somewhere — a doc comment, an ADR, a closed Issue, CLAUDE.md?
+        Was this already decided somewhere — a doc comment, an ADR, a closed Issue, AGENTS.md?
         One of three answers: it was decided and here is why · it was decided and a premise changed ·
         nothing decides it (say so explicitly).
     validations:

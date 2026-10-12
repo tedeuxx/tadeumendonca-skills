@@ -10,12 +10,17 @@ against head would refute a true claim.
 **The cut that produced this file, so a later reader can re-apply it rather than re-derive it.**
 `CLAUDE.md` is the only brief that reaches the ORCHESTRATOR — the main session, which is dispatched
 by nobody and preloads nothing (#409, one nonce per candidate surface: a repo-root `CLAUDE.md`
-reaches that context, a skill body does not, `AGENTS.md` does not). So every paragraph was asked one
+reaches that context, a skill body does not~~, `AGENTS.md` does not~~). So every paragraph was asked one
 question: **is this an obligation the orchestrator must obey, or a reading structure for a human?**
 Reading structure is what is here. The obligations that were sitting inside this section — the
 orchestrator's own duties and its two mechanically-enforced acts, and the two rules the owner set
 above every persona's checklist — **stayed in `CLAUDE.md`**, under *The orchestrator, and the two
 rules above every persona's checklist*.
+
+**`CLAUDE.md` no longer exists (#562, 2026-10-11).** Its content, that section included, is in
+`docs/agents-md-record.md`, with the two owner rules now `AGENTS.md` standing rule 31.
+The struck clause above was true on build `2.1.263` and is false on `2.1.296`, where a root `AGENTS.md`
+reaches the main session; the cut test it supported is unchanged.
 
 **Nothing below was rewritten.** Every strike (`~~…~~`) and every STRUCK paragraph travelled with the
 content it annotates, per this repository's own convention: a correction recorded in place is part of

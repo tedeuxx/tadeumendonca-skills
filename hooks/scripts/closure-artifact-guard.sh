@@ -77,7 +77,7 @@
 #
 # `/name` resolves iff `commands/name.md` exists, or `skills/name/SKILL.md` exists AND `name` is
 # declared in `.claude-plugin/plugin.json` — an undeclared skill does not exist to the model
-# (CLAUDE.md, "DECLARATION is what registers a skill"), so it must not resolve here either. A
+# (docs/agents-md-record.md, "DECLARATION is what registers a skill"), so it must not resolve here either. A
 # namespaced spelling (`/plugin:name`) is reduced to its bare innermost name, which is what the
 # loader reads at every depth this library has had.
 #

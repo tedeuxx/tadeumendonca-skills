@@ -1,52 +1,40 @@
 #!/usr/bin/env bash
-# Asserts the four MECHANICAL properties of this repository's harness-neutral root brief, `AGENTS.md`.
+# Asserts the five MECHANICAL properties of this repository's root brief, `AGENTS.md`: tracked; the
+# WHOLE file under a byte budget set by the smallest measured consumer; no declared one-harness token;
+# every repository-relative path it names exists; and no file that a harness would load INSTEAD of it
+# is tracked.
 #
-# WHY THIS EXISTS. `AGENTS.md` is read as always-on steering by at least one agent harness that never
-# reads this repository's other root brief — measured against Kiro 1.0.437, whose bundle resolves
-# `AGENTS.md` at the workspace root with `inclusion:"always"` and contains zero references to the other
-# filename. For that harness this file is not a courtesy copy; it is the ENTIRE brief. So a defect in
-# it is not cosmetic, and until #411 the file was UNTRACKED in both repositories of this workspace —
-# invisible to every merge request, every reviewer and every gate, while being a month stale and
-# telling its reader it described a different product than it does.
+# WHY THIS EXISTS. `AGENTS.md` is the only root brief since #562, read by every harness this repository
+# serves. Codex reads its first 32,768 bytes and silently drops the rest; Kiro truncates at 50,000
+# characters; Claude Code reads it whole, but only when no file of its own vendor's name loads. So a
+# defect here is not cosmetic: a rule past the byte cap, or a shadowing file, removes rules from a
+# harness with every other check green. Until #411 the file was UNTRACKED — invisible to every merge
+# request, reviewer and gate.
 #
-# WHY THE CHECK IS SHAPED THIS WAY, AND WHAT WAS REJECTED. The obvious arm — "assert no untracked root
-# brief shadows the tracked one" — CANNOT FAIL. This suite runs in CI on a fresh checkout, and a
-# checkout contains only tracked files by construction, so the arm's subject is absent from the tree in
-# every run, forever. An assertion whose positive result is unconditional, added to the very file whose
-# job is to make drift visible, is this repository's own named recurring defect. TRACKING the file
-# removes the hazard's precondition AND makes arm 1 below a check that can genuinely go red.
+# WHAT WAS TRIED AND REPLACED (#562). A first cut kept a long file with a budgeted, marker-delimited
+# prefix and pinned the marker from both sides. The orchestrator replaced it with a whole-file budget
+# and moved the reasoning to `docs/agents-md-record.md`: a prefix budget leaves the tail free to carry a
+# rule that the smallest consumer never reads, and the marker pin was machinery to defend a boundary
+# that a whole-file budget does not need.
 #
 # WHAT THIS SUITE CANNOT ASSERT, said here rather than left to be inferred from a green:
 #
-#   * THAT THE BRIEF IS TRUE. Nothing here reads the repository and compares it to what the file
-#     claims. A brief describing the wrong product in portable vocabulary passes every arm.
-#   * THAT THE BRIEF IS NEUTRAL. Arm 3 greps a DECLARED LIST OF TOKENS. Neutrality is a property of
-#     meaning, and a sentence that describes one harness's mechanism without naming it — "the guard
-#     denies this", "the session hook injects that" — is exactly as harness-bound as one that does,
-#     and passes. The test that catches it is a human one: WOULD THIS SENTENCE STILL BE TRUE ON A
-#     HARNESS WITH NO HOOKS? If it is only true because something fires, it is not neutral.
-#   * THAT THE BUDGET IS RIGHT. 50,000 is ONE consumer's measured floor, read out of a shipped bundle
-#     on a machine where that tool has never authenticated. Every other harness's budget is unmeasured,
-#     and this arm is not evidence that any of them is larger.
+#   * THAT THE BRIEF IS TRUE. Nothing here compares the file with the repository it describes.
+#   * THAT THE BRIEF IS NEUTRAL. Arm 3 greps a DECLARED LIST OF TOKENS. A sentence that describes one
+#     harness's mechanism without naming it passes. The human test: WOULD THIS SENTENCE STILL BE TRUE
+#     ON A HARNESS WITH NO HOOKS?
+#   * THAT NO RULE LIVES ONLY IN THE RECORD. Moving reasoning out is the remedy arm 2 prescribes, and
+#     whether a rule went with it is held by review.
+#   * THAT THE BUDGET IS RIGHT FOR EVERY HARNESS. 32,768 bytes is the smallest MEASURED cap; any other
+#     harness is unmeasured.
+#   * AN UNTRACKED OR ANCESTOR SHADOW. Arm 5 sees tracked files only.
 #
-# COPYABILITY IS DELIBERATE, AND WHAT IS COPIED IS THE BODY, NEVER THE FILE. This script derives its
-# root from git rather than from its own position in the tree, so it runs unchanged from any depth in
-# any repository that has an `AGENTS.md`. `tadeumendonca-io` is to carry the same artifact under the
-# same rule, in its own merge request (`-io`#610) — stated as the rule rather than as that
-# repository's current state, which is a claim this file cannot check and must not make. The invariant
-# a sync maintains between this file and its copy at `scripts/agents-md.test.sh` is that everything
-# below the first column-zero `set -uo` line is byte-for-byte identical — an obligation, not an
-# assertion about either copy right now. The headers deliberately differ, because the duplication cost
-# is a fact about that copy and has no subject here. So a sync copies the body, never the file.
-# Falsifiable from a workspace holding both checkouts:
-#
-#   diff <(sed -n '/^set -uo/,$p' hooks/scripts/agents-md.test.sh) \
-#        <(sed -n '/^set -uo/,$p' ../tadeumendonca-io/scripts/agents-md.test.sh)
-#
-# Nothing makes the two move together — a pipeline is independent per repository — so a change to the
-# token list, the fixtures or the budget is a two-repository batch, and until the sibling's own merge
-# request lands, that diff is expected to show the body changes made here.
-
+# ~~COPYABILITY IS DELIBERATE, AND WHAT IS COPIED IS THE BODY, NEVER THE FILE … the invariant a sync
+# maintains between this file and its copy at `scripts/agents-md.test.sh` is that everything below the
+# first column-zero `set -uo` line is byte-for-byte identical~~ — STRUCK 2026-10-11 (#562): since
+# tadeumendonca-io#722 that sibling's checker declares its sync "broken on purpose, because that
+# sibling is to be generated from the workstation repository", and the two bodies differ. There is no
+# sync obligation left; a change here is a change to this repository's checker only.
 set -uo pipefail
 
 ROOT="$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel 2>/dev/null || true)"
@@ -56,17 +44,26 @@ if [ -z "$ROOT" ]; then
 fi
 
 BRIEF="AGENTS.md"
-# The budget is the consumer's measured cap; the LIMIT is deliberately lower so growth reddens BEFORE
-# it truncates. A gate that fires exactly at the cliff edge tells you at the moment content is already
-# being lost, which is one merge too late.
-BUDGET=50000
-LIMIT=45000
+# BYTES, not characters, against the SMALLEST measured consumer, over the WHOLE file. Codex
+# 0.155.0-alpha.16.3 reads the first 32,768 bytes of AGENTS.md (default project_doc_max_bytes, measured
+# live on 2026-10-11 by the agents-lead lens on tadeumendonca-io#722, and again on this repository's
+# brief under #562) and silently drops the rest; Kiro 1.0.437 truncates at 50,000 characters, looser on
+# both counts. A rule past the cut does not exist for that reader, which is why the WHOLE file is
+# budgeted rather than a prefix: a prefix budget leaves the tail free to carry a rule nobody reads. The
+# LIMIT is lower than the cap so growth reddens BEFORE it truncates.
+BUDGET=32768
+LIMIT=30000
+# Files that make one harness load THEM INSTEAD of AGENTS.md. Claude Code 2.1.296 reads AGENTS.md only
+# as a fallback: each of these at the root, or in an ancestor directory, suppresses it entirely
+# (measured 2026-10-11 on tadeumendonca-io#722 and the workstation repository's #154). Ancestors are
+# outside any repository, so no arm here can see them — a named residual.
+SHADOWS=('CLAUDE.md' '.claude/CLAUDE.md' 'CLAUDE.local.md')
 
 fails=0
 ok()  { printf 'PASS  %s\n' "$1"; }
 bad() { printf 'FAIL  %s\n' "$1"; fails=$((fails + 1)); }
 
-printf '\n== %s — harness-neutral root brief ==\n\n' "$BRIEF"
+printf '\n== %s — the harness-neutral root brief ==\n\n' "$BRIEF"
 
 # ── ARM 1 · TRACKED ─────────────────────────────────────────────────────────────────────────────────
 # The precondition for every other arm and for review itself: a file git does not know about cannot
@@ -75,27 +72,42 @@ if git -C "$ROOT" ls-files --error-unmatch "$BRIEF" >/dev/null 2>&1; then
   ok "arm 1 — $BRIEF is tracked in git"
 else
   bad "arm 1 — $BRIEF is NOT tracked. An untracked brief is invisible to every merge request and to
-      every gate, including the three below, which cannot run against a file a CI checkout does not
+      every gate, including the ones below, which cannot run against a file a CI checkout does not
       contain. Run: git add $BRIEF"
 fi
 
-# ── ARM 2 · UNDER BUDGET, WITH HEADROOM ─────────────────────────────────────────────────────────────
-# Characters, not bytes. The consumer slices a decoded string, so a multi-byte character costs one.
+# ── ARM 2 · THE WHOLE FILE UNDER BUDGET, IN BYTES, WITH HEADROOM ────────────────────────────────────
 if [ ! -f "$ROOT/$BRIEF" ]; then
   bad "arm 2 — $ROOT/$BRIEF does not exist; the length assertion did NOT run"
-elif ! command -v python3 >/dev/null 2>&1; then
-  bad "arm 2 — python3 unavailable; the length assertion did NOT run"
 else
-  chars="$(python3 -c "import sys;print(len(open(sys.argv[1],encoding='utf-8').read()))" "$ROOT/$BRIEF" 2>/dev/null || true)"
-  if ! printf '%s' "$chars" | grep -qE '^[0-9]+$'; then
+  bytes="$(wc -c < "$ROOT/$BRIEF" | tr -d ' ')"
+  if ! printf '%s' "$bytes" | grep -qE '^[0-9]+$'; then
     bad "arm 2 — could not measure $BRIEF; the length assertion did NOT run"
-  elif [ "$chars" -ge "$LIMIT" ]; then
-    bad "arm 2 — $BRIEF is $chars characters, at or past the $LIMIT headroom limit (consumer cap
-      $BUDGET, measured on Kiro 1.0.437, which truncates the file, logs the loss on a debug channel,
-      and appends a '[Truncated: …]' marker to the text the model reads — so the reader is told
-      something went, never what). Cut content; do not raise the limit without re-measuring."
+  elif [ "$bytes" -ge "$LIMIT" ]; then
+    bad "arm 2 — $BRIEF is $bytes bytes, at or past the $LIMIT headroom limit (smallest consumer cap
+      $BUDGET bytes, measured live on Codex, which reads that much and silently drops the rest). Move
+      reasoning to docs/agents-md-record.md — never a rule — and do not raise the limit without
+      re-measuring."
   else
-    ok "arm 2 — $BRIEF is $chars characters, under the $LIMIT limit ($((LIMIT - chars)) to spare; consumer cap $BUDGET)"
+    ok "arm 2 — $BRIEF is $bytes bytes, under the $LIMIT limit ($((LIMIT - bytes)) to spare; smallest consumer cap $BUDGET bytes)"
+  fi
+fi
+
+# ── ARM 5 · NO FILE THAT A HARNESS WOULD LOAD INSTEAD OF THIS ONE IS TRACKED ────────────────────────
+# Calibrated with a positive control: the same lookup must find the brief itself, or a broken lookup
+# would report every shadow as absent.
+if ! git -C "$ROOT" ls-files --error-unmatch "$BRIEF" >/dev/null 2>&1; then
+  bad "arm 5 — the lookup cannot find $BRIEF itself, so an absent shadow would read as clean; did NOT run"
+else
+  shadowed=""
+  for s in "${SHADOWS[@]}"; do
+    git -C "$ROOT" ls-files --error-unmatch -- "$s" >/dev/null 2>&1 && shadowed="$shadowed $s"
+  done
+  if [ -n "$shadowed" ]; then
+    bad "arm 5 — tracked:$shadowed. One harness loads such a file INSTEAD of $BRIEF, silently dropping
+      this whole brief from its sessions. Fold its content into $BRIEF and delete it."
+  else
+    ok "arm 5 — none of ${SHADOWS[*]} is tracked (an untracked or ancestor-directory one is invisible here)"
   fi
 fi
 
@@ -226,9 +238,9 @@ $vac"
     hits_cs="$(grep -nE  "$TOKENS_CS" "$ROOT/$BRIEF" || true)"
     hits="$(printf '%s\n%s' "$hits_ci" "$hits_cs" | grep -v '^$' || true)"
     if [ -n "$hits" ]; then
-      bad "arm 3 — $BRIEF names a token specific to one harness. This file is another harness's ENTIRE
-      brief, so such a token is either an identifier that does not exist for its reader or a mechanism
-      that does not run for it. Restate the sentence as an obligation, or drop it:
+      bad "arm 3 — $BRIEF names a token specific to one harness. Every harness reads this file, so such a
+      token is either an identifier that does not exist for its reader or a mechanism that does not run
+      for it. Restate the sentence as an obligation, drop it, or move it to docs/agents-md-record.md:
 $hits"
     else
       ok "arm 3 — $BRIEF carries none of the declared harness-specific tokens"

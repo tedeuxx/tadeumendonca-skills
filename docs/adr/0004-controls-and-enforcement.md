@@ -1239,7 +1239,7 @@ None could have been found by a check, and re-introducing any of them today goes
 | **settings permission** | outside the model, on a matcher | yes | the command string only |
 | **agent** (`agents/*.md`) | as a model, fresh context | no — it decides | whatever it reads |
 | **skill / command** | as context, on invocation | no | whatever it is given |
-| **`CLAUDE.md`** | as always-on context | no | static text |
+| ~~**`CLAUDE.md`**~~ **`AGENTS.md`** (since 2026-10-11, #562 — see that amendment) | as always-on context | no | static text |
 
 **And the merge belongs in the hook row under the rule this record's own body already decided** — *if
 the act cannot be undone it needs a hook, and a push to the trunk escapes git*. A `gh pr merge` **is**
@@ -7496,3 +7496,92 @@ script and registration, not the host's routing of `AskUserQuestion`; the first 
 and expected denial after release remain separate runtime evidence. The canonical root block is copied
 to the sibling repository, so the two independent pipelines necessarily have a temporary drift window
 between their merges.
+
+## Amendment 2026-10-11 — the always-on context layer is `AGENTS.md`, and the root `CLAUDE.md` is deleted (#562)
+
+### Context
+
+The mechanisms table above lists the root `CLAUDE.md` as the always-on context layer. Four blocks of
+rules that bind the main session were placed there, and not in `AGENTS.md`, on one measurement: on
+build `2.1.263` a root `AGENTS.md` did not reach the Claude Code main session (#409, one nonce per
+candidate surface). The owner's decision of 2026-10-11, in his words: *"o que eu quero eh não usar mais
+o arquivo que funciona somente no claude (claude.md), preferindo trabalhar com padrões abertos
+(agents.md)"*. The same day, Claude Code `2.1.296` was measured loading a root `AGENTS.md` natively
+with no `CLAUDE.md` present.
+
+### Decision
+
+- `CLAUDE.md` is consolidated into `AGENTS.md` and deleted, with no `@AGENTS.md` bridge. The table row
+  above is struck in place and now names `AGENTS.md`; the layer's properties are unchanged — always-on
+  context, cannot deny, static text.
+- `AGENTS.md` holds **every rule** and is budgeted **as a whole file**, in bytes: Codex reads the first
+  32,768 bytes and silently drops the rest, and Kiro truncates at 50,000 characters. The reasoning,
+  the measurements, the Claude Code reference and the four orchestrator blocks — the long form that
+  made `CLAUDE.md` 139 KB — moved to `docs/agents-md-record.md`. That file is linked from the brief,
+  not loaded, and every operative rule it states is restated in the brief. The same day,
+  `tadeumendonca-io`#722 made the same call for its brief.
+- *A first cut of this slice kept one 178 KB `AGENTS.md`, with a budgeted, marker-delimited neutral
+  prefix. It was replaced before merge on the orchestrator's decision: a prefix budget leaves the tail
+  free to carry a rule the smallest consumer never reads.*
+- `hooks/scripts/agents-md.test.sh` counts the whole file in bytes against a 30,000 limit, scopes no
+  arm to a part, and reddens on a tracked `CLAUDE.md`, `.claude/CLAUDE.md` or `CLAUDE.local.md`.
+- **Claude Code reads `AGENTS.md` only as a fallback.** Any of those three files, at the root or in an
+  ancestor directory, makes the session load that file instead and drop this one entirely. A linked
+  worktree does not inherit its main checkout's file; a separate repository nested inside a checkout
+  does. None may be created here; the ancestor and untracked cases are residuals no check sees.
+- The byte-identity obligations on the four blocks are **struck**: `tadeumendonca-io`#722 dropped two
+  of the blocks and compressed the other two, so none has a second copy. The checker-body sync with the
+  sibling is struck for the same reason.
+
+### Evidence, at its real level
+
+Measured on build `2.1.296` of Claude Code, headless, with every tool disallowed, in throwaway
+directories:
+
+- In a control directory with no `AGENTS.md`, both nonces came back as `NONE`.
+- With a sibling directory added through `--add-dir`, only the root directory's `AGENTS.md` nonce came
+  back.
+- A 168,738-character `AGENTS.md` loaded whole.
+- The final 24,276-byte brief, with a nonce added at the head and one at the tail, returned **both**
+  nonces.
+
+The same final-brief probe on Codex `0.155.0-alpha.16.3` (`exec --ephemeral -s read-only`) also
+returned **both** nonces.
+
+The fallback condition and the Codex byte cap were measured by the agents-lead lenses on
+`tadeumendonca-io`#722 and on the workstation repository's #154.
+
+The commands are in `docs/agents-md-record.md`.
+
+**Not measured here:** whether `AGENTS.md` reaches a dispatched subagent.
+
+### Considered options
+
+- **Keep `CLAUDE.md` as a one-line `@AGENTS.md` bridge.** This is the shape the sibling Issue first
+  asked for. Rejected once the native load was measured. A bridge is a second file whose only content
+  is a pointer, and it keeps the Claude-only filename that the owner's decision retires. A bridge is
+  also one of the shadowing files: it suppresses `AGENTS.md` and works only through its import.
+- **Keep one long `AGENTS.md` with a budgeted, neutral prefix.** This was the first cut of this slice,
+  178 KB with a pinned marker. Rejected by the orchestrator before merge. The tail is free to carry a
+  rule that the smallest consumer never reads, and defending the boundary takes machinery that a
+  whole-file budget does not need.
+- **Chosen: a whole-file-budgeted brief, plus a linked record.** Every rule is in the brief. The
+  reasoning, the measurements and one harness's how-to are in `docs/agents-md-record.md`, which no
+  session loads.
+
+### Consequences
+
+Good:
+
+- One root brief per repository, in the open filename, read whole by every measured harness.
+- Rules that used to be stated twice are now stated once: the escalation rules, the review routing, the
+  conventions, the versioning rule and the dispatch-brief rule.
+- The four orchestrator blocks' operative content is now in the brief as standing rules 32–36, so it
+  reaches Codex and Kiro too. Before, it reached Claude Code only.
+
+Bad:
+
+- The measurements and struck history behind each rule are one link away rather than always loaded.
+- Whether a rule moved to the record without a copy in the brief is held by review, not by any check.
+- The four blocks no longer have a sibling copy, and their identity obligations are struck. What the two
+  repositories share is the rules, and nothing compares them.
