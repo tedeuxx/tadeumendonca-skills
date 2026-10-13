@@ -1127,3 +1127,37 @@ Arm: **alters a previously-recorded decision** — the amendment above recorded 
 one route conclusion as the property; both are corrected here, by appending, with the originals left
 standing. It does not add a distribution target, change release or adoption policy, or reverse the
 persona amendment.
+
+## 2026-10-12 amendment — the plugin becomes a generated distribution of tedeuxx/mhw that nobody installs (#565, mhw#63)
+
+**Status unchanged (accepted).** The decision above — every merge auto-versions, adoption is the
+consumer's opt-in — still describes how this repository publishes. What changes is **where the method
+comes from and who installs it**.
+
+**The owner's decision, 2026-10-12**, recorded on
+[mhw#63](https://github.com/tedeuxx/mhw/issues/63#issuecomment-6135033843):
+*«a ideia é que ninguem use o skills depois de migrar para o mhw»*, confirmed (*«siga»*) after it was
+restated to him.
+
+- **The method's single source is tedeuxx/mhw**: its method directory, installed with
+  `mhw install --method`. A later mhw slice removes this plugin from the workstation.
+- **This repository becomes a generated distribution that nobody installs.** It is a mirror: it
+  receives method demands as Issues through the sync mhw runs, and a weekly sprint here regenerates the
+  version from mhw. Scheduling that sprint is later work.
+- **Method demands start in mhw**, as Issues labelled `method`. An Issue here titled `[mhw#N]` and
+  carrying the hidden marker `<!-- mhw-issue: tedeuxx/mhw#N -->` is a twin the sync created; it is
+  changed at its source, and an edit here is overwritten by the next sync.
+- **The duplicate protections are not removed by this amendment.** They go only after mhw's deny-floor
+  slice ships, as mhw#63 states.
+
+**Recorded on the workstation side** in mhw's decision record 0032, 2026-10-12 amendment
+([tedeuxx/mhw#169](https://github.com/tedeuxx/mhw/pull/169)). The sync that creates the twins is
+measured end to end there: its fourth canary created this repository's #564 and closed it.
+
+### Significance
+
+Arm: **alters a previously-recorded decision** — the record treated this repository as the method's
+source and the plugin as something a consumer installs; both stop being true going forward. It is
+recorded as an amendment of the `plugin-distribution` capability document rather than as a new record,
+because a record here must name a capability and this one's subject is exactly how the harness reaches
+a consumer. Nothing above is rewritten.

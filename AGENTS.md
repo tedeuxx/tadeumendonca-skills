@@ -10,6 +10,18 @@ sphere: personal
 
 This is a declaration only, recorded in [decision record 0035 of the workstation configuration repository](https://github.com/tedeuxx/mhw/blob/main/docs/adr/0035-workstation-blueprint-reconciliation.md); there is no stop-on-undeclared rule.
 
+## This repository is a generated mirror of tedeuxx/mhw
+
+**Do not install this plugin to get the method.** Since 2026-10-12 its single source is the
+workstation configuration repository, tedeuxx/mhw: install it from there with `mhw install --method`.
+This repository becomes a generated distribution that nobody installs, regenerated from mhw by a weekly
+sprint. The decision is ADR-0005's 2026-10-12 amendment (mhw#63, #565).
+
+- **Method demands start in tedeuxx/mhw**, as Issues labelled `method`. Do not open them here.
+- **An Issue here titled `[mhw#N]` and carrying the hidden marker `mhw-issue` is a twin created by the
+  sync.** Change it at its source in mhw; an edit made here is overwritten by the next sync.
+- The duplicate protections stay until mhw's deny-floor slice ships.
+
 ## The budget, and how a harness finds this file
 
 **This whole file stays under 30,000 bytes.** The smallest measured consumer reads the first 32,768 bytes
