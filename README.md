@@ -1,5 +1,13 @@
 # tadeumendonca-skills
 
+> **Deprecated as a source (2026-10-12).** The method now lives in
+> [tedeuxx/mhw](https://github.com/tedeuxx/mhw): install it with `mhw install --method`, not this
+> plugin. Method demands start there as Issues labelled `method`. An Issue here titled `[mhw#N]` and
+> carrying the hidden marker `<!-- mhw-issue: tedeuxx/mhw#N -->` is a twin created by the sync, and is
+> changed at its source in mhw. This repository becomes a generated mirror that nobody installs,
+> regenerated weekly from mhw ([ADR-0005](docs/adr/0005-plugin-auto-versions-on-merge.md), 2026-10-12
+> amendment; [mhw#63](https://github.com/tedeuxx/mhw/issues/63), #565).
+
 > A **Claude Code harness configuration**: the personas, permission hooks and skill library that make
 > an agent's work reviewable — so "the agent finished" and "the work is done" stop being the same claim.
 
