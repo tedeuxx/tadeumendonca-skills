@@ -68,6 +68,7 @@ WIELDER = {
     "agents-configuration": JUDGES,
     "backend": DEVELOPER,
     "cloud-infrastructure": DEVELOPER,
+    "ci": "`developer` · `agents-lead` · `tech-lead` · `quality-assurance` — preloaded by all four since mhw split `devops` by capability (mhw#97)",
     "code-review": DEVELOPER,
     "content-publishing": "`content-writer` · `content-reviewer` · `product-lead` — the pair that runs the lane, one half of it holding the copy lens as a REPAIR (ADR-0002's thirty-second amendment), and the lens that opens it at intake",
     "definition-of-done": JUDGES,
@@ -76,9 +77,12 @@ WIELDER = {
     "documentation-standard": "`developer` (Part I, general docs) · `tech-lead` · `agents-lead` — Part II, ADR practice split by domain (#223)",
     "engineering-standards": JUDGES,
     "frontend": DEVELOPER,
+    "orchestration": "the main session (orchestrator) · `agents-lead` · `scrum-master` — the review route, the loop-mode contract and the ask rules (mhw#176)",
     "planning-poker": JUDGES,
+    "provisioning": "`developer` · `tech-lead` · `quality-assurance` — preloaded by all three since mhw split `devops` by capability (mhw#97)",
     "published-voice": "`content-writer` · `content-reviewer` — the pair it was extracted for (#317)",
     "quality-gates": JUDGES,
+    "scm": "`developer` · `agents-lead` · `tech-lead` · `quality-assurance` — preloaded by all four since mhw split `devops` by capability (mhw#97)",
     "shell": "`product-lead` · `tech-lead` · `agents-lead` · `developer` · `quality-assurance` · `content-writer` · `content-reviewer`",
 }
 
