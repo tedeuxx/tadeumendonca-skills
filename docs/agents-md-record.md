@@ -514,9 +514,10 @@ not distinguish them.** **Measured on 2026-08-10**, `claude plugin details` on t
 **`Skills (71)`** — the 69 the library held under `skills/` then, **plus the 2 then under `commands/`**,
 counted alike, reachable alike. **Both denominators have moved since** — the library consolidated to 14
 and has since gained one (`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 15, re-run
-2026-09-02) and `commands/` holds 7
-(`ls commands/` → `autonomy.md blueprint.md funnel-review.md new-issue.md sprint-planning.md
-sprint-retrospective.md sprint-review.md`, re-run 2026-09-11) — so read the 71 as the
+2026-09-02) and `commands/` holds 10
+(`ls commands/` → `autonomy.md blueprint.md funnel-review.md idea-to-issues.md new-idea.md new-issue.md
+sprint-planning.md sprint-retrospective.md sprint-review.md what-else.md`, re-run 2026-10-18 after the mhw
+v6.0.0 regeneration, mhw#191; ~~7~~ at the 2026-09-11 re-run) — so read the 71 as the
 measurement that established the rule, not as today's inventory. **The rule is what survives the
 denominators:** the loader counts both directories alike.
 
