@@ -211,6 +211,14 @@ jobs:
           PYTHONDONTWRITEBYTECODE: "1"
         run: python3 scripts/milestone.test.py
 
+      # The mhw regeneration (mhw#191): every transform, the tag-only source, idempotence, and the
+      # rule that a file outside the carrier map is never written or deleted. It runs against a
+      # throwaway mhw repository built by the test, never against the network.
+      - name: Assert the mhw regeneration is reproducible and never touches a plugin-owned file
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python3 scripts/mhw-regenerate.test.py
+
       # THE CAVEAT GOES WHERE THE GREEN IS READ, and until this step existed it did not. The two arms
       # of this job surface to a human as a check name and a tick; what that tick does NOT mean lived
       # only in a script header and in the YAML comment above — neither of which is on the page where
