@@ -4,6 +4,20 @@ purpose: give the closing of an iteration an object, so improvement stops being 
 argument-hint: "[iteration] (defaults to the active iteration)"
 ---
 
+> **Read this first: hooks named below are the retired plugin's, not controls you have (#61).** This
+> text moved from the `tadeumendonca-skills` plugin (this rite at #130, from its `main` at `4882b911`). Where
+> it names a plugin hook, guard rule or test (`hooks/…`, `permission-guard.sh` and its numbered rules,
+> `mcp-guard.sh`, `inventory-counts.test.sh` and the like), it describes that plugin; **none of those runs
+> in this method**. Read any rule they held as an **instruction you follow**. What is still mechanical,
+> where the workstation installed it: the **deny floor** (native deny rules by command prefix), and
+> **each agent's own tool list**, which is native in Claude Code and Kiro and an instruction in Codex. The
+> session checks that replaced the plugin's reporting hooks are in `agents-configuration`, *Session-start
+> and end-of-turn checks*.
+>
+> **The scripts this rite runs ship with the method (#170).** `scripts` in this text is the
+> directory the method installs them to, the same for every agent harness, so the rite runs them from
+> any repository.
+
 Run the retrospective rite for the iteration named by `$ARGUMENTS` (default: the active iteration,
 derived from the pool per `/agents-configuration` rule 1 — **enumerate, never type a milestone name**).
 

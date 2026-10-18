@@ -3,6 +3,19 @@ name: definition-of-done
 description: Design or evaluate a Definition of Done, and apply THIS loop's own — the criteria a slice calls finished, plus the table naming which of them a gate proves and which nothing does. Use when building a DoD from scratch, checking a slice against this loop's criteria, or diagnosing why review still reads as subjective. Not for the CI/CD gates and thresholds themselves (see quality-gates), or a work item's readiness to be built (see definition-of-ready).
 ---
 
+> **Read this first: hooks named below are the retired plugin's, not controls you have (#61).** This
+> text moved from the `tadeumendonca-skills` plugin. Where it names a plugin hook, guard rule or test
+> (`hooks/…`, `permission-guard.sh` and its numbered rules, `mcp-guard.sh`, `inventory-counts.test.sh`
+> and the like), it describes that plugin; **none of those runs in this method**. (If the plugin is
+> still enabled beside this method, its hooks do run, and they refuse these bare-named agents' posting,
+> merging and filing; that is why installing this method is opt-in until the cutover, #63.) Read any rule they
+> held as an **instruction you follow**. What is still mechanical, where the workstation installed it:
+> the **deny floor** (native deny rules by command prefix — force-push, `git reset --hard`, recursive `rm`, `git clean -f`,
+> the `gh pr merge --squash`/`-s` prefixes, secret writes, `gh api` write methods, `gh repo delete`/`archive`/`rename`, releases and
+> package publishing, `terraform apply`/`destroy`, `sudo`), and **each agent's own tool list**, which is
+> native in Claude Code and Kiro and an instruction in Codex. The session checks that replaced the
+> plugin's reporting hooks are in `agents-configuration`, *Session-start and end-of-turn checks*.
+
 # Definition of Done — the ruler that decides when work stops
 
 Apply this SDLC-generic concept in any `<project>` — it defines what makes a Definition of Done a real
@@ -198,8 +211,9 @@ this repository names as its worst. Row 9 is admitted to the list **with its rig
 that is honest about having no gate is worth more than one that implies it has one.
 
 **It is not the existing `invocable:` field under another name, and the difference is the predicate.**
-`hooks/scripts/closure-artifact-guard.sh` reads a declared `invocable:` line and refuses a manual close
-when the named artifact does not exist. **Its predicate is EXISTENCE; row 9's is REACH.** In the measured
+The plugin's retired `closure-artifact-guard.sh` read a declared `invocable:` line and checked that the
+named artifact exists; in this method that check is an instruction (`agents-configuration`, end-of-turn
+check 8). **Its predicate is EXISTENCE; row 9's is REACH.** In the measured
 instance an honest `invocable:` declaration would have named a component path that resolves perfectly —
 the guard would have passed, and the feature would still have reached nobody. Read row 9 as covering
 what that guard cannot see rather than as a tightening of it.
@@ -308,7 +322,7 @@ working where it runs.
 Development is validated **locally and automatically before the deploy** — not by a manual
 click-through. Run the repo's regression against the local environment; what "locally" requires depends
 on the loop model (a static repo runs fully offline; a repo with backing services points at them per
-`/devops`). *"The regression passes locally"* is the concrete pre-deploy gate.
+`/ci` and `/provisioning`). *"The regression passes locally"* is the concrete pre-deploy gate.
 
 **A deploy is not finished at "merged."** After it lands — in every environment it lands in — run a smoke
 and confirm health through the repo's observability before considering it complete. That closes the loop

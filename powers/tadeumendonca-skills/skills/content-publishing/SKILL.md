@@ -1,7 +1,20 @@
 ---
 name: content-publishing
-description: "Move a finished piece through the whole lane it travels — the owner's selection, the drafting pair and its two-round bound, the reviewer that REPAIRS a copy defect in place rather than blocking on it, the held preview at the real URL, release, and the social pair in the same batch. Use when a piece is being taken from a ready Issue to live, or when someone needs to know which step runs unattended and which one waits on the owner."
+description: "Move a finished piece through its whole lane — the owner's selection, the drafting pair and its two-round bound, the reviewer that REPAIRS a copy defect in place, the held preview, release, the social pair — and say what the owner reads before a content merge: the preview mode (held preview or pending revision), never a Claude Artifact. Use when taking a piece from a ready Issue to live, correcting a published piece, or asking which step runs unattended and which waits on the owner."
 ---
+
+> **Read this first: hooks named below are the retired plugin's, not controls you have (#61).** This
+> text moved from the `tadeumendonca-skills` plugin. Where it names a plugin hook, guard rule or test
+> (`hooks/…`, `permission-guard.sh` and its numbered rules, `mcp-guard.sh`, `inventory-counts.test.sh`
+> and the like), it describes that plugin; **none of those runs in this method**. (If the plugin is
+> still enabled beside this method, its hooks do run, and they refuse these bare-named agents' posting,
+> merging and filing; that is why installing this method is opt-in until the cutover, #63.) Read any rule they
+> held as an **instruction you follow**. What is still mechanical, where the workstation installed it:
+> the **deny floor** (native deny rules by command prefix — force-push, `git reset --hard`, recursive `rm`, `git clean -f`,
+> the `gh pr merge --squash`/`-s` prefixes, secret writes, `gh api` write methods, `gh repo delete`/`archive`/`rename`, releases and
+> package publishing, `terraform apply`/`destroy`, `sudo`), and **each agent's own tool list**, which is
+> native in Claude Code and Kiro and an instruction in Codex. The session checks that replaced the
+> plugin's reporting hooks are in `agents-configuration`, *Session-start and end-of-turn checks*.
 
 # Content publishing — the lane a piece travels from selection to live, and who waits at each step
 
@@ -41,6 +54,31 @@ drafting, and the author reviews the real artifact in place rather than a repres
 representation — a mock, an artifact, a screenshot, a paste — answers a different question than the one
 the reviewer is actually asking, which is *how does this land*. The spelling below is one worked example
 of that rule, not the rule.
+
+### The owner's read, in one sentence — copied verbatim where the deciding actors read it (mhw#180)
+
+**The sentence below is canonical here and copied word for word into the `product-lead` brief (which
+writes a `content` item's acceptance criteria) and the `orchestration` skill (which the main session
+loads before it puts anything to the owner).** The rule above already said *not a rendered artifact*,
+and the route recurred anyway: on a correction to a published article an intake named an Artifact in an
+acceptance criterion as the surface of his read, a writer carried that criterion into the merge
+request, and the main session built and linked one. The intake and the main session do not load this file; the
+writer does, and followed the criterion over it. The rule was right, out of reach for two of the three and
+outranked by the criterion for the third, so it is now in each surface those actors read, in one wording, so that a drift is found by
+`diff` rather than by judgement:
+
+The owner reads a piece in the application's preview mode before it publishes: a new piece at its held preview, a correction to a published piece as a pending revision at the piece's own URL. Never a Claude Artifact, a paste, a file or a screenshot. Where the preview mode cannot render the case, say so to the owner and stop: nothing goes live, and the change waits. This governs his read of a publication only, not an Artifact he asked for elsewhere, such as a closing-rite report.
+
+**The last clause is scope, not a loophole.** The owner has other standing rules that deliver results
+as a Claude Artifact (the closing rites' executive report is one). Those are untouched. This sentence
+is about one act: his read of a piece before it goes public.
+
+**An acceptance criterion that contradicts it is a conflict to name, not an instruction.** If an Issue,
+a dispatch, a review round or a remembered note tells you to put an Artifact (or a paste, a file or a
+screenshot) in front of the owner for his read of a piece, do not produce, post or link one. Name the
+conflict in the merge request and in your return, quote the criterion, and point at this section. The
+criterion is the one at fault: it was written against a rule its author did not load. A writer and a
+reviewer follow the lane; the intake that wrote the criterion corrects it.
 
 ## The one thing that makes this lane different from every other
 
@@ -165,8 +203,8 @@ works the same way.**
 
 The drafting persona works from material the owner already has — it shapes, cuts, structures and
 translates an experience, a decision or a result; it never originates one on his behalf. It drafts onto
-tracked files and **posts to no public surface directly**; on this harness that containment is
-mechanical rather than promised, in the permission guard's persona-scoped rule.
+tracked files and **posts to no public surface directly**. In this method that containment is an
+instruction in its brief; the plugin's persona-scoped guard rule that made it mechanical is retired (#61).
 
 ### 5 · Review rounds · **AFK, bounded at two**
 
@@ -327,6 +365,9 @@ The piece is merged and deployed **held**: built, compiled, reachable at its fin
 components and the real chrome, and absent from every public enumeration. **You send the link. He reads
 it there.**
 
+**This step is for a piece that is not published yet.** A correction to a piece that is already live
+cannot be held this way; it goes through *A correction to an already-published piece*, after step 9.
+
 #### The link is FORMED from the artifact, and only then sent
 
 **No link reaches him that was not built from the file it points at.** This is a rule about
@@ -431,6 +472,14 @@ is half of what its name suggests.**
 
 He validates, or sends it back. A send-back re-enters at step 4 or step 5, not at step 1.
 
+**What records his validation is his comment on the release merge request, naming the preview URLs he
+read.** The URLs are the record of *what* he read; the comment's place on the merge request that
+releases the piece is the record of *which change* it cleared. A message to the session is not the
+record, and a comment the session posts carrying his words is a relay, not his record. If he answers
+in the session, ask for the comment as an action: one line, the act and the release merge request's
+link. The release merge request is not sent to the gate before that comment exists. **Nothing checks this**:
+no layer reads a comment before a merge, so it is an instruction, held by whoever opens the release.
+
 ### 9 · Release · **HITL to trigger, AFK to execute**
 
 Promotion is **a second commit** carrying **one edit** — clear the hold flag, set the real date — and it
@@ -442,6 +491,59 @@ that drops a held piece is the same one all of those derive from.
 against a wall clock makes the same commit build differently tomorrow, and breaks it silently — a build
 that differs from a build, not an error. A commit is strictly more auditable and is the honest
 replacement.
+
+### A correction to an already-published piece · **AFK to build, HITL to read, two merges**
+
+**The owner's ruling (mhw#180): *«Construir modo revisão»*.** He chose a pending revision rendered by the
+application over a held sibling copy under another address and over merging and reading it live. The
+mechanism is the consuming product's to build; this section is what the lane does with it, and what it
+does until it exists.
+
+**Why steps 7 to 9 cannot carry a correction.** The hold is per piece, never per revision: the build
+holds one text per piece, and the flag decides whether that text is public. Three readers of the flag
+turn the flag on a live piece into an unpublication (read in the consuming product's code by the
+#180 intake, not run in a browser):
+
+- **The public enumeration** drops a flagged piece, so the live article leaves the index, the feed and
+  the navigation.
+- **The article route** sends a held piece reached without the preview parameter to the locale home, so
+  every reader who arrives at the published address lands somewhere else.
+- **The neutral share route** sends a held piece's neutral address to the root redirect, and the neutral
+  address is the one every social post carries, so every shared link breaks.
+
+Without the flag, the merge publishes the correction with no read at all. So the hold either
+unpublishes the article or reads nothing.
+
+**The mechanism: a pending revision.** The corrected body of each edition sits beside the published
+piece, in a place none of the enumerating readers walks, keyed by the piece. It is **body-only**: the
+front matter stays the published piece's, so the address, the title and the share card do not move.
+Under the preview parameter the piece's own URLs, every edition and the neutral share address, render
+the revision with a marker that says it is a pending revision. Without the parameter, everyone reads the
+published text. Nothing is prerendered from a revision and nothing is indexed while one is rendered.
+Where the consuming product keeps the revision files and how its release lines read belong in that
+product's own author guide and decision record; this method does not restate them.
+
+**The sequence, and it is two merges:**
+
+1. **The revision merge.** The writer adds the revision files; the content pair and the gate run as on
+   any `content` diff. It merges and deploys, and the published text does not change.
+2. **His read.** You send the preview links at the piece's own URLs, formed from the artifact as in
+   step 7: each edition's locale prefix and its own slug, plus the parameter. He reads the revision in
+   place, on any device. A send-back re-enters at step 4 or step 5 and amends the revision files.
+3. **The release merge.** One commit moves each revision body onto its published file and deletes the
+   revision files. Its diff **is** the correction, which is a better gate surface than the revision
+   merge's. **His comment on this merge request, naming the URLs he read, records his read** (step 8);
+   it is not sent to the gate before that comment exists. On merge the correction is live.
+
+**Until the consuming product ships the mechanism: nothing goes live, and the correction waits.** Not
+the hold on the live piece (it unpublishes it), not a sibling copy, not a merge read live afterwards,
+and not a representation in place of the page. Say to the owner, as status, that the correction is
+waiting on the revision mechanism, and stop that item. The same holds for any case the mechanism does
+not cover, such as a change to the front matter rather than the body: name the case and wait.
+
+**What nothing enforces.** No layer can tell a correction from a new piece, see whether a link was sent,
+or read his comment before a merge. A test in the repository that renders this method asserts that
+this section and the canonical sentence are *written*; nothing asserts that a session followed them.
 
 ### 10 · The social pair, in the same batch · **AFK to draft · the post is the HARNESS's, in an attended session**
 
@@ -466,41 +568,26 @@ reversed is worse than no rule — it reads as a live constraint.
 **What is true instead, and it is three separate facts that must not be collapsed into one.**
 
 1. **WHO. The orchestrator posts** — the main session, not a persona, not a text handed to the owner
-   to paste. Every alternative is closed by construction: `permission-guard.sh` rule 5e denies the
-   public comment routes to `content-writer`, `content-reviewer` and `product-lead`, and
-   `mcp-guard.sh` denies every MCP server to every persona. Measured 2026-09-11, exercising
-   `mcp-guard.sh` directly against `mcp__linkedin__create_post`, with calibration in the same run:
-
-   ```
-   printf '{"tool_name":"mcp__linkedin__create_post","agent_type":"<T>"}' | bash hooks/scripts/mcp-guard.sh
-   # <T> = tadeumendonca-skills:product-lead      -> deny
-   # <T> = tadeumendonca-skills:content-writer    -> deny
-   # <T> = tadeumendonca-skills:content-reviewer  -> deny
-   # <T> = tadeumendonca-skills:agents-lead       -> deny
-   # <T> = ""   (the orchestrator)                -> NO DECISION, exit 0
-   # calibration, same hook, same run: chrome-devtools take_screenshot for product-lead -> no decision,
-   # and chrome-devtools fill_form for the same persona -> deny. The hook can answer three ways.
-   ```
+   to paste. In this method (#61) the alternatives are closed as follows. **Connector access is the
+   agent's own tool list:** no persona's list names a publishing connector, and `product-lead`'s browser
+   grant excludes the input-carrying tools. That is native in Claude Code (measured for built-in tools
+   on 2.1.289) and Kiro (documented); **Codex custom agents carry no tool list and inherit the parent's
+   MCP servers, so there it is an instruction.** The public comment routes (`gh pr comment`,
+   `gh issue comment`) are kept from `content-writer`, `content-reviewer` and `product-lead` by their
+   briefs, an instruction. The plugin's `mcp-guard.sh` and rule 5e, which held both mechanically on
+   Claude Code, are retired.
 
 2. **WHICH HARNESS. The act has run through Claude in Chrome — a browser extension — and not through
    MCP.** The two have different containments and one of them has none. **No matcher in this plugin
-   observes an extension act at all.** Re-derived 2026-09-11:
-
-   ```
-   jq -r '[.hooks|to_entries[]|.value[]|.matcher // "none"]|unique|join(" ")' hooks/hooks.json
-   # -> Bash mcp__.* none
-   jq -r '[.hooks|to_entries[]|.value[]|.hooks[]]|length' hooks/hooks.json
-   # -> 15      (the denominator, so "two matchers" is read against a non-empty set)
-   ```
-
-   `Bash` sees a command string and `mcp__.*` sees a tool name. Neither is a browser-extension act.
+   observes an extension act at all**, and in this method no hook runs (#61). A tool list names tools;
+   a browser-extension act is not one of them.
 
 3. **WHAT CONTAINS IT: nothing, and the ruling says so in its own words.** The accepted cost, quoted
    rather than paraphrased: *"The only accountability is the census's `W` arm — which reports **after**
    the act and blocks nothing. The whole containment becomes **a URL pattern plus a human in the
-   chair**."* The `W` arm exists since #399 (`hooks/scripts/orchestrator-tool-census.sh`, registered on
-   `Stop`) and it covers the **MCP route only** — it reads the Claude Code transcript, so it is silent
-   on the route that has actually published, and every exit path in it is `exit 0`. **There is no layer
+   chair**."* That census was the plugin's `orchestrator-tool-census.sh`; it is retired (#61), and its place
+   is `agents-configuration`'s end-of-turn check 9, an instruction that lists what the orchestrator did
+   with its own hands. **There is no layer
    anywhere that refuses a bad post.**
 
 What is automated is the **cost the manual route actually has** — a generator scaffolds both drafts from
@@ -560,9 +647,8 @@ dropping it.**
   and its `deny` honoured — the captured stdin carried `tool_input` in full, with a nonce URL inside
   it, plus an `mcp_server` field. **That measurement is RELAYED here and was not re-derived in this
   slice.** What *is* checkable from this tree corroborates it rather than proving it:
-  `hooks/scripts/mcp-guard.sh`'s own header says only that an MCP call has no `.tool_input.command` —
-  **it never claimed `tool_input` itself was absent**, so nothing in this repository ever asserted the
-  stronger thing the struck clause asserted.
+  the plugin's retired `mcp-guard.sh` header said only that an MCP call has no `.tool_input.command` —
+  **it never claimed `tool_input` itself was absent**.
 - **The drain's `content` exclusion bounds who SELECTS a piece; it does not bound who can POST.**
   `/autonomy on`'s pool is `(product OR loop) AND ready AND active-iteration`, so this lane is out **by
   predicate rather than by exception** — which is the better design and is not the containment anyone
@@ -599,16 +685,16 @@ is hand-voiced after generation, and regenerating over it at this cadence buys n
 
 | decision | what actually holds it |
 |---|---|
-| the orchestrator is the only publisher | **nothing.** `mcp-guard.sh` exits without a decision on an empty `agent_type`, by design; the browser-extension route has no matcher at all |
-| a post is preceded by the OG-card check | **an instruction.** No layer in this plugin sees page state |
+| the orchestrator is the only publisher | **the agents' tool lists** keep publishing connectors from every persona in Claude Code and Kiro (an instruction in Codex); **nothing** holds the orchestrator itself, and the browser-extension route has no matcher at all |
+| a post is preceded by the OG-card check | **an instruction.** No layer sees page state |
 | the share URL carries its campaign | **an instruction**, measurable after the fact as a lower bound only |
 | both halves of the pair shipped | **nothing at post time.** Unchanged by any of this |
 | a bilingual post carries its two language hints, and sits under the length target | **an instruction** (`published-voice` rules 19–20, 2026-09-19). The gate arm asserts the clauses are WRITTEN; nothing reads a draft, and no copy hold reaches this lane to refuse a post that dropped them |
-| the share URL is locale-neutral | **an instruction** (rule 21, 2026-09-19), and it is **inert until the neutral form resolves** — so today what holds it is the precondition the rule states first. The `mcp__.*` matcher DOES receive the typed URL, which makes a detector conceivable on that route and on no other; nothing is built, and the route that has actually published is the browser extension no matcher sees |
-| the publish act is accounted for | **`orchestrator-tool-census.sh`'s `W` arm — after the act, gating nothing, and on the MCP route only.** Blind to the route that has actually published |
+| the share URL is locale-neutral | **an instruction** (rule 21, 2026-09-19), and it is **inert until the neutral form resolves** — so today what holds it is the precondition the rule states first. An MCP call carries the typed URL, which made a detector conceivable on that route; none exists in this method, and the route that has actually published is the browser extension no matcher sees |
+| the publish act is accounted for | **an instruction**: `agents-configuration`'s end-of-turn check 9, after the act, gating nothing |
 
 **By this loop's own test — *would something stop me, or only my memory?* — nothing on this step is
-engineered**, and the one mechanism that exists is detection, one turn late, on one of two routes. That
+engineered**: the only native layer is the agents' tool lists, and they do not hold the orchestrator. That
 is the ruling's accepted cost, written down rather than implied.
 
 ## The guarantee that must not be softened: ISOLATION is not PRIVACY

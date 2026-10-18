@@ -4,6 +4,23 @@ purpose: give iteration composition an object, so the pool the owner rules on is
 argument-hint: "<iteration> (the title of the iteration being composed)"
 ---
 
+> **Read this first: hooks named below are the retired plugin's, not controls you have (#61).** This
+> text moved from the `tadeumendonca-skills` plugin (this rite at #130, from its `main` at `4882b911`). Where
+> it names a plugin hook, guard rule or test (`hooks/…`, `permission-guard.sh` and its numbered rules,
+> `mcp-guard.sh`, `inventory-counts.test.sh` and the like), it describes that plugin; **none of those runs
+> in this method**. Read any rule they held as an **instruction you follow**. What is still mechanical,
+> where the workstation installed it: the **deny floor** (native deny rules by command prefix), and
+> **each agent's own tool list**, which is native in Claude Code and Kiro and an instruction in Codex. The
+> session checks that replaced the plugin's reporting hooks are in `agents-configuration`, *Session-start
+> and end-of-turn checks*.
+>
+> **The scripts this rite runs ship with the method (#170).** `scripts` in this text is the
+> directory the method installs them to, the same for every agent harness, so the rite runs them from
+> any repository.
+>
+> **Not shipped by this method:** `scripts/milestone-create.sh` and `scripts/milestone-update.sh`,
+> the plugin's retired predecessors of the Python routes, named below only as history.
+
 Run the planning rite for the iteration named by `$ARGUMENTS`.
 
 **This rite is the consumer the closing rites never had.** `commands/sprint-retrospective.md` produces
@@ -465,12 +482,15 @@ which is the strictest reading of the standing rule it has ever satisfied; it is
 form that broke it.
 
 **That paragraph is this rite's APPLICATION of rule 5 of the HITL escalation format; the canonical
-statement of the rule is rule 5 of `AGENTS.md`'s *When you interrupt the owner*** (#409; `CLAUDE.md`'s
-*The HITL escalation format* section until #562). It is left standing
+statement of the rule is the workstation's user-level brief, *Escalating to the owner* (rule 3: a
+decision gets a structured picker of at most four options), with the owner's limits in his overlay**
+(#409; in the plugin it was rule 5 of the plugin repository's root brief, and until #562 a section of its
+vendor-named predecessor). It is left standing
 verbatim rather than replaced by a bare pointer for two reasons: a gate arm in
 `hooks/scripts/inventory-counts.test.sh` pins its opening clause as a literal, and it is the one place
 the two rules are shown colliding on a concrete act. **It is not an independent source** — if it ever
-disagrees with `AGENTS.md`, `AGENTS.md` wins and this paragraph is the defect.
+disagrees with the user-level brief or the `orchestration` skill's *How to ask the owner* (#176),
+they win and this paragraph is the defect.
 
 ### 3c · recompose, and the loop terminates at TWO activations
 

@@ -4,6 +4,19 @@ purpose: make filing the cheap path, because the owner is the only origin of wor
 argument-hint: "<what you want, in your own words>"
 ---
 
+> **Read this first: hooks named below are the retired plugin's, not controls you have (#61).** This
+> text moved from the `tadeumendonca-skills` plugin. Where it names a plugin hook, guard rule or test
+> (`hooks/…`, `permission-guard.sh` and its numbered rules, `mcp-guard.sh`, `inventory-counts.test.sh`
+> and the like), it describes that plugin; **none of those runs in this method**. (If the plugin is
+> still enabled beside this method, its hooks do run, and they refuse these bare-named agents' posting,
+> merging and filing; that is why installing this method is opt-in until the cutover, #63.) Read any rule they
+> held as an **instruction you follow**. What is still mechanical, where the workstation installed it:
+> the **deny floor** (native deny rules by command prefix — force-push, `git reset --hard`, recursive `rm`, `git clean -f`,
+> the `gh pr merge --squash`/`-s` prefixes, secret writes, `gh api` write methods, `gh repo delete`/`archive`/`rename`, releases and
+> package publishing, `terraform apply`/`destroy`, `sudo`), and **each agent's own tool list**, which is
+> native in Claude Code and Kiro and an instruction in Codex. The session checks that replaced the
+> plugin's reporting hooks are in `agents-configuration`, *Session-start and end-of-turn checks*.
+
 Turn `$ARGUMENTS` into an Issue in the current repo.
 
 **This command exists because the owner is the only one who opens work, and that rule was costing him
@@ -91,10 +104,11 @@ asking and open the Issue.
 time**, and **no multiple choice**. A questionnaire is not an interview — four questions in one message is
 a form, and offering options to pick from decides the answer for him.
 
-**This is the interview half of rule 5 of the HITL escalation format, and the canonical statement of that
-rule is rule 5 of `AGENTS.md`'s *When you interrupt the owner* — not this paragraph** (#409; it was
-`CLAUDE.md`'s *The HITL escalation format* section until #562). It is cited here
-rather than restated independently, because the rule governs the orchestrator and the root brief is the
+**This is the interview half of the HITL escalation format, and the canonical statement of that rule is
+the workstation's user-level brief, *Escalating to the owner*, with the owner's limits in his overlay,
+and the method's `orchestration` skill, *How to ask the owner*, whose rule 5 is this one (#176)
+— not this paragraph** (#409). It is cited here
+rather than restated independently, because the rule governs the orchestrator and a brief is the only
 surface measured to reach it; three surfaces each stating a rule with no canonical home is drift this
 repository has already paid for. **What is local here is the application, not the rule:** an interview
 takes no options, and an escalation always does.
@@ -111,8 +125,8 @@ origin — which its brief forbids it from using.
 
 #### The marker — and recording the absence is the design, not the fallback
 
-Put one of exactly two forms in the Issue body. There is no third spelling, and a gate asserts that
-(`hooks/scripts/inventory-counts.test.sh`).
+Put one of exactly two forms in the Issue body. There is no third spelling. (The plugin's
+`inventory-counts.test.sh` asserted that; in this method it is an instruction.)
 
 ```
 <!-- owner-take: supplied -->
@@ -248,7 +262,8 @@ written down reads as *waiting on the owner* forever. (#166 carried one for over
 blocker had shipped.)
 
 **Declare what closing this Issue will make invocable, on its own line at column 0.** The field is a
-parsing contract, not prose — `hooks/scripts/closure-artifact-guard.sh` reads it literally:
+parsing contract, not prose — `agents-configuration`'s end-of-turn check 8 reads it literally
+(formerly the plugin's `closure-artifact-guard.sh`):
 
 ```
 invocable: /blueprint                    a plugin identifier a reader can type
@@ -394,11 +409,10 @@ is an owner-only act performed in the browser**. An unassigned `loop` Issue is n
 `/autonomy on`'s *"`ready` items carrying NO milestone"* line at session open, which exists for exactly
 this.
 
-**What nothing enforces.** No registered hook reads the queue — **and not for the reason this line used
-to give.** *"Every `gh issue` call in `hooks/scripts/` is a write path"* is **false at head**:
-`closure-artifact-guard.sh` makes two reads. The reason that survives is exact and is the one this
-paragraph needs: **no registered hook selects a `--milestone` or a `--label`**, so an Issue filed with
-the wrong milestone, or with none while one existed, is invisible to the tracker and to the diff. The gate asserts this instruction is **present**. That is the whole claim.
+**What nothing enforces.** No hook runs in this method (#61), so nothing selects a `--milestone` or a
+`--label` on its own, and an Issue filed with the wrong milestone, or with none while one existed, is
+invisible to the tracker and to the diff. This is an instruction, and nothing asserts even that it is
+present.
 
 ## What this command does NOT do
 
