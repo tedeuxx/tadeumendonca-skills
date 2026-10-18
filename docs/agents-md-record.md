@@ -439,11 +439,13 @@ What that section held, and where each part lives now:
 
 This repo is a **Claude Code plugin + marketplace** — the native way to reuse skills across
 projects. The skill library lives in `skills/`, one directory per skill holding a `SKILL.md`, and the
-**seven** command files a human types live in `commands/` (`ls commands/` → `autonomy.md blueprint.md
-funnel-review.md new-issue.md sprint-planning.md sprint-retrospective.md sprint-review.md`), carrying
-**nine** non-help
+**ten** command files a human types live in `commands/` (`ls commands/` → `autonomy.md blueprint.md
+funnel-review.md idea-to-issues.md new-idea.md new-issue.md sprint-planning.md sprint-retrospective.md
+sprint-review.md what-else.md`; ~~seven~~ until the mhw v6.0.0 regeneration added the last three,
+mhw#191), carrying **twelve** non-help
 typed forms — `autonomy on`, `autonomy off`, `new-issue`, `blueprint export`, `blueprint import`,
-`sprint-review`, `sprint-retrospective`, `sprint-planning`, `funnel-review` — because
+`sprint-review`, `sprint-retrospective`, `sprint-planning`, `funnel-review`, `new-idea`,
+`idea-to-issues`, `what-else` — because
 `autonomy` and `blueprint` each carry modes and a bare invocation of either only prints help;
 `.claude-plugin/marketplace.json` is the catalog and
 `.claude-plugin/plugin.json` the manifest. **Nothing is published outside this git repo** — the
@@ -687,7 +689,7 @@ that section kept, is that `AGENTS.md`.** The cut test is unchanged by it. So ea
 obey, or a reading structure for a human?* **Reading structure moved. The obligations stayed, in the
 section immediately below**, which is where they always belonged and never sat.
 
-**What moved, verbatim and with every strike intact:** the **15 skills** inventory and the one-level
+**What moved, verbatim and with every strike intact:** the skills inventory (**19 skills** at this head) and the one-level
 tree decision (#286), the family-heading history (#182), the consolidation narratives
 (#229/#230/#231), the roster narrative with its layer table, the absorbed-and-retired lists, and all
 six per-skill `| Command | Purpose |` tables. Read it at
@@ -700,7 +702,7 @@ row of a table. `hooks/scripts/inventory-counts.test.sh` requires this file to n
 the first pass of this cut. It is stated here now rather than delegated: what the loop is called is not
 a reading structure, and it does not belong to the catalogue of what each command does.
 
-**One sentence was DELETED rather than moved, because `README.md` already carried it** — *"15 skills,
+**One sentence was DELETED rather than moved, because `README.md` already carried it** — *"19 skills,
 one directory each, at one level under `skills/`"* is `README.md:1141`. **The rest is a RELOCATION and
 not a deduplication**, which is worth saying because the two documents overlap without agreeing: that
 README section carries a **generated** per-skill table (`skill | what it decides | whose domain`,

@@ -16,7 +16,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 15 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 19 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -664,11 +664,13 @@ was built to avoid.
 
 <!-- claim id=0004 class=DERIVED -->
 
-**Skills carry the conventions so the model does not re-invent them.** **15 skills + autonomy** —
+**Skills carry the conventions so the model does not re-invent them.** **19 skills + autonomy** —
 typed `autonomy on` or `autonomy off`, never bare, since `commands/autonomy.md` states that a bare
 `/autonomy` *"prints help and does nothing else"* — plus `new-issue`, `blueprint`,
-`sprint-review`, `sprint-retrospective`, `sprint-planning` and `funnel-review`, across **seven command files** (`ls commands/` →
-`autonomy.md blueprint.md funnel-review.md new-issue.md sprint-planning.md sprint-retrospective.md sprint-review.md`). **The count of typed forms is larger than the count of files,
+`sprint-review`, `sprint-retrospective`, `sprint-planning`, `funnel-review`, `new-idea`, `idea-to-issues` and
+`what-else`, across **ten command files** (`ls commands/` →
+`autonomy.md blueprint.md funnel-review.md idea-to-issues.md new-idea.md new-issue.md sprint-planning.md sprint-retrospective.md sprint-review.md what-else.md`).
+~~seven command files~~ — the three added are mhw's, carried by the v6.0.0 regeneration (mhw#191). **The count of typed forms is larger than the count of files,
 because `autonomy` and `blueprint` each carry modes, and the two must not be conflated** — this
 README's own resource-table row for **Commands (legacy)** says exactly that, and **this sentence
 conflated them anyway until #387**: it named bare `autonomy` as one of the commands and omitted
@@ -974,9 +976,18 @@ where `quality-assurance` at least *applies* a concrete instance of the concept 
 here even touches this skill's subject at any dispatch. It stays reachable the same way every
 non-preloaded skill is: typed as `/planning-poker`, or via the `Skill` tool on demand.
 
-**1,711,199 B as billed across the eight, 370,733 B distinct — 58.1% of the library (638,106 B across
-15 skills; `find skills -name SKILL.md | xargs wc -c`), and the largest preload is a TIE at 238,879 B
-between `tech-lead` and `agents-lead`, with `developer` third at 226,687 B.**
+**2,559,531 B as billed across the eight, 614,284 B distinct — 66.3% of the library (926,216 B across
+19 skills; `find skills -name SKILL.md | xargs wc -c`), and the largest preloads are the content pair's,
+a TIE at 442,074 B between `content-writer` and `content-reviewer`, with `agents-lead` third at 312,237 B.**
+~~1,711,199 B billed, 370,733 B distinct, 58.1% of 638,106 B, tie at 238,879 B between `tech-lead` and
+`agents-lead`, `developer` third at 226,687 B~~ — **struck 2026-10-18 (mhw#191)**: re-derived with the
+per-persona script published at the head of this section, on the tree regenerated from mhw v6.0.0. The
+regeneration changed four preload lists (`devops` gave way to `scm` · `ci` · `provisioning` for
+`developer`, `tech-lead` and `quality-assurance`, to `scm` · `ci` · `orchestration` for `agents-lead`;
+`scrum-master` gained `orchestration`) and grew most skills. **The per-persona bullets above are NOT
+re-derived one by one**: their totals and lists describe the tree before the regeneration. At this head the
+script returns `agents-lead` 312,237 · `content-reviewer` 442,074 · `content-writer` 442,074 · `developer` 298,451 · `product-lead` 238,843 · `quality-assurance` 304,291 · `scrum-master` 213,332 · `tech-lead` 308,229 B, and the per-skill parentheticals are re-derivable with the
+`find … wc -c` command above.
 ~~1,711,001 / 370,634 / 638,007~~ — **struck within this PR's own review round**: the round grew
 `content-publishing` by 99 B, which two briefs carry, so the billed total moved by 198 B and the
 distinct and library totals by 99 B each. The tie, the third place and the percentage are unmoved.
@@ -1152,7 +1163,7 @@ no slash, no glob, no duplicate or same-path alias, and every identifier resolvi
 **It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
 not the loader, so it catches a broken reference rather than a broken loader.
 
-The library: 15 skills, one directory each, at one level under `skills/`.
+The library: 19 skills, one directory each, at one level under `skills/`.
 
 **The table below is GENERATED — its second column is each skill's own first line of body, written by
 `hooks/scripts/skills-table.py`. The AUTHORED per-skill catalogue is
@@ -1168,6 +1179,7 @@ green that cannot redden for the reason it exists.
 |---|---|---|
 | `agents-configuration` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `backend` | Backend (BFF-on-Lambda) | `developer` |
+| `ci` | Wire the continuous-integration capability for any `<project>` repo. Pick the loop model first | `developer` · `agents-lead` · `tech-lead` · `quality-assurance` — preloaded by all four since mhw split `devops` by capability (mhw#97) |
 | `cloud-infrastructure` | Cloud infrastructure (AWS) | `developer` |
 | `code-review` | Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's… | `developer` |
 | `content-publishing` | Content publishing — the lane a piece travels from selection to live, and who waits at each step | `content-writer` · `content-reviewer` · `product-lead` — the pair that runs the lane, one half of it holding the copy lens as a REPAIR (ADR-0002's thirty-second amendment), and the lens that opens it at intake |
@@ -1177,9 +1189,12 @@ green that cannot redden for the reason it exists.
 | `documentation-standard` | Documentation — the general standard and the ADR practice | `developer` (Part I, general docs) · `tech-lead` · `agents-lead` — Part II, ADR practice split by domain (#223) |
 | `engineering-standards` | Apply the owner's engineering standards — the two tiers, the twelve principles, and the few rules | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `frontend` | Frontend (React SPA) | `developer` |
+| `orchestration` | Orchestration: the review route, the loop-mode contract, how to ask | the main session (orchestrator) · `agents-lead` · `scrum-master` — the review route, the loop-mode contract and the ask rules (mhw#176) |
 | `planning-poker` | Planning Poker — consensus estimation, and what it is actually for | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
+| `provisioning` | Provision infrastructure for any `<project>` repo. Pick the loop model first (`/agents-configuration`); | `developer` · `tech-lead` · `quality-assurance` — preloaded by all three since mhw split `devops` by capability (mhw#97) |
 | `published-voice` | The owner's published voice — the shared ruler | `content-writer` · `content-reviewer` — the pair it was extracted for (#317) |
 | `quality-gates` | Quality gates — the CI/CD policy, and where each gate sits | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
+| `scm` | Run the source-control capability for any `<project>` repo. Pick the repo's loop model first; branching, | `developer` · `agents-lead` · `tech-lead` · `quality-assurance` — preloaded by all four since mhw split `devops` by capability (mhw#97) |
 | `shell` | Apply this working-files and shell-command discipline in any `<project>` repo, for any persona dispatched | `product-lead` · `tech-lead` · `agents-lead` · `developer` · `quality-assurance` · `content-writer` · `content-reviewer` |
 **Three things the table shows rather than asserts.** The builder is the only persona holding a build
 skill — `backend`, `frontend`, `cloud-infrastructure` — because conventions exist for building, and one
@@ -2010,8 +2025,8 @@ distributions do not collide — the repository root stays a Claude Code plugin,
 the same `skills/` tree the Claude Code manifest declares, and `hooks/scripts/kiro-power.test.sh`
 re-runs the generator into a temporary directory and diffs it against what is committed — so the two
 trees cannot drift, in either direction, without CI going red. The conversion is not a copy: **none of
-the 15 source skills carries a `name:` key** (`grep -c '^name:' skills/*/SKILL.md` → `0` for all
-fifteen), because Claude Code derives the identifier from the directory, while Kiro validates
+the 19 source skills carries a `name:` key** (`grep -c '^name:' skills/*/SKILL.md` → `0` for all
+nineteen; mhw's sources carry one and the regeneration drops it, mhw#191), because Claude Code derives the identifier from the directory, while Kiro validates
 `name` **and** `description` in the frontmatter. The generator synthesises it, and rewrites the
 library's relative `../../docs/adr/…` link targets to absolute URLs, which are the only form that still
 resolves once Kiro has copied a skill into `~/.kiro/powers/installed/<power>/` (`getPowerDir()` in the
