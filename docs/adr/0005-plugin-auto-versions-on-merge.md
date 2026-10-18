@@ -1161,3 +1161,56 @@ source and the plugin as something a consumer installs; both stop being true goi
 recorded as an amendment of the `plugin-distribution` capability document rather than as a new record,
 because a record here must name a capability and this one's subject is exactly how the harness reaches
 a consumer. Nothing above is rewritten.
+
+## 2026-10-18 amendment — the regeneration is a script, and it never touches what the plugin keeps (mhw#191)
+
+**Status unchanged (accepted).** The 2026-10-12 amendment made this repository a generated
+distribution of tedeuxx/mhw and left *how* it is generated for later. This amendment records the
+mechanism, its carrier map and the two owner rulings that bound it. Written by `agents-lead`, which
+also built the slice; the review is a separate `agents-lead` instance and the gate.
+
+**The mechanism is `scripts/mhw-regenerate.py`**, run as
+`python3 scripts/mhw-regenerate.py --source <mhw checkout> --tag <vX.Y.Z>`. It reads only the git objects
+of a release tag (`git archive <tag>^{commit} method`), never the mhw working tree, so its output is
+reproducible from the tag alone. It refuses a name that is not a `vX.Y.Z` tag. It records the tag, the
+commit and every path it generated in `.mhw-regenerated`. A second run on its own output writes nothing.
+`scripts/mhw-regenerate.test.py` covers each transform on a fixture and runs in `docs-test`.
+
+**The carrier map**, and nothing outside it is written:
+
+| mhw at the tag | here | transform |
+|---|---|---|
+| `method/skills/<n>/SKILL.md` | `skills/<n>/SKILL.md` | drop the `name:` key; bare scalars where YAML allows; `{{method-scripts}}` → `scripts` |
+| `method/agents/<n>.md` | `agents/<n>.md` | bare scalars; the token |
+| `method/commands/<n>.md` | `commands/<n>.md` | drop `name:` (no command here carries it: the file name is the identifier); bare scalars, `argument-hint` always quoted; the token |
+| `method/scripts/*.py`, `*.sh`, tests excluded | `scripts/` | verbatim, mode kept |
+| `method/scripts/<dir>/**`, `fixtures/` excluded | `scripts/<dir>/` | verbatim |
+| — | `.claude-plugin/plugin.json` skills array and counts, `marketplace.json` count | derived from the tree |
+| — | `powers/` | `hooks/scripts/kiro-power-build.py` |
+
+mhw's prose is never rewritten for this plugin. Its carriers say the plugin's hooks are retired, while
+they still run here when the plugin is enabled; the notice at the head of those carriers already says
+so, and the error runs in the restrictive direction (a brief claims less enforcement than runs).
+
+**What the regeneration never touches.** The owner's ruling on mhw#191, Q1, 2026-10-18: keep the four
+plugin-only skills (`backend`, `cloud-infrastructure`, `devops`, `frontend`) in this repository, over
+retiring them (the recommendation) and over moving them to mhw. So the plugin is no longer a pure mirror,
+and the script never writes or deletes a path it did not generate. The one deletion is a path the
+previous watermark lists and the new tag no longer carries. A path declared plugin-owned, or after the
+first run any existing path the script did not generate, stops the run before anything is written.
+`hooks/`, the plugin's own scripts and tests, `docs/`, `README.md` and `AGENTS.md` are outside the map;
+a change they need after a regeneration is a reviewed commit of its own, never script output.
+
+**`/blueprint` is mhw's.** The owner's ruling on mhw#191, Q2, 2026-10-18: adopt mhw's 56-line command
+over the plugin's 727-line one, over keeping the plugin's version outside the map (the recommendation)
+and over carrying it into mhw first. This is an explicit owner exception to the root brief's floor item
+13 (content is additive), for that file only. The command's argument contract changes
+(`import <path-to-a-foreign-blueprint>` becomes `import <path to the requirements document>`), which
+this repository's versioning rule makes a **major** cut; the plugin's release workflow cuts it, and that
+dispatch is the owner's.
+
+### Significance
+
+Arm: **introduces a new tool-class** (a regeneration script with its own CI step) and **alters a
+previously-recorded decision**: the 2026-10-12 amendment described this repository as a mirror, and
+under Q1 it is a mirror plus four carriers it maintains. Nothing above is rewritten.
