@@ -547,6 +547,12 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # Typed for the same reason the three rites are (a period worked by hand is named by a human), and for
 # one more: its collection step needs an authenticated browser, so the human who has one is the one
 # who knows the rite can run at all.
+# Then 7 → 10 on mhw#191, when the first regeneration from mhw v6.0.0 carried three commands mhw added
+# to its method: `new-idea` (an idea becomes an agreed requirements document by interview),
+# `idea-to-issues` (that document becomes vertical-slice Issues) and `what-else` (what is left against
+# the session's anchored objective). Each takes the owner's words as its argument, which is why they are
+# typed rather than matched. They come from the regeneration, not from an edit here, and are named in
+# both messages below so a fourth unannounced one still goes red.
 #
 # THE ASSERTION IS NOT WEAKER FOR HAVING BEEN BUMPED, and that is the whole reason it is a pinned
 # literal rather than a `-ge`. It exists to catch the ACCIDENTAL root command — a skill dropped one
@@ -562,10 +568,10 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # So the failure this now catches is a LIBRARY SKILL LANDING IN `commands/` — where it is typed-only,
 # never matched, and absent from every count and table in this file.
 root_cmds=$(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')
-if [ "$root_cmds" -eq 7 ]; then
-  ok "commands/ root — exactly seven owner-typed commands (autonomy, new-issue, blueprint, sprint-review, sprint-retrospective, sprint-planning, funnel-review), as the docs enumerate"
+if [ "$root_cmds" -eq 10 ]; then
+  ok "commands/ root — exactly ten owner-typed commands (autonomy, new-issue, blueprint, sprint-review, sprint-retrospective, sprint-planning, funnel-review, new-idea, idea-to-issues, what-else), as the docs enumerate"
 else
-  bad "commands/ root — $root_cmds file(s); the docs enumerate seven owner-typed commands (autonomy, new-issue, blueprint, sprint-review, sprint-retrospective, sprint-planning, funnel-review).
+  bad "commands/ root — $root_cmds file(s); the docs enumerate ten owner-typed commands (autonomy, new-issue, blueprint, sprint-review, sprint-retrospective, sprint-planning, funnel-review, new-idea, idea-to-issues, what-else).
       A library skill belongs in skills/<name>/SKILL.md — under commands/ it is absent from every count
       and table here, and from the per-family breakdown a reader actually opens."
 fi
@@ -3269,9 +3275,13 @@ else
   # So the rival must be named INSIDE a `(see ...)` construct, which is the form the #166 standard
   # requires for a disambiguating pointer anyway. That leaves this check STRICTER than it was rather
   # than weaker: before the flatten a rival mentioned in passing counted, and now only a pointer does.
+  # `delivery` followed mhw's restatement on mhw#191: it paired ~~`devops`~~ with the preload. mhw split
+  # `devops` by capability (mhw#97), and the regenerated preload's description now names "the permission
+  # zones (see scm)"; `scm` names "the state machine (see agents-configuration)" back. `devops` stays in
+  # the plugin (owner, Q1) and leaves this cluster, which is the uncovered-addition case stated above.
   CLUSTERS="
 gates|code-review quality-gates
-delivery|devops agents-configuration
+delivery|scm agents-configuration
 loop|agents-configuration engineering-standards
 "
 
@@ -3832,7 +3842,12 @@ fi
 # is a citation like any other to the loop below: it would register as a sighting and keep an exemption
 # alive after its last real citing site was removed — this block defeating its own second arm from
 # inside its own documentation.
-FOREIGN_ADR_NUMBERS="0023 0043 0046 0049"
+# 0016, 0037 and 0038 joined on mhw#191: the carriers regenerated from mhw v6.0.0 cite records of the
+# workstation repository (tedeuxx/mhw) by number — its deny floor, its single-root-brief rule and its
+# admin-workspace record. Two of the sites qualify the number ("of the workstation repository", "mhw");
+# the ones in the regenerated scm and provisioning skills do not, which is mhw-side text this plugin does
+# not rewrite.
+FOREIGN_ADR_NUMBERS="0016 0023 0037 0038 0043 0046 0049"
 
 foreign_problems=""
 for num in $FOREIGN_ADR_NUMBERS; do
@@ -4921,7 +4936,12 @@ fi
 # the exact drift this block exists to catch — a check whose subject is chosen by the thing it checks.
 # Adding a third mode-dispatching command is one word here, in the same commit, and forgetting fails
 # CLOSED at the vacuity guard below.
-MODE_CMDS="blueprint autonomy"
+# `blueprint` LEFT THIS SET ON mhw#191, by the owner's Q2 ruling (2026-10-18): adopt mhw's 56-line
+# `/blueprint` over the plugin's 727-line one, an explicit owner exception to floor item 13 (content is
+# additive) for that file only. mhw's command has no dispatch table and no `# Mode:` sections — it states
+# its two halves as `## export` and `## import` — so the arm below has no subject there. It still holds
+# `autonomy`, which kept the shape. The set read ~~blueprint autonomy~~.
+MODE_CMDS="autonomy"
 
 for MODE_CMD_STEM in $MODE_CMDS; do
 BP_CMD="$ROOT/commands/$MODE_CMD_STEM.md"
@@ -4993,248 +5013,26 @@ done
 # is not their subject. Found by running the suite, not by reading the diff.
 BP_CMD="$ROOT/commands/blueprint.md"
 
-# ── the import triage — five classes, and the question distribution that makes silence deliberate ──
+# ── REMOVED ON mhw#191: the import triage, the command's uncontrolled rules, and the export's ──
+# ── document contract. The owner's Q2 ruling is the whole reason, and nothing else is.        ──
 #
-# THE DISTRIBUTION IS THE ASSERTION, not the row count. Three of the five classes ask the owner
-# NOTHING, and that silence is the feature — it is what turns a foreign document into a handful of real
-# decisions. It is also what makes a MISCLASSIFICATION into those three invisible. So the shape is
-# gated: five classes, question counts drawn from a closed set of two values, and exactly three of them
-# silent. Change a 0 to a 2 and the interview stops being bounded; change a 2 to a 0 and a real
-# decision is taken without asking.
-bp_triage="$(awk '/^## Triage before asking/{t=1;next} /^## /{t=0} t' "$BP_CMD" 2>/dev/null \
-  | sed -n 's/^| *\([1-5]\) *| *[^|]* *| *\([0-9]\) *|.*/\1 \2/p' || true)"
-bp_triage_n="$(printf '%s\n' "$bp_triage" | grep -c . || true)"
-bp_triage_ids="$(printf '%s\n' "$bp_triage" | awk 'NF==2{print $1}' | sort -u | tr -d '\n')"
-bp_triage_silent="$(printf '%s\n' "$bp_triage" | awk 'NF==2 && $2 == 0' | grep -c . || true)"
-bp_triage_bad=""
-while IFS= read -r bp_tline; do
-  [ -z "$bp_tline" ] && continue
-  bp_tq="$(printf '%s' "$bp_tline" | awk '{print $2}')"
-  case "$bp_tq" in
-    0|2) : ;;
-    *) bp_triage_bad="$bp_triage_bad
-    class $(printf '%s' "$bp_tline" | awk '{print $1}') declares $bp_tq questions; the closed set is {0, 2}" ;;
-  esac
-done <<< "$bp_triage"
-
-if [ "$bp_triage_n" -eq 0 ]; then
-  bad "blueprint triage — NOT ONE class row was parsed under '## Triage before asking'. Either the
-      table moved or its shape changed; every assertion about the interview's bound is now vacuous."
-elif [ "$bp_triage_n" -ne 5 ] || [ "$bp_triage_ids" != "12345" ]; then
-  bad "blueprint triage — parsed $bp_triage_n row(s) with class ids '$bp_triage_ids'; the format
-      declares exactly five classes numbered 1..5, and the classification order in the body walks all
-      five. A missing class is a mechanism that falls through to whatever the model improvises."
-elif [ -n "$bp_triage_bad" ]; then
-  bad "blueprint triage — a class declares a question count outside the closed set:$bp_triage_bad
-      Two questions or none. A third value is an interview with no stated bound."
-elif [ "$bp_triage_silent" -ne 3 ]; then
-  bad "blueprint triage — $bp_triage_silent of 5 classes are silent; the format declares THREE
-      (already here, already rejected, incompatible). Fewer silent classes means the owner is asked
-      about decisions already taken; more means a real decision is taken without asking him."
-else
-  ok "blueprint triage — five classes numbered 1..5, question counts in {0,2}, exactly three silent"
-fi
-
-# ── the two rules of this command that have no control behind them, asserted as WRITTEN ────────────
+# These three blocks asserted, as written, the content of the plugin's own 727-line `/blueprint`:
+#   * `blueprint triage`   — five import classes under '## Triage before asking', question counts in
+#                            {0,2}, exactly three silent (#358);
+#   * `blueprint rules`    — the narrowed write rule, the scratchpad destination and the function-only
+#                            provenance rule, with their stated absence of a control;
+#   * `blueprint document contract` — the receiving-agent preamble, the three snapshot sections in
+#                            order, the limit line, the honesty edits (#376).
+# On 2026-10-18 the owner chose to adopt mhw's 56-line `/blueprint` (Q2 on mhw#191) over keeping the
+# plugin's version outside the regeneration and over carrying it into mhw first, knowing that about 671
+# net lines that never reached mhw leave the plugin. It is an explicit owner exception to floor item 13
+# for that file only. None of the asserted strings exists in mhw's command, and none ever did (25 of the
+# old command's 26 section headings were never in mhw's method/ history), so each arm would assert text
+# the owner decided to retire. Their bodies are in this file's history before mhw#191.
 #
-# BOTH ARE `documents`-CLASS AND BOTH SAY SO. These arms hold that the sentences exist; nothing can
-# hold that anyone obeyed them, and the command states that in its own closing section. They are here
-# because the failure they guard is IRREVERSIBLE and public — an adoption item naming a foreign
-# harness's internals lands on a public tracker, and deleting the comment does not un-publish it.
-#
-# THE NEGATIVE ARM IS THE SHARPER OF THE TWO. The specification this command implements asks for the
-# export to be written to `<workspace-root>/tmp/blueprint-<config_version>.yaml`, and that path was
-# MEASURED denied by `orchestrator-write-guard.sh` in the ordinary single-repository install shape
-# (`{agent_type:"", Write, <repo-root>/tmp/…}` -> deny). So the arm asserts the command names no such
-# destination. It is scoped to `commands/blueprint.md` DELIBERATELY: ADR-0021 records the rejected path
-# and must be free to name it, and a repo-wide grep would redden the record that explains the rule.
-bp_rule_problems=""
-grep -qF 'Never write inside a repository.' "$BP_CMD" 2>/dev/null \
-  || bp_rule_problems="$bp_rule_problems
-    the narrowed write rule ('Never write inside a repository.') is not stated"
-grep -qF 'the session scratchpad' "$BP_CMD" 2>/dev/null \
-  || bp_rule_problems="$bp_rule_problems
-    the command names no session-scratchpad destination, so the output has nowhere legal to go"
-grep -qF 'by FUNCTION and by nothing else' "$BP_CMD" 2>/dev/null \
-  || bp_rule_problems="$bp_rule_problems
-    the provenance redaction rule (source named 'by FUNCTION and by nothing else') is not stated"
-grep -qF 'There is no gate here and none is claimed.' "$BP_CMD" 2>/dev/null \
-  || bp_rule_problems="$bp_rule_problems
-    the redaction rule does not state that nothing enforces it; a rule that implies a control it does
-    not have is worse than no rule"
-# WIDENED #376 TO REFUSE `.scratch` AS WELL, AND WHAT THAT BUYS IS NARROWER THAN IT LOOKS — SAY SO.
-# The literal set was `workspace-root|tmp/blueprint`, which is exactly the destination the #358
-# specification named. #376's specification named a DIFFERENT one — "the workspace's ignored scratch
-# directory" — and matched neither literal, so an arm that exists to refuse a repository-relative
-# destination would have passed the second one silently. Measured on 2026-08-31:
-#   printf 'Output is one prose file under the workspace ignored scratch directory.\n' \
-#     | grep -c -E 'workspace-root|tmp/blueprint'   -> 0
-# The directory in question is additionally worse than the first: `git check-ignore -v .scratch/x`
-# exits 1 in BOTH repositories of this workspace (#245 removed the ignore entry and the sweep hook and
-# left the comment block), so it is neither ignored nor writable, while reading as both.
-#
-# THE DOTTED LITERAL DID NOT CLOSE THE HOLE THE PARAGRAPH ABOVE DIAGNOSES, AND #377 IS THAT REPAIR.
-# `\.scratch` catches the DIRECTORY NAME; the specification's wording carries no dot, and prose is
-# exactly what lands in a command file. The header cited one hole and the pattern closed another. So
-# the arm now also refuses the PHRASE form — a scratch directory named as a place something is written
-# to, in any of the spellings a command file plausibly carries. Re-measured on 2026-08-31, the pattern
-# below against six lines, three destinations and three honest sentences:
-#   under the workspace ignored scratch directory.   -> MATCH
-#   Written to the repo scratch dir.                 -> MATCH
-#   Store it in the project scratch folder.          -> MATCH
-#   A repository-root scratch directory is refused…  -> no match  (the prohibition on line 77)
-#   …writes to the session scratchpad and nowhere…   -> no match  ('scratchpad' is not 'scratch dir')
-#   Not a scratch artifact, not a tmp directory.     -> no match
-#
-# WHAT THE PHRASE ARM CANNOT SEE, AND IT IS A REAL FALSE-NEGATIVE PAIR PLUS A FALSE-POSITIVE ONE.
-# (a) It keys on a PREPOSITION within 40 non-period characters before the noun, because that is what
-#     separates naming a destination from naming a mistake. A destination stated without one — a bare
-#     table cell reading `<workspace>/scratch dir` — is invisible to the phrase arm, though the slash
-#     forms are usually caught by the literals.
-# (b) It cannot tell a PROHIBITION from an INSTRUCTION. `Never write to the repo scratch directory.`
-#     matches and reddens, honestly written. The file's existing prohibitions are phrased without a
-#     preposition ('A repository-root scratch directory is refused…', 'not a scratch artifact'), and
-#     that phrasing is now load-bearing: rewrite one of them into prepositional form and this arm
-#     reddens on correct prose. Say the property, not the place.
-# (c) It sees SPELLINGS, never SEMANTICS. Any synonym for the same directory that avoids the word
-#     'scratch' — 'the ignored working folder' — passes.
-#
-# WHAT IT DOES NOT BUY, AND THIS IS THE HALF TO READ. It is PRESENCE, not a control.
-# ~~The write itself is already refused at runtime by `orchestrator-write-guard.sh` for any path inside
-# a git working tree, whatever this file says.~~ STRUCK 2026-08-31 (#386): that hook is DELETED in this
-# same slice (#375), so the write is refused at runtime by NOTHING and this arm is now the only thing
-# standing between the command and a repository-relative destination. It is still only presence — it
-# stops the command DOCUMENTING such a route, an instruction a reader would follow and then work
-# around. A green here says the command names no such destination; it says nothing about where an
-# export actually wrote. Read the arm as strictly weaker than it was, not as a backstop.
-bp_bad_dest="$(grep -c -E 'workspace-root|tmp/blueprint|\.scratch|\b(under|into|inside|within|to|in|at)\b[^.]{0,40}scratch[ -](dir|directory|folder)' "$BP_CMD" 2>/dev/null || true)"
-if [ "${bp_bad_dest:-0}" -ne 0 ]; then
-  bp_rule_problems="$bp_rule_problems
-    the command names a repository-relative output destination ($bp_bad_dest occurrence(s) of
-    'workspace-root', 'tmp/blueprint', '.scratch', or a scratch directory named in prose as a place
-    something is written to). Such a path sits inside a tracked tree wherever the workspace root is the
-    repository root, which is the ordinary installed shape, so the next reader resolves it — and the
-    repo-root scratch directory is additionally ignored by nothing since #245 removed the entry and
-    left the comment. (Until #386 this message said the path was DENIED at runtime by
-    orchestrator-write-guard.sh; that hook is deleted, so nothing denies it and this arm is the only
-    thing left.)"
-fi
-
-if [ ! -r "$BP_CMD" ]; then
-  bad "blueprint rules — commands/blueprint.md is not readable, so none of its uncontrolled rules
-      can be asserted present."
-elif [ -n "$bp_rule_problems" ]; then
-  bad "blueprint rules — a rule with no control behind it is missing from the only place it lives:$bp_rule_problems"
-else
-  ok "blueprint rules — the narrowed write rule, the scratchpad destination, the function-only provenance rule and its stated absence of a control are all present, and no repository-relative destination is named"
-fi
-
-# ══════════════════════════════════════════════════════════════════════════════════════════════════
-# THE EXPORT'S DOCUMENT CONTRACT (#376) — THE PREAMBLE, THE THREE SECTIONS, AND THE TWO HONESTY EDITS.
-#
-# WHY THESE ARMS EXIST. Until #376 the export's Markdown was a seven-item list of sections and nothing
-# asserted any of it. The redesign makes the document ADDRESSED — its first reader is an agent in
-# another project, and every clause of the preamble removes one specific way a snapshot gets misused
-# (implemented rather than read, adopted before the failure was observed locally, audited against).
-# A preamble clause that quietly disappears is invisible: the document still renders, still looks
-# complete, and instructs its reader to do nothing in particular.
-#
-# WHAT THEY PROVABLY CANNOT HOLD, SAID BEFORE THE FIRST ASSERTION. Everything here is a STRING CHECK
-# over a file of instructions. Nothing in this repository runs `/blueprint`, captures its output, or
-# compares a rendered document to the registry. So no green here says a preamble was written into an
-# export, that the three sections appeared in that order, that `unknown` was actually emitted, or that
-# the disclaimer reached the YAML. It says the command still TELLS the model to do those things. The
-# command's own closing section states the same residual, and this comment is the second statement of
-# it deliberately, because it is the one a person editing the gate reads.
-
-bp_doc_problems=""
-
-# ── the preamble, both halves: what the receiving agent must do, and what it must not ──
-while IFS= read -r bp_lit; do
-  [ -z "$bp_lit" ] && continue
-  grep -qF -- "$bp_lit" "$BP_CMD" 2>/dev/null \
-    || bp_doc_problems="$bp_doc_problems
-    the preamble no longer says: $bp_lit"
-done <<'BP_PREAMBLE'
-Read this. Do not implement it.
-First find what already exists locally under a different name.
-Interview your owner one item at a time.
-Every evidence claim in this document belongs to the origin project.
-Never adopt a mechanism before checking whether the failure it prevents
-Install nothing and execute nothing
-This is not a conformance checklist and not an audit.
-Never copy the wording. Copy the concept, or copy nothing.
-BP_PREAMBLE
-
-# ── the snapshot's three sections, and the per-element contract ──
-while IFS= read -r bp_lit; do
-  [ -z "$bp_lit" ] && continue
-  grep -qF -- "$bp_lit" "$BP_CMD" 2>/dev/null \
-    || bp_doc_problems="$bp_doc_problems
-    the snapshot contract no longer states: $bp_lit"
-done <<'BP_SNAPSHOT'
-1 · The interaction surface.
-2 · The inventory of configuration elements.
-3 · The general principles
-"What it does NOT do" is mandatory on every element and is never the line cut for cost.
-It is never the spine
-It stays last
-BP_SNAPSHOT
-
-# THE ORDER IS THE ASSERTION, NOT THE PRESENCE. The reconciliation's resolution was to lead the
-# snapshot with the invocation surface AND keep the identity appendix last with its reason intact —
-# two things a presence check cannot tell apart from their opposite. So the three section markers are
-# located by line number and required to be strictly increasing.
-bp_ln_surface="$(grep -nF '1 · The interaction surface.' "$BP_CMD" 2>/dev/null | head -1 | cut -d: -f1)"
-bp_ln_inventory="$(grep -nF '2 · The inventory of configuration elements.' "$BP_CMD" 2>/dev/null | head -1 | cut -d: -f1)"
-bp_ln_principles="$(grep -nF '3 · The general principles' "$BP_CMD" 2>/dev/null | head -1 | cut -d: -f1)"
-if [ -n "$bp_ln_surface" ] && [ -n "$bp_ln_inventory" ] && [ -n "$bp_ln_principles" ]; then
-  if [ "$bp_ln_surface" -ge "$bp_ln_inventory" ] || [ "$bp_ln_inventory" -ge "$bp_ln_principles" ]; then
-    bp_doc_problems="$bp_doc_problems
-    the snapshot's three sections are not in the declared order (interaction surface at line
-    $bp_ln_surface, inventory at $bp_ln_inventory, principles at $bp_ln_principles). The order IS the
-    decision — the interaction surface leads because the document's subject is how a human works with
-    a project plus its harness"
-  fi
-fi
-
-# ── the two honesty edits, and the negative half of the first one ──
-while IFS= read -r bp_lit; do
-  [ -z "$bp_lit" ] && continue
-  grep -qF -- "$bp_lit" "$BP_CMD" 2>/dev/null \
-    || bp_doc_problems="$bp_doc_problems
-    the export no longer states: $bp_lit"
-done <<'BP_HONESTY'
-declared per export and unstable across invocations
-Emit `unknown` unless the registry carries an authored evidence cell for that row.
-disclaimer: <the residual
-Do not decide this field. Look it up.
-The destination is stated as a TEST and never as a directory name
-If the upward walk finds no manifest, this session is not rooted in a harness source tree.
-BP_HONESTY
-
-# THE NEGATIVE ARM. The field-mapping table said `evidence_class` was `authored`, and nothing authors
-# it — measured 2026-08-31: `grep -c 'evidence_class' docs/blueprint-registry.md` -> 1, and that one
-# occurrence is prose inside row 0036's own limit cell, not a field. A field with no authored source
-# is re-decided per invocation, so two exports at one commit can disagree — which defeats the
-# currency header's whole purpose. This asserts the word does not come back on that row.
-if grep -qE '^\| — \| `evidence_class` \|.*authored' "$BP_CMD" 2>/dev/null; then
-  bp_doc_problems="$bp_doc_problems
-    the interchange mapping calls \`evidence_class\` 'authored' again. Nothing authors it: no field of
-    docs/blueprint-registry.md holds it, so the value is decided per invocation and two exports at one
-    commit can disagree"
-fi
-
-if [ ! -r "$BP_CMD" ]; then
-  bad "blueprint document contract — commands/blueprint.md is not readable, so the preamble, the three
-      sections and the two honesty edits cannot be asserted at all."
-elif [ -n "$bp_doc_problems" ]; then
-  bad "blueprint document contract — the emitted document's contract has drifted:$bp_doc_problems
-      Each clause above removes one named way a snapshot gets misused by the agent that reads it.
-      String presence only: nothing here observes a rendered document."
-else
-  ok "blueprint document contract — the receiving-agent preamble (both halves), the three snapshot sections in order, the mandatory limit line, the appendix's place, and the evidence/disclaimer/destination/no-manifest statements are all present"
-fi
+# WHAT STILL HOLDS THE NEW COMMAND'S LIMITS: the blueprint registry's rows 0036 and 0041 quote them from
+# commands/blueprint.md ("`export` never copies a secret value…", "**Nothing is changed before the
+# alignment interview is complete**"), and the registry's citação arm reddens if either sentence leaves.
 
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
 # `tipo` -> `enforcement` — A CLOSED-SET JOIN, GATED IN BOTH DIRECTIONS (#376).
@@ -5314,14 +5112,16 @@ if [ "$bp_map_n" -eq 0 ]; then
   bad "tipo->enforcement — NOT ONE mapping row was parsed out of docs/blueprint-registry.md. Either the
       section moved or its table shape changed, and every assertion here is vacuous — which reads, to
       whoever runs the suite, exactly like a mapping that is fine."
-elif [ "$bp_map_n" -ne 5 ] || [ -z "$bp_enf_cmd_set" ]; then
-  bad "tipo->enforcement — parsed $bp_map_n mapping row(s) and the command published
-      '$bp_enf_cmd_set'. The mapping must cover the five closed tipo values ($BP_TIPOS) and the
-      command must still publish its four enforcement values, or the join has a hole nothing reports."
+# The command-side half was dropped on mhw#191 (owner's Q2: adopt mhw's `/blueprint`). mhw's command
+# publishes no enforcement table, so an EMPTY command set no longer reddens; a command that publishes
+# one is still compared with the registry's closed set above. The registry half is unchanged.
+elif [ "$bp_map_n" -ne 5 ]; then
+  bad "tipo->enforcement — parsed $bp_map_n mapping row(s). The mapping must cover the five closed tipo
+      values ($BP_TIPOS), or the join has a hole nothing reports."
 elif [ -n "$bp_join_problems" ]; then
   bad "tipo->enforcement — the join is not closed:$bp_join_problems"
 else
-  ok "tipo->enforcement — the mapping covers all 5 tipo values, every value is in the closed set of 4, the command publishes the same set, and the carrier override is stated (join totality only; nothing here reads an emitted document)"
+  ok "tipo->enforcement — the mapping covers all 5 tipo values, every value is in the closed set of 4, any enforcement set a command publishes agrees with it, and the carrier override is stated (join totality only; nothing here reads an emitted document)"
 fi
 
 
@@ -6015,12 +5815,17 @@ fi
 # COST, taken deliberately: the check is coupled to a phrase, so rewording it goes red and whoever
 # rewords must edit this arm. That friction is the feature — the same argument the bare-`#NNN` arm in
 # `premature-pr-link-detect.test.sh` already makes. Change it deliberately, do not drift out of it.
+#
+# The third needle was reworded on mhw#191, following mhw's restatement of the same sentence. It read
+# ~~'The detector cannot tell this case from a violation'~~; mhw v6.0.0's autonomy.md, written for a
+# method with no hooks, says "**No check can tell this case from a violation.**" The blindness it names
+# is unchanged, and the plugin's `premature-pr-link-detect.sh` still runs here, so it is still true of it.
 AUTON="$ROOT/commands/autonomy.md"
 limb2_missing=""
 for limb2_needle in \
   'the ask is explicitly a decision he holds' \
   'stated as that decision and not as a merge request' \
-  'The detector cannot tell this case from a violation'
+  'No check can tell this case from a violation'
 do
   grep -qF -- "$limb2_needle" "$AUTON" || limb2_missing="$limb2_missing
     missing: \"$limb2_needle\""
@@ -9366,9 +9171,17 @@ else
   # ── 3 · the pointer names both carriers by path, so it cannot rot into a mode nobody can find ───
   grep -qF -- 'docs/loop-mode.md' "$MODE_PRELOAD" || mode_problems="$mode_problems
     the preload's mode section names no path to the record; a pointer with no destination is prose."
-  grep -qF -- 'loop-mode-contract' "$MODE_PRELOAD" || mode_problems="$mode_problems
-    the preload's mode section does not name the contract block; the two carriers are the whole of
+  # ~~'loop-mode-contract'~~ — the needle followed mhw's restatement on mhw#191. mhw moved the contract
+  # out of each root brief into the `orchestration` skill (mhw#176, *"Mover pro mhw"*), and the
+  # regenerated preload now points there: "*The loop-mode contract* in the `orchestration` skill". The
+  # arm asserts that pointer and resolves it to the heading it names, rather than a block marker that
+  # no longer exists in the preload.
+  grep -qF -- '*The loop-mode contract* in the' "$MODE_PRELOAD" || mode_problems="$mode_problems
+    the preload's mode section does not name the contract's home; the two carriers are the whole of
     what it is for."
+  grep -qF -- '## The loop-mode contract' "$ROOT/skills/orchestration/SKILL.md" 2>/dev/null || mode_problems="$mode_problems
+    the preload points at *The loop-mode contract* in the orchestration skill, and
+    skills/orchestration/SKILL.md carries no such heading."
 
   # ── 4 · the record it points at exists and declares a value from the closed enum ────────────────
   #
