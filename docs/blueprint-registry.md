@@ -133,8 +133,10 @@ as misleading as one that over-claims.
 | `skill` | the paths declared in `.claude-plugin/plugin.json` | partial |
 
 **What `partial` means here, exactly, and why it was not padded to look complete.** Eleven `knowledge`
-rows over nine carriers landed; **five** skills have no row yet — `backend`, `frontend`,
-`cloud-infrastructure`, `definition-of-done`, `planning-poker`. The three reference skills
+rows over nine carriers landed; ~~**five**~~ **nine** skills have no row yet — `backend`, `frontend`,
+`cloud-infrastructure`, `definition-of-done`, `planning-poker`, and since the mhw v6.0.0 regeneration
+(mhw#191) the four mhw split out of `devops` or moved into the method: `ci`, `scm`, `provisioning`,
+`orchestration`. The three reference skills
 are where `o que não faz` is hardest and least quotable (measured: `cloud-infrastructure` is 21 service
 sections whose limits are per-section, not per-file). Authoring five rows at the
 ratified depth is a sitting of its own with the owner's layer in it; producing five thin ones to turn a
@@ -483,11 +485,13 @@ in `o que não faz` above, in that file's own tombstone, and in ADR-0004.)*
 
 - **tipo:** record
 - **carrier:** `commands/blueprint.md`
-- **descrição:** The `export` mode of a typed command that renders this registry, plus a fresh read of the tree, as two documents from one read — a Markdown blueprint **addressed to the agent that will read it**, opening with a preamble and then a snapshot in three sections (the interaction surface, the inventory, the general principles), printed for a reader; and a YAML interchange file written to the session scratchpad — both stamped with the commit they describe and both carrying the residual.
+- **descrição:** The `export` half of `/blueprint`: it writes the project's EFFECTIVE agent harness setup — the one a session here actually runs with — as a requirements document, `docs/<git-repo-name>-product-requirements-document-agent-harness-setup.md`, following `documentation-standard`.
 - **propósito:** A harness that can only be understood by running it cannot be **compared** to another one, and comparison is the whole reason to write any of this down. The obligation is that this harness's design leaves it in a form a reader on different machinery can evaluate — obligation first, mechanism as evidence — so that what ports (the obligation, the strategy, and above all the limit) is separable from what is local accident (our matcher, our event names, our directory layout). An interchange additionally needs something to **hand over**, which is why the export produces an artifact and not only a rendering.
-- **o que faz:** Reads identity at invocation from the four sources that *register* a mechanism rather than from a directory listing, reads the authored obligations from this file, and renders both shapes in one invocation — two renderers over one read cannot drift because there is no interval between them. The Markdown opens with a currency header (plugin, version, commit, tree state, and the commands that reproduce every count), then a **preamble addressed to the receiving agent** — read it rather than implement it, find what already exists locally under another name, interview its owner one item at a time, treat every evidence claim as the origin's, never adopt a mechanism before checking the failure was observed locally; and, negatively, install and execute nothing, treat it as no kind of conformance checklist, copy the concept and never the wording. The snapshot then runs **interaction surface → inventory → general principles**, with the field contract and the residual above the rows, the coverage declaration **with a partial class's unclaimed elements named** after them, the identity appendix last as evidence, and the tombstone table printed even when empty. Each inventory element carries four lines — purpose, what it does, **what it does NOT do**, and how it is activated, the last derived from `always_loaded` on a rule the command states. The YAML translates each row into the foreign interchange shape, carries the limit column across as an **optional extra field** (which the format's own compatibility rule permits, so the one cell that actually ports is not dropped to fit a schema), joins `tipo` against the mapping published above for `enforcement`, and emits `source.disclaimer` so the residual travels with the artifact and not only with the reading.
-- **o que não faz:** It **never writes inside a repository** — the artifact goes to the session scratchpad, which is in no diff, no gate's input and no consumer's reach, so it cannot become the second source of truth an ageing committed projection would be. It never edits this file. It cannot tell a true obligation from a plausible one; it carries this file's cells forward exactly, residual included, and a green anywhere in this suite says nothing about them. **It emits no pros-and-cons line**: the cons half is `o que não faz` already, and a pros half would be `propósito` restated as a virtue, which the field contract forbids in as many words. **`evidence_class` is declared per export and unstable across invocations** — nothing in this registry authors it, so every row emits `unknown` at this commit and the word `authored` that stood here until 2026-08-31 was a claim to a source that does not exist. **Activation and `always_loaded` are flattened on the way out** — a per-persona property here, a per-mechanism value there — with the preloading profiles named beside the value as the only recovery. A `carrier: none` row is emitted as `surface: none`, a value outside the foreign schema's set that a strict reader may reject. The `enforcement` join removes the instability and **not the error**: a row filed under the wrong `tipo` gets a confidently wrong value, and the axis measures **refusal only**, so a mechanism that acts without refusing is classed `documents` — a strain named in the format rather than resolved by a fourth value.
-- **citação:** > "Never write inside a repository."
+- **o que faz:** Reads what is in effect layer by layer (user brief, project brief, settings and permission layers, agents, skills, commands, hooks, MCP server names, the delivery route), then writes the target behaviour and why of each part, one Mermaid diagram of the layers, each control at its real evidence level per agent harness, and the inputs an importer must supply locally. It sanitises (no secret values, personal data or client and employer material) and delivers the document through the repository's own route.
+- **o que não faz:** It never merges, publishes or releases anything and never adds a hook. It never copies a secret value, personal data or third-party material into the document. It does not render this registry: the document is written from a read of the effective setup, so nothing checks that a row here and a paragraph there agree.
+- **citação:** > "`export` never copies a secret value, personal data or third-party material into the document."
+
+**Rewritten 2026-10-18 under the owner's Q2 ruling on mhw#191** — adopt mhw's 56-line `/blueprint` over the plugin's 727-line one, an explicit owner exception to floor item 13 (content is additive) for that file only. The cells above described the plugin's command; the struck values below are what they said, kept so the change is visible rather than inferred. ~~`descrição`: the `export` mode rendering this registry plus a tree read as a Markdown blueprint and a YAML interchange file, written to the session scratchpad.~~ ~~`citação`: "Never write inside a repository."~~ The `record` strain named below is weaker now, not stronger: the document IS written inside a repository, through its normal route, so it is findable later.
 
 **The strain in `record`, named the same way `0018`/`0019`'s is.** The five values hold no `export`
 class, and `0036`'s artifact is produced **on demand and never persisted** — the opposite of the
@@ -554,6 +558,18 @@ the notice persists. **What is durable here is the Issue body it reads**, not th
 
 ---
 
+### 0057 · an idea becomes an agreed requirements document before it becomes work
+
+- **tipo:** record
+- **carrier:** `commands/new-idea.md`
+- **descrição:** A typed command that turns a new idea, or a plan to refine, given in the owner's words as its argument, into an agreed requirements document for the current repository, by interview rounds.
+- **propósito:** A plan reaches building only after shared understanding, and that understanding has to land in a versioned document rather than stay in a conversation that the next session cannot read.
+- **o que faz:** Anchors the subject, looks up the facts in the repository itself before asking anything, interviews the owner round by round with a recommended answer per question until every decision the plan needs is settled or left open by him, records his words next to each decision, and writes `docs/<git-repo-name>-product-requirements-document-<subject>.md`, delivered through the repository's own route. It then points at `idea-to-issues` and does not run it.
+- **o que não faz:** It never decides for the owner, never opens Issues, and never merges, publishes or releases anything. Nothing checks that a decision recorded as settled was in fact stated or accepted by him; that is the interviewer's discipline.
+- **citação:** > "It never decides for the owner: an unanswered decision stays open in the document."
+
+*Added 2026-10-18 with the mhw v6.0.0 regeneration (mhw#191), which carried the command into this plugin.*
+
 ## `routing` — what work exists, what state it is in, who acts next
 
 ### 0013 · the open queue is stated to a session before work begins
@@ -610,11 +626,13 @@ the notice persists. **What is durable here is the Issue body it reads**, not th
 
 - **tipo:** routing
 - **carrier:** `commands/blueprint.md`
-- **descrição:** The `import` mode of the same command: it reads a blueprint the owner supplied, classifies every mechanism in it into one of five classes, and asks about only the two classes that are genuinely open.
+- **descrição:** The `import` half of `/blueprint`: it reads a requirements document in the `export` format, compares it with the current project's effective setup, and runs an alignment interview before anything changes.
 - **propósito:** A configuration copied because another harness has it is a mechanism nobody here decided to want, and the failure it prevents may be a failure this harness has never had. The obligation is that **an interchange produces DECISIONS, not diffs** — a foreign document is made legible, its provenance preserved and its evidence explicitly not inherited, and only what the owner approved becomes tracked work that then goes through the harness's ordinary change flow like anything else.
-- **o que faz:** Reads a document handed over explicitly, classifies each mechanism by a stated order — already here, already rejected, incompatible, prevents a measured failure, otherwise speculative — and asks the owner exactly two questions about each mechanism of the last two classes, one mechanism at a time. On approval it files one `loop` item carrying the foreign id, the failure prevented, the evidence the exporting harness declared, the owner's answers, the proposed local surface and the literal `not measured here`. The item takes **no milestone** and does **not** take `ready`, so it is held out of the drain by the transition that is ~~the owner's alone~~ the owner's decision (applied by the main session once aligned with him — struck 2026-09-25, #512) and is composed into an iteration at planning like everything else. ~~It takes the active iteration's milestone … so it is visible to the queue~~ — **re-authored 2026-08-30 (#365)**, which struck the local rule that paragraph invoked; the *"visible to the queue"* half was additionally wrong on its own terms, since the queue predicate requires `ready` and the item never has it.
-- **o que não faz:** **It never applies anything** — no skill, brief, steering, record, permission layer or installed build is written, and nothing is written inside a repository at all. It never fetches: a URL is read on this command's initiative under no circumstance, and **nothing mechanical holds that** — a network tool never reaches the permission guard, so the rule's carrier is the command's own text. **Its silent classes are silent when they are wrong too**: a misclassification into already-here, already-rejected or incompatible asks nothing and is invisible, which is why every such verdict is enumerated in the record even though it raises no question. **There is no index of rejections here**, so an already-rejected verdict is a claim rather than a query result. **The class-1 mapping does not persist** — the record is ephemeral, so a second import of the same harness re-derives it and may map differently. And the rule that the source harness is named by **function only** is `documents`-class with no control behind it: an adoption item lands on a public tracker, and no hook can read a body posted through a file.
-- **citação:** > "It never applies anything."
+- **o que faz:** Lists what the document adds, changes and conflicts with here; interviews the person running the session on each item, with a recommended answer, one question per message where the brief limits asks; writes the agreed target as this project's own requirements document; and offers `idea-to-issues` to turn it into tracked work, built by the loop through the normal gates.
+- **o que não faz:** It never writes a file, setting, label or Issue before the interview is complete, and never applies a configuration change directly. It never merges, publishes or releases anything. An item the person does not accept is left out and written down as left out, with the reason; nothing checks that the interview covered every item beyond the command's own step.
+- **citação:** > "**Nothing is changed before the alignment interview is complete**: no file, setting, label or"
+
+**Rewritten 2026-10-18 under the owner's Q2 ruling on mhw#191** — adopt mhw's 56-line `/blueprint` over the plugin's 727-line one, an explicit owner exception to floor item 13 (content is additive) for that file only. The cells above described the plugin's command; the struck values below are what they said, kept so the change is visible rather than inferred. ~~`descrição`: the `import` mode classifying every mechanism of a foreign blueprint into five classes and asking about the two open ones.~~ ~~`citação`: "It never applies anything."~~ The limit the row exists for survives in mhw's words: changes go through Issues and the normal gates, never applied by the command.
 
 **A strain in the closed set, named rather than fudged.** `0041` refuses to apply a foreign
 configuration, and `refusal` in this registry means **prevented mechanically, before the act** — which
@@ -680,6 +698,42 @@ where a sixth value can be argued on evidence rather than on the first two rows 
 - **citação:** > "It never prints --force, and a worktree git refuses is listed with what is blocking it."
 
 ---
+
+### 0058 · an agreed document becomes tracked, sequenced Issues, each ready before it is opened
+
+- **tipo:** routing
+- **carrier:** `commands/idea-to-issues.md`
+- **descrição:** A typed command that cuts a requirements document, named as its argument, into vertical-slice Issues in the current repository, each with acceptance criteria and its blocking order.
+- **propósito:** An agreed document becomes tracked scope the owner can sequence, so work never starts untracked and no two slices silently claim, or both leave out, the same behaviour.
+- **o que faz:** Reads the document and the open Issues, proposes the slices as a numbered list, asks the owner about granularity and blocking order one question per message, checks each slice against `definition-of-ready`, and opens the approved Issues in blocking order with their bodies passed by file.
+- **o que não faz:** It never opens an Issue the owner did not approve, never applies `ready` (that is the repository's intake rule), never starts building a slice, and never merges, publishes or releases anything.
+- **citação:** > "It never opens an Issue the owner did not approve in step 3."
+
+*Added 2026-10-18 with the mhw v6.0.0 regeneration (mhw#191).*
+
+### 0059 · a session can say what is left against its own objective, from the tracker
+
+- **tipo:** routing
+- **carrier:** `commands/what-else.md`
+- **descrição:** A typed command that answers what is left against the session's anchored objective — the native goal where the agent harness has one, otherwise the objective agreed at session start or the argument.
+- **propósito:** Any session, in any agent harness, can recover and bound its own scope from the issue tracker as the shared bus, so it neither drifts nor stops short without saying what is left.
+- **o que faz:** Reads the session's Issues with their comments, their open pull requests and checks, and the owner's recorded decisions, and answers in a fixed order: the one ask waiting on the owner, the objective, what is done with its evidence, what is left, and one next step. A decision only in the conversation is reported as not recorded.
+- **o que não faz:** It writes nothing — no comment, label, Issue, branch or file — and never widens the objective; new work goes to the owner as a proposal. With no objective at all it proposes one and stops.
+- **citação:** > "It never widens the objective; new work goes to the owner as a proposal."
+
+*Added 2026-10-18 with the mhw v6.0.0 regeneration (mhw#191).*
+
+### 0060 · a session is continued in a fresh one from the tracker, without publishing anything
+
+- **tipo:** routing
+- **carrier:** `commands/handoff.md`
+- **descrição:** A typed command that prints a prompt continuing this session in a fresh one, and the shell line that opens it for this agent harness: the objective, the anchored Issue, its revision, handoff state and next act, each re-derived from the tracker.
+- **propósito:** A heavy session can be replaced by a clean one without losing its anchor, and the continuation is read from the issue tracker rather than from the memory of the conversation that is ending.
+- **o que faz:** Builds each field from the tracker and the latest worklog `handoff` or `checkpoint` event, bounds every field to one line of at most 280 characters, sanitises it, has `scripts/launch-line.py` quote it for a POSIX shell and print the launch command, prints both, and stops working in the session.
+- **o que não faz:** It posts nothing — no comment, worklog event, label, Issue or pull request — never launches the new session itself, never widens the objective, and never merges, publishes or releases anything. The launch script's sanitising is a string check: private content that carries none of the refused strings passes it.
+- **citação:** > "It never launches the new session itself; the owner opens it."
+
+*Added 2026-10-19 with the mhw v8.0.0 regeneration (mhw#191), which carried the command into this plugin; mhw added it at v7.0.0 (mhw#198).*
 
 ## `review` — a judgement from a fresh context; nothing enforces it
 
@@ -757,7 +811,9 @@ added a carrier and a row together.
 - **propósito:** Every actor in this loop needs the same answer to *where am I, who acts next, and what records that it happened* — and, above that, *why the loop is shaped this way*, because a state table cannot enumerate the cases an actor will actually meet. It is preloaded by every profile so that the one thing nobody may improvise is the loop.
 - **o que faz:** States the two loop models and how to tell which one a repository runs, the issue types and their states with the artifact that records each transition, the iteration axis and how the active one is derived, the closing criteria, and the merge classes — each with the intent that produced it rather than the rule alone.
 - **o que não faz:** It does not carry the portable engineering judgment (that half was split out at #381), it does not define **done** or hold the gate tables, it does not carry the permission zones or the branching topology, and it does not define the SDLC-generic meaning of *ready* — four neighbours own those, and the boundary is stated in its own trigger so the model does not reach here for them.
-- **citação:** > "Not the portable judgment (see engineering-standards), what "done" means (see definition-of-done), the CI/CD gates (see quality-gates), the permission zones (see devops), or what makes an item ready (see definition-of-ready)."
+- **citação:** > "Not the portable judgment (see engineering-standards), what "done" means (see definition-of-done), the CI/CD gates (see quality-gates), the permission zones (see scm), or what makes an item ready (see definition-of-ready)."
+
+*Re-taken 2026-10-18 from the mhw v6.0.0 regeneration (mhw#191): mhw restated the clause, naming `scm` where it named ~~`devops`~~ for the permission zones. The limit is unchanged; only the pointer moved.*
 
 ### 0045 · the engineering judgment that survives leaving this loop
 
@@ -827,7 +883,9 @@ added a carrier and a row together.
 - **propósito:** A gate is only a ruler if it is **external to the reviewer**. A vague description leaves the gate nothing to anchor on, so it falls back on impression — and impression has no stopping rule. Keeping the gates here and the completion criteria next door is what stops *CI is green* being read as *the item is done*: the criteria this file's gates do NOT prove are named beside them, in the neighbour that owns them.
 - **o que faz:** States the gate table per loop model, the merge-class rules, and the concrete thresholds — zero lint and typecheck errors, a coverage floor, contract and end-to-end suites where they exist, dependency and secret scanning, static analysis.
 - **o que não faz:** It is not the **author-side** pass that runs before the request is opened, it does not carry the quality-platform mechanics, and — since the definition of done moved out — it carries **neither** the criteria that make an item complete **nor** the generic teaching of what a definition of done is; one neighbour now owns both. Which suites constitute the regression is per repository, deliberately: a floor stated in components a repository does not have is not a higher standard, it is an unsatisfiable one, and unsatisfiable gates get faked.
-- **citação:** > "Not for the criteria that make a slice complete (see definition-of-done), the pre-merge pass (see code-review), or Sonar mechanics (see devops)."
+- **citação:** > "Not for what makes a slice complete (see definition-of-done), the pre-merge pass (see code-review), or workflow wiring (see ci)."
+
+*Re-taken 2026-10-18 from the mhw v6.0.0 regeneration (mhw#191): mhw restated the clause; it read ~~the criteria that make a slice complete … or Sonar mechanics (see devops)~~. The Sonar pointer left the clause with the `devops` split.*
 
 ### 0031 · the author's own completeness pass
 

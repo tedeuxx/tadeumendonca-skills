@@ -1,6 +1,6 @@
 ---
 name: planning-poker
-description: Run a planning poker estimation round, or diagnose why one produced theater instead of signal. Use when sizing backlog items with a team, choosing between group-consensus estimation and a single person's gut call, or explaining why a session's numbers don't seem to influence anything downstream. Reference pattern only — this repo's own loop runs no human estimation ceremony (see agents-configuration).
+description: "Run a planning poker estimation round, or diagnose why one produced theater instead of signal. Use when the agents estimate an item's sp:N weight, each dispatched in isolation with the median recorded, when sizing backlog items with a team, choosing between group-consensus estimation and a single person's gut call, or explaining why a session's numbers don't influence anything downstream. The agents of this method use it to estimate, per its Estimation section (see agents-configuration)."
 ---
 
 # Planning Poker — consensus estimation, and what it is actually for
@@ -10,15 +10,9 @@ beside `/definition-of-ready` and `/definition-of-done` in this library's `princ
 is the same kind of thing: a concept a project either practices deliberately or drifts into practicing
 badly, stated once so a team does not have to rediscover its failure modes the hard way.
 
-**This is a reference pattern, not a description of anything this repo does.** `tadeumendonca-skills`'
-own loop, documented in `/agents-configuration`, runs no human estimation ceremony at all — the
-`scrum-master`, `product-owner` and `product-manager` personas that would once have run one were
-absorbed into `product-lead`, and the loop's own thesis replaced story points with mechanical,
-agent-graded criteria (`/definition-of-done`, proven by `/quality-gates`) as the thing that decides whether work is done. This skill exists
-because the library is explicitly broader than its current consumer — the same stance this repo takes
-about the `backend` family, which documents an architecture the consuming site retired. Nobody dispatches
-this skill inside this repo's own operation; it is here for the projects this plugin installs into that
-do run a human sizing ceremony.
+~~**This is a reference pattern, not a description of anything this repo does.** `tadeumendonca-skills`' own loop, documented in `/agents-configuration`, runs no human estimation ceremony at all — the `scrum-master`, `product-owner` and `product-manager` personas that would once have run one were absorbed into `product-lead`, and the loop's own thesis replaced story points with mechanical, agent-graded criteria (`/definition-of-done`, proven by `/quality-gates`) as the thing that decides whether work is done. This skill exists because the library is explicitly broader than its current consumer — the same stance this repo takes about the `backend` family, which documents an architecture the consuming site retired. Nobody dispatches this skill inside this repo's own operation; it is here for the projects this plugin installs into that do run a human sizing ceremony.~~
+
+**Struck 2026-10-05 (owner ruling on #61): *"planning-poker é usado pelos agentes."*** The agents of this method use this skill to estimate. The personas the loop names as estimators for each type (`agents-configuration`, *Estimation*) are each dispatched in isolation, and the median is recorded as the item's `sp:N` label. That is this skill's simultaneous reveal, carried by dispatch isolation instead of by a room. Struck rather than deleted because the reference-pattern claim stood in the description every agent harness reads, and a reader may have acted on it.
 
 Context: $ARGUMENTS
 

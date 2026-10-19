@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "tadeumendonca-skills",
-  "version": "2.0.108",
-  "description": "The knowledge layer of a public agent-harness reference: 15 dense, opinionated engineering skills covering AWS infrastructure, React/Vite frontends, BFF-on-Lambda backends, CI/CD, the development loop and its quality gates. Written project-agnostically with <project> / <apex-domain> placeholders. This Power ships skills only — the harness's personas, permission hooks, typed commands and merge gates are deliberately not exported.",
+  "version": "2.0.109",
+  "description": "The knowledge layer of a public agent-harness reference: 19 dense, opinionated engineering skills covering AWS infrastructure, React/Vite frontends, BFF-on-Lambda backends, CI/CD, the development loop and its quality gates. Written project-agnostically with <project> / <apex-domain> placeholders. This Power ships skills only — the harness's personas, permission hooks, typed commands and merge gates are deliberately not exported.",
   "author": {
     "name": "Luiz Tadeu Mendonça"
   },
@@ -14,6 +14,7 @@
     "agents-configuration",
     "aws",
     "backend",
+    "ci",
     "ci-cd",
     "cloud-infrastructure",
     "code-review",
@@ -26,11 +27,14 @@
     "engineering-standards",
     "frontend",
     "github actions",
+    "orchestration",
     "planning-poker",
+    "provisioning",
     "published-voice",
     "quality gate",
     "quality-gates",
     "react",
+    "scm",
     "shell",
     "terraform",
     "vite"

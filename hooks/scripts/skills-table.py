@@ -68,6 +68,7 @@ WIELDER = {
     "agents-configuration": JUDGES,
     "backend": DEVELOPER,
     "cloud-infrastructure": DEVELOPER,
+    "ci": "`developer` · `agents-lead` · `tech-lead` · `quality-assurance` — preloaded by all four since mhw split `devops` by capability (mhw#97)",
     "code-review": DEVELOPER,
     "content-publishing": "`content-writer` · `content-reviewer` · `product-lead` — the pair that runs the lane, one half of it holding the copy lens as a REPAIR (ADR-0002's thirty-second amendment), and the lens that opens it at intake",
     "definition-of-done": JUDGES,
@@ -76,9 +77,12 @@ WIELDER = {
     "documentation-standard": "`developer` (Part I, general docs) · `tech-lead` · `agents-lead` — Part II, ADR practice split by domain (#223)",
     "engineering-standards": JUDGES,
     "frontend": DEVELOPER,
+    "orchestration": "the main session (orchestrator) · `agents-lead` · `scrum-master` — the review route, the loop-mode contract and the ask rules (mhw#176)",
     "planning-poker": JUDGES,
+    "provisioning": "`developer` · `tech-lead` · `quality-assurance` — preloaded by all three since mhw split `devops` by capability (mhw#97)",
     "published-voice": "`content-writer` · `content-reviewer` — the pair it was extracted for (#317)",
     "quality-gates": JUDGES,
+    "scm": "`developer` · `agents-lead` · `tech-lead` · `quality-assurance` — preloaded by all four since mhw split `devops` by capability (mhw#97)",
     "shell": "`product-lead` · `tech-lead` · `agents-lead` · `developer` · `quality-assurance` · `content-writer` · `content-reviewer`",
 }
 
@@ -121,8 +125,18 @@ def body_lines(path):
 
 
 def describe(path):
-    """The skill's own first non-empty line of BODY, stripped of heading syntax."""
-    text = next((l.strip() for l in body_lines(path) if l.strip()), "")
+    """The skill's own first non-empty line of BODY, stripped of heading syntax.
+
+    A LEADING BLOCKQUOTE IS SKIPPED (mhw#191, intake row R2). Since the plugin is regenerated from mhw,
+    ten skills open their body with a notice in a blockquote (*"Read this first: hooks named below are
+    the retired plugin's…"*). That notice says how to read the file, not what the skill decides, and
+    without this the README would publish it as the "what it decides" cell of ten rows. Only a
+    blockquote BEFORE the first other line is skipped; a quote later in the body is never reached.
+    """
+    lines = [l.strip() for l in body_lines(path) if l.strip()]
+    while lines and lines[0].startswith(">"):
+        lines.pop(0)
+    text = lines[0] if lines else ""
     text = re.sub(r"^#+\s*", "", text).replace("|", r"\|")
     if len(text) > MAX_DESC:
         text = text[: MAX_DESC - 3].rsplit(" ", 1)[0] + "…"

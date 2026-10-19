@@ -539,12 +539,14 @@ When an agent works in a consuming repo, these twelve principles are the lens fo
 first, ask on the boundaries, slice thin, keep the floor green, and verify your own work before
 handing the residual to a human. The deep-dive component skills tell you *how* to build each piece;
 this tells you *how to decide* while you do. Today that means three reference skills — `/backend`,
-`/frontend` and `/cloud-infrastructure`.
+`/frontend` and `/cloud-infrastructure` — which live in the site project, not in this method: in a
+repository without them, none of the three resolves.
 
 See also: `/definition-of-done` (the Definition of Done itself — the criteria, and the table naming
 which of them a gate proves), `/quality-gates` (the gate tables per loop model and the concrete
-gate definitions for both stacks), `/devops` (the permission zones and guard hook, branching,
-per-environment topology, OIDC, the deploy workflows, TFC state), and — for the loop these principles
+gate definitions for both stacks), `/scm` (branching, the path to the trunk, the release flow and the
+permission zones), `/ci` (OIDC and the deploy workflows), `/provisioning` (infrastructure state and
+the pipeline-only floor; the three were the former `devops`, split at #97), and — for the loop these principles
 are applied inside, which is where every mechanism named above actually lives —
 **`/agents-configuration`**.
 

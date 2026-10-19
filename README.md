@@ -16,7 +16,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 15 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 19 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -36,9 +36,11 @@ three things, and this repository is the middle one:
   built with Vite and TypeScript, the Terraform that provisions CloudFront and S3, the pipeline with
   its gates and its deploy, and the markdown content held in the repository itself.
 - **The customization** — this repository: the personas in `agents/`, the hooks registered in
-  `hooks/hooks.json`, the skill library in `skills/`, the **seven** command files in `commands/`
-  (`ls commands/` → `autonomy.md blueprint.md funnel-review.md new-issue.md sprint-planning.md
-  sprint-retrospective.md sprint-review.md`; `autonomy` and
+  `hooks/hooks.json`, the skill library in `skills/`, the **eleven** command files in `commands/`
+  (`ls commands/` → `autonomy.md blueprint.md funnel-review.md handoff.md idea-to-issues.md new-idea.md
+  new-issue.md sprint-planning.md sprint-retrospective.md sprint-review.md what-else.md`; ~~seven~~ until
+  the mhw v6.0.0 regeneration carried three, ~~ten~~ until the v8.0.0 regeneration carried `handoff`,
+  mhw#191; `autonomy` and
   `blueprint` each carry modes a human types after the name, so the count of typed forms is larger than
   the count of files and the two must not be conflated — see the resource table below), and the
   methodology ADRs in `docs/adr/`.
@@ -666,11 +668,13 @@ was built to avoid.
 
 <!-- claim id=0004 class=DERIVED -->
 
-**Skills carry the conventions so the model does not re-invent them.** **15 skills + autonomy** —
+**Skills carry the conventions so the model does not re-invent them.** **19 skills + autonomy** —
 typed `autonomy on` or `autonomy off`, never bare, since `commands/autonomy.md` states that a bare
 `/autonomy` *"prints help and does nothing else"* — plus `new-issue`, `blueprint`,
-`sprint-review`, `sprint-retrospective`, `sprint-planning` and `funnel-review`, across **seven command files** (`ls commands/` →
-`autonomy.md blueprint.md funnel-review.md new-issue.md sprint-planning.md sprint-retrospective.md sprint-review.md`). **The count of typed forms is larger than the count of files,
+`sprint-review`, `sprint-retrospective`, `sprint-planning`, `funnel-review`, `new-idea`, `idea-to-issues`,
+`what-else` and `handoff`, across **eleven command files** (`ls commands/` →
+`autonomy.md blueprint.md funnel-review.md handoff.md idea-to-issues.md new-idea.md new-issue.md sprint-planning.md sprint-retrospective.md sprint-review.md what-else.md`).
+~~seven command files~~ — the three added are mhw's, carried by the v6.0.0 regeneration (mhw#191); ~~ten~~ — `handoff` is mhw's too, carried by the v8.0.0 regeneration (mhw#198, mhw#191). **The count of typed forms is larger than the count of files,
 because `autonomy` and `blueprint` each carry modes, and the two must not be conflated** — this
 README's own resource-table row for **Commands (legacy)** says exactly that, and **this sentence
 conflated them anyway until #387**: it named bare `autonomy` as one of the commands and omitted
@@ -976,9 +980,22 @@ where `quality-assurance` at least *applies* a concrete instance of the concept 
 here even touches this skill's subject at any dispatch. It stays reachable the same way every
 non-preloaded skill is: typed as `/planning-poker`, or via the `Skill` tool on demand.
 
-**1,711,199 B as billed across the eight, 370,733 B distinct — 58.1% of the library (638,106 B across
-15 skills; `find skills -name SKILL.md | xargs wc -c`), and the largest preload is a TIE at 238,879 B
-between `tech-lead` and `agents-lead`, with `developer` third at 226,687 B.**
+**2,560,319 B as billed across the eight, 614,481 B distinct — 66.3% of the library (926,413 B across
+19 skills; `find skills -name SKILL.md | xargs wc -c`), and the largest preloads are the content pair's,
+a TIE at 442,074 B between `content-writer` and `content-reviewer`, with `agents-lead` third at 312,434 B.**
+~~2,559,531 / 614,284 / 926,216, `agents-lead` third at 312,237 B~~ — **struck 2026-10-19 (mhw#191)**:
+the regeneration moved from mhw v6.0.0 to v8.0.0 and `scm` grew by 197 B (mhw#206 replaced its
+repository-settings wrapper with the `gh` commands), carried by the four profiles that preload it; re-derived
+with the same script, which returns the struck figures exactly on the v6.0.0 tree.
+~~1,711,199 B billed, 370,733 B distinct, 58.1% of 638,106 B, tie at 238,879 B between `tech-lead` and
+`agents-lead`, `developer` third at 226,687 B~~ — **struck 2026-10-18 (mhw#191)**: re-derived with the
+per-persona script published at the head of this section, on the tree regenerated from mhw v6.0.0. The
+regeneration changed four preload lists (`devops` gave way to `scm` · `ci` · `provisioning` for
+`developer`, `tech-lead` and `quality-assurance`, to `scm` · `ci` · `orchestration` for `agents-lead`;
+`scrum-master` gained `orchestration`) and grew most skills. **The per-persona bullets above are NOT
+re-derived one by one**: their totals and lists describe the tree before the regeneration. At this head the
+script returns `agents-lead` 312,434 · `content-reviewer` 442,074 · `content-writer` 442,074 · `developer` 298,648 · `product-lead` 238,843 · `quality-assurance` 304,488 · `scrum-master` 213,332 · `tech-lead` 308,426 B (~~312,237 · 298,451 · 304,291 · 308,229~~ for the four that carry `scm`, on the v6.0.0 tree), and the per-skill parentheticals are re-derivable with the
+`find … wc -c` command above.
 ~~1,711,001 / 370,634 / 638,007~~ — **struck within this PR's own review round**: the round grew
 `content-publishing` by 99 B, which two briefs carry, so the billed total moved by 198 B and the
 distinct and library totals by 99 B each. The tie, the third place and the percentage are unmoved.
@@ -1154,7 +1171,7 @@ no slash, no glob, no duplicate or same-path alias, and every identifier resolvi
 **It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
 not the loader, so it catches a broken reference rather than a broken loader.
 
-The library: 15 skills, one directory each, at one level under `skills/`.
+The library: 19 skills, one directory each, at one level under `skills/`.
 
 **The table below is GENERATED — its second column is each skill's own first line of body, written by
 `hooks/scripts/skills-table.py`. The AUTHORED per-skill catalogue is
@@ -1170,6 +1187,7 @@ green that cannot redden for the reason it exists.
 |---|---|---|
 | `agents-configuration` | Apply Agent Harness Engineering — the owner's name for how this loop is built and run, the state | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `backend` | Backend (BFF-on-Lambda) | `developer` |
+| `ci` | Wire the continuous-integration capability for any `<project>` repo. Pick the loop model first | `developer` · `agents-lead` · `tech-lead` · `quality-assurance` — preloaded by all four since mhw split `devops` by capability (mhw#97) |
 | `cloud-infrastructure` | Cloud infrastructure (AWS) | `developer` |
 | `code-review` | Review your own slice for COMPLETENESS before opening the merge request. Author-side, run by `developer`, and distinct from the gatekeeper's… | `developer` |
 | `content-publishing` | Content publishing — the lane a piece travels from selection to live, and who waits at each step | `content-writer` · `content-reviewer` · `product-lead` — the pair that runs the lane, one half of it holding the copy lens as a REPAIR (ADR-0002's thirty-second amendment), and the lens that opens it at intake |
@@ -1179,9 +1197,12 @@ green that cannot redden for the reason it exists.
 | `documentation-standard` | Documentation — the general standard and the ADR practice | `developer` (Part I, general docs) · `tech-lead` · `agents-lead` — Part II, ADR practice split by domain (#223) |
 | `engineering-standards` | Apply the owner's engineering standards — the two tiers, the twelve principles, and the few rules | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `frontend` | Frontend (React SPA) | `developer` |
+| `orchestration` | Orchestration: the review route, the loop-mode contract, how to ask | the main session (orchestrator) · `agents-lead` · `scrum-master` — the review route, the loop-mode contract and the ask rules (mhw#176) |
 | `planning-poker` | Planning Poker — consensus estimation, and what it is actually for | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
+| `provisioning` | Provision infrastructure for any `<project>` repo. Pick the loop model first (`/agents-configuration`); | `developer` · `tech-lead` · `quality-assurance` — preloaded by all three since mhw split `devops` by capability (mhw#97) |
 | `published-voice` | The owner's published voice — the shared ruler | `content-writer` · `content-reviewer` — the pair it was extracted for (#317) |
 | `quality-gates` | Quality gates — the CI/CD policy, and where each gate sits | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
+| `scm` | Run the source-control capability for any `<project>` repo. Pick the repo's loop model first; branching, | `developer` · `agents-lead` · `tech-lead` · `quality-assurance` — preloaded by all four since mhw split `devops` by capability (mhw#97) |
 | `shell` | Apply this working-files and shell-command discipline in any `<project>` repo, for any persona dispatched | `product-lead` · `tech-lead` · `agents-lead` · `developer` · `quality-assurance` · `content-writer` · `content-reviewer` |
 **Three things the table shows rather than asserts.** The builder is the only persona holding a build
 skill — `backend`, `frontend`, `cloud-infrastructure` — because conventions exist for building, and one
@@ -1804,7 +1825,7 @@ by hand:
 | resource type | ships? | where | how it takes effect |
 |---|---|---|---|
 | **Skills** | yes — **15** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
-| **Commands (legacy)** | yes — **7 files** (`autonomy`, `new-issue`, `blueprint`, `sprint-review`, `sprint-retrospective`, `sprint-planning`, `funnel-review`), derived from `ls commands/` — `autonomy` and `blueprint` each carry **three** dispatch rows, so the count of things a human can TYPE is larger than the count of files and the two must not be conflated. **The criterion is the dispatch row, not the operating mode** — it is what each command file's own `## The three modes` heading counts, and it is the right unit here because a bare `/autonomy` is a thing a human types: two operating modes (`on`\|`off`, `export`\|`import`) plus the bare form that prints help and does nothing. Each command's *operating* set is separately closed at two, which is what `commands/autonomy.md`'s *"The set is closed at two"* means and is not a second count of the same thing | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
+| **Commands (legacy)** | yes — **11 files** (`autonomy`, `new-issue`, `blueprint`, `sprint-review`, `sprint-retrospective`, `sprint-planning`, `funnel-review`, `new-idea`, `idea-to-issues`, `what-else`, `handoff`), derived from `ls commands/` (~~7 files~~ until the mhw v6.0.0 regeneration carried three, ~~10 files~~ until the v8.0.0 regeneration carried `handoff`, mhw#191) — `autonomy` and `blueprint` each carry **three** dispatch rows, so the count of things a human can TYPE is larger than the count of files and the two must not be conflated. *Since the owner's Q2 ruling on mhw#191, `blueprint` is mhw's command: it states `export` and `import` as sections rather than a dispatch table, and a bare invocation asks which one instead of printing help; the three typed forms survive, the `## The three modes` heading below is `autonomy`'s alone.* **The criterion is the dispatch row, not the operating mode** — it is what each command file's own `## The three modes` heading counts, and it is the right unit here because a bare `/autonomy` is a thing a human types: two operating modes (`on`\|`off`, `export`\|`import`) plus the bare form that prints help and does nothing. Each command's *operating* set is separately closed at two, which is what `commands/autonomy.md`'s *"The set is closed at two"* means and is not a second count of the same thing | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **8 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`, `scrum-master`) | dispatched by name via `Task` |
 | **Hooks** | yes — **`hooks.json` registers 16** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `mcp-guard`, `hitl-one-question-guard`), `UserPromptSubmit` (`preflight`), `SessionStart` (`preflight`, `session-wip`, `session-plugin-version`, `cadence-notice`, `worktree-notice`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `owed-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **16 registrations over 15 scripts**, re-derived rather than adjusted: `jq '[.hooks[][].hooks[].command]｜{registrations:length, scripts:([.[]｜sub(".*/";"")]｜unique｜length)}' hooks/hooks.json` → `{16, 15}`. ~~`closure-artifact-guard` and `preflight` are each registered twice~~ — **only `preflight` is, since #383 removed `closure-artifact-guard`'s `PreToolUse` arm**; the registration count is still the honest number rather than a file count, and the gap between registrations and scripts is still that one script. **Both figures fell by one at #375**, when `orchestrator-write-guard` was removed — **returned to 16/14 at #374**, a coincidence of arithmetic and not a restoration (the script that left refused an act, the one that arrived only reports one) — **and returned to 16/14 a second time**, after `action-pendency-guard` was built and deleted in one slice. **Both fell again on 2026-09-04 (#383), when `wip-guard` was deleted under the owner's dehydration criterion — and this time nothing arrived to restore the arithmetic.** **That is now FIVE registrations this repo has deleted, and every one was a refusal** — a routing rule the owner ruled a contingency (#375), a preventive control whose false positives its own owner could never have seen, and three in one slice under the dehydration criterion (#383): the WIP overlap guard whose own registry row already recorded that it never reached the failure it was named for, the closure guard's manual-close arm which fired zero times in thirty days, and the dispatch-premise guard, whose object was a wasted subagent context rather than an irreparable act. **The direction is now a policy rather than a series of exceptions**, and the honest summary is that this harness prevents strictly less than it did a week ago and says so in each place rather than in one. **`cadence-notice` (#406 slice C) is the first ARRIVAL since those deletions, and it does not reverse the direction — it continues it.** It refuses nothing: it is a `SessionStart` notice reporting how long it has been since a closing rite last landed an artifact, the same class as its two neighbours on that event. Read the count moving 13 → 14 as *one more reporter*, never as one more control; the number of things this harness can STOP is unchanged. **`worktree-notice` (#437) is the SECOND arrival and continues the same direction for the same reason, stated rather than inherited.** The removing option was priced and declined: a hook that deletes a directory is the sharpest member of the class the owner's standing rule names — *a preventive control whose false positives are unobservable by the person it protects is worse than no control* — and its false positive is an unrecoverable deletion landing before anybody sees anything. A report's errors run the other way and are visible twice over, as a folder on disk and as a line in `git worktree list`. **So the count moves 14 → 15 and the number of things this harness can STOP is unchanged for the second time running. `hitl-one-question-guard` (#538) is the THIRD arrival and deliberately changes that direction: it prevents only the exact, syntactic class `questions | length >= 2`; the prose action-list half remains review-held, so the removed semantic suppression is not recreated. The current count is 16 registrations over 15 scripts.** |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
@@ -2012,8 +2033,8 @@ distributions do not collide — the repository root stays a Claude Code plugin,
 the same `skills/` tree the Claude Code manifest declares, and `hooks/scripts/kiro-power.test.sh`
 re-runs the generator into a temporary directory and diffs it against what is committed — so the two
 trees cannot drift, in either direction, without CI going red. The conversion is not a copy: **none of
-the 15 source skills carries a `name:` key** (`grep -c '^name:' skills/*/SKILL.md` → `0` for all
-fifteen), because Claude Code derives the identifier from the directory, while Kiro validates
+the 19 source skills carries a `name:` key** (`grep -c '^name:' skills/*/SKILL.md` → `0` for all
+nineteen; mhw's sources carry one and the regeneration drops it, mhw#191), because Claude Code derives the identifier from the directory, while Kiro validates
 `name` **and** `description` in the frontmatter. The generator synthesises it, and rewrites the
 library's relative `../../docs/adr/…` link targets to absolute URLs, which are the only form that still
 resolves once Kiro has copied a skill into `~/.kiro/powers/installed/<power>/` (`getPowerDir()` in the
@@ -2069,7 +2090,7 @@ activated. Until that happens, read *measured* below as **measured in the bundle
 | `skills/` — 15 `SKILL.md` guides | declared in `.claude-plugin/plugin.json`'s `skills` array | **carried** — `skills/<name>/SKILL.md` under the package root, discovered by walking the tree. The one element that ports and installs cleanly |
 | `agents/` — 8 persona brief **files** (`ls agents/*.md \| wc -l` → 8) with `tools:` / `skills:` frontmatter | shipped and loaded | **not exported — and now for a measured reason, not only a chosen one. Transport yes, activation no.** The installer would copy the directory (see *Transport is not activation* below); the loader has no key, path or walk that reads it. Kiro *has* a per-subagent mechanism — `.kiro/agents/*.md` with `tools`/`excludedTools` and a `permissions.rules[]` block that compiles to Cedar policy and parses shell with tree-sitter — but it is **workspace** configuration a Kiro user hand-authors, not something a Power installs into |
 | `hooks/` — the `PreToolUse` permission guard and the loop's session hooks | registered by `hooks/hooks.json` on install; the guard denies the irreversible floor | **not exported — same shape: transport yes, activation no.** `hooks/hooks.json` is Claude-Code-shaped and nothing in the Power loader looks for it. The IDE *does* have a real blocking `preToolUse` mechanism at this build (see below — that finding reversed), but it is reached through workspace/agent configuration, not through a Power |
-| `commands/` — 7 command **files**, each declaring `argument-hint` (`grep -l '^argument-hint' commands/*.md \| wc -l` → 7), carrying **9** non-help typed forms | `/plugin:<name>`, arguments interpolated as `$ARGUMENTS` | the corresponding element is **steering**, and the 2026-08-21 ambiguity is now **closed**: the loader resolves `dev.kiro/steering/` (and `dev.kiro/INSTRUCTIONS.md`) inside a package root, so steering is carried by the format. `commands/` at the repo root is not that path and is not read. Still not exported in this slice — a typed-command surface with `$ARGUMENTS` has no steering equivalent, so this would be a rewrite rather than a copy |
+| `commands/` — 11 command **files**, 7 of them declaring `argument-hint` (`grep -l '^argument-hint' commands/*.md \| wc -l` → 7; mhw's `new-idea`, `idea-to-issues` and `what-else`, carried by the v6.0.0 regeneration, and `handoff`, carried by the v8.0.0 one, declare none), carrying **13** non-help typed forms (~~7 files, each declaring it, 9 forms~~; ~~10 files, 12 forms~~, mhw#191) | `/plugin:<name>`, arguments interpolated as `$ARGUMENTS` | the corresponding element is **steering**, and the 2026-08-21 ambiguity is now **closed**: the loader resolves `dev.kiro/steering/` (and `dev.kiro/INSTRUCTIONS.md`) inside a package root, so steering is carried by the format. `commands/` at the repo root is not that path and is not read. Still not exported in this slice — a typed-command surface with `$ARGUMENTS` has no steering equivalent, so this would be a rewrite rather than a copy |
 | `mcp.json` | — | carried (optional). This repo ships none |
 | `.claude-plugin/marketplace.json` | the marketplace a consumer adds once, then installs and updates from | **a difference, not a limitation.** Kiro installs straight from a GitHub URL; there is no marketplace indirection to be missing |
 
