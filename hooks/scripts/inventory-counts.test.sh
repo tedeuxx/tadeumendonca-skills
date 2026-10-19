@@ -4538,7 +4538,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=59   # 56 -> 59 on mhw#191: rows 0057-0059 for the three commands the mhw v6.0.0 regeneration carried
+BP_HIGH_WATER=60   # 56 -> 59 on mhw#191: rows 0057-0059 for the three commands the mhw v6.0.0 regeneration carried; 59 -> 60 for row 0060, /handoff, carried by the v8.0.0 regeneration
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).

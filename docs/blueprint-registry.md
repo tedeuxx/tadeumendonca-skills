@@ -723,6 +723,18 @@ where a sixth value can be argued on evidence rather than on the first two rows 
 
 *Added 2026-10-18 with the mhw v6.0.0 regeneration (mhw#191).*
 
+### 0060 · a session is continued in a fresh one from the tracker, without publishing anything
+
+- **tipo:** routing
+- **carrier:** `commands/handoff.md`
+- **descrição:** A typed command that prints a prompt continuing this session in a fresh one, and the shell line that opens it for this agent harness: the objective, the anchored Issue, its revision, handoff state and next act, each re-derived from the tracker.
+- **propósito:** A heavy session can be replaced by a clean one without losing its anchor, and the continuation is read from the issue tracker rather than from the memory of the conversation that is ending.
+- **o que faz:** Builds each field from the tracker and the latest worklog `handoff` or `checkpoint` event, bounds every field to one line of at most 280 characters, sanitises it, has `scripts/launch-line.py` quote it for a POSIX shell and print the launch command, prints both, and stops working in the session.
+- **o que não faz:** It posts nothing — no comment, worklog event, label, Issue or pull request — never launches the new session itself, never widens the objective, and never merges, publishes or releases anything. The launch script's sanitising is a string check: private content that carries none of the refused strings passes it.
+- **citação:** > "It never launches the new session itself; the owner opens it."
+
+*Added 2026-10-19 with the mhw v8.0.0 regeneration (mhw#191), which carried the command into this plugin; mhw added it at v7.0.0 (mhw#198).*
+
 ## `review` — a judgement from a fresh context; nothing enforces it
 
 ### 0020 · one demand is closed by two leads that are built to disagree
