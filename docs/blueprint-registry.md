@@ -590,7 +590,7 @@ the notice persists. **What is durable here is the Issue body it reads**, not th
 
 - **tipo:** routing
 - **carrier:** `commands/autonomy.md`
-- **descrição:** A typed command that runs the queue end to end, one slice at a time, through the full loop.
+- **descrição:** A typed command that runs the queue end to end, ~~one slice at a time,~~ one issue per git worktree with the review gate kept serial (struck 2026-10-19, #572), through the full loop.
 - **propósito:** A loop that asks a human on in-pattern work is a **design defect**, not mere friction: the human's residual should be the irreversible and the architectural, and nothing else. The command exists so that residual is *stated* rather than rediscovered per slice.
 - **o que faz:** Picks, builds, reviews and merges slices one at a time against the stated order, stopping only where the owner's judgement is genuinely required, and reports product slices against hygiene slices at the end.
 - **o que não faz:** It is not intake and must not become it — it works what is already tracked and `ready`, and does not capture a new request. The product/hygiene split it reports is a **measurement, not a process**: nothing durable records it, so no gate can key on it and none should.
