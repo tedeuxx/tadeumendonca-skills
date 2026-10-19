@@ -1180,13 +1180,19 @@ commit and every path it generated in `.mhw-regenerated`. A second run on its ow
 
 | mhw at the tag | here | transform |
 |---|---|---|
-| `method/skills/<n>/SKILL.md` | `skills/<n>/SKILL.md` | drop the `name:` key; bare scalars where YAML allows; `{{method-scripts}}` → `scripts` |
-| `method/agents/<n>.md` | `agents/<n>.md` | bare scalars; the token |
-| `method/commands/<n>.md` | `commands/<n>.md` | drop `name:` (no command here carries it: the file name is the identifier); bare scalars, `argument-hint` always quoted; the token |
+| `method/skills/<n>/SKILL.md` | `skills/<n>/SKILL.md` | drop the `name:` key; bare scalars where YAML allows; `{{method-scripts}}` → `scripts`; `{{agent-harness}}` stops the run |
+| `method/agents/<n>.md` | `agents/<n>.md` | bare scalars; the token; `{{agent-harness}}` stops the run |
+| `method/commands/<n>.md` | `commands/<n>.md` | drop `name:` (no command here carries it: the file name is the identifier); bare scalars, `argument-hint` always quoted; the token; `{{agent-harness}}` → `claude-code` |
 | `method/scripts/*.py`, `*.sh`, tests excluded | `scripts/` | verbatim, mode kept |
 | `method/scripts/<dir>/**`, `fixtures/` excluded | `scripts/<dir>/` | verbatim |
 | — | `.claude-plugin/plugin.json` skills array and counts, `marketplace.json` count | derived from the tree |
 | — | `powers/` | `hooks/scripts/kiro-power-build.py` |
+
+**`{{agent-harness}}` joined the map on 2026-10-19**, when the regeneration moved from mhw v6.0.0 to
+v8.0.0: mhw v7.0.0 (mhw#198) names, in a command body, the agent harness each rendered copy is for. This
+plugin is the Claude Code carrier, so the token renders to `claude-code`, the value mhw's renderer writes
+into its Claude Code copy; in a skill or agent body it stops the run, as it stops mhw's render. It is a
+render of mhw's own token, the same kind as `{{method-scripts}}`, not a rewrite of mhw's prose.
 
 mhw's prose is never rewritten for this plugin. Its carriers say the plugin's hooks are retired, while
 they still run here when the plugin is enabled; the notice at the head of those carriers already says
