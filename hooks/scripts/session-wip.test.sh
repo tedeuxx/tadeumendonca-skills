@@ -315,6 +315,11 @@ expect 'still a SessionStart event' present '"hookEventName"'
 expect 'still carries additionalContext' present 'additionalContext'
 expect 'still says to drain the queue'  present 'Drain these'
 expect 'explains what an UNMARKED line means' present 'absence means'
+# #572: the context states the current rule, parallel per issue with a serial gate, and no
+# longer states the retired one-open-pull-request bound as live.
+expect 'states one issue per worktree (#572)' present 'one issue, one branch, one git worktree'
+expect 'states the serial review gate (#572)' present 'one pull request in review at a time'
+expect 'no longer states one open pull request as the bound (#572)' absent 'one open pull request'
 if run_hook >/dev/null; then ok 'exits 0'; else bad 'exits 0' "exit was $?"; fi
 rm -rf "$root"
 

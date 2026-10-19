@@ -236,12 +236,20 @@ from `refusal` to `routing`, which moves this row's `enforcement` from `denies` 
 is the honest form and it is a downgrade: a foreign implementer reading this row before #375 could have
 built a control, and reading it now can only build an influence.
 
-### 0007 · one slice in flight — **THE CARRIER IS RETIRED; THE OBLIGATION IS NOT**
+### 0007 · one issue per worktree, review gate serial — **THE CARRIER IS RETIRED; THE OBLIGATION IS NOT**
+
+*This row's title was "one slice in flight" until 2026-10-19 (#572), when the owner retired the count
+and kept the per-issue rule; it is reworded rather than struck because it is the row's name in the
+export.*
 
 **The mechanism was deleted on 2026-09-04 (#383) and this row is NOT a tombstone**, because the two are
 different things and this registry's own rule says so: *only an **abandoned** obligation is tombstoned —
-one that stopped being wanted, not one that moved.* **WIP=1 is actively wanted** — the owner reaffirmed
-it on 2026-08-28 (*«por enquanto siga com a regra de wip»*) after an Issue was opened to reverse it.
+one that stopped being wanted, not one that moved.* ~~**WIP=1 is actively wanted** — the owner reaffirmed
+it on 2026-08-28 (*«por enquanto siga com a regra de wip»*) after an Issue was opened to reverse it.~~
+**Struck 2026-10-19 (#572): WIP=1 was reversed on 2026-09-11 (#385), and the `wip:` count that
+replaced it is retired.** The obligation still wanted is narrower: **one issue per `git worktree`,
+with no numeric ceiling, and a serial review gate** (owner, 2026-10-19: *«a regra enforçada é
+paralelismo por issues baseado em git worktrees»*).
 What left is the carrier, so `carrier` reads `retired` and the mapping's first rule takes over:
 **`enforcement` is `absent`**, whatever `tipo` says.
 
@@ -261,9 +269,9 @@ harness's permission layer.
 - **tipo:** refusal
 - **carrier:** retired
 - **descrição:** A `PreToolUse` guard bounding work in progress at the pull-request boundary.
-- **propósito:** Stacked branches go stale and turn their own merge into a conflict resolution. The obligation is that the queue is **drained**, not grown — and it is worth a mechanism because the pressure to start a second thing is highest exactly when the first one is blocked on someone else.
+- **propósito:** Stacked branches go stale and turn their own merge into a conflict resolution. ~~The obligation is that the queue is **drained**, not grown — and it is worth a mechanism because the pressure to start a second thing is highest exactly when the first one is blocked on someone else.~~ **Struck 2026-10-19 (#572): that was the WIP=1 purpose, and the owner retired the count.** The obligation now is that **each issue is developed in its own `git worktree`, with no count — starting another issue while one is blocked is allowed — and merge requests reach the review gate one at a time, each rebased onto the current trunk first**, so a stale branch is caught at the gate rather than merged.
 - **o que faz:** *(Past tense throughout: this describes the retired carrier, kept because the design is what a foreign implementer would otherwise rebuild.)* Intersected the changed files of the proposed pull request against those of the open ones and denied on overlap, with a sibling-task exemption for two pull requests whose source Issues declare the same parent.
-- **o que não faz:** **The mechanism and the written policy disagreed, and the policy was the stricter of the two.** The hook bounded on file *overlap*; the loop's own rule has been one worktree, one branch, one open pull request since 2026-08-13, full stop. So the hook permitted a second, disjoint pull request that the policy forbids — **and since 2026-09-04 nothing permits or refuses anything here at all.** **It also never runs its own overlap check while that policy is obeyed** — it lists only *open* pull requests, so with the previous one already merged the list is empty and it exits before comparing a single path; measured across fourteen consecutive merged pull requests, not one had another of the same author open at its creation. **And it is blind to the object the policy is actually about.** A shared *checkout* is not a shared *file*: two agents in one working tree produce the same file list, and this guard cannot distinguish them — it never asks which tree it is in. **That gap cannot be closed here, and the reason is the moment rather than the matcher.** It fires on the pull-request creation, the last act of a slice, while a two-agents-in-one-tree failure — a measurement read off the wrong branch, an edit written to the wrong tree — completes during the build. The control that would hold it is a lease on the checkout taken at the first write, which is a different mechanism and is named as owed. **Follow the policy; nothing here enforces it.**
+- **o que não faz:** **The mechanism and the written policy disagreed, and the policy was the stricter of the two.** The hook bounded on file *overlap*; ~~the loop's own rule has been one worktree, one branch, one open pull request since 2026-08-13, full stop. So the hook permitted a second, disjoint pull request that the policy forbids~~ the loop's rule was one worktree, one branch, one open pull request from 2026-08-13 until it was reversed on 2026-09-11 (#385); since 2026-10-19 (#572) it is one issue per worktree with no count and a serial review gate (struck 2026-10-19, #572), so the hook permitted a second, disjoint pull request that the policy of the day forbade — **and since 2026-09-04 nothing permits or refuses anything here at all.** ~~**It also never runs its own overlap check while that policy is obeyed** — it lists only *open* pull requests,~~ **It also never ran its own overlap check while WIP=1 was obeyed** (tense corrected 2026-10-19, #572) — it listed only *open* pull requests, ~~so with the previous one already merged the list is empty and it exits before comparing a single path;~~ so with the previous one already merged the list was empty and it exited before comparing a single path (tense corrected 2026-10-19, #572); measured across fourteen consecutive merged pull requests, not one had another of the same author open at its creation. ~~**And it is blind to the object the policy is actually about.** A shared *checkout* is not a shared *file*: two agents in one working tree produce the same file list, and this guard cannot distinguish them — it never asks which tree it is in.~~ **And it was blind to the object that policy was about** (tense corrected 2026-10-19, #572). A shared *checkout* is not a shared *file*: two agents in one working tree produce the same file list, and this guard could not distinguish them — it never asked which tree it was in. **That gap cannot be closed here, and the reason is the moment rather than the matcher.** ~~It fires on the pull-request creation, the last act of a slice,~~ It fired on pull-request creation, the last act of any slice (tense corrected 2026-10-19, #572), while a two-agents-in-one-tree failure — a measurement read off the wrong branch, an edit written to the wrong tree — completes during the build. The control that would hold it is a lease on the checkout taken at the first write, which is a different mechanism and is named as owed. ~~**Follow the policy; nothing here enforces it.**~~ **Follow the current rule — one issue per worktree, review gate serial — and know that nothing here enforces it** (struck 2026-10-19, #572).
 - **citação:** no limit stated in the source
 
 *(That cell read `> "The bound is FILE OVERLAP, not a count. ONE level, and there is no second."` until
@@ -577,7 +585,7 @@ the notice persists. **What is durable here is the Issue body it reads**, not th
 - **tipo:** routing
 - **carrier:** `hooks/scripts/session-wip.sh`
 - **descrição:** A `SessionStart` hook that surfaces the open pull-request queue.
-- **propósito:** The guard above stops the queue **growing**; this stops it staying **invisible**. Inherited work sat open across sessions and surfaced only because somebody thought to look — which is exactly the kind of state a session should be *told*, not asked to remember.
+- **propósito:** ~~The guard above stops the queue **growing**;~~ The guard above was meant to stop the queue **growing** and was deleted at #383 (struck 2026-10-19, #572); this stops it staying **invisible**. Inherited work sat open across sessions and surfaced only because somebody thought to look — which is exactly the kind of state a session should be *told*, not asked to remember.
 - **o que faz:** Lists the open pull requests and injects them as context at session start, alongside the gate-verdict state that the end-of-turn hook also reads.
 - **o que não faz:** **Injects context, never blocks** — a session must always be able to start, so it is silent on every error: no CLI, no auth, no network, not a repository. An unavailable queue reads exactly like an empty one, and nothing distinguishes them.
 - **citação:** > "Injects context, never blocks. A session must always be able to start."
@@ -586,9 +594,9 @@ the notice persists. **What is durable here is the Issue body it reads**, not th
 
 - **tipo:** routing
 - **carrier:** `commands/autonomy.md`
-- **descrição:** A typed command that runs the queue end to end, one slice at a time, through the full loop.
+- **descrição:** A typed command that runs the queue end to end, ~~one slice at a time,~~ one issue per git worktree with the review gate kept serial (struck 2026-10-19, #572), through the full loop.
 - **propósito:** A loop that asks a human on in-pattern work is a **design defect**, not mere friction: the human's residual should be the irreversible and the architectural, and nothing else. The command exists so that residual is *stated* rather than rediscovered per slice.
-- **o que faz:** Picks, builds, reviews and merges slices one at a time against the stated order, stopping only where the owner's judgement is genuinely required, and reports product slices against hygiene slices at the end.
+- **o que faz:** Picks, builds, reviews and merges slices against the stated order — ~~one at a time~~ building in parallel, one issue per git worktree, while review and merge stay serial, one merge request at a time (struck 2026-10-19, #572) — stopping only where the owner's judgement is genuinely required, and reports product slices against hygiene slices at the end.
 - **o que não faz:** It is not intake and must not become it — it works what is already tracked and `ready`, and does not capture a new request. The product/hygiene split it reports is a **measurement, not a process**: nothing durable records it, so no gate can key on it and none should.
 - **citação:** > "Not for capturing a new request (see new-issue)."
 
@@ -597,8 +605,8 @@ the notice persists. **What is durable here is the Issue body it reads**, not th
 - **tipo:** routing
 - **carrier:** `commands/autonomy.md`
 - **descrição:** The `off` mode of the same canonical command — the deliberate end of autonomy mode, a separate typed command until #368.
-- **propósito:** **Nothing ships half-done.** Ending autonomy by simply stopping leaves the in-flight slice in a state nobody has named, and the difference between "waiting on you" and "stuck" is invisible from the outside. It is a MODE rather than its own command because the decision is one decision with two directions, and a first token that must be named cannot be entered by accident.
-- **o que faz:** Finishes the in-flight slice to merge, starts nothing new, and posts a closing summary — merged, open, blocked, split by routing type.
+- **propósito:** **Nothing ships half-done.** Ending autonomy by simply stopping leaves ~~the in-flight slice~~ every in-flight slice (struck 2026-10-19, #572: development is parallel per issue, so there can be several) in a state nobody has named, and the difference between "waiting on you" and "stuck" is invisible from the outside. It is a MODE rather than its own command because the decision is one decision with two directions, and a first token that must be named cannot be entered by accident.
+- **o que faz:** Finishes ~~the in-flight slice~~ every in-flight slice (struck 2026-10-19, #572: development is parallel per issue, so there can be several) to merge, starts nothing new, and posts a closing summary — merged, open, blocked, split by routing type.
 - **o que não faz:** It closes nothing and decides nothing about the backlog; the criterion-bearing close of an Issue is the owner's act. It also carries no trigger of its own — like the close-out pass the loop already specifies in full, it fires only when somebody invokes it. And it is **not a mechanism**: nothing in the harness records that a session is in autonomy mode, so neither mode can be verified to have run and the bare invocation deliberately reports nothing.
 - **citação:** > "Not for capturing a new request (see new-issue)."
 

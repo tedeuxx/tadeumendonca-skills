@@ -3861,7 +3861,9 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
       #      set the reference to the empty string. `--merge`, `--auto`, `--admin` and
       #      `--delete-branch` take no value at all and each reproduced it on its own.
       #   2. "ALMOST ALWAYS THE PR BEING MERGED" priced the fallback against WIP=1, which is a property
-      #      of how the loop happens to be run, not of this rule. #385 is open to end WIP=1.
+      #      of how the loop happens to be run, not of this rule. #385 ended WIP=1 on 2026-09-11, and
+      #      since 2026-10-19 (#572) development is parallel per issue with no count, so the
+      #      fallback's "almost always" premise no longer holds at all.
       #
       # THE SHARPEST INSTANCE WAS THE FLOOR'S OWN REMEDY STRING. The squash deny above printed "Use a
       # real merge commit ('gh pr merge --merge')". A caller who followed that instruction and appended

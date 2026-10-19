@@ -4,8 +4,10 @@
 # harness it is actually running, and whether that build is behind the source.
 #
 # The third member of the session-start family, aimed at the failure the other two
-# cannot see. `wip-guard` stops the queue growing; `session-wip` stops it staying
-# invisible; this one stops the SESSION being wrong about itself.
+# cannot see. `wip-guard` was meant to stop the queue growing (deleted at #383, and
+# since #572 development is parallel per issue with only the review gate serial);
+# `session-wip` stops the queue staying invisible; this one stops the SESSION being
+# wrong about itself.
 #
 # The failure, measured (#93). #88/#90 rewrote wip-guard from counting open PRs to
 # intersecting changed files and merged as 0.4.18. Minutes later the guard denied a PR

@@ -2,8 +2,11 @@
 # purpose: tell a starting session what is already open, so an inherited PR queue surfaces on its own instead of waiting for someone to remember to look
 # session-wip.sh — SessionStart hook: surface the open PR queue before work begins.
 #
-# The companion to wip-guard.sh, aimed at the other half of the same failure. The
-# guard stops the queue GROWING; this stops it staying INVISIBLE. Inherited PRs sat
+# Written as the companion to wip-guard.sh, aimed at the other half of the same failure:
+# that guard was meant to stop the queue GROWING; this stops it staying INVISIBLE.
+# wip-guard.sh was deleted at #383 (2026-09-04), so nothing stops the queue growing, and
+# since #572 (2026-10-19) development is parallel per issue with only the review gate
+# serial; this hook is now the only one of the pair. Inherited PRs sat
 # open across sessions and only surfaced because someone thought to look — which is
 # precisely the kind of state a session should be told, not asked to remember.
 #
@@ -173,9 +176,12 @@ Drain these: for each, the resolution is merge it, or close it with a reason —
 leaving it open is neither. NOTHING MECHANICAL STOPS YOU STARTING ANOTHER SLICE
 WHILE ONE OF THESE IS OPEN: the guard that used to deny an overlapping pull
 request was removed on 2026-09-04 (#383), and pull-request creation is
-allowlisted, so a second one now executes silently. The bound is the WRITTEN
-policy — one worktree, one branch, one open pull request — and it is held by you
-reading this and by nothing else. What rots is a PR sitting behind one that
+allowlisted, so a second one now executes silently. The rule (#572) is written,
+not enforced: development is parallel PER ISSUE, with no count —
+one issue, one branch, one git worktree, removed after its merge. The review
+gate stays SERIAL — one pull request in review at a time, rebased onto the
+current trunk before the gate. Both are held by you reading this and by nothing
+else. What rots is a PR sitting behind one that
 edits the same lines, so the one to finish first is whichever this next slice
 would collide with. A bot's dependency PR counts as something to drain."
 

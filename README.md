@@ -120,8 +120,10 @@ four floor principles cannot, because a tier that never bends has nothing to sta
 1. **Plan-first** — design and align before coding.
 2. **Ask on the boundaries** — architecture, contracts, anything irreversible. In-pattern implementation
    is decided autonomously, and no architectural call is made alone.
-3. **Thin vertical slices, bounded by a work-in-progress bound** — one in-flight branch and one open PR
-   at a time. ~~bounded by file overlap — a second slice may start if it touches no file an open one
+3. **Thin vertical slices, one issue per `git worktree`, with no numeric ceiling; the review gate stays
+   serial** (owner decision 2026-10-19, #572). ~~bounded by a work-in-progress bound — one in-flight
+   branch and one open PR at a time.~~ **Struck #572: WIP=1 was reversed at #385, and the `wip:` count
+   that replaced it is retired in `docs/loop-mode.md`.** ~~bounded by file overlap — a second slice may start if it touches no file an open one
    touches. Overlap rather than a count, because counting blocks disjoint work while doing nothing
    about the real risk.~~ **Struck #410, and it had been live and false for 27 days.** The
    disjoint-files exception was tested that day — two disjoint-file issues built in separate worktrees
@@ -129,8 +131,11 @@ four floor principles cannot, because a tier that never bends has nothing to sta
    enquanto"*. The skill it summarises has carried the strike ever since
    (`skills/agents-configuration/SKILL.md`, *WIP=1 — the struck exception, and why*); this summary went
    on stating the reversed rule as current for 27 days. **Struck rather than deleted because a reader
-   who took the exception from here acted on it — that is exactly how it was found.** What the bound
-   is, what it protects, and the measurement showing nothing enforces it are all in that skill.
+   who took the exception from here acted on it — that is exactly how it was found.** ~~What the bound
+   is, what it protects, and the measurement showing nothing enforces it are all in that skill.~~
+   **Struck 2026-10-19 (#572): there is no count left to look up.** What the retired bound was, what it
+   protected, and the measurement showing nothing enforced it are in that skill; the current rule is
+   `AGENTS.md` floor rule 8 and `docs/loop-mode.md`.
 4. **Surgical changes, tracked debt** — work around adjacent mess and file it.
 5. **Simple but extensible** — an abstraction must pay for itself.
 6. **No dogma** — honour a platform's conventions as its context.
@@ -1303,9 +1308,12 @@ guaranteed to be updated at that instant.~~
 **Struck 2026-09-04 (#383): `wip-guard.sh` is deleted, so there is no overlap rule, no sibling-task
 question and nothing to read the logic of.** The paragraph is struck rather than edited because it
 told readers to resolve the question by reading a file, and that instruction now sends them to a path
-that does not exist. **Two sibling tasks touching the same file are blocked by nothing.** What still
+that does not exist. **Two sibling tasks touching the same file are blocked by nothing.** ~~What still
 bounds them is the written WIP=1 policy — one worktree, one branch, one open PR — which was always the
-stricter rule and was never the hook's.
+stricter rule and was never the hook's.~~ **Struck 2026-10-19 (#572): WIP=1 was reversed at #385 and
+the `wip:` count that replaced it is retired.** What bounds them now is composition: one issue per
+`git worktree`, no numeric ceiling, a serial review gate, and two issues that will edit the same file
+kept out of the same parallel set by whoever composes it. Nothing mechanical checks that.
 
 ```
 feat/<issue>-<slug>     a user story
