@@ -4,6 +4,20 @@ purpose: give the closing of an iteration a look at the running product, because
 argument-hint: "[iteration] (defaults to the active iteration)"
 ---
 
+> **Read this first: hooks named below are the retired plugin's, not controls you have (#61).** This
+> text moved from the `tadeumendonca-skills` plugin (this rite at #130, from its `main` at `4882b911`). Where
+> it names a plugin hook, guard rule or test (`hooks/…`, `permission-guard.sh` and its numbered rules,
+> `mcp-guard.sh`, `inventory-counts.test.sh` and the like), it describes that plugin; **none of those runs
+> in this method**. Read any rule they held as an **instruction you follow**. What is still mechanical,
+> where the workstation installed it: the **deny floor** (native deny rules by command prefix), and
+> **each agent's own tool list**, which is native in Claude Code and Kiro and an instruction in Codex. The
+> session checks that replaced the plugin's reporting hooks are in `agents-configuration`, *Session-start
+> and end-of-turn checks*.
+>
+> **The scripts this rite runs ship with the method (#170).** `scripts` in this text is the
+> directory the method installs them to, the same for every agent harness, so the rite runs them from
+> any repository.
+
 Run the sprint review for the iteration named by `$ARGUMENTS` (default: the active iteration, derived
 from the pool per `/agents-configuration` rule 1 — **enumerate, never type a milestone name**).
 
@@ -71,8 +85,14 @@ engineered.
 ## Step 0 — confirm the browser bound BEFORE anything is derived or dispatched (#525)
 
 **Run this first, in the session that will dispatch, before the route generator runs and before any
-persona is dispatched.** The browser this rite drives is bounded by `.mcp.json`'s
-`--allowedUrlPattern ${HARNESS_SWEEP_ORIGIN:-http://127.0.0.1:9/*}`. The default is the discard port,
+persona is dispatched.** The browser this rite drives is bounded by `--allowedUrlPattern`, with the
+value of `HARNESS_SWEEP_ORIGIN` or, when that is unset, empty or not an `http://` or `https://` value,
+`http://127.0.0.1:9/*`. ~~`.mcp.json`'s
+`--allowedUrlPattern ${HARNESS_SWEEP_ORIGIN:-http://127.0.0.1:9/*}`~~ *(struck 2026-10-13, mhw#174: the
+server is no longer the plugin's `.mcp.json`. The workstation renders it into the Claude Code user
+configuration, and its shell reads the variable when the server starts, so a project's settings `env`
+reaches it. mhw ADR-0038 records why: Claude Code 2.1.296 expands `${…}` in server arguments before it
+applies a project's settings `env`.)* The default is the discard port,
 so the bound fails closed: with no origin declared, the browser can reach nothing. **Until #525 the
 rite learned that only by dispatching a sweep that could only write FAILED.** In three closes in a
 row the shipped server rendered no sweep (sprint-02, sprint-03, sprint-04, recorded in
@@ -179,11 +199,11 @@ the first navigation fails as `FAILED`. Both are listed under *What step 0 does 
   navigation, like the multi-session case. Requiring the package name narrows this case but does not
   close it.
 - **The `=value` spelling.** A server launched with `--allowedUrlPattern=<pattern>` prints nothing,
-  because the probe matches only the spaced form that `.mcp.json` uses. That error also runs toward
-  stopping.
+  because the probe matches only the spaced form that the rendered server uses. That error also runs
+  toward stopping.
 - **Which server the driver's tools reach, when the consumer declares its own.** If the consumer
-  declares its own `chrome-devtools` server, the probe prints two lines, the plugin's default and the
-  consumer's origin. Whether the driver's calls go to the second one is the consumer carrier's own
+  declares its own `chrome-devtools` server, the probe prints two lines, the user-scope server's value and
+  the consumer's origin. Whether the driver's calls go to the second one is the consumer carrier's own
   measurement, not this probe's.
 - **Anything on Codex, which is UNMEASURED.** Two open questions. Does Codex expand
   `${HARNESS_SWEEP_ORIGIN:-…}` in a plugin server's arguments? Can Codex's sandboxed shell see the

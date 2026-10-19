@@ -92,7 +92,7 @@ complaint that started this calibration. Check a draft for both before he sees i
 ## The journey rule, and its two corollaries
 
 **The reader's-side statement of the same rule, and the sharper one for prose because it says what to
-CUT: *"o foco eh a jornada"*.** Every passage has a job in the journey — *"da onde vim antes aws da o
+CUT: *"o foco eh a jornada"*.** Every passage has a job in the journey — *"da onde vim antes [employer] da o
 motivo"*, where he came from gives the reason for the move — and a detail earns its place by what it
 moves, never by what it proves. Name the job before selecting, then cut what merely describes.
 
@@ -348,7 +348,7 @@ wins.
   his father and a car document — before any argument at all. His default structure in both registers. A
   draft that opens on the thesis and then illustrates it runs his form backwards.
 - **The personal register — a MECHANISM, not a licence to expose.** In the corpus he named the condition
-  and the damage outright, then **handed over a procedure** (the anxiety piece carries a numbered
+  and the damage outright, then **handed over a procedure** (one piece carries a numbered
   WhatsApp walkthrough). **The mechanism survives and is the usable half: a difficulty is never left as
   the ending** — the bridge out is explicit, *"na esperança que possam ajudar a outras pessoas também a
   se sentirem melhores"*. **The exposure does not survive:** *"eu exagerava sim aquela epoca"* · *"hj
@@ -382,7 +382,7 @@ Medium blog"* is not one thing and must not be read as one. What not to carry fo
 - **Guru-borrowing standing in for a point** (Cortella, Sinek, Musk) — seasoning in the strong essays,
   the entire content in the filler.
 - **Unbacked financial cheerleading** — *"Comece hoje e compre seus primeiros 100 reais de Bitcoin"*.
-- **Employer and client identification** — *"funcionário CLT da maior empresa de mídia do Brasil"*: the
+- **Employer and client identification** — *[a corpus line identifying a former employer, withheld]*: the
   standing no-client-references rule, and the corpus is simply where it was broken. **The model to copy
   is in the same corpus** — *Sugestões* tells the bank, the sofa and the streaming plan without naming
   any of them.
@@ -692,13 +692,9 @@ decisions above it is not a ruler, it is a collision.**
 number bound it anyway, **silently, because nothing mechanical enforces it**, so it bit only at the
 end, as a blocker, after the work was done.
 
-**What rule 10 CANNOT do, and it is the same either way.** Nothing in this tree counts words. Measured
-2026-09-18 over every registered hook script, comments excluded:
-
-```
-grep -rniE 'wc -w|word.?count' hooks/scripts/*.sh | grep -v '\.test\.'   # -> no output
-grep -rncE 'wc -l|grep -c'     hooks/scripts/inventory-counts.test.sh    # -> 119, the selector is alive
-```
+**What rule 10 CANNOT do, and it is the same either way.** Nothing counts words: no hook runs in this
+method (#61), and none of the plugin's hooks counted them either (measured over its scripts on
+2026-09-18).
 
 **So this was guidance before the ruling and is guidance after it**; what changed is what the guidance
 says, not what holds it. A reviewer may raise the count as a finding and may not treat it as a verdict.
@@ -1246,7 +1242,7 @@ above, and they do not override it. **Rules 1–7 predate the narrowing and are 
 sections after it are where the digest form is stated.
 
 1. **Follow the article's arc, chronologically, with the industry's moment beside it.** His words:
-   *"você deveria seguir a ordem de construção da narrativa do momento que cheguei na aws e o momento
+   *"você deveria seguir a ordem de construção da narrativa do momento que cheguei na [employer] e o momento
    que estou agora, fazendo paralelo com o momento da indústria (da cloud a ia)"*. A diagnostic hook
    that never places the reader in time fails — **the parallel is the point**, not decoration on it.
 2. **The "it worked" beat is non-negotiable.** He went for something specific and got it. A teaser that
@@ -1808,9 +1804,8 @@ all is still not this file's question.
 
 It is a presence-and-form check on two lines. It cannot tell whether the hint is *placed* where the
 network actually folds, because the fold figure this file carries is unverified and nobody in this loop
-holds a credential on that network. And **no layer observes a draft**: `hooks/hooks.json` registers
-`PreToolUse` on `Bash` and on the MCP matcher only, so `Write` and `Edit` are seen by nothing. The gate
-asserts this rule is WRITTEN.
+holds a credential on that network. And **no layer observes a draft**: `Write` and `Edit` are seen by nothing. Nothing in this method
+asserts even that this rule is written.
 
 ### Rule 20 — the LinkedIn post is a TARGET well below the ceiling, per language block
 
@@ -2061,8 +2056,7 @@ choose still says so, and rule 22 is what makes choosing rare rather than free.
 
 #### What rule 22 CANNOT do
 
-It is a shape rule and no layer reads a draft — `hooks/hooks.json` registers `PreToolUse` on `Bash` and
-on the MCP matcher only, so `Write` and `Edit` are observed by nothing. **It also cannot tell a LAYER
+It is a shape rule and no layer reads a draft — `Write` and `Edit` are observed by nothing. **It also cannot tell a LAYER
 from a GAP.** A piece with an accessible surface and no depth underneath reads, at the surface, exactly
 like one with depth a reader declined to open — the difference is whether the references are there, and
 that is a reviewer's read of the links rather than of the prose. The gate asserts this rule is WRITTEN.

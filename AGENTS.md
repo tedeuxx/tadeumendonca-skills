@@ -21,6 +21,13 @@ sprint. The decision is ADR-0005's 2026-10-12 amendment (mhw#63, #565).
 - **An Issue here titled `[mhw#N]` and carrying the hidden marker `mhw-issue` is a twin created by the
   sync.** Change it at its source in mhw; an edit made here is overwritten by the next sync.
 - The duplicate protections stay until mhw's deny-floor slice ships.
+- **Generated from mhw: never edit by hand.** `agents/`, `commands/`, every skill under `skills/` except
+  the four kept here, the mhw scripts under `scripts/`, the manifest's skill list and `powers/` are the
+  output of `scripts/mhw-regenerate.py` at one mhw release tag, recorded in `.mhw-regenerated`. Change
+  them in mhw, then regenerate. The four skills kept here are `backend`, `cloud-infrastructure`, `devops`
+  and `frontend` (owner's ruling on mhw#191); they, `hooks/`, the scripts this repository authors and
+  the plugin's own tests are maintained here, and the regeneration never writes or deletes a file it
+  did not generate.
 
 ## The budget, and how a harness finds this file
 
@@ -51,7 +58,7 @@ A **library of engineering knowledge and agent configuration** for a two-reposit
   anything it decides.
 - `powers/` — a **generated** export of `skills/` for a second harness. **Never edit it by hand**; edit
   the source under `skills/` and regenerate with `hooks/scripts/kiro-power-build.py`.
-- `scripts/` — repository utilities that are not hooks.
+- `scripts/` — repository utilities that are not hooks; the mhw scripts among them are generated.
 
 It is consumed by `tadeumendonca-io`, the static site that is the platform's public surface. Skills are
 written **project-agnostic** — generic placeholders, never real names, domains, account or resource

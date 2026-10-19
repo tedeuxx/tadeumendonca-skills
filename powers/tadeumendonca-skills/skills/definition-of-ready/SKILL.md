@@ -3,6 +3,19 @@ name: definition-of-ready
 description: Set the bar a work item must clear before a builder can pick it up, generically and for THIS loop — what `ready` asserts and which of its criteria anything actually checks. Use when writing acceptance criteria, running intake, sizing a backlog, or diagnosing why in-progress work stalls on undecided scope. Not for what "done" means at delivery (see definition-of-done), or the state machine of who acts at each transition (see agents-configuration).
 ---
 
+> **Read this first: hooks named below are the retired plugin's, not controls you have (#61).** This
+> text moved from the `tadeumendonca-skills` plugin. Where it names a plugin hook, guard rule or test
+> (`hooks/…`, `permission-guard.sh` and its numbered rules, `mcp-guard.sh`, `inventory-counts.test.sh`
+> and the like), it describes that plugin; **none of those runs in this method**. (If the plugin is
+> still enabled beside this method, its hooks do run, and they refuse these bare-named agents' posting,
+> merging and filing; that is why installing this method is opt-in until the cutover, #63.) Read any rule they
+> held as an **instruction you follow**. What is still mechanical, where the workstation installed it:
+> the **deny floor** (native deny rules by command prefix — force-push, `git reset --hard`, recursive `rm`, `git clean -f`,
+> the `gh pr merge --squash`/`-s` prefixes, secret writes, `gh api` write methods, `gh repo delete`/`archive`/`rename`, releases and
+> package publishing, `terraform apply`/`destroy`, `sudo`), and **each agent's own tool list**, which is
+> native in Claude Code and Kiro and an instruction in Codex. The session checks that replaced the
+> plugin's reporting hooks are in `agents-configuration`, *Session-start and end-of-turn checks*.
+
 # Definition of Ready — the bar a work item clears before it is buildable
 
 Apply this concept in any `<project>` — it defines what makes an item **ready to build**,
@@ -158,11 +171,11 @@ job is separating an instrument from a memory.
   change.** That hook's `PreToolUse` arm was removed; it is registered on `Stop` alone and **refuses
   nothing**. So **nothing at this entry gate fires**, and the honest reading of this list is that all
   three bullets are downstream of the first one's disappearance.
-- **Reported by a hook AFTER the fact, which is a different thing and must not be read as the first
-  bucket:** the `invocable:` declaration. `closure-artifact-guard.sh`'s surviving `Stop` arm reports an
-  Issue that has **already closed** with an unmet declaration, once per session, one turn late. The act
-  it describes has happened; `gh issue close` is allowlisted, so a manual close on an unmet declaration
-  executes silently. **A report is evidence for a human, never a bound.**
+- **Reported AFTER the fact, which is a different thing and must not be read as the first bucket:**
+  the `invocable:` declaration. The plugin's `Stop` hook that reported an Issue **already closed** with
+  an unmet declaration is retired (#61); the report is now an end-of-turn step you run yourself
+  (`agents-configuration`, check 8). A manual close on an unmet declaration executes silently. **A
+  report is evidence for a human, never a bound.**
 - **Checked by an instruction the session follows, not by a hook:** the presence of `sp:N`. The drain's
   preflight *"refuses to enter"* while an item in the active iteration lacks one — and that preflight
   is **prose in `commands/autonomy.md` executed by the session**, not `hooks/scripts/preflight.sh`.
