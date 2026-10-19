@@ -439,13 +439,13 @@ What that section held, and where each part lives now:
 
 This repo is a **Claude Code plugin + marketplace** — the native way to reuse skills across
 projects. The skill library lives in `skills/`, one directory per skill holding a `SKILL.md`, and the
-**ten** command files a human types live in `commands/` (`ls commands/` → `autonomy.md blueprint.md
-funnel-review.md idea-to-issues.md new-idea.md new-issue.md sprint-planning.md sprint-retrospective.md
-sprint-review.md what-else.md`; ~~seven~~ until the mhw v6.0.0 regeneration added the last three,
-mhw#191), carrying **twelve** non-help
+**eleven** command files a human types live in `commands/` (`ls commands/` → `autonomy.md blueprint.md
+funnel-review.md handoff.md idea-to-issues.md new-idea.md new-issue.md sprint-planning.md
+sprint-retrospective.md sprint-review.md what-else.md`; ~~seven~~ until the mhw v6.0.0 regeneration added
+three, ~~ten~~ until the v8.0.0 regeneration added `handoff`, mhw#191), carrying **thirteen** non-help
 typed forms — `autonomy on`, `autonomy off`, `new-issue`, `blueprint export`, `blueprint import`,
 `sprint-review`, `sprint-retrospective`, `sprint-planning`, `funnel-review`, `new-idea`,
-`idea-to-issues`, `what-else` — because
+`idea-to-issues`, `what-else`, `handoff` — because
 `autonomy` and `blueprint` each carry modes and a bare invocation of either only prints help;
 `.claude-plugin/marketplace.json` is the catalog and
 `.claude-plugin/plugin.json` the manifest. **Nothing is published outside this git repo** — the
@@ -514,10 +514,10 @@ not distinguish them.** **Measured on 2026-08-10**, `claude plugin details` on t
 **`Skills (71)`** — the 69 the library held under `skills/` then, **plus the 2 then under `commands/`**,
 counted alike, reachable alike. **Both denominators have moved since** — the library consolidated to 14
 and has since gained one (`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 15, re-run
-2026-09-02) and `commands/` holds 10
-(`ls commands/` → `autonomy.md blueprint.md funnel-review.md idea-to-issues.md new-idea.md new-issue.md
-sprint-planning.md sprint-retrospective.md sprint-review.md what-else.md`, re-run 2026-10-18 after the mhw
-v6.0.0 regeneration, mhw#191; ~~7~~ at the 2026-09-11 re-run) — so read the 71 as the
+2026-09-02) and `commands/` holds 11
+(`ls commands/` → `autonomy.md blueprint.md funnel-review.md handoff.md idea-to-issues.md new-idea.md
+new-issue.md sprint-planning.md sprint-retrospective.md sprint-review.md what-else.md`, re-run 2026-10-19
+after the mhw v8.0.0 regeneration, mhw#191; ~~7~~ at the 2026-09-11 re-run, ~~10~~ after the v6.0.0 one) — so read the 71 as the
 measurement that established the rule, not as today's inventory. **The rule is what survives the
 denominators:** the loader counts both directories alike.
 
