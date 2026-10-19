@@ -173,9 +173,12 @@ Drain these: for each, the resolution is merge it, or close it with a reason —
 leaving it open is neither. NOTHING MECHANICAL STOPS YOU STARTING ANOTHER SLICE
 WHILE ONE OF THESE IS OPEN: the guard that used to deny an overlapping pull
 request was removed on 2026-09-04 (#383), and pull-request creation is
-allowlisted, so a second one now executes silently. The bound is the WRITTEN
-policy — one worktree, one branch, one open pull request — and it is held by you
-reading this and by nothing else. What rots is a PR sitting behind one that
+allowlisted, so a second one now executes silently. The rule (#572) is written,
+not enforced: development is parallel PER ISSUE, with no count —
+one issue, one branch, one git worktree, removed after its merge. The review
+gate stays SERIAL — one pull request in review at a time, rebased onto the
+current trunk before the gate. Both are held by you reading this and by nothing
+else. What rots is a PR sitting behind one that
 edits the same lines, so the one to finish first is whichever this next slice
 would collide with. A bot's dependency PR counts as something to drain."
 
