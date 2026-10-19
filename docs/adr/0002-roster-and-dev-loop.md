@@ -5166,8 +5166,10 @@ name. **Written by `agents-lead`** — the #223 domain split puts a pure loop/ma
 ### The decision
 
 1. **The twenty-fifth amendment's decision 1 is REVERSED and struck in place.** WIP=1 no longer
-   stands. **`wip: 2`**, recorded in `docs/loop-mode.md` in **both** repositories — the slot is
-   `#406`'s, the value is this one's.
+   stands. ~~**`wip: 2`**, recorded in `docs/loop-mode.md` in **both** repositories — the slot is
+   `#406`'s, the value is this one's.~~ **Struck 2026-10-19 (#572): the count is retired and the
+   record reads `wip: unbounded`; see the amendment of that date at the end of this record.** The
+   serial gate (decision 2) stands.
 2. **The REVIEW GATE IS SERIAL at any value of `wip`**, and the rule lands in `CLAUDE.md`'s
    `loop-mode-contract` block in both repositories rather than in a brief. **The carrier is not a
    preference:** selecting a review chain is the orchestrator's act, the orchestrator preloads nothing,
@@ -5722,6 +5724,54 @@ interpreter hole; and ~~compare-and-swap prevents lost updates but does not make
 history visible~~ **the best-effort preflight prevents an already-stale write but cannot prevent a
 lost update during its GET-to-PATCH interval, and milestone-description history remains invisible**.
 Accepted because each milestone mutation is reversible and the wider raw capability already existed.
+
+## Amendment (2026-10-19) — the `wip:` count is retired: parallel per issue on worktrees, the review gate stays serial (#572)
+
+**Why this is an amendment and not a new record.** The thirty-fourth amendment set the count, and the
+count is part of *the shape a unit of work takes*, which is this capability's own index entry. Written
+by `agents-lead`, as a pure loop decision under the #223 domain split.
+
+**What the owner decided, 2026-10-19, in his words:** *«a regra enforçada é paralelismo por issues
+baseado em git worktrees»*. He picked «Remover o teto» from a three-option picker on tedeuxx/mhw#216;
+the other two options were to keep the count and align its values, and to replace it with a queue
+limit at the gate.
+
+### The decision
+
+1. **Development is parallel per issue, with no numeric ceiling.** Each issue gets its own branch and
+   its own `git worktree`, is finished through merge, and its worktree is removed after the merge.
+   The thirty-fourth amendment's decision 1 (`wip: 2`) is struck in place above.
+2. **The review gate stays serial, unchanged.** At most one merge request is in review at a time, and
+   each is rebased onto the current trunk before the gate. The thirty-fourth amendment's decision 2
+   stands.
+3. **The record keeps the line and sets it to `wip: unbounded`** in `docs/loop-mode.md`, the spelling
+   `tadeumendonca-io` merged in its PR #772. The installed method (workstation release `v8.0.0`)
+   still reads the line, and its `scrum-master` brief treats it as *"the ceiling on how many
+   `### Selection` blocks you emit"*; `unbounded` answers that question directly, where a deleted line
+   would leave an anchored grep empty. The measurement and the commands are in `docs/loop-mode.md`,
+   *The `wip:` count is RETIRED*.
+4. **The method's own wording is left to its source.** The mirrored `agents/`, `commands/` and
+   `skills/` files still read `wip:` as a bound. They are generated from mhw and are not edited here;
+   tedeuxx/mhw#216 changes them at the source, and the next regeneration brings that change in. When no
+   installed reader is left, the `wip:` line itself can be deleted.
+
+### The rejected options that are still live
+
+- **Keep the count and align the two repositories' values.** It keeps a number that binds only the
+  session that reads it: nothing enforces it, and on 2026-10-19 a session held a third slice back on a
+  stale value while the owner already worked in parallel per issue (reported in tedeuxx/mhw#216).
+- **Replace the count with a queue limit at the gate.** The gate is already serial at one, so a queue
+  limit would add a second number for a bound that already exists.
+
+### Consequences
+
+- **Good:** the instruction now matches how work is done, and the record, the brief (`AGENTS.md` floor
+  rule 8), the Codex instructions and the registry say the same thing.
+- **Bad:** nothing enforces the rule, exactly as nothing enforced the count. `gh pr create` is
+  allowlisted, so a merge request opened outside its own issue's worktree executes silently, and
+  two issues that edit the same files are kept apart only by whoever composes the parallel set.
+- **Bad, until the mhw#216 regeneration:** the installed and mirrored method still describes a `wip:`
+  bound, so a session reading it sees `unbounded` where the method expects a number.
 
 ## Links
 - Driven by record 0001 (ADRs are the brain this depends on), now
