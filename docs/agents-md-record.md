@@ -1584,6 +1584,13 @@ before it is written, not after.**
 
 ### `wip` is a SLOT here — the VALUE and the topology are `#385`
 
+**RETIRED 2026-10-19 (#572), and this notice sits above the section so no reader takes a count from
+what follows.** The owner ruled that development is parallel per issue on `git worktree`, with no
+numeric ceiling: *«a regra enforçada é paralelismo por issues baseado em git worktrees»*. The review
+gate stays serial. `docs/loop-mode.md` now declares `wip: retired`, and `AGENTS.md` floor rule 8 states
+the rule; the brief is canonical. Everything below, including *"THE VALUE IS `wip: 2`"*, is the record
+of the retired count and sets nothing.
+
 **`WIP=1` is transitional scaffolding with a stated exit condition, not a pull-system choice.** The
 owner's correction, before #406 was filed: *«hoje o nosso scrum trabalha em wip=1 devido a necessidade
 de apurar o modelo antes de paralelizar a camada de developers»* · *«mas nao tem intuito de seguir

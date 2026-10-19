@@ -21,7 +21,13 @@ loop-mode: scrum
 loop-mode-since: 2026-09-11
 loop-mode-enum: scrum kanban
 loop-mode-repos: tedeuxx/tadeumendonca-skills tedeuxx/tadeumendonca-io
-wip: 2
+wip: retired
+
+**`wip: retired` is not a count, and nothing bounds development by a count any more (2026-10-19,
+#572).** Development is parallel **per issue**: one issue, one branch, one `git worktree`, with no
+numeric ceiling. The review gate stays serial. The line is kept as an explicit retired token rather
+than deleted, for a reason measured below in *`wip:` is RETIRED*; the value it carried until that date
+was `2`.
 
 **`loop-mode-enum` is closed at two, and an unrecognised value is refused BY NAME rather than defaulted.**
 A mode selects a pool predicate and a ceremony set; a session that cannot resolve the value has no
@@ -225,7 +231,50 @@ is its own decision with its own calibration.
 
 ---
 
-## `wip: 2` — the value, its basis, and what it does NOT bound (#385)
+## `wip:` is RETIRED — parallel per issue on worktrees, and the gate stays serial (#572)
+
+**Owner decision, 2026-10-19, in his words:** *«a regra enforçada é paralelismo por issues baseado em
+git worktrees»*. He picked «Remover o teto» from a three-option picker on tedeuxx/mhw#216. So:
+
+- **Development is parallel per issue, with no numeric ceiling.** Each issue gets its own branch and
+  its own `git worktree`, is finished through merge, and its worktree is removed after the merge.
+- **The review gate stays serial.** At most one merge request is in review at a time; the next goes to
+  the gate only after the previous one merged or was sent back. Rebase onto the current trunk before
+  the gate. This is `AGENTS.md` floor item 8 and standing rules 32 and 35, unchanged in substance.
+- **Composition still binds.** Two issues that will edit the same files are still a collision, and a
+  selection set is still built so they are not developed side by side. What went is the count, not the
+  judgement about overlap.
+
+**Why the line says `retired` instead of being deleted — measured, not preferred.** The installed
+method still reads it. On 2026-10-19, with workstation release `v8.0.0` installed:
+
+```
+grep -rn -F 'wip:' ~/.claude/agents ~/.claude/commands ~/.claude/skills
+# -> agents/scrum-master.md (the `wip:` line is "the ceiling on how many ### Selection blocks you emit"),
+#    commands/autonomy.md ("WIP is bounded by the `wip:` value in docs/loop-mode.md"),
+#    skills/orchestration/SKILL.md, skills/agents-configuration/SKILL.md, agents/developer.md,
+#    agents/quality-assurance.md
+```
+
+Those readers are instructions, and each is told to read the value from this line. **A deleted line
+is the silent case:** an anchored `grep '^wip: '` returns nothing and exits 1, which a reader cannot
+tell from a typo, and the section below already records that a missing `wip` was read as *unbounded*
+while the method still said *bounded*. **An explicit token is found by the same grep and leads the
+reader here.** The method's own change is tedeuxx/mhw#216; once a release carrying it is installed and
+this repository's mirror is regenerated from it, no reader is left and the line can be deleted. That
+deletion is not this slice.
+
+**What enforces this: nothing, as before.** No hook reads this file, `gh pr create` is allowlisted,
+and the serial gate is held by the gate's own procedure and by review. Retiring a count that nothing
+enforced removes no control.
+
+---
+
+## ~~`wip: 2` — the value, its basis, and what it does NOT bound (#385)~~ — retired 2026-10-19 (#572)
+
+**Everything from here to the next rule is the record of the retired value, kept because the
+measurement behind it is still the best data on how little parallel development buys while the gate
+is serial.** It no longer sets anything.
 
 **`#406` declared the SLOT and deliberately decided no value. `#385` decides the value, and the owner
 authorised it as part of that slice.** It is `2`.

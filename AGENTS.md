@@ -84,9 +84,10 @@ harness also enforces a rule mechanically, that is not written into the rule.
 7. **Scratch files go in your harness's own session scratchpad, never in a repository path.** Bodies
    for merge-request and issue text are written to a file and passed by file, never inlined into a
    shell argument — a shell eats backticks and dollar signs out of an inline body silently.
-8. **Work in progress is bounded by the `wip:` value in `docs/loop-mode.md`.** Read it there; do not
-   assume a value. Each concurrent work item gets its own branch and its own `git worktree`, and each
-   is finished through merge. Only one merge request is in review at a time, whatever the bound.
+8. **Development is parallel per issue, with no numeric ceiling: one issue, one branch, one
+   `git worktree`.** Each is finished through merge, and its worktree is removed after the merge. Only
+   one merge request is in review at a time; the next goes to the gate only after the previous one
+   merged or was sent back.
 9. **A review finding is named, never filed.** Only the owner opens work. Report what you found; do
    not convert your own finding into a tracked item.
 10. **Publish a measured number with the command that produced it, inline and runnable, or do not
@@ -180,8 +181,9 @@ review.
 
 ## Standing rules for working this loop
 
-The owner's standing rules, as obligations true on a harness with no hooks. Mode-dependent values and
-the work-in-progress bound are read from `docs/loop-mode.md`, never stated here.
+The owner's standing rules, as obligations true on a harness with no hooks. Mode-dependent values are
+read from `docs/loop-mode.md`, never stated here; development is bounded by issue, not by a count
+(floor rule 8).
 
 ### Git and the forge
 
