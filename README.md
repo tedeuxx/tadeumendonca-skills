@@ -131,8 +131,11 @@ four floor principles cannot, because a tier that never bends has nothing to sta
    enquanto"*. The skill it summarises has carried the strike ever since
    (`skills/agents-configuration/SKILL.md`, *WIP=1 — the struck exception, and why*); this summary went
    on stating the reversed rule as current for 27 days. **Struck rather than deleted because a reader
-   who took the exception from here acted on it — that is exactly how it was found.** What the bound
-   is, what it protects, and the measurement showing nothing enforces it are all in that skill.
+   who took the exception from here acted on it — that is exactly how it was found.** ~~What the bound
+   is, what it protects, and the measurement showing nothing enforces it are all in that skill.~~
+   **Struck 2026-10-19 (#572): there is no count left to look up.** What the retired bound was, what it
+   protected, and the measurement showing nothing enforced it are in that skill; the current rule is
+   `AGENTS.md` floor rule 8 and `docs/loop-mode.md`.
 4. **Surgical changes, tracked debt** — work around adjacent mess and file it.
 5. **Simple but extensible** — an abstraction must pay for itself.
 6. **No dogma** — honour a platform's conventions as its context.
