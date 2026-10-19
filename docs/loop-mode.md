@@ -258,8 +258,8 @@ grep -rn -F 'wip:' ~/.claude/agents ~/.claude/commands ~/.claude/skills
 
 Those readers are instructions, and each is told to read the value from this line. **A deleted line
 is the silent case:** an anchored `grep '^wip: '` returns nothing and exits 1, which a reader cannot
-tell from a typo, and the section below already records that a missing `wip` was read as *unbounded*
-while the method still said *bounded*. **An explicit token is found by the same grep and leads the
+tell from a typo, and the section below records that a missing `wip` was once read as *unbounded*.
+**An explicit token is found by the same grep and leads the
 reader here.** The method's own change is tedeuxx/mhw#216; once a release carrying it is installed and
 this repository's mirror is regenerated from it, no reader is left and the line can be deleted. That
 deletion is not this slice.
@@ -272,7 +272,7 @@ enforced removes no control.
 
 ## ~~`wip: 2` — the value, its basis, and what it does NOT bound (#385)~~ — retired 2026-10-19 (#572)
 
-**Everything from here to the next rule is the record of the retired value, kept because the
+**Everything from here to the next `---` divider is the record of the retired value, kept because the
 measurement behind it is still the best data on how little parallel development buys while the gate
 is serial.** It no longer sets anything.
 
