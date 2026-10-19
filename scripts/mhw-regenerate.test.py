@@ -48,7 +48,7 @@ purpose: "put the go rite behind one command so it cannot be entered by accident
 argument-hint: "on [repo] | off [repo]"
 ---
 
-Command body, calling {{method-scripts}}/tool.py.
+Command body, calling {{method-scripts}}/tool.py for {{agent-harness}}.
 '''
 
 
@@ -188,6 +188,25 @@ class RegenerateTest(unittest.TestCase):
         self.assertIn("`scripts/tool-contract/README.md`", skill)
         self.assertIn("\n`scripts` is the directory.", skill)
         self.assertIn("calling scripts/tool.py", self.read("commands/go.md"))
+
+    # M3 · {{agent-harness}} rendered to claude-code in a command body (mhw#198), refused elsewhere
+    def test_m3_agent_harness_in_a_command(self):
+        self.fx.run()
+        command = self.read("commands/go.md")
+        self.assertNotIn("{{agent-harness}}", command)
+        self.assertIn("calling scripts/tool.py for claude-code.", command)
+
+    def test_m3_agent_harness_outside_a_command_refuses_before_writing(self):
+        for tag, rel, text in (("v1.0.2", "method/agents/lead.md", AGENT),
+                               ("v1.0.3", "method/skills/alpha/SKILL.md", SKILL)):
+            self.fx.files[rel] = text + "For {{agent-harness}}.\n"
+            self.fx.tag(tag)
+            before = self.fx.snapshot()
+            with self.assertRaises(regen.RegenError) as ctx:
+                self.fx.run(tag)
+            self.assertEqual(ctx.exception.code, 4, rel)
+            self.assertEqual(self.fx.snapshot(), before, rel)
+            self.fx.files[rel] = text
 
     def test_m3_dangling_target_refuses_before_writing(self):
         self.fx.files["method/commands/go.md"] = COMMAND.replace("tool.py", "missing.py")

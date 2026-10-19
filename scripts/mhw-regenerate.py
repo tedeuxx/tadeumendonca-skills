@@ -24,7 +24,10 @@ WHAT IT WRITES: the carrier map, and nothing else (mhw#191's intake, rows M1-M9 
 
   M3 renders `{{method-scripts}}` to `scripts`, the plugin-relative directory the plugin's carriers
   already call; a `{{method-scripts}}/<path>` naming no carried script stops the run, as mhw's own
-  renderer does. M8: mhw text is never rewritten beyond these transforms.
+  renderer does. M3 also renders `{{agent-harness}}` to `claude-code` in a command body, the value
+  mhw's renderer writes into its Claude Code copy (mhw#198, first carried at v7.0.0); in a skill or
+  agent body that token stops the run, as it stops mhw's render. M8: mhw text is never rewritten
+  beyond these transforms.
 
 WHAT IT NEVER TOUCHES (the owner's ruling on mhw#191, Q1: keep the plugin-only skills). A path outside
 the carrier map is never written and never deleted. The one deletion it performs is of a path the
@@ -47,6 +50,10 @@ from pathlib import Path
 
 WATERMARK = ".mhw-regenerated"
 TOKEN = "{{method-scripts}}"
+# mhw#198: a command body names the agent harness its copy is for. This plugin is the Claude Code carrier,
+# so it renders the id mhw's renderer gives that carrier. Only a command body may carry it.
+HARNESS_TOKEN = "{{agent-harness}}"
+HARNESS = "claude-code"
 # A sentence-ending period is not part of the path, so the last character of a target is not a dot.
 TOKEN_REF_RE = re.compile(re.escape(TOKEN) + r"/((?:[A-Za-z0-9_.-]+/)*[A-Za-z0-9_.-]*[A-Za-z0-9_-])")
 SCRIPT_RE = re.compile(r"[A-Za-z0-9_][A-Za-z0-9_.-]*\.(?:py|sh)")
@@ -152,12 +159,15 @@ def transform_front_matter(text, where, drop_name):
     return "\n".join(out + lines[end:])
 
 
-def render_tokens(text, where, scripts):
-    """M3: {{method-scripts}} -> scripts; every named target must be a carried script or document."""
+def render_tokens(text, where, scripts, is_command):
+    """M3: {{method-scripts}} -> scripts; every named target must be a carried script or document.
+    {{agent-harness}} -> claude-code in a command body; anywhere else it refuses the run."""
     for target in TOKEN_REF_RE.findall(text):
         if "scripts/" + target not in scripts:
             raise RegenError(4, "%s: %s/%s names no file carried into scripts/" % (where, TOKEN, target))
-    return text.replace(TOKEN, "scripts")
+    if HARNESS_TOKEN in text and not is_command:
+        raise RegenError(4, "%s: %s is for command bodies only" % (where, HARNESS_TOKEN))
+    return text.replace(TOKEN, "scripts").replace(HARNESS_TOKEN, HARNESS)
 
 
 def build_map(files):
@@ -190,7 +200,7 @@ def build_map(files):
     for path, (target, drop_name, data, mode) in carriers.items():
         text = data.decode("utf-8")
         text = transform_front_matter(text, path, drop_name)
-        text = render_tokens(text, path, scripts)
+        text = render_tokens(text, path, scripts, path.startswith("method/commands/"))
         out[target] = (text.encode("utf-8"), mode)
     return out
 
