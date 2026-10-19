@@ -807,7 +807,7 @@ sweep hook to maintain: the harness owns that lifecycle, not this plugin.
 | lens and gate verdicts | **the PR comment.** It is the durable record for both — and the **gate** verdict is additionally machine-read by `session-wip.sh`, which matches the `gatekeeper-verdict: quality-assurance` marker and nothing else; a lens verdict has no reader but a human. A file copy is a second source of truth with no reader either way — and it is what broke: the file handoff failed twice while `SendMessage` failed zero times. |
 | interview transcripts, raw source material | **`.brand/` in `tadeumendonca-io`** — private and gitignored *there*, which is the documented home for exactly this. ~~**It is NOT gitignored in this repo**, so the path is only safe in the repo that ignores it; writing private material to `.brand/` here puts it in a tracked path in a public repo.~~ **Struck by this slice's own `.gitignore` entry — `.brand/` is ignored in THIS repo too now.** Struck rather than deleted because this is the sentence that told every reader the path was unsafe here, and a reader who acted on it deserves to find out it changed. **The home is still `tadeumendonca-io`, and the ignore stops a COMMIT, not a PASTE** — private text has reached public GitHub through an Issue body and a PR comment, which no `.gitignore` observes and whose edit history is not repairable. |
 | a measurement instrument | **a repo script with a test, if and only if a gate will run it.** Otherwise discard. "It worked once" is not "it must persist". |
-| an isolated checkout | **not a scratch class.** Use the repo — WIP=1 already serialises — or a git worktree with its own install. |
+| an isolated checkout | **not a scratch class.** ~~Use the repo — WIP=1 already serialises — or a git worktree with its own install.~~ Use a git worktree with its own install, one per issue (struck 2026-10-19, #572: WIP=1 was reversed at #385, and nothing serialises development any more). |
 | continuity state that must survive the session | **not a scratch class either — the Issue being worked, as a worklog `handoff` or `checkpoint` event** (#514), prepared with `scripts/worklog.py prepare-event` and posted with `--body-file`. **Never a file in a shared temporary directory**: that is how sprint state was carried across sessions once, and the fifth such file resumed a session with its words glued together. The format is bounded because the Issue is public: facts and one `next_act`, one line each, no private reasoning. The contract and the resume command are in `docs/worklog/README.md`. |
 
 ### `.brand/` — THIS section is the canonical home of that fact, and the other four are pointers (#479)
@@ -1590,7 +1590,7 @@ before it is written, not after.**
 **RETIRED 2026-10-19 (#572), and this notice sits above the section so no reader takes a count from
 what follows.** The owner ruled that development is parallel per issue on `git worktree`, with no
 numeric ceiling: *«a regra enforçada é paralelismo por issues baseado em git worktrees»*. The review
-gate stays serial. `docs/loop-mode.md` now declares `wip: retired`, and `AGENTS.md` floor rule 8 states
+gate stays serial. `docs/loop-mode.md` now declares `wip: unbounded`, and `AGENTS.md` floor rule 8 states
 the rule; the brief is canonical. Everything below, including *"THE VALUE IS `wip: 2`"*, is the record
 of the retired count and sets nothing.
 

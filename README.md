@@ -1305,9 +1305,12 @@ guaranteed to be updated at that instant.~~
 **Struck 2026-09-04 (#383): `wip-guard.sh` is deleted, so there is no overlap rule, no sibling-task
 question and nothing to read the logic of.** The paragraph is struck rather than edited because it
 told readers to resolve the question by reading a file, and that instruction now sends them to a path
-that does not exist. **Two sibling tasks touching the same file are blocked by nothing.** What still
+that does not exist. **Two sibling tasks touching the same file are blocked by nothing.** ~~What still
 bounds them is the written WIP=1 policy — one worktree, one branch, one open PR — which was always the
-stricter rule and was never the hook's.
+stricter rule and was never the hook's.~~ **Struck 2026-10-19 (#572): WIP=1 was reversed at #385 and
+the `wip:` count that replaced it is retired.** What bounds them now is composition: one issue per
+`git worktree`, no numeric ceiling, a serial review gate, and two issues that will edit the same file
+kept out of the same parallel set by whoever composes it. Nothing mechanical checks that.
 
 ```
 feat/<issue>-<slug>     a user story

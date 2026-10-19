@@ -21,13 +21,13 @@ loop-mode: scrum
 loop-mode-since: 2026-09-11
 loop-mode-enum: scrum kanban
 loop-mode-repos: tedeuxx/tadeumendonca-skills tedeuxx/tadeumendonca-io
-wip: retired
+wip: unbounded
 
-**`wip: retired` is not a count, and nothing bounds development by a count any more (2026-10-19,
+**`wip: unbounded` is not a count, and nothing bounds development by a count any more (2026-10-19,
 #572).** Development is parallel **per issue**: one issue, one branch, one `git worktree`, with no
-numeric ceiling. The review gate stays serial. The line is kept as an explicit retired token rather
-than deleted, for a reason measured below in *`wip:` is RETIRED*; the value it carried until that date
-was `2`.
+numeric ceiling. The review gate stays serial. The line is kept with an explicit value rather than
+deleted, for a reason measured below in *The `wip:` count is RETIRED*; the value it carried until that
+date was `2`, and `tadeumendonca-io`'s record carries the same `unbounded` spelling.
 
 **`loop-mode-enum` is closed at two, and an unrecognised value is refused BY NAME rather than defaulted.**
 A mode selects a pool predicate and a ceremony set; a session that cannot resolve the value has no
@@ -231,7 +231,7 @@ is its own decision with its own calibration.
 
 ---
 
-## `wip:` is RETIRED — parallel per issue on worktrees, and the gate stays serial (#572)
+## The `wip:` count is RETIRED — parallel per issue on worktrees, and the gate stays serial (#572)
 
 **Owner decision, 2026-10-19, in his words:** *«a regra enforçada é paralelismo por issues baseado em
 git worktrees»*. He picked «Remover o teto» from a three-option picker on tedeuxx/mhw#216. So:
@@ -245,7 +245,7 @@ git worktrees»*. He picked «Remover o teto» from a three-option picker on ted
   selection set is still built so they are not developed side by side. What went is the count, not the
   judgement about overlap.
 
-**Why the line says `retired` instead of being deleted — measured, not preferred.** The installed
+**Why the line says `unbounded` instead of being deleted — measured, not preferred.** The installed
 method still reads it. On 2026-10-19, with workstation release `v8.0.0` installed:
 
 ```
@@ -258,9 +258,13 @@ grep -rn -F 'wip:' ~/.claude/agents ~/.claude/commands ~/.claude/skills
 
 Those readers are instructions, and each is told to read the value from this line. **A deleted line
 is the silent case:** an anchored `grep '^wip: '` returns nothing and exits 1, which a reader cannot
-tell from a typo, and the section below records that a missing `wip` was once read as *unbounded*.
-**An explicit token is found by the same grep and leads the
-reader here.** The method's own change is tedeuxx/mhw#216; once a release carrying it is installed and
+tell from a typo, and the section below records that a missing `wip` once meant *unbounded* by
+accident. **An explicit value is found by the same grep and says it on purpose.** `unbounded` rather
+than a word such as `retired`, because the installed `scrum-master` brief reads the line as *"the
+ceiling on how many `### Selection` blocks you emit"*, and `unbounded` answers that question directly:
+there is no ceiling, and its non-collision criterion still decides what goes into a set. It is also
+the spelling `tadeumendonca-io`'s record carries (its PR #772), so a session reading both records sees
+one value. The method's own change is tedeuxx/mhw#216; once a release carrying it is installed and
 this repository's mirror is regenerated from it, no reader is left and the line can be deleted. That
 deletion is not this slice.
 

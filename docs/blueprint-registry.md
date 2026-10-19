@@ -240,8 +240,12 @@ built a control, and reading it now can only build an influence.
 
 **The mechanism was deleted on 2026-09-04 (#383) and this row is NOT a tombstone**, because the two are
 different things and this registry's own rule says so: *only an **abandoned** obligation is tombstoned —
-one that stopped being wanted, not one that moved.* **WIP=1 is actively wanted** — the owner reaffirmed
-it on 2026-08-28 (*«por enquanto siga com a regra de wip»*) after an Issue was opened to reverse it.
+one that stopped being wanted, not one that moved.* ~~**WIP=1 is actively wanted** — the owner reaffirmed
+it on 2026-08-28 (*«por enquanto siga com a regra de wip»*) after an Issue was opened to reverse it.~~
+**Struck 2026-10-19 (#572): WIP=1 was reversed on 2026-09-11 (#385), and the `wip:` count that
+replaced it is retired.** The obligation still wanted is narrower: **one issue per `git worktree`,
+with no numeric ceiling, and a serial review gate** (owner, 2026-10-19: *«a regra enforçada é
+paralelismo por issues baseado em git worktrees»*).
 What left is the carrier, so `carrier` reads `retired` and the mapping's first rule takes over:
 **`enforcement` is `absent`**, whatever `tipo` says.
 
