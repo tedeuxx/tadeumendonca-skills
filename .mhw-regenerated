@@ -1,6 +1,6 @@
 # Written by scripts/mhw-regenerate.py. Do not edit: the next regeneration rewrites it.
-tag: v6.0.0
-commit: 506b626e89c466864d415d0a60b9caf583c4cc2e
+tag: v8.0.0
+commit: f24819a2c2a5e578479cb3fb723708acb737b3ce
 generated:
   agents/agents-lead.md
   agents/content-reviewer.md
@@ -13,6 +13,7 @@ generated:
   commands/autonomy.md
   commands/blueprint.md
   commands/funnel-review.md
+  commands/handoff.md
   commands/idea-to-issues.md
   commands/new-idea.md
   commands/new-issue.md
@@ -23,6 +24,7 @@ generated:
   scripts/confine.py
   scripts/funnel-review-contract/README.md
   scripts/funnel-review.sh
+  scripts/launch-line.py
   scripts/milestone-close.py
   scripts/milestone-create.py
   scripts/milestone-read.py
