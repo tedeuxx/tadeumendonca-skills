@@ -1,6 +1,6 @@
 # Written by scripts/mhw-regenerate.py. Do not edit: the next regeneration rewrites it.
-tag: v8.0.0
-commit: f24819a2c2a5e578479cb3fb723708acb737b3ce
+tag: v10.1.0
+commit: bfe73adab48890c466ebb4f12f399eb550a96bcc
 generated:
   agents/agents-lead.md
   agents/content-reviewer.md
@@ -12,14 +12,11 @@ generated:
   agents/tech-lead.md
   commands/autonomy.md
   commands/blueprint.md
-  commands/funnel-review.md
   commands/handoff.md
-  commands/idea-to-issues.md
-  commands/new-idea.md
+  commands/need-me.md
   commands/new-issue.md
-  commands/sprint-planning.md
-  commands/sprint-retrospective.md
-  commands/sprint-review.md
+  commands/new-prd.md
+  commands/prd-to-issues.md
   commands/what-else.md
   scripts/confine.py
   scripts/funnel-review-contract/README.md
@@ -42,6 +39,8 @@ generated:
   skills/definition-of-ready/SKILL.md
   skills/documentation-standard/SKILL.md
   skills/engineering-standards/SKILL.md
+  skills/funnel-review/SKILL.md
+  skills/merge-authority/SKILL.md
   skills/orchestration/SKILL.md
   skills/planning-poker/SKILL.md
   skills/provisioning/SKILL.md
@@ -49,3 +48,6 @@ generated:
   skills/quality-gates/SKILL.md
   skills/scm/SKILL.md
   skills/shell/SKILL.md
+  skills/sprint-planning/SKILL.md
+  skills/sprint-retrospective/SKILL.md
+  skills/sprint-review/SKILL.md

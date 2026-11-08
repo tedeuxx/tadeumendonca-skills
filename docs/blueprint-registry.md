@@ -133,10 +133,11 @@ as misleading as one that over-claims.
 | `skill` | the paths declared in `.claude-plugin/plugin.json` | partial |
 
 **What `partial` means here, exactly, and why it was not padded to look complete.** Eleven `knowledge`
-rows over nine carriers landed; ~~**five**~~ **nine** skills have no row yet — `backend`, `frontend`,
+rows over nine carriers landed; ~~**five**~~ ~~**nine**~~ **ten** skills have no row yet — `backend`, `frontend`,
 `cloud-infrastructure`, `definition-of-done`, `planning-poker`, and since the mhw v6.0.0 regeneration
 (mhw#191) the four mhw split out of `devops` or moved into the method: `ci`, `scm`, `provisioning`,
-`orchestration`. The three reference skills
+`orchestration`; and since the v10.1.0 regeneration (mhw#218) `merge-authority`. The four rites that
+arrived as skills in the same regeneration are claimed: their rows (0042, 0046, 0048, 0055) moved with them. The three reference skills
 are where `o que não faz` is hardest and least quotable (measured: `cloud-infrastructure` is 21 service
 sections whose limits are per-section, not per-file). Authoring five rows at the
 ratified depth is a sitting of its own with the owner's layer in it; producing five thin ones to turn a
@@ -537,7 +538,7 @@ the notice persists. **What is durable here is the Issue body it reads**, not th
 ### 0042 · an iteration closes by asking the contexts that lived it, one at a time, from their own artifacts
 
 - **tipo:** record
-- **carrier:** `commands/sprint-retrospective.md`
+- **carrier:** `skills/sprint-retrospective/SKILL.md` *(carrier moved by the mhw v10.1.0 regeneration, mhw#218: mhw made the rites skills; ~~commands/sprint-retrospective.md~~)*
 - **descrição:** A typed rite the drain runs when its entry snapshot is exhausted — one isolated dispatch per persona that actually ran, each writing its own file into the iteration's retrospective directory.
 - **propósito:** An iteration that closes without being asked what it taught loses the defects that live in the **method** rather than in the product — the ones no test can reach, because the only context that meets them is the loop while it runs. The obligation is not "hold a retrospective": it is to stop the improvement list being written by the one role that saw the whole iteration, which is the role least able to see its own bias in it. **Isolation alone does not deliver that**, and this is the part worth porting: a persona consulted at iteration close is a fresh context with no memory of the iteration, so an isolated dispatch handed only a question produces N plausible lists — the same bias relocated, not removed. The evidence has to travel with the question.
 - **o que faz:** Derives the consult set from the dispatch records the loop already leaves on each Issue rather than consulting a fixed roster, feeds each persona **its own** artifacts — its dispatch metrics, its verdict markers, its review-file sections, the changes it touched — and asks it to reason from those. Each writes one file of its own, capped at two findings, and the output is a proposal the owner rules on at planning. The one-file-per-persona split is the mechanism, not the formatting: a shared file would put every earlier answer in the next persona's context, so the isolation would survive the dispatch and die at the write.
@@ -547,7 +548,7 @@ the notice persists. **What is durable here is the Issue body it reads**, not th
 ### 0048 · an iteration closes by looking at the running product, from a surface nobody wrote down
 
 - **tipo:** record
-- **carrier:** `commands/sprint-review.md`
+- **carrier:** `skills/sprint-review/SKILL.md` *(carrier moved by the mhw v10.1.0 regeneration, mhw#218: mhw made the rites skills; ~~commands/sprint-review.md~~)*
 - **descrição:** A typed rite the drain runs first of three at iteration close — one dispatch to the only persona holding a browser, which sweeps the live product across a derived surface and writes one observation report per iteration.
 - **propósito:** Every gate in a loop of this shape reads a **diff**, and a diff cannot carry the defect a reader actually meets: a banner off-centre, a bar rendering without its link, a layout that reads wrong at a phone width. The obligation is not "hold a demo" — there is no audience and no acceptance moment. It is that a loop whose merges are deploys should look at what it deployed, once per iteration, with somebody who knows what the page was *for*. The failure this closes is specific and was measured before it was designed: three defects of that class shipped with every gate green and were found by the owner on his phone.
 - **o que faz:** Derives its targets from the product's own route generator — the same function the sitemap and the prerender consume, so a route that exists is in the set by construction — visits each at a phone and a desktop viewport in every locale, and reads each page's assets **off the page itself** through the network log and the DOM snapshot rather than from any list. Reports two halves separately, mechanical evidence apart from judgement, leads with `routes emitted` and `routes visited`, and writes one tracked file into the consuming repository whose judgement half is an input to the next planning.
@@ -557,7 +558,7 @@ the notice persists. **What is durable here is the Issue body it reads**, not th
 ### 0055 · the audience is read once per period, and a rite that could not read says so in a different word
 
 - **tipo:** record
-- **carrier:** `commands/funnel-review.md`, `scripts/funnel-review.sh`, `docs/funnel-review/README.md`
+- **carrier:** `skills/funnel-review/SKILL.md`, `scripts/funnel-review.sh`, `docs/funnel-review/README.md` *(carrier moved by the mhw v10.1.0 regeneration, mhw#218: mhw made the rites skills; ~~commands/funnel-review.md~~)*
 - **descrição:** A typed rite at the close of a period that reads the published funnel end to end — reach, click, read, share, contact — against the pieces published in that period, stores what it read, compares it against the prior period, and returns at most two findings. Its collection step runs through a browser the harness does not own, so its report prints one of **two distinct literals**: the surfaces were read, or they were not.
 - **propósito:** A loop whose output is published prose has gates that all read a **diff**, and not one of them can see whether anything published was reached, read or acted on. The obligation is not "collect metrics" — it is that the feedback loop be **repeatable**, which the one-off sitting that motivated it was not: it had no questions written down, no store, no baseline and no cap, so its finding could not be re-derived and its numbers could not be compared against anything. The second half of the purpose is the one worth porting: where a rite's data lives behind a login the harness does not hold, **did-not-run and ran-and-found-nothing are the same silence**, and a rite that does not separate them reports a healthy funnel over a dark one.
 - **o que faz:** Splits the rite at the exact line the credential question falls on. **Collection** happens wherever an authenticated browser is reachable — on the ruled route, the owner's own already-authenticated session, so nothing is stored and nothing is granted to the harness — and its whole output is a tracked file whose first declaration is whether the surfaces were read at all. **Analysis** needs no browser, no network and no credential: it reads that file, refuses to print any figure that arrived without a sample size, attaches a **surface-aware** ceiling clause to each one — the site's consent ceiling where the site's banner gates the data, and a different clause where the number is a platform's own unstated sampling — finds the prior period by name and reports its absence rather than implying a trend, and caps the findings at a number declared in the source and printed into every report. **It splits a collected line with pathname expansion OFF**, so a figure carrying a `*` or a `?` — ordinary inside an analytics page path or a campaign name — is never replaced by filenames from whatever directory the rite happened to run in; without that, the published number is a function of the working directory, and both paths exit 0. The two states print `FUNNEL-REVIEW-NOT-COLLECTED`, with **no findings section at all**, or `FUNNEL-REVIEW-RAN`, with one that may say it is empty; neither literal is a substring of the other, and one suite runs both branches in the same pass. A fourth line in the cadence record gives the store a clock, which the carrier reads without being edited.
@@ -569,10 +570,10 @@ the notice persists. **What is durable here is the Issue body it reads**, not th
 ### 0057 · an idea becomes an agreed requirements document before it becomes work
 
 - **tipo:** record
-- **carrier:** `commands/new-idea.md`
+- **carrier:** `commands/new-prd.md` *(renamed by the mhw v10.1.0 regeneration, mhw#218; ~~commands/new-idea.md~~)*
 - **descrição:** A typed command that turns a new idea, or a plan to refine, given in the owner's words as its argument, into an agreed requirements document for the current repository, by interview rounds.
 - **propósito:** A plan reaches building only after shared understanding, and that understanding has to land in a versioned document rather than stay in a conversation that the next session cannot read.
-- **o que faz:** Anchors the subject, looks up the facts in the repository itself before asking anything, interviews the owner round by round with a recommended answer per question until every decision the plan needs is settled or left open by him, records his words next to each decision, and writes `docs/<git-repo-name>-product-requirements-document-<subject>.md`, delivered through the repository's own route. It then points at `idea-to-issues` and does not run it.
+- **o que faz:** Anchors the subject, looks up the facts in the repository itself before asking anything, interviews the owner round by round with a recommended answer per question until every decision the plan needs is settled or left open by him, records his words next to each decision, and writes `docs/<git-repo-name>-product-requirements-document-<subject>.md`, delivered through the repository's own route. It then points at `prd-to-issues` (~~`idea-to-issues`~~, renamed in mhw v10.1.0) and does not run it.
 - **o que não faz:** It never decides for the owner, never opens Issues, and never merges, publishes or releases anything. Nothing checks that a decision recorded as settled was in fact stated or accepted by him; that is the interviewer's discipline.
 - **citação:** > "It never decides for the owner: an unanswered decision stays open in the document."
 
@@ -651,7 +652,7 @@ truth, and the set is not reopened on one row.
 ### 0046 · an iteration is composed from an assembled pool and confirmed by the human in ONE activation
 
 - **tipo:** routing
-- **carrier:** `commands/sprint-planning.md`
+- **carrier:** `skills/sprint-planning/SKILL.md` *(carrier moved by the mhw v10.1.0 regeneration, mhw#218: mhw made the rites skills; ~~commands/sprint-planning.md~~)*
 - **descrição:** A typed rite that assembles every candidate for the next iteration — the eligible unmilestoned work in both repositories plus the proposals the closing rites produced — has a tool-less profile rank it, composes the iteration from that ranking against rules already ratified, and puts the whole composition to the owner as ONE activation he confirms or changes.
 - **propósito:** The obligation is **not** "hold a planning meeting". It is that the human who composes an iteration should not also be the one who has to REMEMBER what to compose it from: a loop whose ordering rule depends on a person recalling it has an ordering rule only while he recalls it. Two failures ride on that. The first is silent — eligible work that nothing presents sits unmilestoned indefinitely, invisible to every iteration-scoped mechanism at once. The second is that a closing rite's proposals have no consumer at all unless some moment exists where they can be ruled on; without one, the rite produces artifacts that are read by nobody and the iteration learns nothing from itself.
 - **o que faz:** Enumerates open unmilestoned work per repository (never naming a milestone in a query), splits it into eligible, awaiting-the-owner and not-drained, reads the previous iteration's retrospective findings as candidates, and dispatches the tool-less process profile once to rank the eligible pool against the already-ratified ordering rules. **Composes the iteration from that ranking and puts the whole composition to the human as ONE activation — confirm, change, defer/drop an item, or stop — recomposing at most once**, with the per-item reasoning written to the planning artifact rather than into the activation. Then uses the reviewed Python milestone routes to create or check-then-write the ordered description, admits each item, and later reads and closes the milestone after the closing rites. The update preflight can refuse a value already stale when read but cannot prevent an overwrite during the GET-to-PATCH interval. Writes one tracked planning file recording the pool, ranking, rulings and composition.
@@ -710,7 +711,7 @@ where a sixth value can be argued on evidence rather than on the first two rows 
 ### 0058 · an agreed document becomes tracked, sequenced Issues, each ready before it is opened
 
 - **tipo:** routing
-- **carrier:** `commands/idea-to-issues.md`
+- **carrier:** `commands/prd-to-issues.md` *(renamed by the mhw v10.1.0 regeneration, mhw#218; ~~commands/idea-to-issues.md~~)*
 - **descrição:** A typed command that cuts a requirements document, named as its argument, into vertical-slice Issues in the current repository, each with acceptance criteria and its blocking order.
 - **propósito:** An agreed document becomes tracked scope the owner can sequence, so work never starts untracked and no two slices silently claim, or both leave out, the same behaviour.
 - **o que faz:** Reads the document and the open Issues, proposes the slices as a numbered list, asks the owner about granularity and blocking order one question per message, checks each slice against `definition-of-ready`, and opens the approved Issues in blocking order with their bodies passed by file.
@@ -742,6 +743,18 @@ where a sixth value can be argued on evidence rather than on the first two rows 
 - **citação:** > "It never launches the new session itself; the owner opens it."
 
 *Added 2026-10-19 with the mhw v8.0.0 regeneration (mhw#191), which carried the command into this plugin; mhw added it at v7.0.0 (mhw#198).*
+
+### 0061 · the owner can pull what is pending on him, one ask at a time, without the agent inventing one
+
+- **tipo:** routing
+- **carrier:** `commands/need-me.md`
+- **descrição:** A typed command that answers the owner's question "do you need me for anything?": it gathers what is pending on him in this session, in the session's Issues and pull requests, and in the workstation repository's `owner-action` queue, then puts each item to him one at a time under the escalation rules already in force.
+- **propósito:** Every pending decision or action can be pulled on demand from any session, one ask per message, without the agent manufacturing an ask or restating the escalation rules in a weaker form.
+- **o que faz:** Reads the minimum scoped to the session, drops what is the agent's own to decide and what is already answered, orders the rest by what each blocks, puts only the first to him — a decision as one native picker with exactly three options, an action as one line with the act and the link — records his answer on the Issue or pull request it belongs to, then offers the next. An empty `owner-action` list is confirmed against the label list before it is reported as empty.
+- **o que não faz:** It writes nothing but the comment that records his answer — no label, Issue, branch or file outside the session scratchpad — never merges, publishes, releases or installs anything, never adds a hook, never acts on his answer by itself, and never asks two things in one message. Nothing checks that an item it dropped as the agent's own was in fact the agent's to decide.
+- **citação:** > "It never asks two things in one message, and it never asks what is yours to decide."
+
+*Added with the mhw v10.1.0 regeneration (mhw#218), which carried the command into this plugin.*
 
 ## `review` — a judgement from a fresh context; nothing enforces it
 
@@ -831,7 +844,7 @@ added a carrier and a row together.
 - **propósito:** A harness's judgment and a harness's machinery are indistinguishable while they live in one file, and the whole job of a blueprint is telling a portable rule from a local accident. Splitting them at the source makes the export honest instead of asking a renderer to make the distinction at projection time.
 - **o que faz:** States the mechanical-or-it-is-not-real test and, beside it, the second test that asks whether the control that exists **can fail** — *a check whose positive result is unconditional is not a check*, calibrated by breaking the subject on purpose and never the checker, with the shapes it takes outside a test suite. Then the two tiers (a floor that never bends and a dial calibrated to blast radius), the twelve principles as defaults ~~plus their triggers to deviate~~ — **struck #410: read beside a numbered list that phrasing says *each carries one*, and exactly one of the eleven did. Two of twelve do now (principles 1 and 12), and the four floor principles cannot carry one at all, since a tier that never bends has nothing to state a deviation from** — what counts as delivered against hygiene, what an agent does while blocked on someone it does not control, and what is left to the human.
 - **o que não faz:** It states that a work-in-progress bound exists and deliberately does **not** say what this loop's bound is — that, its correction, what it protects and the measurement showing nothing enforces it are all local. It also holds no state machine, no intake chain and no gate table. The cut was made on one test — *would this still be true in a project that does not run this loop?* — and the operational ruler it was applied with is stated in the file: nothing here names a persona, a hook, an ADR or an Issue of this repository.
-- **citação:** > "Not this loop's machinery, state machine or WIP rule (see agents-configuration), and not what done means concretely (see definition-of-done)."
+- **citação:** > "Not this loop's machinery, state machine or worktree rule (see agents-configuration), and not what done means concretely (see definition-of-done)."
 
 ### 0025 · where a working file goes
 

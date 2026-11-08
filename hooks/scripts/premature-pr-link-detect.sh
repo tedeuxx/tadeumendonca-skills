@@ -34,8 +34,9 @@
 # emphatically not an owner summons, it routes to the builder. Reading the literal is checkable;
 # reading "which of four holds applied" is not.
 #
-# `APPROVE-AND-MERGE` and `APPROVE-AND-MERGE-BOUNDARY` are clearances the gate acts on itself, and
-# since #374 they are **silent here rather than flagged** — see the narrowing at the `case` below.
+# `APPROVE-AND-MERGE` ~~and `APPROVE-AND-MERGE-BOUNDARY` are clearances~~ is the one clearance the gate
+# acts on itself (the boundary literal is retired since 2026-11-02, mhw#134, and now falls to `*)`), and
+# since #374 it is **silent here rather than flagged** — see the narrowing at the `case` below.
 #
 # ── DETECTION, NEVER PREVENTION — the same terms `zombie-loop-detect.sh` uses ───────────────────
 # This is a `Stop` hook. It fires AFTER the text has already reached the owner. It cannot un-send a
@@ -267,7 +268,13 @@ while IFS= read -r url; do
       APPROVE-PENDING-HUMAN|APPROVE-EXECUTOR-BLOCKED) : ;;
       # cleared: the PR is finished and who executes is a different question from whether this link
       # was premature. Say nothing.
-      APPROVE-AND-MERGE|APPROVE-AND-MERGE-BOUNDARY) : ;;
+      # RETIRED 2026-11-02 (mhw#134, carried by the mhw v10.1.0 regeneration): `APPROVE-AND-MERGE-BOUNDARY` left
+      # the gate's vocabulary. `APPROVE-AND-MERGE` clears both classes, the verdict's `owner-check:` line carries
+      # what the boundary literal used to signal, and the `merge-authority` contract lists the old literal under
+      # `retired-verdicts`, "refused by every reader". So it no longer clears anything here.
+      # It now falls to `*)`: a link beside a retired literal is a link no clearance stands behind.
+      # ~~APPROVE-AND-MERGE|APPROVE-AND-MERGE-BOUNDARY) : ;;~~
+      APPROVE-AND-MERGE) : ;;
       none) reason="no quality-assurance verdict at this head — the gate has not run, so nothing says the remaining act is his" ;;
       *)    reason="the verdict at this head is $verdict, which is neither a hold that hands him the decision (APPROVE-PENDING-HUMAN, APPROVE-EXECUTOR-BLOCKED) nor a clearance — so nothing says the remaining act is his" ;;
     esac

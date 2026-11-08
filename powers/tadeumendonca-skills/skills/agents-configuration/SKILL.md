@@ -98,7 +98,7 @@ loop is the track record; overclaiming the agents is off-discipline.
 The loop is a product with three surfaces, and this discipline owns their **design**, not their
 execution. The fleet executes (the leads consolidate one demand → `developer` builds →
 `quality-assurance` gates it); `product-lead` guards that the flow is *honest* (tracked,
-WIP-respected). What has no other owner is the loop **as a system**:
+~~WIP-respected~~ one issue per worktree, the gate serial — struck 2026-10-19, #216). What has no other owner is the loop **as a system**:
 
 1. **Cadence & flow** — thin vertical slices bounded by file overlap, finish-through-merge. Not "is
    each slice tracked" (`product-lead`'s bookkeeping) but "is the loop *shaped* so work flows — is
@@ -318,10 +318,10 @@ owner works that decision out with; it does not make it.
 | ready → **in progress** | `product` | `developer` | an open PR |
 | ready → **in progress** | `content` | `content-writer` — **not `developer`**, which has never been dispatched at a draft (ADR-0002, thirteenth amendment; this row said `developer` until #317 and was wrong for nine days) | an open PR |
 | ready → **in progress** | `loop` | `agents-lead` (ADR-0002, record 0015's Corollary 1) | an open PR |
-| in progress → **drafted** | `content` only | `content-reviewer`, at most **two** rounds against `published-voice`, **repairing the draft in place rather than blocking or handing back** (ADR-0002, seventeenth and thirty-second amendments) | **`docs/content-review/<slug>.md` on the branch** — one `## Round` section per round, each closed with `CONTENT-REVIEW-FINDINGS` or `CONTENT-REVIEW-CLEAR`; terminal on the first `CLEAR` or the second section, whichever comes first |
+| in progress → **drafted** | `content` only | `content-reviewer`, at most **two** rounds against `published-voice`, **repairing the draft in place rather than blocking or handing back** (ADR-0002, seventeenth and thirty-second amendments) | **`docs/content-review/<slug>.md` on the branch** — one `## Round` section per round, each closed with `CONTENT-REVIEW-FINDINGS` or `CONTENT-REVIEW-CLEAR`; terminal on the first `CLEAR` or the second section, whichever comes first; one file per article, a later correction appending `## Correction <N>` with its own two-round cap (mhw#139) |
 | in progress → **reviewed** | `product` · `content` | `quality-assurance`, against the full two-lens DoD | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
 | in progress → **reviewed** | `loop` | `quality-assurance`, against the full two-lens DoD **exactly as on any other lane**, **plus** an `agents-lead` verdict marker that must be on the PR before it may classify the diff safe or merge it (ADR-0002, record 0015's Corollary 2). The marker is an **added** control, never a substitute for the DoD | **a `<!-- gatekeeper-verdict: … -->` comment on the PR, carrying the head SHA it read** |
-| reviewed → **closed** | all | `quality-assurance` — safe **and** boundary since 2026-08-23 (ADR-0002 amendment #16) · the owner only on the four surviving holds | the merge, plus the verdict literal that authorised it (`APPROVE-AND-MERGE` or `APPROVE-AND-MERGE-BOUNDARY`); on a hold, the owner's ratifying comment |
+| reviewed → **closed** | all | `quality-assurance` — safe **and** boundary since 2026-08-23 (ADR-0002 amendment #16) · ~~the owner only on the four surviving holds~~ on the four surviving holds, `quality-assurance` too, once the owner's own comment authorizes the merge and its re-verdict at the same head cites that comment's URL (#133, owner decision 2026-11-01) | the merge, plus the verdict literal that authorised it (`APPROVE-AND-MERGE`, ~~or the retired boundary literal~~ one literal since #134) and its `owner-check:` line; on a hold, the owner's ratifying comment, cited by URL on the re-verdict's `authorization:` line |
 | **any → blocked → back** | all | anyone, on discovering it waits on the owner or on something outside the loop | **`blocked` label** |
 
 **`blocked` is orthogonal, not a sixth step.** It can attach at any point and returns the item to
@@ -458,7 +458,7 @@ chain above becomes checkable instead of merely believed.
 
 ### Scrum vocabulary — what these names import here, and what they do not (#372)
 
-**The rite commands are named after the official Scrum events so a human who has never seen this loop
+~~**The rite commands**~~ **The rites (skills since 2026-10-26, owner: *«para mim sao skills»*) are named after the official Scrum events so a human who has never seen this loop
 can tell what is happening and how to control it.** The owner's reason, and it is the ruler for every
 naming decision downstream of it: *«a ideia principal que tive foi orientar a configuracao de harness
 a comportamentos e elementos conhecidos pela metodologia agil do scrum para que seja mais facil para
@@ -590,9 +590,15 @@ what follows discharges it.
 **Milestones, and the choice is closer to a measurement than to a preference.** A GitHub Projects v2
 iteration field cannot be driven from inside this harness at all: `gh project field-create --data-type`
 accepts `{TEXT|SINGLE_SELECT|DATE|NUMBER}` and `ITERATION` is not in the set, `gh project list` fails on
-a missing `read:project` token scope, and the GraphQL escape hatch is denied by the global permission
-floor (`Bash(gh api:*)`). A milestone needs none of that: `gh issue edit --milestone`,
-`gh issue list --milestone` and `gh issue list --json milestone` are all allowlisted already.
+a missing `read:project` token scope, and the GraphQL escape hatch is denied by ~~the global permission
+floor~~ the owner's own user-level rule (`Bash(gh api:*)`) **(corrected 2026-11-02, mhw#242: it is a
+rule he wrote in his user settings, not a workstation floor entry; the floor carries only the
+`gh api -X`/`--method` write prefixes. He decided to keep the broad rule, because a prefix cannot tell
+a read from the many write spellings `gh api` accepts)**. A milestone needs none of that: `gh issue edit --milestone`, `gh issue list --milestone` and
+`gh issue list --json milestone` ~~are all allowlisted already~~ **need no token scope and no API
+route. Whether they prompt is the settings layers' answer, not this file's: the workstation allow list
+(`global/allow-list.conf` and the overlay's, in mhw) pre-authorises `gh issue list` and
+`gh issue view` and not `gh issue edit` (struck 2026-11-02, mhw#242).**
 
 | requirement (#326) | milestone |
 |---|---|
@@ -660,9 +666,17 @@ Close reads first and refuses a milestone that is not open. All fail non-zero wh
 
 ~~**What stands there now is an ABSENCE:** `scripts/` matches no allow entry, so running the script
 prompts the orchestrator and refuses a subagent.~~ **Struck 2026-09-29 (#537): the reviewed milestone
-family now uses the already-allowlisted `python3` interpreter.** Read, create, update and close execute
+family now uses the ~~already-allowlisted~~ `python3` interpreter.** ~~Read, create, update and close execute
 without a prompt for the orchestrator and every persona holding Bash. No settings layer changed; the
-reach is the accepted consequence of the owner's non-critical pricing of milestone acts.
+reach is the accepted consequence of the owner's non-critical pricing of milestone acts.~~ **Struck
+2026-11-02 (mhw#242): `python3` is not allowlisted by the workstation.** Its allow list
+(`global/allow-list.conf` plus the overlay's, in mhw) names `python3` only for specific scripts, never as
+an interpreter. **Of this family only the READ is pre-authorised**: a `script` entry renders
+`Bash(python3 scripts/milestone-read.py:*)` into the Claude Code user settings, in the wide
+tier only (the one rendered behind a complete admin deny floor), with an `Edit` deny on that installed
+file. Codex and Kiro get no rule for it. Create, update and close are not pre-authorised, so they reach
+the permission prompt unless another settings layer allows them. The owner's non-critical pricing of
+milestone acts is unchanged; the read is the one he chose to pre-authorise (mhw#242, 2026-11-02).
 
 **One measurement that could make the route unnecessary is still NOT taken, and one obstacle to taking
 it is gone:** whether `gh issue edit --milestone "<new title>"` *creates* a missing milestone. `--help`
@@ -850,8 +864,12 @@ Note what the eligibility clause does and does not buy there: #341 was
 clause covers an item that never entered; it does not cover one that entered and then stalled** — for
 that, the escape is the one `/autonomy on` already names (*"When a slice hits an owner decision it did
 not expect"*): write the question on the Issue, cut the slice to what can still finish, and move on.
-**WIP=1 is what turns the second case into a full stop**, and that is a deliberate cost of WIP=1, not a
-defect in this rule.
+~~**WIP=1 is what turns the second case into a full stop**, and that is a deliberate cost of WIP=1, not a
+defect in this rule.~~ **Struck 2026-10-19 (#216): WIP=1, and the numeric count that replaced it at #385,
+are both retired.** A stalled slice no longer holds back the next issue's development, which runs in
+its own worktree. **What still turns it into a stop is the serial review gate**: a merge request held
+for the owner at the gate keeps the next one out of review until it merges or is sent back, and that is
+a deliberate cost of the serial gate, not a defect in this rule.
 
 *Those two position numbers read `6` and `7` when this section was first written, and the correction is
 a demonstration of the next subsection rather than a typo.* The order of record — `5 #341`, `6 #337`,
@@ -885,8 +903,9 @@ lack of an alternative and it is stated as such rather than as a design:
   instead: no hook resolves a milestone, and the way to falsify that is to find a `gh issue`/`gh api`
   call in a registered hook that reads one, not to count the word.
 - **It is not versioned where this loop can see it.** A description edit produces no commit, no diff and
-  no Issue-timeline event this harness can read — `gh api` is denied by the global permission floor, so
-  the route that would expose the edit history is unavailable by construction.
+  no Issue-timeline event this harness can read — `gh api` is denied by ~~the global permission floor~~
+  the owner's user-level `Bash(gh api:*)` rule (corrected 2026-11-02, mhw#242: not a floor entry, and
+  kept by his decision), so the route that would expose the edit history is unavailable by construction.
 - **It contradicts the paragraph directly above.** *"The planning artifact is an ITERATION ISSUE"* is
   what this skill specifies, and **there is no iteration Issue.** The specified object was not built;
   the milestone description is standing in for it. That gap is named here rather than papered over,
@@ -1217,8 +1236,10 @@ date, state, and nothing else. One label per Fibonacci value, closed set:
 sp:1  sp:2  sp:3  sp:5  sp:8  sp:13
 ```
 
-`gh label` and `gh issue edit` are both already allowlisted and `gh issue list --json labels` reads them
-back, so this needs **no permission change and no token scope** — the same test that chose the milestone
+`gh label` and `gh issue edit` ~~are both already allowlisted~~ need no API route (struck 2026-11-02,
+mhw#242: the workstation allow list grants neither; whether they prompt is another settings layer's
+answer) and `gh issue list --json labels` reads them back, so this needs **no ~~permission change and
+no~~ token scope** — the same test that chose the milestone
 over a Projects v2 field. Aggregation is one `jq` expression over the query the pool predicate already
 runs:
 
@@ -1385,22 +1406,22 @@ carried over), not a gate.
   dispatched subagent, there is no non-production environment to sweep, and resumable state has no
   durable home since #245. RETROSPECTIVE and PLANNING are dispatch-and-interview shapes, not mechanisms
   in this file.~~ **Struck 2026-08-30 (#355), and it was wrong in two different ways.** *The
-  RETROSPECTIVE half is built* — `commands/sprint-retrospective.md`, a typed command the drain runs at its
+  RETROSPECTIVE half is built* — `skills/sprint-retrospective/SKILL.md` (a typed command until 2026-10-26, a skill since), a rite the drain runs at its
   terminal condition, with the isolation, the derived consult set, the per-persona artifact and the
   cap. It was never merely a "dispatch-and-interview shape": what made it a mechanism was feeding each
   consulted persona **its own artifacts**, since a persona at iteration close is a fresh context and
   isolated speculation is still speculation. *And the MCP clause was true when written and is false at
-  head* — `product-lead` declares a read-only `chrome-devtools` subset with a bounded origin, merged
-  2026-08-29 (#356). ~~**The review half is still not built**, on grounds that survive the new capability
+  head* — `product-lead` declares a read-only `chrome-devtools` subset ~~with a bounded origin~~, merged
+  2026-08-29 (#356) *(the origin bound was removed 2026-10-29, mhw#224 decision D8)*. ~~**The review half is still not built**, on grounds that survive the new capability
   intact — a route list rots, and a looker's finding has no ruler~~ — **struck 2026-09-02 (#379): it is
-  built, and the two grounds were SATISFIED rather than lifted.** `commands/sprint-review.md` ships no
+  built, and the two grounds were SATISFIED rather than lifted.** `skills/sprint-review/SKILL.md` ships no
   route list (its targets come from the product's own generator, its assets off the page) and is
   explicitly not a gate and returns no verdict. **The residual the grounds did not cover is stated in
   the rite itself:** it is a lower bound, and nothing fires it. Recorded in
-  `commands/sprint-retrospective.md`'s own last section as well, where the deferral was, so a reader
+  `skills/sprint-retrospective/SKILL.md`'s own last section as well, where the deferral was, so a reader
   who arrives at the refusal finds what discharged it. ~~**PLANNING is genuinely unbuilt and no claim is made about it.**~~ **Struck 2026-09-01
   (#378) — PLANNING IS BUILT, and this sentence is struck IN THE PRELOAD because that is where it did
-  its damage.** `commands/sprint-planning.md` is a typed rite the owner invokes: it assembles the
+  its damage.** `skills/sprint-planning/SKILL.md` is a rite the owner invokes by name: it assembles the
   eligible unmilestoned work in both repositories plus the previous iteration's retrospective
   proposals, has a tool-less profile rank it, ~~presents each item alone for his ruling~~ **composes the
   iteration from that ranking and puts the WHOLE composition to him as ONE activation he confirms or
@@ -1411,7 +1432,9 @@ carried over), not a gate.
   milestone is rule 11's~~ **struck 2026-09-04 (#383): both rules are deleted. Admission is now a
   SILENT edit (the command is allowlisted), and ~~creating the milestone still prompts only because
   `scripts/` is in no allow list — an absence, not a control~~ struck 2026-09-29 (#537): creation now
-  runs through the already-allowlisted `python3` interpreter without a prompt; no guard inspection is
+  runs through the ~~already-allowlisted~~ `python3` interpreter ~~without a prompt~~ (struck 2026-11-02,
+  mhw#242: the workstation allow list grants neither `python3` as an interpreter nor `gh issue edit`, so
+  whether either prompts is another settings layer's answer); no guard inspection is
   needed under the owner's non-critical pricing, so review plus the blocking regression carry it.
   "Composition stays his" is now held by the rite's own procedure and by his presence at it, not by
   any layer.**
@@ -1584,7 +1607,11 @@ over real iterations, which is his decision and not a build's.
    `dispatch-metrics-stop.sh` and the worklog half has no equivalent in this tree.~~ **Struck
    2026-09-23 (#499): a host-neutral, explicit worklog now exists at `scripts/worklog.py`, with its
    contract in `docs/worklog/`.** It has no automatic producer and does not read the metrics hook.
-   **Do not read native usage reporting as the worklog:** they are separate instruments.
+   **Do not read native usage reporting as the worklog:** they are separate instruments. **Since #76 a
+   worklog event may carry an optional `usage` object** (numbers and fixed identifiers only), copied by
+   the acting context from that native report when its work on the Issue ends, and `worklog.py report`
+   sums it per Issue and per harness and marks coverage partial. The native report stays the source;
+   nothing fills the field automatically.
 2. **The mapping from a story point to tokens and hours does not exist.** The worklog uses frozen
    points for team planning velocity and deliberately does not make `sp:N` a token/hour denominator.
    **The question is open and asked rather than answered:** *how does this loop
@@ -1835,20 +1862,26 @@ action before ending the turn, or say plainly that there is none.
 
 1. **Plan-first**, then implement. Ask only on architecture / contracts / irreversible calls; decide
    autonomously on in-pattern implementation.
-2. **One thin vertical slice at a time**, end-to-end and reviewable. Keep it surgical; adjacent debt
+2. **One thin vertical slice ~~at a time~~ per issue**, end-to-end and reviewable. Keep it surgical; adjacent debt
    is **named, not refactored inline and not filed** — see *Review does not open work*.
    ~~**WIP=1 — one worktree, one in-flight branch, one open PR at a time, full stop, until formally
    reversed** (owner correction, 2026-08-13; see *WIP=1* below for the struck predecessor rule and
    why).~~ **REVERSED 2026-09-11 (#385) — this is the formal reversal that clause was waiting for**,
    and the strike lands here because this is the operative sentence a builder reads on every dispatch.
-   **The bound is now `wip:` in `docs/loop-mode.md`, read from the record and never assumed** — it is
-   `2` at the time of writing, and a value read from a file is the point. **Development parallelises;
-   THE REVIEW GATE DOES NOT** — at most one merge request is in review at a time, whatever `wip` says
+   ~~**The bound is now `wip:` in `docs/loop-mode.md`, read from the record and never assumed** — it is
+   `2` at the time of writing, and a value read from a file is the point.~~ **Struck 2026-10-19 (#216,
+   the owner's decision, recorded on that Issue): no
+   count bounds development. One issue, one git worktree, any number at once; remove a slice's
+   worktree after its merge.** **Development parallelises;
+   THE REVIEW GATE DOES NOT** — at most one merge request is in review at a time ~~, whatever `wip` says~~
    (owner ruling 1, stated in *The loop-mode contract* of the `orchestration` skill, which the
    orchestrator loads before it dispatches; until #176 a root-brief block carried it). **Isolation is a `git worktree` per slice**, which is what ruling 4
    re-permits. **Nothing enforces any of it**: `wip-guard.sh` is deleted and `gh pr create` is
-   allowlisted in both settings layers, so an (N+1)th PR executes silently.
-   **Integrate `main` before requesting review** if `main` has moved.
+   allowlisted in both settings layers, so nothing observes how many slices are open, and nothing
+   holds the serial gate either.
+   **Integrate the trunk before requesting review** if it has moved — rebase onto the current trunk
+   before the gate (*The loop-mode contract*, rule 6). ~~**Integrate `main` before requesting review** if
+   `main` has moved.~~
 3. **Develop locally**, against whatever backing services the repo actually has — see `/ci` and `/provisioning`.
 4. **Validate locally**: run the repo's **functional regression** and self-verify the gates (lint,
    typecheck, coverage). Report with the real output, never a claim.
@@ -1875,6 +1908,17 @@ action before ending the turn, or say plainly that there is none.
 
 ## The merge is the go/no-go — who decides which class
 
+**The canonical contract is the `merge-authority` skill (#195).** This section is an operational copy of it, kept in the universal preload so every persona reads it. The block below is generated from that contract, and a method test holds it equal. A project brief may add boundary triggers; it may not change the executor, the verdicts or the holds. Where a project brief tries to, the contract wins: the conflict is a finding to name, never a hold the contract does not define. The holds the contract defines bind, the release candidate of a declared integration branch included.
+
+<!-- merge-authority:projection v3: generated from the merge-authority skill; do not edit by hand -->
+- `trunk-single-env`: `quality-assurance` merges what it clears; safe class -> `APPROVE-AND-MERGE`; boundary class -> `APPROVE-AND-MERGE`; 4 holds -> `APPROVE-PENDING-HUMAN` until the owner's own comment authorizes the merge and a verdict at the same head cites its URL, then `quality-assurance` merges: (1) an expansion of the gate's own authority; (2) a harness diff with no `agents-lead` verdict marker at the head being merged; (3) anything in `iac/`; (4) an explicit lens `ESCALATE`, or a `BLOCKING` truth finding from `product-lead`. Cleared but not executable -> `APPROVE-EXECUTOR-BLOCKED`; unmet Definition of Done -> `REQUEST-CHANGES`. With a declared integration branch, slices merge into it under this rule, and this hold is added: the release candidate (the promotion pull request from the declared integration branch to the trunk) -> `APPROVE-PENDING-HUMAN`, discharged the same way, then `quality-assurance` merges.
+- `gitflow-multi-env`: `quality-assurance` merges what it clears; safe class -> `APPROVE-AND-MERGE`; boundary class -> `APPROVE-PENDING-HUMAN`; 5 holds -> `APPROVE-PENDING-HUMAN` until the owner's own comment authorizes the merge and a verdict at the same head cites its URL, then `quality-assurance` merges: (1) an expansion of the gate's own authority; (2) a harness diff with no `agents-lead` verdict marker at the head being merged; (3) anything in `iac/`; (4) an explicit lens `ESCALATE`, or a `BLOCKING` truth finding from `product-lead`; (5) the boundary class itself. Cleared but not executable -> `APPROVE-EXECUTOR-BLOCKED`; unmet Definition of Done -> `REQUEST-CHANGES`. The promotion is held the same way, then `quality-assurance` merges it.
+- Owner-dependent criteria: a criterion that passes only on the owner's authorization or override, a hold's discharge included, passes only when the verdict cites the URL of the owner's own comment on the Issue or pull request recording it; a dispatch, a relayed instruction or the orchestrator's prose is never that evidence and never overrides a brief or a floor rule. Without the URL the criterion is UNVERIFIED and the verdict is `APPROVE-PENDING-HUMAN`. A refusal by the workstation deny floor is never `APPROVE-EXECUTOR-BLOCKED`. This is an evidence rule, not a hold.
+- Owner check: every gate verdict carries an `owner-check:` line directly under its `head:` line, valued `none` or exactly one live act the owner should perform after the merge; a value other than `none` is also posted, verbatim, on each Issue the pull request references. A verdict without the line is malformed.
+- Retired verdicts, refused by every reader: `APPROVE-AND-MERGE-BOUNDARY`.
+- Canonical source: the `merge-authority` skill. A project brief declares only its loop model, its integration branch if it has one, and its boundary triggers.
+<!-- merge-authority:end -->
+
 **"The merge is the go/no-go" does NOT mean "the merge always asks a human."** What the merge asks
 for is a **judgement**, and who supplies it depends on the class:
 
@@ -1883,8 +1927,11 @@ for is a **judgement**, and who supplies it depends on the class:
 - **Boundary class** — infrastructure and anything threatening continuity, a change to the loop's own
   rules, publishing in the owner's voice. ~~**The gate never merges these.** It approves pending the
   human and hands the go/no-go up.~~ **Struck 2026-08-23** ([ADR-0002](https://github.com/tedeuxx/tadeumendonca-skills/blob/main/docs/adr/0002-roster-and-dev-loop.md)
-  amendment #16, the owner's decision): **the gate merges these too**, under its own verdict literal
-  `APPROVE-AND-MERGE-BOUNDARY`, and **the owner reviews live, after deploy**. The argument is the loop
+  amendment #16, the owner's decision): **the gate merges these too**, ~~under its own verdict
+  literal~~ under `APPROVE-AND-MERGE`, the one clearance literal since 2026-11-02 (#134, owner ruling
+  2026-10-10: the separate boundary literal rode on 30 of 36 merges and stopped telling him anything),
+  with the verdict's mandatory `owner-check:` line naming the one live act he should do, or `none`, and
+  **the owner reviews live, after deploy**. The argument is the loop
   model itself — under `trunk-single-env` there is no preview to hold for, so holding the merge produced
   no staging copy to inspect, only a queue. **Under `gitflow-multi-env` this reasoning does not
   transfer** and this skill does not extend it there: a repo with an integration branch *does* have a
@@ -1892,7 +1939,11 @@ for is a **judgement**, and who supplies it depends on the class:
 
 **Four holds survive, and none of them survives on the preview argument** — read them as separate rules
 that happen to have lived inside "boundary class" until it stopped being a hold, not as the retired
-clause under another name. On any of these the gate returns `APPROVE-PENDING-HUMAN` and does not merge:
+clause under another name. On any of these the gate returns `APPROVE-PENDING-HUMAN` and does not merge
+**until the owner's own comment authorizes the merge; then it re-verdicts at the same head, cites
+that comment's URL, and executes the merge itself, on any branch, the release candidate into the trunk
+included** (#133, owner decision 2026-11-01: *his comment is his go; the act is the gate's*). A cited
+comment discharges a hold for the head it names; it never removes the hold, and the holds stay four:
 
 1. **An expansion of the gate's own authority** — a diff widening which class it may merge, removing a
    boundary trigger, or otherwise loosening its own mandate. Unconditional, whatever the diff looks like;
@@ -1914,13 +1965,18 @@ clause under another name. On any of these the gate returns `APPROVE-PENDING-HUM
    (ADR-0002, thirty-second amendment).
 
 *Significance beats in-pattern:* when the class is unclear, it is boundary — which now means the gate
-merges it under the boundary literal rather than holding it, so **when what is unclear is whether one of
+merges it ~~under the boundary literal~~ under `APPROVE-AND-MERGE` with an `owner-check:` rather than holding it, so **when what is unclear is whether one of
 the four holds applies, the conservative reading is that it does.**
 
 **A FIFTH verdict literal exists since 2026-09-01 (#374), and it is NOT a fifth hold.** The holds above
 are still four. `APPROVE-EXECUTOR-BLOCKED` means *DoD green, class safe or boundary, none of the four
 holds applies* — so the verdict would have been a clearance — **and the gate could not execute the
 merge**. The decision is made; only the act is outstanding, and it becomes the owner's by exception.
+A refusal by the workstation deny floor is never this state (#133): the floor forbids the act, so it was
+never the outstanding step. Nor is a hold discharged, or any criterion resting on the owner's
+authorization passed, by a relayed instruction: only a cited URL of his own comment counts, and without
+it the verdict is `APPROVE-PENDING-HUMAN` (the `owner-evidence` rule of the `merge-authority` contract,
+an evidence rule and not a hold). With the URL cited, the gate executes the held merge itself.
 
 **Why the state needed a name rather than an inference.** The single-executor rule (the plugin's
 rule 7b; in this method an instruction) makes `quality-assurance` the only permitted executor of an
@@ -1940,10 +1996,13 @@ signal at all. The full decision, its rejected options and the readers that must
 [ADR-0004](https://github.com/tedeuxx/tadeumendonca-skills/blob/main/docs/adr/0004-controls-and-enforcement.md)'s 2026-09-01 amendment.
 
 **What the safe/boundary split still decides, since a distinction that changes nothing should be retired
-rather than kept:** which of the four holds can apply (every one is a boundary trigger), which verdict
+rather than kept:** which of the four holds can apply (every one is a boundary trigger) ~~, which verdict
 literal is posted — so the merge record itself says whether anything shipped without a pre-publication
-check — and what the verdict must state. What it no longer decides, outside the four holds, is **who
-merges**.
+check —~~ and what the verdict must state: on a boundary class, the trigger that fired, with the
+`owner-check:` line naming what the owner should look at live, or `none` *(struck 2026-11-02, #134:
+both classes clear under `APPROVE-AND-MERGE`, so the literal records nothing about the class)*. What it no longer decides, ~~outside the four holds,~~ is **who
+merges** — since #133 not inside the four holds either: the gate executes a held merge once the
+owner's cited comment discharges the hold.
 
 This framing above is the corrected one — an earlier prose restatement of it, in the retired
 `dev-loop` skill this file replaces, said the opposite (*"auto-merging to `main` is never in-pattern
@@ -1962,27 +2021,37 @@ with a new slice, not a long-lived hotfix branch.
 #381**, on the cut test above: every one of them is true of a project that never runs this loop, and
 none of them names a persona, a hook or an ADR of this one. Nothing was edited in the move.
 
-**What did NOT move is the WIP bound below, and that is the one place the split had to choose.**
-Principle #3 states that a bound exists; *what this loop's bound is*, the owner correction that
-produced it, what it protects and the measurement showing nothing enforces it are all local — they
-cite `wip-guard.sh`, this repository's own PRs and two dated incidents. So the principle is stated
-there once and the rule is stated here once, and neither file says *see the other one* for its own
-half.
+**What did NOT move is the ~~WIP bound~~ isolation-and-integration rule below, and that is the one
+place the split had to choose.** Principle #3 states that slices are isolated and integrated serially;
+*what this loop's rule is*, the owner corrections that produced it, what it protects and the
+measurement showing nothing enforces it are all local — they cite `wip-guard.sh`, this repository's
+own PRs and two dated incidents. So the principle is stated there once and the rule is stated here
+once, and neither file says *see the other one* for its own half. *(Reworded 2026-10-19, #216: there
+is no count left to call a bound.)*
 
-## WIP=1 — the struck exception, and why — ~~and the rule that replaced it~~ **REVERSED 2026-09-11 (#385)**
+## WIP=1 — the struck exception, and why — ~~and the rule that replaced it~~ **REVERSED 2026-09-11 (#385)** — **the count RETIRED 2026-10-19 (#216)**
 
-**READ THIS BEFORE THE SECTION: WIP=1 NO LONGER HOLDS.** The bound is `wip:` in `docs/loop-mode.md`
-(`2` at the time of writing), development parallelises on `git worktree`, and **the review gate stays
-serial at any value** (ADR-0002's thirty-fourth amendment; owner rulings, 2026-09-10). **Everything
+**READ THIS BEFORE THE SECTION: NO COUNT BOUNDS DEVELOPMENT.** ~~**WIP=1 NO LONGER HOLDS.** The bound
+is `wip:` in `docs/loop-mode.md` (`2` at the time of writing), development parallelises on
+`git worktree`, and **the review gate stays serial at any value** (ADR-0002's thirty-fourth amendment;
+owner rulings, 2026-09-10).~~ **Struck 2026-10-19 (#216).** The owner retired the numeric count that
+replaced WIP=1, choosing that over keeping the count or moving it to the gate, in his words as
+recorded on the Issue: *«o wip nao sei pq continua em pé. ja alinhamos paralelismo por issue baseado em git worktrees há algum tempo.»* **The rule now:
+one issue, one git worktree, any number at once; the review gate stays serial; rebase onto the
+current trunk before the gate; remove a slice's worktree after its merge** (*The loop-mode contract*
+in the `orchestration` skill, rules 5 to 7). The mode record no longer carries the count. The count
+had already drifted — one repository's record said `1` while two said `2` — and on 2026-10-19 a
+session held back a slice on the stale value (both as #216's body reports them), which is what a number nobody enforces costs. **Everything
 below is kept because it is the record of how the rule got there and what it was protecting**, and two
-parts of it outlived the reversal and are still load-bearing:
+parts of it outlived both reversals and are still load-bearing:
 
 - **the failure class it caught** — two slices in ONE checkout, and an uncommitted probe left applied
   to a shared tree — which is precisely what **a worktree per slice** now prevents by construction
   rather than by discipline. **The reversal does not reopen it; it closes it a different way.**
 - **the finding that nothing ever enforced WIP=1** (*`wip-guard.sh` did NOT enforce WIP=1*, below).
   That is why the reversal cost nothing to execute — there was no mechanism to dismantle — and it is
-  equally true of the new bound.
+  equally true of ~~the new bound~~ the numeric count that followed (#216 retired it with nothing to
+  dismantle either) and of the serial gate that remains.
 
 `engineering-standards`' principle #3 used to read, and this project's own struck-not-deleted
 convention keeps the old text visible rather than erasing it:
@@ -2164,13 +2233,21 @@ is reached. That is a moment problem, not a matcher problem; it is why the struc
 wrong to promise the gap away as a hook change, and it is the load-bearing reason the deletion is not
 a loss of protection.
 
-**So: WIP=1 is held by instruction and by nothing else.** By this loop's own test — *would something
+~~**So: WIP=1 is held by instruction and by nothing else.**~~ **So: WIP=1 was held by instruction
+and by nothing else, until #385 reversed it** (struck 2026-10-19, #216: the present tense outlived the
+rule). By this loop's own test — *would something
 stop me, or only my memory?* — **it is not engineered**, and the 2026-08-28 collision is what that
 costs when the memory is a fresh context that never had it. That sentence was true while the hook
 existed and is unchanged by its removal, which is the point: read WIP=1 as protecting the **working
 tree** from being two things at once, and note that the **merge queue** — which the hook did protect
 from stale overlapping branches — now has no mechanism either. Different objects, different moments,
 and since #383 neither of them has one.
+
+**Since #216 (2026-10-19) each object has its own instruction, and neither is a count.** The working
+tree is protected by **one issue, one worktree** — a slice never shares a checkout, which closes the
+2026-08-28 class by construction as long as the rule is followed. The merge queue is protected by the
+**serial gate and rebase-before-gate** — one merge request in review at a time, rebased onto the
+current trunk. Both are instructions; nothing enforces either.
 
 ## Using this skill
 

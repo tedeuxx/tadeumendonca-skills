@@ -557,6 +557,12 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # which mhw added at v7.0.0 (mhw#198): it prints a prompt and the launch line that continue the session
 # in a fresh one. It takes the fallback objective as its argument, so it is typed. It comes from the
 # regeneration, not from an edit here, and is named in both messages below for the same reason.
+# Then 11 → 8 on mhw#218, when the regeneration moved from mhw v8.0.0 to v10.1.0. mhw made the four rites
+# skills (`sprint-review`, `sprint-retrospective`, `sprint-planning` and `funnel-review` now live under
+# skills/<name>/SKILL.md, where the L-blocks and the skill table count them), renamed `new-idea` to
+# `new-prd` and `idea-to-issues` to `prd-to-issues`, and added `need-me` (the owner asks whether he is
+# needed; it gathers what is pending on him). Eleven, minus four, plus one: eight. Every name is in both
+# messages below, so an unannounced ninth, or a rite falling back into commands/, still goes red.
 #
 # THE ASSERTION IS NOT WEAKER FOR HAVING BEEN BUMPED, and that is the whole reason it is a pinned
 # literal rather than a `-ge`. It exists to catch the ACCIDENTAL root command — a skill dropped one
@@ -572,10 +578,10 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # So the failure this now catches is a LIBRARY SKILL LANDING IN `commands/` — where it is typed-only,
 # never matched, and absent from every count and table in this file.
 root_cmds=$(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')
-if [ "$root_cmds" -eq 11 ]; then
-  ok "commands/ root — exactly eleven owner-typed commands (autonomy, new-issue, blueprint, sprint-review, sprint-retrospective, sprint-planning, funnel-review, new-idea, idea-to-issues, what-else, handoff), as the docs enumerate"
+if [ "$root_cmds" -eq 8 ]; then
+  ok "commands/ root — exactly eight owner-typed commands (autonomy, new-issue, blueprint, new-prd, prd-to-issues, what-else, handoff, need-me), as the docs enumerate"
 else
-  bad "commands/ root — $root_cmds file(s); the docs enumerate eleven owner-typed commands (autonomy, new-issue, blueprint, sprint-review, sprint-retrospective, sprint-planning, funnel-review, new-idea, idea-to-issues, what-else, handoff).
+  bad "commands/ root — $root_cmds file(s); the docs enumerate eight owner-typed commands (autonomy, new-issue, blueprint, new-prd, prd-to-issues, what-else, handoff, need-me).
       A library skill belongs in skills/<name>/SKILL.md — under commands/ it is absent from every count
       and table here, and from the per-family breakdown a reader actually opens."
 fi
@@ -973,6 +979,19 @@ while IFS= read -r hit; do
   tok=$(printf '%s' "$hit" | sed -E 's/^.*:([A-Za-z0-9]+)[- ]leads?$/\1/' | tr '[:upper:]' '[:lower:]')
   [ "$tok" = "$lead_word" ] && continue
   [ "$tok" = "$lead_files" ] && continue
+  # ONE NAMED EXEMPTION, carried by the mhw v10.1.0 regeneration (class M). mhw's retrospective rite
+  # heads its step 6 "reviewed by three leads (#131)" and its item 2 names them: `tech-lead`,
+  # `product-lead` and `agents-lead`. That sentence counts agents-lead, which this arm deliberately
+  # does not, so it is a different count rather than a stale one, and it is mhw text this repository
+  # does not rewrite. The exemption holds only while the same file still names all three, so it
+  # cannot outlive its subject and go on excusing a real stale count.
+  case "$hit" in
+    "$ROOT/skills/sprint-retrospective/SKILL.md":*:three\ leads)
+      grep -qF -- 'reviewed by three leads (#131)' "$ROOT/skills/sprint-retrospective/SKILL.md" \
+        && grep -qF -- '`tech-lead`, `product-lead` and `agents-lead` each review the draft' \
+             "$ROOT/skills/sprint-retrospective/SKILL.md" \
+        && continue ;;
+  esac
   stale_leads="$stale_leads
     ${hit#"$ROOT"/}"
 done < <(
@@ -2396,6 +2415,10 @@ else
 fi
 
 # ── ARM F: the title GATE's three clauses are PRESENT in the ruler, and so is its ORDERING ──────────
+# FOUR CLAUSES SINCE mhw#218 (ruled 2026-10-24), carried by the mhw v10.1.0 regeneration: the ordering
+# needle follows mhw's restatement ("a gate of ~~three~~ four clauses runs AHEAD of", wrapped there,
+# so the needle is the half that sits on one line) and clause 4 gets its own needle, so a rewrite that
+# drops the new clause goes red here the way dropping any of the first three does.
 # Same argument as arm E and deliberately built on its shape rather than a new one: `content-reviewer`
 # repairs on a clause it can QUOTE, so a rule meant to bind has to survive as a quotable clause. The
 # title gate (ratified 2026-09-16) is the clearest case in the file, because its whole substance is an
@@ -2411,7 +2434,8 @@ fi
 # other. It asserts the gate is WRITTEN and ordered ahead of the six — never that anyone applied it.
 cp_gate_missing=""
 for cp_lit in \
-  'a gate of three clauses runs AHEAD of them' \
+  'four clauses runs AHEAD of' \
+  'It must name the PRODUCT the reader holds by the end of the piece' \
   'The subject is the READER'"'"'s situation, never the author'"'"'s identity' \
   'stops connecting' \
   'RUN AN EXPERIMENT' \
@@ -2842,7 +2866,12 @@ skill_stem() {
   esac
 }
 
-ARG_HINT_ALLOWED="autonomy new-issue blueprint sprint-review sprint-retrospective sprint-planning funnel-review"   # the seven the OWNER types; a model-invoked skill has no typed argument
+# ~~ARG_HINT_ALLOWED="autonomy new-issue blueprint sprint-review sprint-retrospective sprint-planning funnel-review"~~
+# The set follows the mhw v10.1.0 regeneration (mhw#218, class M): the four rites became skills under
+# skills/<name>/SKILL.md and mhw carries no argument-hint on them, and mhw added one to `handoff`, whose
+# argument is the fallback objective. Both directions of the arm are unchanged: a member that loses its
+# hint and a non-member that gains one each still redden.
+ARG_HINT_ALLOWED="autonomy new-issue blueprint handoff"   # the four that carry argument-hint; a model-invoked skill has no typed argument
 
 # The frontmatter block, exclusive of its `---` fences. Empty for a file that has none, which is what
 # the presence assertion below reads.
@@ -2933,8 +2962,12 @@ else
   # words. 120 is below anything that can carry an act, an object and a `Use when`; 500 is above the
   # longest written. They catch an empty stub and a pasted paragraph. They cannot catch a bad sentence
   # of the right size, and are not intended to.
+  # ~~DESC_MAX=500~~ — the ceiling follows mhw's own (class M, mhw#218's v10.1.0 regeneration): mhw's
+  # renderer test bounds a description at 1024 characters, the harness's limit, and mhw's v10.1.0
+  # descriptions run to 756 (`commands/handoff.md`). 500 was "above the longest written" here and is
+  # no longer; the floor of 120 and the one-physical-line rule are unchanged.
   DESC_MIN=120
-  DESC_MAX=500
+  DESC_MAX=1024
 
   l1_problems=""
   l2_problems=""
@@ -3851,7 +3884,10 @@ fi
 # admin-workspace record. Two of the sites qualify the number ("of the workstation repository", "mhw");
 # the ones in the regenerated scm and provisioning skills do not, which is mhw-side text this plugin does
 # not rewrite.
-FOREIGN_ADR_NUMBERS="0016 0023 0037 0038 0043 0046 0049"
+# 0035 joined on mhw#218: the v10.1.0 regeneration's content-publishing skill cites the workstation
+# repository's blueprint-reconciliation record by number, qualified as "the workstation's" in the
+# sentence itself. This repository has no record of that number.
+FOREIGN_ADR_NUMBERS="0016 0023 0035 0037 0038 0043 0046 0049"
 
 foreign_problems=""
 for num in $FOREIGN_ADR_NUMBERS; do
@@ -4538,7 +4574,7 @@ BP_REG="$ROOT/docs/blueprint-registry.md"
 # and an abandonment at the TOP of the sequence moves the derived max down by one, leaves no gap, and
 # frees the number for reuse. Raising it is one line, in the same commit as the row that needs it, and
 # forgetting to fails CLOSED at arm 3b.
-BP_HIGH_WATER=60   # 56 -> 59 on mhw#191: rows 0057-0059 for the three commands the mhw v6.0.0 regeneration carried; 59 -> 60 for row 0060, /handoff, carried by the v8.0.0 regeneration
+BP_HIGH_WATER=61   # 56 -> 59 on mhw#191: rows 0057-0059 for the three commands the mhw v6.0.0 regeneration carried; 59 -> 60 for row 0060, /handoff, carried by the v8.0.0 regeneration; 60 -> 61 for row 0061, /need-me, carried by the v10.1.0 regeneration (mhw#218)
 
 # The closed set. It is the behaviour-level generalisation of the enforcement axis, and it THROWS —
 # a free-text field would refuse nothing, which is the whole reason for a closed set (ADR-0021).
@@ -7629,7 +7665,7 @@ RETIRED_CLAUSES
 # `grep -c -F` against its target BEFORE being written here (all returned 1 — a needle written across a
 # line wrap matches nothing and reads exactly like absence), and each was then deleted on its own and
 # the suite re-run.
-RITE_CMD="$ROOT/commands/sprint-retrospective.md"
+RITE_CMD="$ROOT/skills/sprint-retrospective/SKILL.md"
 RITE_DRAIN="$ROOT/commands/autonomy.md"
 RITE_GATE="$ROOT/agents/quality-assurance.md"
 RITE_PRELOAD="$ROOT/skills/agents-configuration/SKILL.md"
@@ -7637,7 +7673,7 @@ RITE_PRELOAD="$ROOT/skills/agents-configuration/SKILL.md"
 # ── 1 · the rite carries its trigger, its mechanism, its artifact shape and all four of its limits ──
 rite_missing=""
 if [ ! -r "$RITE_CMD" ]; then
-  bad "retrospective rite — commands/sprint-retrospective.md is not readable, so NOTHING about the rite was
+  bad "retrospective rite — skills/sprint-retrospective/SKILL.md is not readable, so NOTHING about the rite was
       asserted. The drain's terminal condition points at this file; without it the closing ceremony is
       a promise again, which is the state #355 was filed to end."
 else
@@ -7662,7 +7698,7 @@ else
     missing: \"$rite_needle\""
   done
   if [ -n "$rite_missing" ]; then
-    bad "retrospective rite — a load-bearing clause left commands/sprint-retrospective.md:$rite_missing
+    bad "retrospective rite — a load-bearing clause left skills/sprint-retrospective/SKILL.md:$rite_missing
       Each needle is ONE clause and answers for itself:
         TRIGGER          — the snapshot fires it, the iteration scopes it, the owner still closes it.
                            Collapsing the three is what makes the rite either never fire or fire on a
@@ -7885,7 +7921,7 @@ fi
 rite_path='docs/retrospective/<iteration>/'
 rite_path_missing=""
 rite_path_checked=0
-for rite_path_file in commands/sprint-retrospective.md agents/quality-assurance.md agents/product-lead.md; do
+for rite_path_file in skills/sprint-retrospective/SKILL.md agents/quality-assurance.md agents/product-lead.md; do
   if [ ! -r "$ROOT/$rite_path_file" ]; then
     rite_path_missing="$rite_path_missing
     $rite_path_file — not readable"
@@ -8029,7 +8065,7 @@ MS_GUARD="$ROOT/hooks/scripts/permission-guard.sh"
 MS_SKILL="$ROOT/skills/agents-configuration/SKILL.md"
 MS_WORKFLOW="$ROOT/.github/workflows/docs-test.yml"
 MS_SETTINGS="$ROOT/.claude/settings.json"
-MS_PLANNING="$ROOT/commands/sprint-planning.md"
+MS_PLANNING="$ROOT/skills/sprint-planning/SKILL.md"
 MS_AUTONOMY="$ROOT/commands/autonomy.md"
 ms_problems=""
 ms_checked=0
@@ -8130,16 +8166,21 @@ fi
 if [ -r "$MS_PLANNING" ]; then
   ms_checked=$((ms_checked + 1))
   grep -qF -- 'step 4a and step 4b both execute' "$MS_PLANNING" || ms_problems="$ms_problems
-    commands/sprint-planning.md no longer says both milestone-write steps execute without another prompt"
+    skills/sprint-planning/SKILL.md no longer says both milestone-write steps execute without another prompt"
 else
   ms_problems="$ms_problems
-    commands/sprint-planning.md is missing or unreadable; its no-prompt route claim was not checked"
+    skills/sprint-planning/SKILL.md is missing or unreadable; its no-prompt route claim was not checked"
 fi
 
 if [ -r "$MS_AUTONOMY" ]; then
   ms_checked=$((ms_checked + 1))
-  grep -qF -- 'creation and admission then execute without another prompt' "$MS_AUTONOMY" || ms_problems="$ms_problems
-    commands/autonomy.md no longer says creation and admission execute without another prompt"
+  # The needle follows mhw's restatement (class M, mhw#242, carried by the v10.1.0 regeneration): mhw
+  # struck "without another prompt" in this sentence, because the workstation allow list grants neither
+  # python3 as an interpreter nor `gh issue edit`. The arm now pins the route and the honest residual.
+  grep -qF -- 'creation and admission then execute' "$MS_AUTONOMY" || ms_problems="$ms_problems
+    commands/autonomy.md no longer says creation and admission execute through the reviewed routes"
+  grep -qF -- 'so whether they prompt is another settings' "$MS_AUTONOMY" || ms_problems="$ms_problems
+    commands/autonomy.md no longer says whether the routes prompt is another settings layer's answer"
 else
   ms_problems="$ms_problems
     commands/autonomy.md is missing or unreadable; its no-prompt route claim was not checked"
@@ -8185,14 +8226,14 @@ fi
 # returned 1). Two of them were re-cut after returning 0: this file wraps at 100 columns and a needle
 # spanning a wrap matches nothing while reading exactly like absence — the failure `abf035c` already
 # paid for once on the milestone arm.
-PLAN_CMD="$ROOT/commands/sprint-planning.md"
+PLAN_CMD="$ROOT/skills/sprint-planning/SKILL.md"
 PLAN_DRAIN="$ROOT/commands/autonomy.md"
 PLAN_SM="$ROOT/agents/scrum-master.md"
 
 # ── 1 · the rite states what it does, what it refuses to do, and every limit it ships with ────────
 plan_missing=""
 if [ ! -r "$PLAN_CMD" ]; then
-  bad "planning rite — commands/sprint-planning.md is not readable, so NOTHING about the rite was
+  bad "planning rite — skills/sprint-planning/SKILL.md is not readable, so NOTHING about the rite was
       asserted. The drain's handoff and the retrospective's proposals both point at this file; without
       it, planning is a promise again and the proposals have no consumer, which is the state #378 was
       filed to end."
@@ -8240,7 +8281,7 @@ else
     missing: \"$plan_needle\""
   done
   if [ -n "$plan_missing" ]; then
-    bad "planning rite — a load-bearing clause left commands/sprint-planning.md:$plan_missing
+    bad "planning rite — a load-bearing clause left skills/sprint-planning/SKILL.md:$plan_missing
       Each needle is ONE clause and answers for itself:
         ASSEMBLES        — the rite's whole boundary. Composition is the owner's act (#365); a rite that
                            reads as composing has taken a decision nothing in the tracker will attribute.
@@ -8418,7 +8459,7 @@ fi
 plan_path='docs/planning/<iteration>.md'
 plan_path_missing=""
 plan_path_checked=0
-for plan_path_file in commands/sprint-planning.md agents/scrum-master.md; do
+for plan_path_file in skills/sprint-planning/SKILL.md agents/scrum-master.md; do
   if [ ! -r "$ROOT/$plan_path_file" ]; then
     plan_path_missing="$plan_path_missing
     $plan_path_file — not readable"
@@ -8453,7 +8494,7 @@ fi
 # verdicts, and it is where the ASK/DENY/ALLOW cases for the family live. A green here means the family
 # form is written down, never that it fires.
 plan_guard="$ROOT/hooks/scripts/permission-guard.sh"
-plan_rite="$ROOT/commands/sprint-planning.md"
+plan_rite="$ROOT/skills/sprint-planning/SKILL.md"
 plan_fam_problems=""
 plan_fam_checked=0
 # ── INVERTED 2026-09-04 (#383) ──────────────────────────────────────────────────────────────────
@@ -8474,11 +8515,11 @@ fi
 if [ -r "$plan_rite" ]; then
   plan_fam_checked=$((plan_fam_checked + 1))
   grep -qF -- 'the update route is built.' "$plan_rite" || plan_fam_problems="$plan_fam_problems
-    commands/sprint-planning.md no longer says the check-then-write update route exists."
+    skills/sprint-planning/SKILL.md no longer says the check-then-write update route exists."
   grep -qF -- 'best-effort preflight, never as a lock or CAS.' "$plan_rite" || plan_fam_problems="$plan_fam_problems
-    commands/sprint-planning.md no longer states the update route's race residual."
+    skills/sprint-planning/SKILL.md no longer states the update route's race residual."
   grep -qF -- 'reviewed capabilities reachable without a prompt' "$plan_rite" || plan_fam_problems="$plan_fam_problems
-    commands/sprint-planning.md no longer states the Python family's effective reach."
+    skills/sprint-planning/SKILL.md no longer states the Python family's effective reach."
 fi
 if [ "$plan_fam_checked" -lt 2 ]; then
   bad "planning rite — only $plan_fam_checked of 2 surfaces were readable, so the milestone-family
@@ -8564,11 +8605,11 @@ if [ -r "$plan_rite" ]; then
   plan_desc_checked=$((plan_desc_checked + 1))
   grep -qF -- 'python3 scripts/milestone-create.py "<iteration>" --repo <owner>/<repo> --description-file <path>' "$plan_rite" \
     || plan_desc_problems="$plan_desc_problems
-    commands/sprint-planning.md step 4a no longer calls the file route. The script may still refuse the
+    skills/sprint-planning/SKILL.md step 4a no longer calls the file route. The script may still refuse the
     inline form, but the rite is what a reader copies."
   grep -qF -- '**The ordered body NEVER travels as a shell argument' "$plan_rite" \
     || plan_desc_problems="$plan_desc_problems
-    commands/sprint-planning.md no longer says why the body goes to a file. Without it the call reads
+    skills/sprint-planning/SKILL.md no longer says why the body goes to a file. Without it the call reads
     as an arbitrary preference and the next edit reverts it for brevity."
 fi
 if [ "$plan_desc_checked" -lt 2 ]; then
@@ -8621,7 +8662,7 @@ if [ -r "$plan_rite" ]; then
   plan_pre_checked=$((plan_pre_checked + 1))
   grep -qF -- '**Read it as the state this rite' "$plan_rite" \
     || plan_pre_problems="$plan_pre_problems
-    commands/sprint-planning.md quotes the preload's 'PLANNING is genuinely unbuilt' sentence and no
+    skills/sprint-planning/SKILL.md quotes the preload's 'PLANNING is genuinely unbuilt' sentence and no
     longer marks it as the state this rite CLOSED. Unmarked, the rite's opening argument reads as
     resting on a claim its own merge falsifies."
 fi
@@ -8877,13 +8918,13 @@ fi
 # ONE ARM IS NOT A NEEDLE AND IS THE ONLY MECHANICAL CHECK IN THIS BLOCK: the rite must ship no route
 # list. It is a NEGATIVE assertion over the file's own body, and it is the arm that survives a rewrite
 # of every sentence around it.
-REV_CMD="$ROOT/commands/sprint-review.md"
+REV_CMD="$ROOT/skills/sprint-review/SKILL.md"
 REV_DRIVER="$ROOT/agents/product-lead.md"
 
 # ── 1 · the rite carries the two satisfied grounds, its driver, its axes and its lower bound ──
 rev_missing=""
 if [ ! -r "$REV_CMD" ]; then
-  bad "sprint review rite — commands/sprint-review.md is not readable, so NOTHING about the rite was
+  bad "sprint review rite — skills/sprint-review/SKILL.md is not readable, so NOTHING about the rite was
       asserted. The drain's terminal condition names this file first of three; without it the closing
       ceremonies are a plural with one object again, which is the state #379 was filed to end."
 else
@@ -8906,7 +8947,7 @@ else
     missing: \"$rev_needle\""
   done
   if [ -n "$rev_missing" ]; then
-    bad "sprint review rite — a load-bearing clause left commands/sprint-review.md:$rev_missing
+    bad "sprint review rite — a load-bearing clause left skills/sprint-review/SKILL.md:$rev_missing
       Each needle is ONE clause and answers for itself:
         NOT A GATE / NO RULER — ground 2 of the refusal, and the pair is deliberate: the first states
                            the rule and the second states WHY, and a rule whose reason is dropped is
@@ -8970,17 +9011,21 @@ rev0_missing=""
 if [ -r "$REV_CMD" ] && [ -r "$REV_DRIVER" ]; then
   for rev0_needle in \
     'HARNESS_SWEEP_ORIGIN' \
-    '## Step 0 — confirm the browser bound BEFORE anything is derived or dispatched (#525)' \
+    '## Step 0 — confirm the browser server runs, attached, BEFORE anything is derived or dispatched (#525)' \
     '**The probe reads the SERVER, not the environment.**' \
-    '| **`SWEEP-ORIGIN-UNBOUND`** |' \
+    '| **`SWEEP-BROWSER-UNREADY`** |' \
     '### `FAILED` is reserved for failures AFTER step 0 held' \
     '**Anything on Codex, which is UNMEASURED.**'
   do
     grep -qF -- "$rev0_needle" "$REV_CMD" || rev0_missing="$rev0_missing
-    missing (commands/sprint-review.md): \"$rev0_needle\""
+    missing (skills/sprint-review/SKILL.md): \"$rev0_needle\""
   done
-  grep -qF -- '**`SWEEP-ORIGIN-UNBOUND`**, not `FAILED`' "$REV_DRIVER" || rev0_missing="$rev0_missing
-    missing (agents/product-lead.md): \"**\`SWEEP-ORIGIN-UNBOUND\`**, not \`FAILED\`\""
+  # The step 0 needles follow mhw's restatement (class M, mhw#224 decision D8, carried by the v10.1.0
+  # regeneration): the browser has no origin bound, step 0 now confirms the server runs attached, and
+  # its stop literal is SWEEP-BROWSER-UNREADY. The driver's brief strikes SWEEP-ORIGIN-UNBOUND and
+  # carries the new literal, so the needle moves to it rather than reading the struck line.
+  grep -qF -- '**`SWEEP-BROWSER-UNREADY`**, not `FAILED`' "$REV_DRIVER" || rev0_missing="$rev0_missing
+    missing (agents/product-lead.md): \"**\`SWEEP-BROWSER-UNREADY\`**, not \`FAILED\`\""
   if [ -n "$rev0_missing" ]; then
     bad "sprint review step 0 — a load-bearing clause is gone:$rev0_missing
       The variable, the server-not-environment probe, the literal, the FAILED reservation and the
@@ -8988,10 +9033,10 @@ if [ -r "$REV_CMD" ] && [ -r "$REV_DRIVER" ]; then
       dispatched past a skipped step 0 still does not write FAILED for a missing origin.
       If a clause was deliberately reworded, move its needle here in the same commit."
   else
-    ok "sprint review step 0 — the rite names HARNESS_SWEEP_ORIGIN, probes the server argv, stops with SWEEP-ORIGIN-UNBOUND and reserves FAILED; the driver carries the same literal"
+    ok "sprint review step 0 — the rite names HARNESS_SWEEP_ORIGIN, probes the server argv, stops with SWEEP-BROWSER-UNREADY and reserves FAILED; the driver carries the same literal"
   fi
 
-  rev0_step="$(grep -nF -- '## Step 0 — confirm the browser bound' "$REV_CMD" | head -1 | cut -d: -f1)"
+  rev0_step="$(grep -nF -- '## Step 0 — confirm the browser server runs' "$REV_CMD" | head -1 | cut -d: -f1)"
   rev0_drv="$(grep -nF -- '## The driver is `product-lead`' "$REV_CMD" | head -1 | cut -d: -f1)"
   if [ -n "$rev0_step" ] && [ -n "$rev0_drv" ] && [ "$rev0_step" -lt "$rev0_drv" ]; then
     ok "sprint review step 0 — the step 0 section precedes the dispatch section (line $rev0_step < $rev0_drv)"
@@ -9020,7 +9065,7 @@ $rev0_export
     ok "sprint review step 0 — neither the rite nor the driver's brief instructs putting the origin in a shell (export, assignment or rc file)"
   fi
 else
-  bad "sprint review step 0 — commands/sprint-review.md or agents/product-lead.md is not readable, so
+  bad "sprint review step 0 — skills/sprint-review/SKILL.md or agents/product-lead.md is not readable, so
       the origin precondition could not be checked at all."
 fi
 
@@ -9066,7 +9111,7 @@ if [ -r "$REV_CMD" ]; then
                   | grep -vE '^/(sprint-review|sprint-retrospective|sprint-planning|autonomy|new-issue|blueprint|agents-configuration|engineering-standards|published-voice|code-review|quality-gates|devops|shell)$' \
                   || true)"
   if [ -n "$rev_routes" ]; then
-    bad "sprint review rite — commands/sprint-review.md appears to carry a hand-written ROUTE LIST:
+    bad "sprint review rite — skills/sprint-review/SKILL.md appears to carry a hand-written ROUTE LIST:
 $rev_routes
       Ground 1 of the refusal this rite satisfied is that a route list rots and a sweep whose list is
       stale reports green over what nobody enumerated. The rite's targets come from the consuming
@@ -9872,7 +9917,8 @@ for oa_clause in \
   'an act or check that only the owner can perform' \
   'one line plus the link to your verdict comment' \
   '`Refs #N` as well as a closing keyword' \
-  'the boundary literal'"'"'s *"what the owner should look at live"* sentence' \
+  'the `owner-check:` line** (#134; it' \
+  'replaced the retired boundary literal'"'"'s *"what the owner should look at live"* sentence' \
   'gh pr view <n> --repo <owner/repo> --json body,closingIssuesReferences' \
   'scan("(?im)^[`*_]*(?:refs?|close[sd]?|fix(?:e[sd])?|resolve[sd]?) #([0-9]+)")' \
   '+ [.closingIssuesReferences[].number])|unique' \

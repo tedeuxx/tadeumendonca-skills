@@ -439,13 +439,10 @@ What that section held, and where each part lives now:
 
 This repo is a **Claude Code plugin + marketplace** — the native way to reuse skills across
 projects. The skill library lives in `skills/`, one directory per skill holding a `SKILL.md`, and the
-**eleven** command files a human types live in `commands/` (`ls commands/` → `autonomy.md blueprint.md
-funnel-review.md handoff.md idea-to-issues.md new-idea.md new-issue.md sprint-planning.md
-sprint-retrospective.md sprint-review.md what-else.md`; ~~seven~~ until the mhw v6.0.0 regeneration added
-three, ~~ten~~ until the v8.0.0 regeneration added `handoff`, mhw#191), carrying **thirteen** non-help
-typed forms — `autonomy on`, `autonomy off`, `new-issue`, `blueprint export`, `blueprint import`,
-`sprint-review`, `sprint-retrospective`, `sprint-planning`, `funnel-review`, `new-idea`,
-`idea-to-issues`, `what-else`, `handoff` — because
+**eight** command files a human types live in `commands/` (`ls commands/` → `autonomy.md blueprint.md handoff.md need-me.md new-issue.md new-prd.md prd-to-issues.md what-else.md`; ~~seven~~ until the mhw v6.0.0 regeneration added
+three, ~~ten~~ until the v8.0.0 regeneration added `handoff`, mhw#191, ~~eleven~~ until the v10.1.0 regeneration made the four rites skills, renamed `new-idea` and `idea-to-issues` to `new-prd` and `prd-to-issues`, and added `need-me`, mhw#218), carrying **ten** non-help
+typed forms (~~thirteen~~ before the four rites became skills) — `autonomy on`, `autonomy off`, `new-issue`,
+`blueprint export`, `blueprint import`, `new-prd`, `prd-to-issues`, `what-else`, `handoff`, `need-me` — because
 `autonomy` and `blueprint` each carry modes and a bare invocation of either only prints help;
 `.claude-plugin/marketplace.json` is the catalog and
 `.claude-plugin/plugin.json` the manifest. **Nothing is published outside this git repo** — the
@@ -514,10 +511,9 @@ not distinguish them.** **Measured on 2026-08-10**, `claude plugin details` on t
 **`Skills (71)`** — the 69 the library held under `skills/` then, **plus the 2 then under `commands/`**,
 counted alike, reachable alike. **Both denominators have moved since** — the library consolidated to 14
 and has since gained one (`jq -r '.skills[]' .claude-plugin/plugin.json | wc -l` → 15, re-run
-2026-09-02) and `commands/` holds 11
-(`ls commands/` → `autonomy.md blueprint.md funnel-review.md handoff.md idea-to-issues.md new-idea.md
-new-issue.md sprint-planning.md sprint-retrospective.md sprint-review.md what-else.md`, re-run 2026-10-19
-after the mhw v8.0.0 regeneration, mhw#191; ~~7~~ at the 2026-09-11 re-run, ~~10~~ after the v6.0.0 one) — so read the 71 as the
+2026-09-02) and `commands/` holds 8
+(`ls commands/` → `autonomy.md blueprint.md handoff.md need-me.md new-issue.md new-prd.md prd-to-issues.md what-else.md`, re-run after the mhw v10.1.0 regeneration, mhw#218; ~~7~~ at the 2026-09-11 re-run, ~~10~~ after the v6.0.0
+one, ~~11~~ after the v8.0.0 one) — so read the 71 as the
 measurement that established the rule, not as today's inventory. **The rule is what survives the
 denominators:** the loader counts both directories alike.
 
@@ -690,7 +686,7 @@ that section kept, is that `AGENTS.md`.** The cut test is unchanged by it. So ea
 obey, or a reading structure for a human?* **Reading structure moved. The obligations stayed, in the
 section immediately below**, which is where they always belonged and never sat.
 
-**What moved, verbatim and with every strike intact:** the skills inventory (**19 skills** at this head) and the one-level
+**What moved, verbatim and with every strike intact:** the skills inventory (**24 skills** at this head, ~~19~~ before the v10.1.0 regeneration) and the one-level
 tree decision (#286), the family-heading history (#182), the consolidation narratives
 (#229/#230/#231), the roster narrative with its layer table, the absorbed-and-retired lists, and all
 six per-skill `| Command | Purpose |` tables. Read it at
@@ -703,8 +699,7 @@ row of a table. `hooks/scripts/inventory-counts.test.sh` requires this file to n
 the first pass of this cut. It is stated here now rather than delegated: what the loop is called is not
 a reading structure, and it does not belong to the catalogue of what each command does.
 
-**One sentence was DELETED rather than moved, because `README.md` already carried it** — *"19 skills,
-one directory each, at one level under `skills/`"* is `README.md:1141`. **The rest is a RELOCATION and
+**One sentence was DELETED rather than moved, because `README.md` already carried it** — *"24 skills, one directory each, at one level under `skills/`"* (~~19~~ before the v10.1.0 regeneration) is `README.md:1141`. **The rest is a RELOCATION and
 not a deduplication**, which is worth saying because the two documents overlap without agreeing: that
 README section carries a **generated** per-skill table (`skill | what it decides | whose domain`,
 written by `hooks/scripts/skills-table.py`, whose third column is a truncated first line of body) and
