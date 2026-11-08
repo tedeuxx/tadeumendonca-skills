@@ -16,7 +16,7 @@ review — rather than just working faster inside an unchanged one. The author's
 **AI-DLC & Agent Harness Engineering**; this repo is it, packaged so it runs somewhere other than his own
 machine. Install it into a repo and Claude gains a dev-loop with gates
 in it: a reviewer that verifies a merge request against a Definition of Done, a hook that
-mechanically refuses irreversible actions, and 19 skills that hand the model one set of conventions
+mechanically refuses irreversible actions, and 24 skills that hand the model one set of conventions
 to follow instead of whatever it would have reached for that session.
 
 The loop is not a proposal — it builds and ships
@@ -36,11 +36,9 @@ three things, and this repository is the middle one:
   built with Vite and TypeScript, the Terraform that provisions CloudFront and S3, the pipeline with
   its gates and its deploy, and the markdown content held in the repository itself.
 - **The customization** — this repository: the personas in `agents/`, the hooks registered in
-  `hooks/hooks.json`, the skill library in `skills/`, the **eleven** command files in `commands/`
-  (`ls commands/` → `autonomy.md blueprint.md funnel-review.md handoff.md idea-to-issues.md new-idea.md
-  new-issue.md sprint-planning.md sprint-retrospective.md sprint-review.md what-else.md`; ~~seven~~ until
-  the mhw v6.0.0 regeneration carried three, ~~ten~~ until the v8.0.0 regeneration carried `handoff`,
-  mhw#191; `autonomy` and
+  `hooks/hooks.json`, the skill library in `skills/`, the **eight** command files in `commands/`
+  (`ls commands/` → `autonomy.md blueprint.md handoff.md need-me.md new-issue.md new-prd.md prd-to-issues.md what-else.md`; ~~seven~~ until
+  the mhw v6.0.0 regeneration carried three, ~~ten~~ until the v8.0.0 regeneration carried `handoff`, mhw#191; ~~eleven~~ until the v10.1.0 regeneration made the four rites skills, renamed `new-idea` and `idea-to-issues` to `new-prd` and `prd-to-issues`, and added `need-me`, mhw#218; `autonomy` and
   `blueprint` each carry modes a human types after the name, so the count of typed forms is larger than
   the count of files and the two must not be conflated — see the resource table below), and the
   methodology ADRs in `docs/adr/`.
@@ -671,13 +669,14 @@ was built to avoid.
 
 <!-- claim id=0004 class=DERIVED -->
 
-**Skills carry the conventions so the model does not re-invent them.** **19 skills + autonomy** —
+**Skills carry the conventions so the model does not re-invent them.** **24 skills + autonomy** —
 typed `autonomy on` or `autonomy off`, never bare, since `commands/autonomy.md` states that a bare
-`/autonomy` *"prints help and does nothing else"* — plus `new-issue`, `blueprint`,
-`sprint-review`, `sprint-retrospective`, `sprint-planning`, `funnel-review`, `new-idea`, `idea-to-issues`,
-`what-else` and `handoff`, across **eleven command files** (`ls commands/` →
-`autonomy.md blueprint.md funnel-review.md handoff.md idea-to-issues.md new-idea.md new-issue.md sprint-planning.md sprint-retrospective.md sprint-review.md what-else.md`).
-~~seven command files~~ — the three added are mhw's, carried by the v6.0.0 regeneration (mhw#191); ~~ten~~ — `handoff` is mhw's too, carried by the v8.0.0 regeneration (mhw#198, mhw#191). **The count of typed forms is larger than the count of files,
+`/autonomy` *"prints help and does nothing else"* — plus `new-issue`, `blueprint`, `new-prd`, `prd-to-issues`, `what-else`, `handoff` and `need-me`, across
+**eight command files** (`ls commands/` →
+`autonomy.md blueprint.md handoff.md need-me.md new-issue.md new-prd.md prd-to-issues.md what-else.md`).
+~~seven command files~~ — the three added are mhw's, carried by the v6.0.0 regeneration (mhw#191); ~~ten~~ — `handoff` is mhw's too, carried by the v8.0.0 regeneration (mhw#198, mhw#191); ~~eleven~~ — the
+v10.1.0 regeneration made `sprint-review`, `sprint-retrospective`, `sprint-planning` and `funnel-review`
+skills (they are invoked by name and counted with the 24), renamed two and added `need-me` (mhw#218). **The count of typed forms is larger than the count of files,
 because `autonomy` and `blueprint` each carry modes, and the two must not be conflated** — this
 README's own resource-table row for **Commands (legacy)** says exactly that, and **this sentence
 conflated them anyway until #387**: it named bare `autonomy` as one of the commands and omitted
@@ -983,9 +982,14 @@ where `quality-assurance` at least *applies* a concrete instance of the concept 
 here even touches this skill's subject at any dispatch. It stays reachable the same way every
 non-preloaded skill is: typed as `/planning-poker`, or via the `Skill` tool on demand.
 
-**2,560,319 B as billed across the eight, 614,481 B distinct — 66.3% of the library (926,413 B across
-19 skills; `find skills -name SKILL.md | xargs wc -c`), and the largest preloads are the content pair's,
-a TIE at 442,074 B between `content-writer` and `content-reviewer`, with `agents-lead` third at 312,434 B.**
+**2,733,370 B as billed across the eight, 674,980 B distinct — 57.6% of the library (1,171,080 B across
+24 skills; `find skills -name SKILL.md | xargs wc -c`), and the largest preloads are the content pair's,
+a TIE at 469,085 B between `content-writer` and `content-reviewer`, with `quality-assurance` third at 337,157 B.**
+~~2,560,319 / 614,481 / 66.3% / 926,413 across nineteen, tie at 442,074 B, `agents-lead` third at 312,434 B~~ —
+**struck (mhw#218's regeneration from mhw v10.1.0)**: the regeneration grew most preloaded skills, added
+`merge-authority` to `quality-assurance`'s list, and carried five skills into the library (the four rites
+that were commands, and `merge-authority`), which is why the share fell while every total rose. Re-derived
+with the same per-persona sum, which returns the struck figures exactly on `origin/main`'s tree.
 ~~2,559,531 / 614,284 / 926,216, `agents-lead` third at 312,237 B~~ — **struck 2026-10-19 (mhw#191)**:
 the regeneration moved from mhw v6.0.0 to v8.0.0 and `scm` grew by 197 B (mhw#206 replaced its
 repository-settings wrapper with the `gh` commands), carried by the four profiles that preload it; re-derived
@@ -997,7 +1001,7 @@ regeneration changed four preload lists (`devops` gave way to `scm` · `ci` · `
 `developer`, `tech-lead` and `quality-assurance`, to `scm` · `ci` · `orchestration` for `agents-lead`;
 `scrum-master` gained `orchestration`) and grew most skills. **The per-persona bullets above are NOT
 re-derived one by one**: their totals and lists describe the tree before the regeneration. At this head the
-script returns `agents-lead` 312,434 · `content-reviewer` 442,074 · `content-writer` 442,074 · `developer` 298,648 · `product-lead` 238,843 · `quality-assurance` 304,488 · `scrum-master` 213,332 · `tech-lead` 308,426 B (~~312,237 · 298,451 · 304,291 · 308,229~~ for the four that carry `scm`, on the v6.0.0 tree), and the per-skill parentheticals are re-derivable with the
+script returned `agents-lead` 312,434 · `content-reviewer` 442,074 · `content-writer` 442,074 · `developer` 298,648 · `product-lead` 238,843 · `quality-assurance` 304,488 · `scrum-master` 213,332 · `tech-lead` 308,426 B at the v8.0.0 head, and returns `agents-lead` 336,315 · `content-reviewer` 469,085 · `content-writer` 469,085 · `developer` 314,180 · `product-lead` 250,378 · `quality-assurance` 337,157 · `scrum-master` 230,589 · `tech-lead` 326,581 B after the v10.1.0 regeneration (~~312,237 · 298,451 · 304,291 · 308,229~~ for the four that carry `scm`, on the v6.0.0 tree), and the per-skill parentheticals are re-derivable with the
 `find … wc -c` command above.
 ~~1,711,001 / 370,634 / 638,007~~ — **struck within this PR's own review round**: the round grew
 `content-publishing` by 99 B, which two briefs carry, so the billed total moved by 198 B and the
@@ -1836,7 +1840,7 @@ by hand:
 | resource type | ships? | where | how it takes effect |
 |---|---|---|---|
 | **Skills** | yes — **15** | `skills/<name>/SKILL.md` — one level, no families since #286 — each declared in `.claude-plugin/plugin.json`'s `skills` array | invoked `/tadeumendonca-skills:<name>`, reachable by the `Skill` tool, preloadable via a persona's `skills:` frontmatter |
-| **Commands (legacy)** | yes — **11 files** (`autonomy`, `new-issue`, `blueprint`, `sprint-review`, `sprint-retrospective`, `sprint-planning`, `funnel-review`, `new-idea`, `idea-to-issues`, `what-else`, `handoff`), derived from `ls commands/` (~~7 files~~ until the mhw v6.0.0 regeneration carried three, ~~10 files~~ until the v8.0.0 regeneration carried `handoff`, mhw#191) — `autonomy` and `blueprint` each carry **three** dispatch rows, so the count of things a human can TYPE is larger than the count of files and the two must not be conflated. *Since the owner's Q2 ruling on mhw#191, `blueprint` is mhw's command: it states `export` and `import` as sections rather than a dispatch table, and a bare invocation asks which one instead of printing help; the three typed forms survive, the `## The three modes` heading below is `autonomy`'s alone.* **The criterion is the dispatch row, not the operating mode** — it is what each command file's own `## The three modes` heading counts, and it is the right unit here because a bare `/autonomy` is a thing a human types: two operating modes (`on`\|`off`, `export`\|`import`) plus the bare form that prints help and does nothing. Each command's *operating* set is separately closed at two, which is what `commands/autonomy.md`'s *"The set is closed at two"* means and is not a second count of the same thing | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
+| **Commands (legacy)** | yes — **8 files** (`autonomy`, `new-issue`, `blueprint`, `new-prd`, `prd-to-issues`, `what-else`, `handoff`, `need-me`), derived from `ls commands/` (~~7 files~~ until the mhw v6.0.0 regeneration carried three, ~~10 files~~ until the v8.0.0 regeneration carried `handoff`, mhw#191, ~~11 files~~ until the v10.1.0 regeneration made the four rites skills, renamed two and added `need-me`, mhw#218) — `autonomy` and `blueprint` each carry **three** dispatch rows, so the count of things a human can TYPE is larger than the count of files and the two must not be conflated. *Since the owner's Q2 ruling on mhw#191, `blueprint` is mhw's command: it states `export` and `import` as sections rather than a dispatch table, and a bare invocation asks which one instead of printing help; the three typed forms survive, the `## The three modes` heading below is `autonomy`'s alone.* **The criterion is the dispatch row, not the operating mode** — it is what each command file's own `## The three modes` heading counts, and it is the right unit here because a bare `/autonomy` is a thing a human types: two operating modes (`on`\|`off`, `export`\|`import`) plus the bare form that prints help and does nothing. Each command's *operating* set is separately closed at two, which is what `commands/autonomy.md`'s *"The set is closed at two"* means and is not a second count of the same thing | `commands/<name>.md` | typed by a human (`argument-hint` is what they see while typing) — otherwise the same invocation mechanics as a skill, see [above](#the-skill-library-whose-domain-each-skill-is-and-what-is-actually-preloaded) |
 | **Agents** | yes — **8 subagent personas** | `agents/*.md` (`developer`, `agents-lead`, `product-lead`, `quality-assurance`, `tech-lead`, `content-writer`, `content-reviewer`, `scrum-master`) | dispatched by name via `Task` |
 | **Hooks** | yes — **`hooks.json` registers 16** | `hooks/hooks.json` → `hooks/scripts/*.sh` | `PreToolUse` (`permission-guard`, `mcp-guard`, `hitl-one-question-guard`), `UserPromptSubmit` (`preflight`), `SessionStart` (`preflight`, `session-wip`, `session-plugin-version`, `cadence-notice`, `worktree-notice`), `SubagentStart` (`dispatch-metrics-start`), `SubagentStop` (`dispatch-metrics-stop`), `Stop` (`zombie-loop-detect`, `orchestrator-tool-census`, `premature-pr-link-detect`, `owed-pr-link-detect`, `closure-artifact-guard`) — automatic, no invocation. **16 registrations over 15 scripts**, re-derived rather than adjusted: `jq '[.hooks[][].hooks[].command]｜{registrations:length, scripts:([.[]｜sub(".*/";"")]｜unique｜length)}' hooks/hooks.json` → `{16, 15}`. ~~`closure-artifact-guard` and `preflight` are each registered twice~~ — **only `preflight` is, since #383 removed `closure-artifact-guard`'s `PreToolUse` arm**; the registration count is still the honest number rather than a file count, and the gap between registrations and scripts is still that one script. **Both figures fell by one at #375**, when `orchestrator-write-guard` was removed — **returned to 16/14 at #374**, a coincidence of arithmetic and not a restoration (the script that left refused an act, the one that arrived only reports one) — **and returned to 16/14 a second time**, after `action-pendency-guard` was built and deleted in one slice. **Both fell again on 2026-09-04 (#383), when `wip-guard` was deleted under the owner's dehydration criterion — and this time nothing arrived to restore the arithmetic.** **That is now FIVE registrations this repo has deleted, and every one was a refusal** — a routing rule the owner ruled a contingency (#375), a preventive control whose false positives its own owner could never have seen, and three in one slice under the dehydration criterion (#383): the WIP overlap guard whose own registry row already recorded that it never reached the failure it was named for, the closure guard's manual-close arm which fired zero times in thirty days, and the dispatch-premise guard, whose object was a wasted subagent context rather than an irreparable act. **The direction is now a policy rather than a series of exceptions**, and the honest summary is that this harness prevents strictly less than it did a week ago and says so in each place rather than in one. **`cadence-notice` (#406 slice C) is the first ARRIVAL since those deletions, and it does not reverse the direction — it continues it.** It refuses nothing: it is a `SessionStart` notice reporting how long it has been since a closing rite last landed an artifact, the same class as its two neighbours on that event. Read the count moving 13 → 14 as *one more reporter*, never as one more control; the number of things this harness can STOP is unchanged. **`worktree-notice` (#437) is the SECOND arrival and continues the same direction for the same reason, stated rather than inherited.** The removing option was priced and declined: a hook that deletes a directory is the sharpest member of the class the owner's standing rule names — *a preventive control whose false positives are unobservable by the person it protects is worse than no control* — and its false positive is an unrecoverable deletion landing before anybody sees anything. A report's errors run the other way and are visible twice over, as a folder on disk and as a line in `git worktree list`. **So the count moves 14 → 15 and the number of things this harness can STOP is unchanged for the second time running. `hitl-one-question-guard` (#538) is the THIRD arrival and deliberately changes that direction: it prevents only the exact, syntactic class `questions | length >= 2`; the prose action-list half remains review-held, so the removed semantic suppression is not recreated. The current count is 16 registrations over 15 scripts.** |
 | **Settings** | yes | `.claude/settings.json` | loaded automatically at session start: `permissions.allow`/`deny`, `extraKnownMarketplaces`, `enabledPlugins` |
@@ -2043,9 +2047,8 @@ distributions do not collide — the repository root stays a Claude Code plugin,
 **The export is generated, never hand-maintained.** `hooks/scripts/kiro-power-build.py` writes it from
 the same `skills/` tree the Claude Code manifest declares, and `hooks/scripts/kiro-power.test.sh`
 re-runs the generator into a temporary directory and diffs it against what is committed — so the two
-trees cannot drift, in either direction, without CI going red. The conversion is not a copy: **none of
-the 19 source skills carries a `name:` key** (`grep -c '^name:' skills/*/SKILL.md` → `0` for all
-nineteen; mhw's sources carry one and the regeneration drops it, mhw#191), because Claude Code derives the identifier from the directory, while Kiro validates
+trees cannot drift, in either direction, without CI going red. The conversion is not a copy: **none of the 24 source skills carries a `name:` key** (`grep -c '^name:' skills/*/SKILL.md` → `0` for all
+twenty-four, ~~nineteen~~ before the v10.1.0 regeneration; mhw's sources carry one and the regeneration drops it, mhw#191), because Claude Code derives the identifier from the directory, while Kiro validates
 `name` **and** `description` in the frontmatter. The generator synthesises it, and rewrites the
 library's relative `../../docs/adr/…` link targets to absolute URLs, which are the only form that still
 resolves once Kiro has copied a skill into `~/.kiro/powers/installed/<power>/` (`getPowerDir()` in the
