@@ -9917,7 +9917,8 @@ for oa_clause in \
   'an act or check that only the owner can perform' \
   'one line plus the link to your verdict comment' \
   '`Refs #N` as well as a closing keyword' \
-  'the boundary literal'"'"'s *"what the owner should look at live"* sentence' \
+  'the `owner-check:` line** (#134; it' \
+  'replaced the retired boundary literal'"'"'s *"what the owner should look at live"* sentence' \
   'gh pr view <n> --repo <owner/repo> --json body,closingIssuesReferences' \
   'scan("(?im)^[`*_]*(?:refs?|close[sd]?|fix(?:e[sd])?|resolve[sd]?) #([0-9]+)")' \
   '+ [.closingIssuesReferences[].number])|unique' \
