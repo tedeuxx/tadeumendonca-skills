@@ -2866,7 +2866,12 @@ skill_stem() {
   esac
 }
 
-ARG_HINT_ALLOWED="autonomy new-issue blueprint sprint-review sprint-retrospective sprint-planning funnel-review"   # the seven the OWNER types; a model-invoked skill has no typed argument
+# ~~ARG_HINT_ALLOWED="autonomy new-issue blueprint sprint-review sprint-retrospective sprint-planning funnel-review"~~
+# The set follows the mhw v10.1.0 regeneration (mhw#218, class M): the four rites became skills under
+# skills/<name>/SKILL.md and mhw carries no argument-hint on them, and mhw added one to `handoff`, whose
+# argument is the fallback objective. Both directions of the arm are unchanged: a member that loses its
+# hint and a non-member that gains one each still redden.
+ARG_HINT_ALLOWED="autonomy new-issue blueprint handoff"   # the four that carry argument-hint; a model-invoked skill has no typed argument
 
 # The frontmatter block, exclusive of its `---` fences. Empty for a file that has none, which is what
 # the presence assertion below reads.
