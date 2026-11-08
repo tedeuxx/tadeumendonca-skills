@@ -557,6 +557,12 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # which mhw added at v7.0.0 (mhw#198): it prints a prompt and the launch line that continue the session
 # in a fresh one. It takes the fallback objective as its argument, so it is typed. It comes from the
 # regeneration, not from an edit here, and is named in both messages below for the same reason.
+# Then 11 → 8 on mhw#218, when the regeneration moved from mhw v8.0.0 to v10.1.0. mhw made the four rites
+# skills (`sprint-review`, `sprint-retrospective`, `sprint-planning` and `funnel-review` now live under
+# skills/<name>/SKILL.md, where the L-blocks and the skill table count them), renamed `new-idea` to
+# `new-prd` and `idea-to-issues` to `prd-to-issues`, and added `need-me` (the owner asks whether he is
+# needed; it gathers what is pending on him). Eleven, minus four, plus one: eight. Every name is in both
+# messages below, so an unannounced ninth, or a rite falling back into commands/, still goes red.
 #
 # THE ASSERTION IS NOT WEAKER FOR HAVING BEEN BUMPED, and that is the whole reason it is a pinned
 # literal rather than a `-ge`. It exists to catch the ACCIDENTAL root command — a skill dropped one
@@ -572,10 +578,10 @@ check_every_occurrence '[0-9]+ subagent personas' "$agents" "personas, EVERY occ
 # So the failure this now catches is a LIBRARY SKILL LANDING IN `commands/` — where it is typed-only,
 # never matched, and absent from every count and table in this file.
 root_cmds=$(find "$ROOT/commands" -maxdepth 1 -name '*.md' -type f | wc -l | tr -d ' ')
-if [ "$root_cmds" -eq 11 ]; then
-  ok "commands/ root — exactly eleven owner-typed commands (autonomy, new-issue, blueprint, sprint-review, sprint-retrospective, sprint-planning, funnel-review, new-idea, idea-to-issues, what-else, handoff), as the docs enumerate"
+if [ "$root_cmds" -eq 8 ]; then
+  ok "commands/ root — exactly eight owner-typed commands (autonomy, new-issue, blueprint, new-prd, prd-to-issues, what-else, handoff, need-me), as the docs enumerate"
 else
-  bad "commands/ root — $root_cmds file(s); the docs enumerate eleven owner-typed commands (autonomy, new-issue, blueprint, sprint-review, sprint-retrospective, sprint-planning, funnel-review, new-idea, idea-to-issues, what-else, handoff).
+  bad "commands/ root — $root_cmds file(s); the docs enumerate eight owner-typed commands (autonomy, new-issue, blueprint, new-prd, prd-to-issues, what-else, handoff, need-me).
       A library skill belongs in skills/<name>/SKILL.md — under commands/ it is absent from every count
       and table here, and from the per-family breakdown a reader actually opens."
 fi
