@@ -8174,8 +8174,13 @@ fi
 
 if [ -r "$MS_AUTONOMY" ]; then
   ms_checked=$((ms_checked + 1))
-  grep -qF -- 'creation and admission then execute without another prompt' "$MS_AUTONOMY" || ms_problems="$ms_problems
-    commands/autonomy.md no longer says creation and admission execute without another prompt"
+  # The needle follows mhw's restatement (class M, mhw#242, carried by the v10.1.0 regeneration): mhw
+  # struck "without another prompt" in this sentence, because the workstation allow list grants neither
+  # python3 as an interpreter nor `gh issue edit`. The arm now pins the route and the honest residual.
+  grep -qF -- 'creation and admission then execute' "$MS_AUTONOMY" || ms_problems="$ms_problems
+    commands/autonomy.md no longer says creation and admission execute through the reviewed routes"
+  grep -qF -- 'so whether they prompt is another settings' "$MS_AUTONOMY" || ms_problems="$ms_problems
+    commands/autonomy.md no longer says whether the routes prompt is another settings layer's answer"
 else
   ms_problems="$ms_problems
     commands/autonomy.md is missing or unreadable; its no-prompt route claim was not checked"
