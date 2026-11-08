@@ -7629,7 +7629,7 @@ RETIRED_CLAUSES
 # `grep -c -F` against its target BEFORE being written here (all returned 1 — a needle written across a
 # line wrap matches nothing and reads exactly like absence), and each was then deleted on its own and
 # the suite re-run.
-RITE_CMD="$ROOT/commands/sprint-retrospective.md"
+RITE_CMD="$ROOT/skills/sprint-retrospective/SKILL.md"
 RITE_DRAIN="$ROOT/commands/autonomy.md"
 RITE_GATE="$ROOT/agents/quality-assurance.md"
 RITE_PRELOAD="$ROOT/skills/agents-configuration/SKILL.md"
@@ -7637,7 +7637,7 @@ RITE_PRELOAD="$ROOT/skills/agents-configuration/SKILL.md"
 # ── 1 · the rite carries its trigger, its mechanism, its artifact shape and all four of its limits ──
 rite_missing=""
 if [ ! -r "$RITE_CMD" ]; then
-  bad "retrospective rite — commands/sprint-retrospective.md is not readable, so NOTHING about the rite was
+  bad "retrospective rite — skills/sprint-retrospective/SKILL.md is not readable, so NOTHING about the rite was
       asserted. The drain's terminal condition points at this file; without it the closing ceremony is
       a promise again, which is the state #355 was filed to end."
 else
@@ -7662,7 +7662,7 @@ else
     missing: \"$rite_needle\""
   done
   if [ -n "$rite_missing" ]; then
-    bad "retrospective rite — a load-bearing clause left commands/sprint-retrospective.md:$rite_missing
+    bad "retrospective rite — a load-bearing clause left skills/sprint-retrospective/SKILL.md:$rite_missing
       Each needle is ONE clause and answers for itself:
         TRIGGER          — the snapshot fires it, the iteration scopes it, the owner still closes it.
                            Collapsing the three is what makes the rite either never fire or fire on a
@@ -7885,7 +7885,7 @@ fi
 rite_path='docs/retrospective/<iteration>/'
 rite_path_missing=""
 rite_path_checked=0
-for rite_path_file in commands/sprint-retrospective.md agents/quality-assurance.md agents/product-lead.md; do
+for rite_path_file in skills/sprint-retrospective/SKILL.md agents/quality-assurance.md agents/product-lead.md; do
   if [ ! -r "$ROOT/$rite_path_file" ]; then
     rite_path_missing="$rite_path_missing
     $rite_path_file — not readable"
@@ -8029,7 +8029,7 @@ MS_GUARD="$ROOT/hooks/scripts/permission-guard.sh"
 MS_SKILL="$ROOT/skills/agents-configuration/SKILL.md"
 MS_WORKFLOW="$ROOT/.github/workflows/docs-test.yml"
 MS_SETTINGS="$ROOT/.claude/settings.json"
-MS_PLANNING="$ROOT/commands/sprint-planning.md"
+MS_PLANNING="$ROOT/skills/sprint-planning/SKILL.md"
 MS_AUTONOMY="$ROOT/commands/autonomy.md"
 ms_problems=""
 ms_checked=0
@@ -8130,10 +8130,10 @@ fi
 if [ -r "$MS_PLANNING" ]; then
   ms_checked=$((ms_checked + 1))
   grep -qF -- 'step 4a and step 4b both execute' "$MS_PLANNING" || ms_problems="$ms_problems
-    commands/sprint-planning.md no longer says both milestone-write steps execute without another prompt"
+    skills/sprint-planning/SKILL.md no longer says both milestone-write steps execute without another prompt"
 else
   ms_problems="$ms_problems
-    commands/sprint-planning.md is missing or unreadable; its no-prompt route claim was not checked"
+    skills/sprint-planning/SKILL.md is missing or unreadable; its no-prompt route claim was not checked"
 fi
 
 if [ -r "$MS_AUTONOMY" ]; then
@@ -8185,14 +8185,14 @@ fi
 # returned 1). Two of them were re-cut after returning 0: this file wraps at 100 columns and a needle
 # spanning a wrap matches nothing while reading exactly like absence — the failure `abf035c` already
 # paid for once on the milestone arm.
-PLAN_CMD="$ROOT/commands/sprint-planning.md"
+PLAN_CMD="$ROOT/skills/sprint-planning/SKILL.md"
 PLAN_DRAIN="$ROOT/commands/autonomy.md"
 PLAN_SM="$ROOT/agents/scrum-master.md"
 
 # ── 1 · the rite states what it does, what it refuses to do, and every limit it ships with ────────
 plan_missing=""
 if [ ! -r "$PLAN_CMD" ]; then
-  bad "planning rite — commands/sprint-planning.md is not readable, so NOTHING about the rite was
+  bad "planning rite — skills/sprint-planning/SKILL.md is not readable, so NOTHING about the rite was
       asserted. The drain's handoff and the retrospective's proposals both point at this file; without
       it, planning is a promise again and the proposals have no consumer, which is the state #378 was
       filed to end."
@@ -8240,7 +8240,7 @@ else
     missing: \"$plan_needle\""
   done
   if [ -n "$plan_missing" ]; then
-    bad "planning rite — a load-bearing clause left commands/sprint-planning.md:$plan_missing
+    bad "planning rite — a load-bearing clause left skills/sprint-planning/SKILL.md:$plan_missing
       Each needle is ONE clause and answers for itself:
         ASSEMBLES        — the rite's whole boundary. Composition is the owner's act (#365); a rite that
                            reads as composing has taken a decision nothing in the tracker will attribute.
@@ -8418,7 +8418,7 @@ fi
 plan_path='docs/planning/<iteration>.md'
 plan_path_missing=""
 plan_path_checked=0
-for plan_path_file in commands/sprint-planning.md agents/scrum-master.md; do
+for plan_path_file in skills/sprint-planning/SKILL.md agents/scrum-master.md; do
   if [ ! -r "$ROOT/$plan_path_file" ]; then
     plan_path_missing="$plan_path_missing
     $plan_path_file — not readable"
@@ -8453,7 +8453,7 @@ fi
 # verdicts, and it is where the ASK/DENY/ALLOW cases for the family live. A green here means the family
 # form is written down, never that it fires.
 plan_guard="$ROOT/hooks/scripts/permission-guard.sh"
-plan_rite="$ROOT/commands/sprint-planning.md"
+plan_rite="$ROOT/skills/sprint-planning/SKILL.md"
 plan_fam_problems=""
 plan_fam_checked=0
 # ── INVERTED 2026-09-04 (#383) ──────────────────────────────────────────────────────────────────
@@ -8474,11 +8474,11 @@ fi
 if [ -r "$plan_rite" ]; then
   plan_fam_checked=$((plan_fam_checked + 1))
   grep -qF -- 'the update route is built.' "$plan_rite" || plan_fam_problems="$plan_fam_problems
-    commands/sprint-planning.md no longer says the check-then-write update route exists."
+    skills/sprint-planning/SKILL.md no longer says the check-then-write update route exists."
   grep -qF -- 'best-effort preflight, never as a lock or CAS.' "$plan_rite" || plan_fam_problems="$plan_fam_problems
-    commands/sprint-planning.md no longer states the update route's race residual."
+    skills/sprint-planning/SKILL.md no longer states the update route's race residual."
   grep -qF -- 'reviewed capabilities reachable without a prompt' "$plan_rite" || plan_fam_problems="$plan_fam_problems
-    commands/sprint-planning.md no longer states the Python family's effective reach."
+    skills/sprint-planning/SKILL.md no longer states the Python family's effective reach."
 fi
 if [ "$plan_fam_checked" -lt 2 ]; then
   bad "planning rite — only $plan_fam_checked of 2 surfaces were readable, so the milestone-family
@@ -8564,11 +8564,11 @@ if [ -r "$plan_rite" ]; then
   plan_desc_checked=$((plan_desc_checked + 1))
   grep -qF -- 'python3 scripts/milestone-create.py "<iteration>" --repo <owner>/<repo> --description-file <path>' "$plan_rite" \
     || plan_desc_problems="$plan_desc_problems
-    commands/sprint-planning.md step 4a no longer calls the file route. The script may still refuse the
+    skills/sprint-planning/SKILL.md step 4a no longer calls the file route. The script may still refuse the
     inline form, but the rite is what a reader copies."
   grep -qF -- '**The ordered body NEVER travels as a shell argument' "$plan_rite" \
     || plan_desc_problems="$plan_desc_problems
-    commands/sprint-planning.md no longer says why the body goes to a file. Without it the call reads
+    skills/sprint-planning/SKILL.md no longer says why the body goes to a file. Without it the call reads
     as an arbitrary preference and the next edit reverts it for brevity."
 fi
 if [ "$plan_desc_checked" -lt 2 ]; then
@@ -8621,7 +8621,7 @@ if [ -r "$plan_rite" ]; then
   plan_pre_checked=$((plan_pre_checked + 1))
   grep -qF -- '**Read it as the state this rite' "$plan_rite" \
     || plan_pre_problems="$plan_pre_problems
-    commands/sprint-planning.md quotes the preload's 'PLANNING is genuinely unbuilt' sentence and no
+    skills/sprint-planning/SKILL.md quotes the preload's 'PLANNING is genuinely unbuilt' sentence and no
     longer marks it as the state this rite CLOSED. Unmarked, the rite's opening argument reads as
     resting on a claim its own merge falsifies."
 fi
@@ -8877,13 +8877,13 @@ fi
 # ONE ARM IS NOT A NEEDLE AND IS THE ONLY MECHANICAL CHECK IN THIS BLOCK: the rite must ship no route
 # list. It is a NEGATIVE assertion over the file's own body, and it is the arm that survives a rewrite
 # of every sentence around it.
-REV_CMD="$ROOT/commands/sprint-review.md"
+REV_CMD="$ROOT/skills/sprint-review/SKILL.md"
 REV_DRIVER="$ROOT/agents/product-lead.md"
 
 # ── 1 · the rite carries the two satisfied grounds, its driver, its axes and its lower bound ──
 rev_missing=""
 if [ ! -r "$REV_CMD" ]; then
-  bad "sprint review rite — commands/sprint-review.md is not readable, so NOTHING about the rite was
+  bad "sprint review rite — skills/sprint-review/SKILL.md is not readable, so NOTHING about the rite was
       asserted. The drain's terminal condition names this file first of three; without it the closing
       ceremonies are a plural with one object again, which is the state #379 was filed to end."
 else
@@ -8906,7 +8906,7 @@ else
     missing: \"$rev_needle\""
   done
   if [ -n "$rev_missing" ]; then
-    bad "sprint review rite — a load-bearing clause left commands/sprint-review.md:$rev_missing
+    bad "sprint review rite — a load-bearing clause left skills/sprint-review/SKILL.md:$rev_missing
       Each needle is ONE clause and answers for itself:
         NOT A GATE / NO RULER — ground 2 of the refusal, and the pair is deliberate: the first states
                            the rule and the second states WHY, and a rule whose reason is dropped is
@@ -8977,7 +8977,7 @@ if [ -r "$REV_CMD" ] && [ -r "$REV_DRIVER" ]; then
     '**Anything on Codex, which is UNMEASURED.**'
   do
     grep -qF -- "$rev0_needle" "$REV_CMD" || rev0_missing="$rev0_missing
-    missing (commands/sprint-review.md): \"$rev0_needle\""
+    missing (skills/sprint-review/SKILL.md): \"$rev0_needle\""
   done
   grep -qF -- '**`SWEEP-ORIGIN-UNBOUND`**, not `FAILED`' "$REV_DRIVER" || rev0_missing="$rev0_missing
     missing (agents/product-lead.md): \"**\`SWEEP-ORIGIN-UNBOUND\`**, not \`FAILED\`\""
@@ -9020,7 +9020,7 @@ $rev0_export
     ok "sprint review step 0 — neither the rite nor the driver's brief instructs putting the origin in a shell (export, assignment or rc file)"
   fi
 else
-  bad "sprint review step 0 — commands/sprint-review.md or agents/product-lead.md is not readable, so
+  bad "sprint review step 0 — skills/sprint-review/SKILL.md or agents/product-lead.md is not readable, so
       the origin precondition could not be checked at all."
 fi
 
@@ -9066,7 +9066,7 @@ if [ -r "$REV_CMD" ]; then
                   | grep -vE '^/(sprint-review|sprint-retrospective|sprint-planning|autonomy|new-issue|blueprint|agents-configuration|engineering-standards|published-voice|code-review|quality-gates|devops|shell)$' \
                   || true)"
   if [ -n "$rev_routes" ]; then
-    bad "sprint review rite — commands/sprint-review.md appears to carry a hand-written ROUTE LIST:
+    bad "sprint review rite — skills/sprint-review/SKILL.md appears to carry a hand-written ROUTE LIST:
 $rev_routes
       Ground 1 of the refusal this rite satisfied is that a route list rots and a sweep whose list is
       stale reports green over what nobody enumerated. The rite's targets come from the consuming
