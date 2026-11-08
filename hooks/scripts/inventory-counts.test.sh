@@ -2396,6 +2396,10 @@ else
 fi
 
 # ── ARM F: the title GATE's three clauses are PRESENT in the ruler, and so is its ORDERING ──────────
+# FOUR CLAUSES SINCE mhw#218 (ruled 2026-10-24), carried by the mhw v10.1.0 regeneration: the ordering
+# needle follows mhw's restatement ("a gate of ~~three~~ four clauses runs AHEAD of", wrapped there,
+# so the needle is the half that sits on one line) and clause 4 gets its own needle, so a rewrite that
+# drops the new clause goes red here the way dropping any of the first three does.
 # Same argument as arm E and deliberately built on its shape rather than a new one: `content-reviewer`
 # repairs on a clause it can QUOTE, so a rule meant to bind has to survive as a quotable clause. The
 # title gate (ratified 2026-09-16) is the clearest case in the file, because its whole substance is an
@@ -2411,7 +2415,8 @@ fi
 # other. It asserts the gate is WRITTEN and ordered ahead of the six — never that anyone applied it.
 cp_gate_missing=""
 for cp_lit in \
-  'a gate of three clauses runs AHEAD of them' \
+  'four clauses runs AHEAD of' \
+  'It must name the PRODUCT the reader holds by the end of the piece' \
   'The subject is the READER'"'"'s situation, never the author'"'"'s identity' \
   'stops connecting' \
   'RUN AN EXPERIMENT' \
