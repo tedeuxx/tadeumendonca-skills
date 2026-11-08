@@ -3884,7 +3884,10 @@ fi
 # admin-workspace record. Two of the sites qualify the number ("of the workstation repository", "mhw");
 # the ones in the regenerated scm and provisioning skills do not, which is mhw-side text this plugin does
 # not rewrite.
-FOREIGN_ADR_NUMBERS="0016 0023 0037 0038 0043 0046 0049"
+# 0035 joined on mhw#218: the v10.1.0 regeneration's content-publishing skill cites the workstation
+# repository's blueprint-reconciliation record by number, qualified as "the workstation's" in the
+# sentence itself. This repository has no record of that number.
+FOREIGN_ADR_NUMBERS="0016 0023 0035 0037 0038 0043 0046 0049"
 
 foreign_problems=""
 for num in $FOREIGN_ADR_NUMBERS; do
