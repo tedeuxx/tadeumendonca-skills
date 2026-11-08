@@ -9011,17 +9011,21 @@ rev0_missing=""
 if [ -r "$REV_CMD" ] && [ -r "$REV_DRIVER" ]; then
   for rev0_needle in \
     'HARNESS_SWEEP_ORIGIN' \
-    '## Step 0 — confirm the browser bound BEFORE anything is derived or dispatched (#525)' \
+    '## Step 0 — confirm the browser server runs, attached, BEFORE anything is derived or dispatched (#525)' \
     '**The probe reads the SERVER, not the environment.**' \
-    '| **`SWEEP-ORIGIN-UNBOUND`** |' \
+    '| **`SWEEP-BROWSER-UNREADY`** |' \
     '### `FAILED` is reserved for failures AFTER step 0 held' \
     '**Anything on Codex, which is UNMEASURED.**'
   do
     grep -qF -- "$rev0_needle" "$REV_CMD" || rev0_missing="$rev0_missing
     missing (skills/sprint-review/SKILL.md): \"$rev0_needle\""
   done
-  grep -qF -- '**`SWEEP-ORIGIN-UNBOUND`**, not `FAILED`' "$REV_DRIVER" || rev0_missing="$rev0_missing
-    missing (agents/product-lead.md): \"**\`SWEEP-ORIGIN-UNBOUND\`**, not \`FAILED\`\""
+  # The step 0 needles follow mhw's restatement (class M, mhw#224 decision D8, carried by the v10.1.0
+  # regeneration): the browser has no origin bound, step 0 now confirms the server runs attached, and
+  # its stop literal is SWEEP-BROWSER-UNREADY. The driver's brief strikes SWEEP-ORIGIN-UNBOUND and
+  # carries the new literal, so the needle moves to it rather than reading the struck line.
+  grep -qF -- '**`SWEEP-BROWSER-UNREADY`**, not `FAILED`' "$REV_DRIVER" || rev0_missing="$rev0_missing
+    missing (agents/product-lead.md): \"**\`SWEEP-BROWSER-UNREADY\`**, not \`FAILED\`\""
   if [ -n "$rev0_missing" ]; then
     bad "sprint review step 0 — a load-bearing clause is gone:$rev0_missing
       The variable, the server-not-environment probe, the literal, the FAILED reservation and the
@@ -9029,10 +9033,10 @@ if [ -r "$REV_CMD" ] && [ -r "$REV_DRIVER" ]; then
       dispatched past a skipped step 0 still does not write FAILED for a missing origin.
       If a clause was deliberately reworded, move its needle here in the same commit."
   else
-    ok "sprint review step 0 — the rite names HARNESS_SWEEP_ORIGIN, probes the server argv, stops with SWEEP-ORIGIN-UNBOUND and reserves FAILED; the driver carries the same literal"
+    ok "sprint review step 0 — the rite names HARNESS_SWEEP_ORIGIN, probes the server argv, stops with SWEEP-BROWSER-UNREADY and reserves FAILED; the driver carries the same literal"
   fi
 
-  rev0_step="$(grep -nF -- '## Step 0 — confirm the browser bound' "$REV_CMD" | head -1 | cut -d: -f1)"
+  rev0_step="$(grep -nF -- '## Step 0 — confirm the browser server runs' "$REV_CMD" | head -1 | cut -d: -f1)"
   rev0_drv="$(grep -nF -- '## The driver is `product-lead`' "$REV_CMD" | head -1 | cut -d: -f1)"
   if [ -n "$rev0_step" ] && [ -n "$rev0_drv" ] && [ "$rev0_step" -lt "$rev0_drv" ]; then
     ok "sprint review step 0 — the step 0 section precedes the dispatch section (line $rev0_step < $rev0_drv)"
