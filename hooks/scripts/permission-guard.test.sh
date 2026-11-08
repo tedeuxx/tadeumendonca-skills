@@ -420,7 +420,7 @@ check_agent DENY  "tadeumendonca-skills:quality-assurance" "own APPROVE-PENDING-
 # says which class shipped without a pre-publication check. Both the ALLOW and the near-miss are
 # asserted, because the whole risk of adding a literal is that the matcher gets loose while doing it.
 write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE-BOUNDARY"
-check_agent ALLOW "tadeumendonca-skills:quality-assurance" "APPROVE-AND-MERGE-BOUNDARY clears the merge — the gate merges the boundary class" "gh pr merge 149 --merge"
+check_agent DENY "tadeumendonca-skills:quality-assurance" "APPROVE-AND-MERGE-BOUNDARY no longer clears the merge — a retired literal since mhw#134; APPROVE-AND-MERGE clears both classes" "gh pr merge 149 --merge"
 # THE ANTI-GLOB CASE. `APPROVE-AND-MERGE*` would have satisfied both literals above in one pattern and
 # would ALSO have cleared every future drift that happens to share the prefix. This fixture is the one
 # that fails if anyone reaches for that shortcut; it cannot be caught by the two positive cases.
@@ -570,7 +570,7 @@ check_agent DENY  "tadeumendonca-skills:quality-assurance" "cause 4b — an EMPT
 write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE"
 check_agent ALLOW "tadeumendonca-skills:quality-assurance" "clearance control — a readable APPROVE-AND-MERGE still merges after #341" "gh pr merge 149 --merge"
 write_gh_fixture "stubbed-head" "APPROVE-AND-MERGE-BOUNDARY"
-check_agent ALLOW "tadeumendonca-skills:quality-assurance" "clearance control — a readable APPROVE-AND-MERGE-BOUNDARY still merges after #341" "gh pr merge 149 --merge"
+check_agent DENY "tadeumendonca-skills:quality-assurance" "retired-literal control — a readable APPROVE-AND-MERGE-BOUNDARY is refused since mhw#134, readable or not" "gh pr merge 149 --merge"
 
 # THE NAMED, UNFIXED CAUSE — `jq` ABSENT. This asserts the CURRENT, MEASURED behaviour, which is NOT
 # what #341 decided, and it is written as an assertion rather than a comment so that it goes RED the

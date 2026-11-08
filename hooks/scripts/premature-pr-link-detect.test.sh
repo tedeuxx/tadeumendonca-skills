@@ -163,7 +163,8 @@ human_turn "go"
 assistant_text "PR is up: $URL"
 pr_fixture OPEN abc123 "$checks_green" APPROVE-AND-MERGE-BOUNDARY
 out="$(run_hook)"
-if [ -z "$out" ]; then ok 'silent on APPROVE-AND-MERGE-BOUNDARY'; else bad 'silent on APPROVE-AND-MERGE-BOUNDARY' "got: $out"; fi
+# Since mhw#134 the literal is retired, so no clearance stands behind the link and the hook speaks.
+if [ -n "$out" ]; then ok 'fires on the retired APPROVE-AND-MERGE-BOUNDARY (mhw#134)'; else bad 'fires on the retired APPROVE-AND-MERGE-BOUNDARY (mhw#134)' 'got empty'; fi
 teardown
 setup
 human_turn "go"

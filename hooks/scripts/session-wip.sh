@@ -120,7 +120,13 @@ verdict_suffix() {
     # verdicted boundary PR read as a gate that posted a literal its own persona does not define.
     # `inventory-counts.test.sh` now asserts this list against `agents/quality-assurance.md`'s own
     # "Your verdict — exactly one of" section, so the next literal added there cannot land here late.
-    APPROVE-AND-MERGE|APPROVE-AND-MERGE-BOUNDARY) : ;;  # reviewed and clear; the listing has nothing to add
+    # RETIRED 2026-11-02 (mhw#134, carried by the mhw v10.1.0 regeneration): `APPROVE-AND-MERGE-BOUNDARY` left
+    # the gate's vocabulary. `APPROVE-AND-MERGE` clears both classes, the verdict's `owner-check:` line carries
+    # what the boundary literal used to signal, and the `merge-authority` contract lists the old literal under
+    # `retired-verdicts`, "refused by every reader". So it no longer clears anything here.
+    # It now falls to `*)` below and is reported as a gate defect, which is what a retired literal is.
+    # ~~APPROVE-AND-MERGE|APPROVE-AND-MERGE-BOUNDARY) : ;;~~
+    APPROVE-AND-MERGE) : ;;  # reviewed and clear; the listing has nothing to add
     # `APPROVE-EXECUTOR-BLOCKED` (#374) is outstanding for a DIFFERENT reason from the other two and
     # the listing says which, because the repair differs: REQUEST-CHANGES routes to the builder,
     # APPROVE-PENDING-HUMAN wants a decision the owner holds, and this one wants the owner to press a
