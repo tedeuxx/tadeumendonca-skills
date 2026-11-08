@@ -4028,12 +4028,14 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
            | if length == 0 then "none" else .[-1] end
       end' 2>/dev/null || true)"
         # ── END duplicated from session-wip.sh's verdict_suffix() ──
-        # TWO merge-authorising literals since 2026-08-22, not one (ADR-0002 amendment #16, ADR-0004's
-        # "Rule 7c accepts two merge-authorising literals" section). The owner retired the
+        # ~~TWO merge-authorising literals since 2026-08-22, not one (ADR-0002 amendment #16, ADR-0004's
+        # "Rule 7c accepts two merge-authorising literals" section).~~ ONE since 2026-11-02 (mhw#134): the
+        # boundary literal is retired and refused below. What survives of 2026-08-22: the owner retired the
         # hold-for-owner rule on boundary-class merges — with a single environment there is no preview
         # to hold for, so holding the merge delayed publication without producing anything to inspect.
-        # `APPROVE-AND-MERGE-BOUNDARY` is the boundary class's own clearance: the gate merges it and
-        # the owner reviews live, after deploy.
+        # ~~`APPROVE-AND-MERGE-BOUNDARY` is the boundary class's own clearance~~ — `APPROVE-AND-MERGE` now
+        # clears the boundary class too, the gate merges it, and the owner reviews live, after deploy,
+        # guided by the verdict's `owner-check:` line.
         #
         # THE LITERALS ARE SPELLED OUT, NEVER GLOBBED. `APPROVE-AND-MERGE*` would match both — and
         # would also match `APPROVE-AND-MERGED`, `APPROVE-AND-MERGE-LATER` and every future drift,
@@ -4074,7 +4076,7 @@ if printf '%s' "$bare" | grep -Eq "(^|[^[:alnum:]_])gh${gh_repo_flag}[[:space:]]
           # opposite; the naming is the first line of defence in every reader that has not been written
           # yet. The pair above is still spelled out and still never globbed.
           APPROVE-EXECUTOR-BLOCKED)
-            deny "Blocked: the verdict at this PR's current head is APPROVE-EXECUTOR-BLOCKED, which is the one literal that says the gate cleared this diff and COULD NOT execute the merge — so the remaining act was handed to the owner by exception (#374). This denial is not a finding about your review and not a hold: rule 7b already confirms you are quality-assurance, and the four holds are unaffected. It means a merge is being attempted under a verdict that records the opposite. If you are NOW able to merge, post a fresh APPROVE-AND-MERGE or APPROVE-AND-MERGE-BOUNDARY against this same head and run this again — the head-scoped verdict is the record, and re-posting is how it moves. If you are still blocked, do not retry: hand the owner the PR and say which layer refused you." ;;
+            deny "Blocked: the verdict at this PR's current head is APPROVE-EXECUTOR-BLOCKED, which is the one literal that says the gate cleared this diff and COULD NOT execute the merge — so the remaining act was handed to the owner by exception (#374). This denial is not a finding about your review and not a hold: rule 7b already confirms you are quality-assurance, and the four holds are unaffected. It means a merge is being attempted under a verdict that records the opposite. If you are NOW able to merge, post a fresh APPROVE-AND-MERGE against this same head and run this again — the head-scoped verdict is the record, and re-posting is how it moves. If you are still blocked, do not retry: hand the owner the PR and say which layer refused you." ;;
           '') deny "Blocked: the merge floor read a response for this PR but could not determine its CURRENT head, so it cannot tell whether any verdict applies to the code that is there now — and since #341 an unreadable verdict denies rather than passing. Either 'gh pr view' returned a payload with no headRefOid (a partial or error response), or parsing it failed. Re-run 'gh pr view <ref> --json headRefOid,comments' by hand and see what comes back; if the PR is real and reachable, this is a finding about the tooling, not about your review. The unblock is manual and the owner's." ;;
           *) deny "Blocked: the last quality-assurance verdict on this PR's CURRENT head is '${qa_verdict}', which is neither APPROVE-AND-MERGE (the one clearance literal for the safe and the boundary class since mhw#134) nor any other literal that clears a merge — so this merge does not match its own review record (ADR-0004). This is not a caller problem: rule 7b already confirms you are quality-assurance. It means either the head moved since that verdict was posted, the verdict was never re-posted after a later round, or the literal drifted from the one 'Your verdict — exactly one of' in your own brief defines. Post a correct verdict against the CURRENT head before merging — or, if this is one of the four holds that survive (an expansion of your own authority, a harness diff with no agents-lead marker, anything in iac/, or a lens ESCALATE), never call this tool: APPROVE-PENDING-HUMAN and hand the go/no-go to the human." ;;
         esac

@@ -34,8 +34,9 @@
 # emphatically not an owner summons, it routes to the builder. Reading the literal is checkable;
 # reading "which of four holds applied" is not.
 #
-# `APPROVE-AND-MERGE` and `APPROVE-AND-MERGE-BOUNDARY` are clearances the gate acts on itself, and
-# since #374 they are **silent here rather than flagged** — see the narrowing at the `case` below.
+# `APPROVE-AND-MERGE` ~~and `APPROVE-AND-MERGE-BOUNDARY` are clearances~~ is the one clearance the gate
+# acts on itself (the boundary literal is retired since 2026-11-02, mhw#134, and now falls to `*)`), and
+# since #374 it is **silent here rather than flagged** — see the narrowing at the `case` below.
 #
 # ── DETECTION, NEVER PREVENTION — the same terms `zombie-loop-detect.sh` uses ───────────────────
 # This is a `Stop` hook. It fires AFTER the text has already reached the owner. It cannot un-send a
