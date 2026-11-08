@@ -1076,9 +1076,11 @@ system with everything this section describes.
 ### What actually shipped, and how it differs from the design below — read this first
 
 **`hooks/scripts/permission-guard.sh` rule 7c** (right after rule 7b's caller-identity check) denies
-`gh pr merge` when the last `quality-assurance` verdict comment on the PR does not read one of its
-**two merge-authorising literals** — `APPROVE-AND-MERGE` or `APPROVE-AND-MERGE-BOUNDARY` — **for the
-PR's current `headRefOid`**. It is real, it runs on every `gh pr merge`
+`gh pr merge` when the last `quality-assurance` verdict comment on the PR does not read ~~one of its
+**two merge-authorising literals** — `APPROVE-AND-MERGE` or `APPROVE-AND-MERGE-BOUNDARY` —~~ its
+**one merge-authorising literal**, `APPROVE-AND-MERGE` (since 2026-11-08, mhw#134 via the mhw v10.1.0
+regeneration, PR #580: `APPROVE-AND-MERGE-BOUNDARY` is retired and rule 7c denies it with its own
+message), **for the PR's current `headRefOid`**. It is real, it runs on every `gh pr merge`
 tool call in every session, and it is mutation-tested (`hooks/scripts/permission-guard.test.sh`, section
 "rule 7c") against every row of the table below that it actually implements.
 
@@ -1169,7 +1171,8 @@ more than it does:
   lost.
 - **The literal is hardcoded, not read from the persona file at runtime.** The design below says the hook
   "reads each persona's canonical verdict set from the persona file at runtime." Rule 7c checks the
-  literals directly (`APPROVE-AND-MERGE`, and `APPROVE-AND-MERGE-BOUNDARY` since 2026-08-23), matching what `session-wip.sh` already does and what this file's
+  literals directly (`APPROVE-AND-MERGE`~~, and `APPROVE-AND-MERGE-BOUNDARY` since 2026-08-23~~; the
+  boundary literal it accepted from 2026-08-23 is refused since PR #580), matching what `session-wip.sh` already does and what this file's
   own later "Which layer carries a control" section (absorbed above) already reasons is correct for a
   **closed set the author wrote**, rather than a caller-controlled grammar — so this is not a shortcut
   taken against the design's advice; it is the design's advice, updated by later reasoning in the same
@@ -3482,10 +3485,11 @@ therefore not *route it* but:
 | `REQUEST-CHANGES` | `developer` / `agents-lead` | yes — no merge | no |
 | `APPROVE-PENDING-HUMAN` | **the owner**, in the browser | yes — outside every layer here | **no**, and it is the only literal whose executor no layer can block |
 | `APPROVE-AND-MERGE` | `quality-assurance` **alone** | rule 7b denies every other `agent_type` | **yes** |
-| `APPROVE-AND-MERGE-BOUNDARY` | `quality-assurance` **alone** | identical path | **yes** |
+| `APPROVE-AND-MERGE-BOUNDARY` | ~~`quality-assurance` **alone**~~ | ~~identical path~~ | ~~**yes**~~ retired, mhw#134: rule 7c denies it; re-post as `APPROVE-AND-MERGE` (PR #580) |
 
-> **The two verdicts that authorise the gate to act are the two that can strand the loop; the verdict
-> that hands the act to the owner cannot.**
+> **The ~~two verdicts~~ verdict that ~~authorise~~ authorises the gate to act ~~are the two~~ is the one
+> that can strand the loop; the verdict that hands the act to the owner cannot.** *(Struck 2026-11-08,
+> PR #580: one authorising literal since mhw#134.)*
 
 ### The decision: a fifth literal, `APPROVE-EXECUTOR-BLOCKED`
 
@@ -7585,3 +7589,41 @@ Bad:
 - Whether a rule moved to the record without a copy in the brief is held by review, not by any check.
 - The four blocks no longer have a sibling copy, and their identity obligations are struck. What the two
   repositories share is the rules, and nothing compares them.
+
+## Amendment 2026-11-08 — rule 7c accepts one merge-authorising literal; the boundary literal is retired (mhw#134, PR #580)
+
+### Context
+
+The workstation method retired `APPROVE-AND-MERGE-BOUNDARY` (mhw#134). `APPROVE-AND-MERGE` now clears
+the safe and the boundary class alike, and the verdict's `owner-check:` line carries what the boundary
+literal used to signal. The `merge-authority` skill, carried here by the mhw v10.1.0 regeneration (PR
+#580), lists the old literal under `retired-verdicts`, "refused by every reader", and the regenerated
+`agents/quality-assurance.md` no longer defines it. Rule 7c still cleared a merge on it.
+
+### Decision
+
+- Rule 7c clears on `APPROVE-AND-MERGE` alone, and denies `APPROVE-AND-MERGE-BOUNDARY` with a message
+  naming the repair (re-post the verdict as `APPROVE-AND-MERGE` at the current head).
+- `session-wip.sh` and `premature-pr-link-detect.sh` stop treating it as a clearance; it falls to their
+  `*)` arm.
+- The present-tense statements above that rule 7c accepts two literals are struck in place: the section
+  headed *What actually shipped, and how it differs from the design below — read this first*, its
+  hardcoded-literal bullet, and the `APPROVE-AND-MERGE-BOUNDARY` row of the table headed *Which verdicts
+  can strand the loop — read at head*. The 2026-08-23 history in ADR-0002 (amendment #16) is not edited.
+
+### Consequences
+
+Good:
+
+- The floor agrees with the gate's brief and the method's contract: no literal clears a merge that the
+  gate can no longer post. The change narrows the floor; no clearing arm is added.
+- `permission-guard.test.sh` asserts the denial (two cases), mutation-checked: re-adding the literal to
+  the accept arm turns the suite 1369/0 into 1367/2.
+
+Bad:
+
+- A pull request whose verdict at its head still reads `APPROVE-AND-MERGE-BOUNDARY` needs a fresh
+  verdict before it can merge.
+- Hook comments in `owed-pr-link-detect.sh` and `zombie-loop-detect.sh` still call the literal a
+  clearance. Their behaviour is unaffected (neither lists it in a case arm); the wording is left for a
+  later slice.
