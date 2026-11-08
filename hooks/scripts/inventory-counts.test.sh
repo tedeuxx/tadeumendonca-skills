@@ -973,6 +973,19 @@ while IFS= read -r hit; do
   tok=$(printf '%s' "$hit" | sed -E 's/^.*:([A-Za-z0-9]+)[- ]leads?$/\1/' | tr '[:upper:]' '[:lower:]')
   [ "$tok" = "$lead_word" ] && continue
   [ "$tok" = "$lead_files" ] && continue
+  # ONE NAMED EXEMPTION, carried by the mhw v10.1.0 regeneration (class M). mhw's retrospective rite
+  # heads its step 6 "reviewed by three leads (#131)" and its item 2 names them: `tech-lead`,
+  # `product-lead` and `agents-lead`. That sentence counts agents-lead, which this arm deliberately
+  # does not, so it is a different count rather than a stale one, and it is mhw text this repository
+  # does not rewrite. The exemption holds only while the same file still names all three, so it
+  # cannot outlive its subject and go on excusing a real stale count.
+  case "$hit" in
+    "$ROOT/skills/sprint-retrospective/SKILL.md":*:three\ leads)
+      grep -qF -- 'reviewed by three leads (#131)' "$ROOT/skills/sprint-retrospective/SKILL.md" \
+        && grep -qF -- '`tech-lead`, `product-lead` and `agents-lead` each review the draft' \
+             "$ROOT/skills/sprint-retrospective/SKILL.md" \
+        && continue ;;
+  esac
   stale_leads="$stale_leads
     ${hit#"$ROOT"/}"
 done < <(
