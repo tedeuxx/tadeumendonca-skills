@@ -1174,7 +1174,7 @@ no slash, no glob, no duplicate or same-path alias, and every identifier resolvi
 **It does not, and cannot, assert the silence itself** — it reads the same tree the loader reads and is
 not the loader, so it catches a broken reference rather than a broken loader.
 
-The library: 19 skills, one directory each, at one level under `skills/`.
+The library: 24 skills, one directory each, at one level under `skills/`.
 
 **The table below is GENERATED — its second column is each skill's own first line of body, written by
 `hooks/scripts/skills-table.py`. The AUTHORED per-skill catalogue is
@@ -1200,6 +1200,8 @@ green that cannot redden for the reason it exists.
 | `documentation-standard` | Documentation — the general standard and the ADR practice | `developer` (Part I, general docs) · `tech-lead` · `agents-lead` — Part II, ADR practice split by domain (#223) |
 | `engineering-standards` | Apply the owner's engineering standards — the two tiers, the twelve principles, and the few rules | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `frontend` | Frontend (React SPA) | `developer` |
+| `funnel-review` | Run the funnel review for the period the owner named after this skill's name (default: the active | the main session, on the owner's invocation · `product-lead`, which holds the browser the collection step needs — a rite that was `commands/funnel-review.md` until mhw made the rites skills |
+| `merge-authority` | Merge authority — the canonical contract | `quality-assurance` — preloaded; the canonical merge contract `agents-configuration` projects (mhw#195) |
 | `orchestration` | Orchestration: the review route, the loop-mode contract, how to ask | the main session (orchestrator) · `agents-lead` · `scrum-master` — the review route, the loop-mode contract and the ask rules (mhw#176) |
 | `planning-poker` | Planning Poker — consensus estimation, and what it is actually for | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `provisioning` | Provision infrastructure for any `<project>` repo. Pick the loop model first (`/agents-configuration`); | `developer` · `tech-lead` · `quality-assurance` — preloaded by all three since mhw split `devops` by capability (mhw#97) |
@@ -1207,6 +1209,9 @@ green that cannot redden for the reason it exists.
 | `quality-gates` | Quality gates — the CI/CD policy, and where each gate sits | `product-lead` · `tech-lead` · `agents-lead` · `quality-assurance` |
 | `scm` | Run the source-control capability for any `<project>` repo. Pick the repo's loop model first; branching, | `developer` · `agents-lead` · `tech-lead` · `quality-assurance` — preloaded by all four since mhw split `devops` by capability (mhw#97) |
 | `shell` | Apply this working-files and shell-command discipline in any `<project>` repo, for any persona dispatched | `product-lead` · `tech-lead` · `agents-lead` · `developer` · `quality-assurance` · `content-writer` · `content-reviewer` |
+| `sprint-planning` | Run the planning rite for the iteration the owner named when he invoked this skill: the text | the main session, on the owner's invocation · `scrum-master`, which ranks the assembled pool — a rite that was `commands/sprint-planning.md` until mhw made the rites skills |
+| `sprint-retrospective` | Run the retrospective rite for the iteration the owner named after this skill's name (default: the | the main session, on the owner's invocation, consulting each persona that ran — a rite that was `commands/sprint-retrospective.md` until mhw made the rites skills |
+| `sprint-review` | Run the sprint review for the iteration the owner named after this skill's name (default: the active | the main session, on the owner's invocation · `product-lead`, which holds the browser — a rite that was `commands/sprint-review.md` until mhw made the rites skills |
 **Three things the table shows rather than asserts.** The builder is the only persona holding a build
 skill — `backend`, `frontend`, `cloud-infrastructure` — because conventions exist for building, and one
 persona builds. `documentation-standard` is the only skill that splits between personas, and it splits

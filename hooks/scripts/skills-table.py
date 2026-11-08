@@ -77,13 +77,18 @@ WIELDER = {
     "documentation-standard": "`developer` (Part I, general docs) · `tech-lead` · `agents-lead` — Part II, ADR practice split by domain (#223)",
     "engineering-standards": JUDGES,
     "frontend": DEVELOPER,
+    "funnel-review": "the main session, on the owner's invocation · `product-lead`, which holds the browser the collection step needs — a rite that was `commands/funnel-review.md` until mhw made the rites skills",
+    "merge-authority": "`quality-assurance` — preloaded; the canonical merge contract `agents-configuration` projects (mhw#195)",
     "orchestration": "the main session (orchestrator) · `agents-lead` · `scrum-master` — the review route, the loop-mode contract and the ask rules (mhw#176)",
     "planning-poker": JUDGES,
     "provisioning": "`developer` · `tech-lead` · `quality-assurance` — preloaded by all three since mhw split `devops` by capability (mhw#97)",
     "published-voice": "`content-writer` · `content-reviewer` — the pair it was extracted for (#317)",
     "quality-gates": JUDGES,
     "scm": "`developer` · `agents-lead` · `tech-lead` · `quality-assurance` — preloaded by all four since mhw split `devops` by capability (mhw#97)",
-    "shell": "`product-lead` · `tech-lead` · `agents-lead` · `developer` · `quality-assurance` · `content-writer` · `content-reviewer`",
+    "sprint-planning": "the main session, on the owner's invocation · `scrum-master`, which ranks the assembled pool — a rite that was `commands/sprint-planning.md` until mhw made the rites skills",
+    "sprint-retrospective": "the main session, on the owner's invocation, consulting each persona that ran — a rite that was `commands/sprint-retrospective.md` until mhw made the rites skills",
+    "sprint-review": "the main session, on the owner's invocation · `product-lead`, which holds the browser — a rite that was `commands/sprint-review.md` until mhw made the rites skills",
+    "shell":"`product-lead` · `tech-lead` · `agents-lead` · `developer` · `quality-assurance` · `content-writer` · `content-reviewer`",
 }
 
 # A skill with no entry above is unallocated, and that is information rather than an error: an unused
