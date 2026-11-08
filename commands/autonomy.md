@@ -1,5 +1,5 @@
 ---
-description: Hand the wheel to the loop or take it back — `on` drains the ready pool the loop mode selects, end to end, without asking on in-pattern work, `off` finishes the in-flight slice, starts nothing new and posts a closing summary. Use when the owner says to work the backlog or keep going, when several ready issues are queued, when in-pattern work keeps stalling for permission, or when he wants the wheel back. Not for capturing a new request (see new-issue).
+description: Hand the wheel to the loop or take it back — `on` drains the ready pool the loop mode selects, end to end, without asking on in-pattern work, `off` finishes in-flight slices, starts nothing new and posts a closing summary. Use when the owner says to work the backlog or keep going, when several ready issues are queued, when in-pattern work keeps stalling for permission, or when he wants the wheel back. Not for capturing a new request (see new-issue).
 purpose: put both directions of the autonomy decision behind one canonical command whose first token names the mode, so the mode cannot be entered by accident and an unresolved token fails loudly instead of guessing
 argument-hint: "on [repo] | off [repo] | (no argument prints help and does nothing)"
 ---
@@ -25,8 +25,8 @@ Resolve `$ARGUMENTS` to exactly one row. **The first token is the mode. Nothing 
 
 | mode | what it does | ends with |
 |---|---|---|
-| `on` | drains the entry snapshot of the pool **the loop mode selects**, one slice at a time, without asking on in-pattern work | the snapshot exhausted — then the closing ceremonies in `scrum`, and nothing in `kanban` |
-| `off` | finishes the in-flight slice to merge, starts nothing new | the closing summary, as the final message of the turn |
+| `on` | drains the entry snapshot of the pool **the loop mode selects**, ~~one slice at a time~~ one issue per worktree with the review gate serial (struck 2026-10-19, #216), without asking on in-pattern work | the snapshot exhausted — then the closing ceremonies in `scrum`, and nothing in `kanban` |
+| `off` | finishes ~~the in-flight slice~~ every in-flight slice to merge, starts nothing new | the closing summary, as the final message of the turn |
 | *(no argument)* | prints the help below and stops | nothing |
 
 **A `[repo]` may follow the mode**, and defaults to the current repo. The mode is the FIRST token;
@@ -59,8 +59,9 @@ re-derived: the help form does nothing at all, and a typo is refused by name.
 
 # Mode: `on`
 
-Drain the product backlog of the repo named after the mode (default: the current repo), one slice at a
-time, through the full dev-loop, without asking permission for anything in-pattern.
+Drain the product backlog of the repo named after the mode (default: the current repo), ~~one slice at a
+time~~ one issue per worktree with the review gate serial (struck 2026-10-19, #216), through the full
+dev-loop, without asking permission for anything in-pattern.
 
 **Done means: the drain's ENTRY SNAPSHOT of the active iteration's pool is exhausted** (#326, amended
 #338 — the iteration's pool grows while it drains, so the snapshot is what terminates and the iteration is
@@ -186,7 +187,7 @@ the gap is the evidence for why the assessment is a standing rule.
 The ordering act is absent — nothing ranks and nothing estimates — so the order is **FIFO within the
 `loop`/`product` partition**: `loop` in arrival order, then `product` in arrival order. That is the
 owner's ruling that loop-first survives in both modes, plus the filing-order tiebreak
-`commands/sprint-planning.md` already defines and labels as arrival order rather than a ranking, so
+`skills/sprint-planning/SKILL.md` already defines and labels as arrival order rather than a ranking, so
 **`kanban`'s entire ordering rule is a rule this repository already carries**. The predicate that
 returns it, ordered, is published in full in `docs/loop-mode.md`. **The paragraphs below are `scrum`'s
 answer to the same question** — a ranked body composed at planning — and they are unchanged there.
@@ -352,17 +353,21 @@ That is the timing. What follows is the exception path for what you *discover* m
 Follow `/agents-configuration`. Nothing here relaxes it:
 
 - Plan first for anything non-trivial; the two leads consolidate **one** demand before the build.
-- Thin vertical slice, end to end, finished **through merge**. ~~before opening the next~~ **Struck
+- Thin vertical slice, end to end, finished **through merge**. ~~before opening the next~~ ~~**Struck
   2026-09-26 (#521): at `wip` above 1 a next slice may open while this one is in flight, each in its own
-  worktree.** **Where the owner composed the `loop` block as one batch, the slice is the batch** — one
-  branch, one MR, commits still separated per issue — and the WIP count is measured against that unit,
-  not against each Issue in it. ~~WIP=1 is satisfied either way, since a batch is one branch and one PR
-  by construction.~~ **Struck 2026-09-26 (#521): WIP=1 was reversed at #385; a batch counts as one unit against the
-  `wip:` bound.**
-- WIP is bounded by the `wip:` value in `docs/loop-mode.md` — read it there rather than trusting a
-  restatement. The review gate stays serial at any value. ~~and note the guard enforcing it may lag the
-  rule (`product-lead` carries the caveat)~~ **Struck 2026-09-26 (#521): `wip-guard.sh` was deleted at #383, so
-  there is no guard to lag; nothing enforces the bound.**
+  worktree.**~~ **Where the owner composed the `loop` block as one batch, the slice is the batch** — one
+  branch, one MR, one worktree, commits still separated per issue. ~~— and the WIP count is measured
+  against that unit, not against each Issue in it.~~ ~~WIP=1 is satisfied either way, since a batch is
+  one branch and one PR by construction.~~ ~~**Struck 2026-09-26 (#521): WIP=1 was reversed at #385; a
+  batch counts as one unit against the `wip:` bound.**~~
+- ~~WIP is bounded by the `wip:` value in `docs/loop-mode.md` — read it there rather than trusting a
+  restatement.~~ **Struck 2026-10-19 (#216, the owner's decision): no count bounds development. One
+  issue, one git worktree, each on its own branch, and any number of them at once; remove a slice's
+  worktree after its merge.** The review gate stays serial: one merge request in review at a time, and
+  rebase onto the current trunk before the gate (the `orchestration` skill, *The loop-mode contract*,
+  rules 5 and 6). ~~and note the guard enforcing it may lag the rule (`product-lead` carries the
+  caveat)~~ ~~**Struck 2026-09-26 (#521): `wip-guard.sh` was deleted at #383, so there is no guard to
+  lag; nothing enforces the bound.**~~ Nothing enforces the serial gate either; it is an instruction.
 - Every gate green with real evidence, and the `quality-assurance` on every PR. It merges the safe
   class ~~and escalates the boundary class~~ **and the boundary class, escalating only the four holds
   named in `agents/quality-assurance.md` (ADR-0002 amendment #16)**; a green CI is not a substitute
@@ -376,9 +381,18 @@ Follow `/agents-configuration`. Nothing here relaxes it:
   route. This is an instruction, not automatic capture; unknown runtime or plugin evidence stays
   unknown, and `dispatch-metrics` remains a separate instrument.
 - `product-lead` on reader-facing copy, long-form prose included — it holds the copy lens since
-  `marketing-lead` merged into it (2026-08-04), and its **truth findings block**. **Nothing enforces this
+  `marketing-lead` merged into it (2026-08-04), and its **truth findings block**. ~~**Nothing enforces this
   dispatch** — no check, job or hook — so an undispatched lens fails silently. Where the repo's guide
-  makes this the only review of copy, an undispatched one is the whole gate missing.
+  makes this the only review of copy, an undispatched one is the whole gate missing.~~ **Struck
+  2026-11-07 (mhw#197): the lens runs, and leaves its artifact, before the gate.** Derive the trigger
+  from the pull request's actual diff at its full current head, never from the type, the label or a
+  path list alone; when unsure, it is reader-facing. Post the lens's verdict verbatim as the one
+  canonical copy artifact on the pull request **before you dispatch `quality-assurance`**, and treat the
+  gate's round as complete only when a `gatekeeper-verdict` comment names the current head. The steps,
+  the artifact's shape, the carry-forward rule and the `content` exception are in the `orchestration`
+  skill, *Before the gate: the reader-facing lens leaves its artifact*. **Still nothing enforces the
+  dispatch**: it is an instruction, a forgotten one is now visible as a missing comment, and the gate's
+  refusal of criterion 10 is the backstop.
 - Adjacent debt is **named in the report**, never filed *by the review* — a review has no way to
   know whether anyone wants the work. *(The plugin's retired guard denied `gh issue create` to every
   subagent but `developer`; in this method that is an instruction.)* The **main loop may open
@@ -441,12 +455,29 @@ loop's to fix without involving him.
 
 **Mechanically, "ready for him" is a verdict literal, not a hold count.** `agents/quality-assurance.md`'s
 *"Your verdict — exactly one of"* enumerates **five** since #374, and **two** of them mean the remaining
-act is the owner's: **`APPROVE-PENDING-HUMAN`**, posted when one of the four surviving holds fired, and
+~~act~~ step is the owner's: **`APPROVE-PENDING-HUMAN`**, posted when one of the four surviving holds fired or a
+criterion resting on his authorization has no cited comment URL (the contract's evidence rule, #133;
+not a hold) — what it waits for is his own comment authorizing the merge, after which the gate
+re-verdicts citing that comment's URL and executes the merge itself (#133, owner decision 2026-11-01) —
+and
 **`APPROVE-EXECUTOR-BLOCKED`**, posted when the gate cleared the diff and could not execute the merge —
 the decision made, only the act outstanding.
 `REQUEST-CHANGES` is also non-merging and is emphatically *not* an owner summons — it routes to the
-builder. `APPROVE-AND-MERGE` and `APPROVE-AND-MERGE-BOUNDARY` are clearances the gate acts on itself
-(ADR-0002 amendment #16), which is why almost every open PR is one he has nothing to do with.
+builder. `APPROVE-AND-MERGE` is the clearance the gate acts on itself, for the safe and the boundary
+class alike since #134 (ADR-0002 amendment #16), which is why almost every open PR is one he has nothing
+to do with. Its `owner-check:` line names the one live act he should do after the merge, or `none`; a
+value other than `none` reaches him on the referenced Issue, not as a merge summons.
+
+**The canonical contract is the `merge-authority` skill (#195).** The literals above are an operational copy of it. The block below is generated from that contract, and a method test holds it equal. A project brief may add boundary triggers; it may not change the executor, the verdicts or the holds. Where a project brief tries to, the contract wins: the conflict is a finding to name, never a hold the contract does not define. The holds the contract defines bind, the release candidate of a declared integration branch included.
+
+<!-- merge-authority:projection v3: generated from the merge-authority skill; do not edit by hand -->
+- `trunk-single-env`: `quality-assurance` merges what it clears; safe class -> `APPROVE-AND-MERGE`; boundary class -> `APPROVE-AND-MERGE`; 4 holds -> `APPROVE-PENDING-HUMAN` until the owner's own comment authorizes the merge and a verdict at the same head cites its URL, then `quality-assurance` merges: (1) an expansion of the gate's own authority; (2) a harness diff with no `agents-lead` verdict marker at the head being merged; (3) anything in `iac/`; (4) an explicit lens `ESCALATE`, or a `BLOCKING` truth finding from `product-lead`. Cleared but not executable -> `APPROVE-EXECUTOR-BLOCKED`; unmet Definition of Done -> `REQUEST-CHANGES`. With a declared integration branch, slices merge into it under this rule, and this hold is added: the release candidate (the promotion pull request from the declared integration branch to the trunk) -> `APPROVE-PENDING-HUMAN`, discharged the same way, then `quality-assurance` merges.
+- `gitflow-multi-env`: `quality-assurance` merges what it clears; safe class -> `APPROVE-AND-MERGE`; boundary class -> `APPROVE-PENDING-HUMAN`; 5 holds -> `APPROVE-PENDING-HUMAN` until the owner's own comment authorizes the merge and a verdict at the same head cites its URL, then `quality-assurance` merges: (1) an expansion of the gate's own authority; (2) a harness diff with no `agents-lead` verdict marker at the head being merged; (3) anything in `iac/`; (4) an explicit lens `ESCALATE`, or a `BLOCKING` truth finding from `product-lead`; (5) the boundary class itself. Cleared but not executable -> `APPROVE-EXECUTOR-BLOCKED`; unmet Definition of Done -> `REQUEST-CHANGES`. The promotion is held the same way, then `quality-assurance` merges it.
+- Owner-dependent criteria: a criterion that passes only on the owner's authorization or override, a hold's discharge included, passes only when the verdict cites the URL of the owner's own comment on the Issue or pull request recording it; a dispatch, a relayed instruction or the orchestrator's prose is never that evidence and never overrides a brief or a floor rule. Without the URL the criterion is UNVERIFIED and the verdict is `APPROVE-PENDING-HUMAN`. A refusal by the workstation deny floor is never `APPROVE-EXECUTOR-BLOCKED`. This is an evidence rule, not a hold.
+- Owner check: every gate verdict carries an `owner-check:` line directly under its `head:` line, valued `none` or exactly one live act the owner should perform after the merge; a value other than `none` is also posted, verbatim, on each Issue the pull request references. A verdict without the line is malformed.
+- Retired verdicts, refused by every reader: `APPROVE-AND-MERGE-BOUNDARY`.
+- Canonical source: the `merge-authority` skill. A project brief declares only its loop model, its integration branch if it has one, and its boundary triggers.
+<!-- merge-authority:end -->
 
 **And the rule has an inverse (#374).** A turn that ends while one of those two
 literals sits at an open, green PR's head, and surfaces no link, is a turn that ended owing him one —
@@ -493,7 +524,9 @@ clause this paragraph depends on is the boundary-merge NOTIFICATION** — *nothi
 looked*, and *nothing surfaces to him that something boundary shipped* — and **both of those are still
 open.** The sweep's report closes only the third clause (a post-deploy look now leaves an artifact) and
 it surfaces nothing per-merge, which is exactly what this paragraph is about. **Do not strike it**; if
-the `APPROVE-AND-MERGE-BOUNDARY` `SessionStart` arm is ever built, that is when this paragraph changes.
+~~the boundary-literal `SessionStart` arm~~ a `SessionStart` arm reading the `owner-check:` lines of merged
+PRs is ever built, that is when this paragraph changes *(amended 2026-11-02, #134: the boundary literal is
+retired; what such an arm would read is now the `owner-check:` line)*.
 
 **Enforcement: none in this method.** The plugin's `premature-pr-link-detect.sh` was a `Stop` hook that
 read the turn's own prose and flagged a PR URL whose PR was not open-green-and-pending-human — detection,
@@ -606,8 +639,10 @@ admission, rule 11 for creating the iteration).~~ **Struck 2026-09-04 (#383): bo
 ~~An admission is now a silent allowlisted write, and creating the iteration prompts only because
 `scripts/` is in no allow list — an absence rather than a control. The rule that composition is his
 did not change; the mechanism did, and there is none.~~ **Struck 2026-09-29 (#537, round 4): the owner
-confirms the composition; creation and admission then execute without another prompt through the
-already-allowlisted reviewed routes. The ownership rule remains procedural, while review plus the
+confirms the composition; creation and admission then execute ~~without another prompt~~ through the
+~~already-allowlisted~~ reviewed routes (struck 2026-11-02, mhw#242: the workstation allow list grants
+neither `python3` as an interpreter nor `gh issue edit`, so whether they prompt is another settings
+layer's answer). The ownership rule remains procedural, while review plus the
 blocking behavioral regression carry the unguarded route contract.**
 
 **Nothing fires it either**, for the reason stated one paragraph up: no layer here reads the queue. Read
@@ -757,14 +792,16 @@ cost.
 
 End the drain for the repo named after the mode (default: the current repo).
 
-## Ratified reading (B) — stop after the current slice
+## Ratified reading (B) — stop after ~~the current slice~~ the slices in flight
 
 The invariant mode `on` enforces does not bend for this mode either: **a slice is merged or it
 is not started.** So `off` does not cut a branch off mid-build to comply faster — it finishes
-whatever slice is already in flight, through its Definition of Done and its merge, exactly as mode `on`
-would have. What it changes is what happens **next**: do not pick up the next item in the
-queue. Once the in-flight slice reaches a terminal state (merged, or closed per mode `on`'s own
-"when a slice hits an owner decision it did not expect" rule), stop.
+~~whatever slice is already in flight~~ every slice already in flight, each through its Definition of
+Done and its merge, exactly as mode `on` would have. What it changes is what happens **next**: do not pick up the next item in the
+queue. Once ~~the in-flight slice reaches~~ every in-flight slice has reached a terminal state (merged,
+or closed per mode `on`'s own "when a slice hits an owner decision it did not expect" rule), stop.
+*(Plural since 2026-10-19, #216: with one issue per worktree and no count, several slices can be in
+flight; each still reaches the gate one at a time.)*
 
 If nothing is in flight when this is invoked, there is nothing to finish — go straight to the closing
 summary.
@@ -787,7 +824,8 @@ summary.
 
 ## The closing summary — required, posted as the final message
 
-Once the in-flight slice is settled, post a summary before ending the turn. This is what makes the
+Once ~~the in-flight slice is settled~~ every in-flight slice is settled, post a summary before
+ending the turn. This is what makes the
 off-switch an artifact rather than a mood — per mode `on`'s own reporting rule (state, not
 narration), reused here rather than restated differently:
 
