@@ -2962,8 +2962,12 @@ else
   # words. 120 is below anything that can carry an act, an object and a `Use when`; 500 is above the
   # longest written. They catch an empty stub and a pasted paragraph. They cannot catch a bad sentence
   # of the right size, and are not intended to.
+  # ~~DESC_MAX=500~~ — the ceiling follows mhw's own (class M, mhw#218's v10.1.0 regeneration): mhw's
+  # renderer test bounds a description at 1024 characters, the harness's limit, and mhw's v10.1.0
+  # descriptions run to 756 (`commands/handoff.md`). 500 was "above the longest written" here and is
+  # no longer; the floor of 120 and the one-physical-line rule are unchanged.
   DESC_MIN=120
-  DESC_MAX=500
+  DESC_MAX=1024
 
   l1_problems=""
   l2_problems=""
