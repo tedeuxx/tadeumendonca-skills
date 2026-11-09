@@ -148,22 +148,13 @@
       "Bash(rm -r -f:*)",
       "Bash(rm -f -r:*)"
     ],
-    "additionalDirectories": [
-      "/Users/tadeumen/git-reps/tadeumendonca.io/tadeumendonca-io"
-    ],
     "ask": [
       "Edit(.claude/**)"
+    ],
+    "additionalDirectories": [
+      "/Users/tadeumen/git-reps/tadeumendonca.io/tadeumendonca-io"
     ]
   },
-  "extraKnownMarketplaces": {
-    "tadeumendonca": {
-      "source": {
-        "source": "github",
-        "repo": "tedeuxx/tadeumendonca-skills"
-      }
-    }
-  },
-  "enabledPlugins": {
-    "tadeumendonca-skills@tadeumendonca": true
-  }
+  "enabledPlugins": {},
+  "extraKnownMarketplaces": {}
 }
